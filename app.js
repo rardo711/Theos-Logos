@@ -137,13 +137,21 @@ class TheologicalStudyApp {
             document.documentElement.classList.add('dark-mode');
             document.body.classList.add('dark-mode');
         }
+        this.updateThemeColor();
     }
 
     toggleDarkMode() {
         this.darkMode = !this.darkMode;
         document.documentElement.classList.toggle('dark-mode');
         document.body.classList.toggle('dark-mode');
+        this.updateThemeColor();
         this.saveToStorage();
+    }
+
+    updateThemeColor() {
+        const metas = document.querySelectorAll('meta[name="theme-color"]');
+        const color = this.darkMode ? '#1a1028' : '#e8e0f0';
+        metas.forEach(meta => meta.setAttribute('content', color));
     }
 
     // ===================================

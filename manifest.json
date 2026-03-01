@@ -4,8 +4,8 @@
   "description": "Personal Bible study application with Reformed, Patristic, and comparative theological resources",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#0071e3",
+  "background_color": "#e8e0f0",
+  "theme_color": "#e8e0f0",
   "orientation": "portrait-primary",
   "icons": [
     {
