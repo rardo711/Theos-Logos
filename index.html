@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Bible Study">
-    <meta name="theme-color" content="#1a1a2e">
-    <title>Theological Study</title>
+    <meta name="apple-mobile-web-app-title" content="THEOS LGOS">
+    <meta name="theme-color" content="#c75480" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#8a3458" media="(prefers-color-scheme: dark)">
+    <title>THEOS LGOS</title>
 
     <!-- App Icons -->
     <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -20,30 +21,27 @@
     <!-- Main Header -->
     <header class="main-header">
         <div class="header-content">
-            <h1 class="app-title">Theological Study</h1>
-            <div class="header-actions">
-                <button id="darkModeToggle" class="icon-btn" aria-label="Toggle dark mode">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </button>
-                <button id="menuToggle" class="icon-btn" aria-label="Toggle menu">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
+            <button id="menuToggle" class="icon-btn header-icon-btn" aria-label="Toggle menu">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <h1 class="app-title">THEOS LGOS</h1>
+            <button id="darkModeToggle" class="icon-btn header-icon-btn" aria-label="Toggle dark mode">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
         </div>
     </header>
 
-    <!-- Navigation Tabs -->
-    <nav class="tab-navigation">
-        <button class="tab-btn active" data-tab="passage">Passage</button>
-        <button class="tab-btn" data-tab="commentary">Commentary</button>
-        <button class="tab-btn" data-tab="notes">Notes</button>
-        <button class="tab-btn" data-tab="bookmarks">Bookmarks</button>
+    <!-- Sub-tabs for Study section (Bible / Commentary toggle) -->
+    <nav class="sub-tab-navigation" id="studySubTabs">
+        <button class="sub-tab-btn active" data-subtab="passage">Bible</button>
+        <button class="sub-tab-btn" data-subtab="commentary">Commentary</button>
+        <button class="sub-tab-btn" data-subtab="aisearch">AI Search</button>
     </nav>
 
     <!-- Main Content Area -->
@@ -64,8 +62,8 @@
                 </div>
 
                 <div class="translation-selector">
-                    <label for="translationSelect" style="font-size: 0.875rem; color: var(--text-secondary); margin-right: 0.5rem;">Translation:</label>
-                    <select id="translationSelect" class="select-input" style="max-width: 200px;">
+                    <label for="translationSelect">Translation:</label>
+                    <select id="translationSelect" class="select-input">
                         <option value="kjv">KJV (King James)</option>
                         <option value="esv">ESV (English Standard)</option>
                         <option value="lsb">LSB (Legacy Standard)</option>
@@ -245,6 +243,86 @@
             </div>
         </section>
 
+        <!-- AI Search Tab -->
+        <section id="aisearchTab" class="content-section">
+            <div class="aisearch-container">
+
+                <!-- API Key Setup -->
+                <div class="aisearch-setup">
+                    <div class="gemini-logo-row">
+                        <svg class="gemini-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14 2C14 2 10 9 2 14C10 19 14 26 14 26C14 26 18 19 26 14C18 9 14 2 14 2Z" fill="url(#geminiGrad)"/>
+                            <defs>
+                                <linearGradient id="geminiGrad" x1="2" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#4285F4"/>
+                                    <stop offset="50%" stop-color="#9B59B6"/>
+                                    <stop offset="100%" stop-color="#E91E63"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <h3 class="aisearch-title">Gemini AI Commentary Search</h3>
+                    </div>
+                    <p class="aisearch-desc">Search across all commentaries using natural language. Powered by Google Gemini (free tier).</p>
+
+                    <div id="geminiKeyForm" class="gemini-key-form">
+                        <div class="form-group">
+                            <label for="geminiApiKeyInput">Gemini API Key</label>
+                            <div class="key-input-row">
+                                <input type="password" id="geminiApiKeyInput" class="form-input" placeholder="Paste your Gemini API key here...">
+                                <button id="saveGeminiKeyBtn" class="btn btn-primary">Save</button>
+                            </div>
+                            <p class="text-muted" style="font-size: 0.78rem; margin-top: 0.4rem;">
+                                Get a free key at <strong>aistudio.google.com</strong> — 15 req/min, 1M tokens/day
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="geminiKeyStatus" class="gemini-key-status hidden">
+                        <span class="key-status-dot"></span>
+                        <span id="geminiKeyStatusText">API key saved</span>
+                        <button id="changeGeminiKeyBtn" class="btn-link">Change key</button>
+                    </div>
+                </div>
+
+                <!-- Search Interface -->
+                <div class="aisearch-interface">
+                    <div class="aisearch-search-bar">
+                        <textarea
+                            id="geminiSearchInput"
+                            class="gemini-search-textarea"
+                            rows="3"
+                            placeholder="Ask a theological question or topic&#10;e.g. 'What do the commentators say about justification by faith?'&#10;e.g. 'How is predestination explained across traditions?'"></textarea>
+                        <div class="aisearch-bar-footer">
+                            <div class="ai-tradition-filters">
+                                <span class="filter-label">Traditions:</span>
+                                <label class="filter-chip"><input type="checkbox" value="reformed" class="ai-tradition-filter" checked><span>Reformed</span></label>
+                                <label class="filter-chip"><input type="checkbox" value="patristic" class="ai-tradition-filter" checked><span>Patristic</span></label>
+                                <label class="filter-chip"><input type="checkbox" value="catholic" class="ai-tradition-filter"><span>Catholic</span></label>
+                                <label class="filter-chip"><input type="checkbox" value="orthodox" class="ai-tradition-filter"><span>Orthodox</span></label>
+                                <label class="filter-chip"><input type="checkbox" value="mainline" class="ai-tradition-filter"><span>Mainline</span></label>
+                            </div>
+                            <button id="geminiSearchBtn" class="btn btn-primary gemini-search-btn">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:0.3rem;">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                Search
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Results -->
+                    <div id="geminiResults" class="gemini-results">
+                        <div class="placeholder-message">
+                            <p>Ask a theological question to search across all commentaries.</p>
+                            <p class="text-muted">Gemini will synthesize the most relevant entries and cite its sources.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
         <!-- Notes Tab -->
         <section id="notesTab" class="content-section">
             <div class="notes-container">
@@ -367,6 +445,180 @@
             </div>
         </div>
     </div>
+
+    <!-- Drawer Overlay -->
+    <div id="drawerOverlay" class="drawer-overlay hidden"></div>
+
+    <!-- Slide-out Drawer Menu -->
+    <aside id="drawerMenu" class="drawer-menu">
+        <div class="drawer-header">
+            <h2 class="drawer-title">Settings</h2>
+            <button id="drawerClose" class="drawer-close-btn" aria-label="Close menu">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <div class="drawer-body">
+            <!-- Appearance Section -->
+            <div class="drawer-section">
+                <h3 class="drawer-section-title">Appearance</h3>
+                <div class="drawer-item">
+                    <div class="drawer-item-label">
+                        <svg class="drawer-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <span>Dark Mode</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="drawerDarkModeToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="drawer-item">
+                    <div class="drawer-item-label">
+                        <svg class="drawer-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <polyline points="4 7 4 4 20 4 20 7"></polyline>
+                            <line x1="9" y1="20" x2="15" y2="20"></line>
+                            <line x1="12" y1="4" x2="12" y2="20"></line>
+                        </svg>
+                        <span>Font Size</span>
+                    </div>
+                    <div class="font-size-controls">
+                        <button id="fontSizeDown" class="font-size-btn">A-</button>
+                        <span id="fontSizeLabel" class="font-size-value">16</span>
+                        <button id="fontSizeUp" class="font-size-btn">A+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reading Section -->
+            <div class="drawer-section">
+                <h3 class="drawer-section-title">Reading</h3>
+                <div class="drawer-item">
+                    <div class="drawer-item-label">
+                        <svg class="drawer-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        <span>Default Translation</span>
+                    </div>
+                    <select id="drawerTranslation" class="drawer-select">
+                        <option value="kjv">KJV</option>
+                        <option value="esv">ESV</option>
+                        <option value="lsb">LSB</option>
+                    </select>
+                </div>
+                <button id="dailyVerseBtn" class="drawer-action-item">
+                    <div class="drawer-item-label">
+                        <svg class="drawer-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        <span>Daily Verse</span>
+                    </div>
+                    <svg class="drawer-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Data Section -->
+            <div class="drawer-section">
+                <h3 class="drawer-section-title">Data</h3>
+                <button id="drawerExportBtn" class="drawer-action-item">
+                    <div class="drawer-item-label">
+                        <svg class="drawer-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Export All Data</span>
+                    </div>
+                    <svg class="drawer-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+                <button id="drawerClearBtn" class="drawer-action-item drawer-action-danger">
+                    <div class="drawer-item-label">
+                        <svg class="drawer-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        <span>Clear All Data</span>
+                    </div>
+                    <svg class="drawer-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- AI Section -->
+            <div class="drawer-section">
+                <h3 class="drawer-section-title">AI Integration</h3>
+                <div class="drawer-item drawer-item-stacked">
+                    <div class="drawer-item-label">
+                        <svg class="drawer-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"></path>
+                        </svg>
+                        <span>Gemini API Key</span>
+                    </div>
+                    <div class="drawer-ai-key-row">
+                        <input type="password" id="drawerGeminiKeyInput" class="drawer-input" placeholder="Paste API key...">
+                        <button id="drawerSaveGeminiKeyBtn" class="btn btn-primary" style="font-size:0.8rem;padding:0.35rem 0.75rem;">Save</button>
+                    </div>
+                    <p class="text-muted" style="font-size:0.75rem;margin:0.3rem 0 0;">Free key at aistudio.google.com</p>
+                </div>
+            </div>
+
+            <!-- About Section -->
+            <div class="drawer-section">
+                <h3 class="drawer-section-title">About</h3>
+                <div class="drawer-about">
+                    <div class="drawer-about-logo">&#920;&#923;</div>
+                    <p class="drawer-about-name">THEOS LGOS</p>
+                    <p class="drawer-about-version">Version 1.0</p>
+                    <p class="drawer-about-desc">Personal theological study companion with Reformed, Patristic, and comparative resources.</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Bottom Floating Navigation Bar -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="bottom-nav-btn active" data-section="study">
+            <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+            <span class="bottom-nav-label">Study</span>
+        </button>
+        <button class="bottom-nav-btn" data-section="notes">
+            <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            <span class="bottom-nav-label">Notes</span>
+        </button>
+        <button class="bottom-nav-btn" data-section="bookmarks">
+            <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span class="bottom-nav-label">Bookmarks</span>
+        </button>
+    </nav>
 
     <script src="app.js"></script>
 </body>

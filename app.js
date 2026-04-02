@@ -13,10 +13,13 @@ class TheologicalStudyApp {
         this.selectedTranslation = 'kjv'; // Default translation
         this.commentaries = []; // Commentary database
         this.enabledTraditions = ['reformed', 'patristic']; // Default traditions
+        this.fontSize = 16; // Default font size
+        this.drawerOpen = false;
 
         // API Keys (get free keys at respective websites)
         this.esvApiKey = '948f99e1f43d00f0d3fef28825fb24022c09a127'; // ESV: https://api.esv.org/
         this.apiBibleKey = ''; // API.Bible: https://scripture.api.bible/ (for future use)
+        this.geminiApiKey = ''; // Gemini: https://aistudio.google.com/
 
         this.init();
     }
@@ -34,6 +37,7 @@ class TheologicalStudyApp {
         this.renderBookmarks();
         this.updateTagFilter();
         this.setupTraditionFilters();
+        this.initGeminiUI();
     }
 
     // ===================================
@@ -48,12 +52,17 @@ class TheologicalStudyApp {
             this.darkMode = JSON.parse(localStorage.getItem('darkMode')) || false;
             this.currentPassage = JSON.parse(localStorage.getItem('currentPassage')) || null;
             this.selectedTranslation = localStorage.getItem('selectedTranslation') || 'kjv';
+            this.fontSize = parseInt(localStorage.getItem('fontSize')) || 16;
+            this.geminiApiKey = localStorage.getItem('geminiApiKey') || '';
 
             // Set translation selector
             const translationSelect = document.getElementById('translationSelect');
             if (translationSelect) {
                 translationSelect.value = this.selectedTranslation;
             }
+
+            // Apply font size
+            this.applyFontSize();
         } catch (error) {
             console.error('Error loading from storage:', error);
             this.showNotification('Error loading saved data', 'error');
@@ -68,6 +77,10 @@ class TheologicalStudyApp {
             localStorage.setItem('darkMode', JSON.stringify(this.darkMode));
             localStorage.setItem('currentPassage', JSON.stringify(this.currentPassage));
             localStorage.setItem('selectedTranslation', this.selectedTranslation);
+            localStorage.setItem('fontSize', this.fontSize.toString());
+            if (this.geminiApiKey) {
+                localStorage.setItem('geminiApiKey', this.geminiApiKey);
+            }
         } catch (error) {
             console.error('Error saving to storage:', error);
             this.showNotification('Error saving data', 'error');
@@ -82,9 +95,36 @@ class TheologicalStudyApp {
         // Dark Mode Toggle
         document.getElementById('darkModeToggle').addEventListener('click', () => this.toggleDarkMode());
 
-        // Tab Navigation
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+        // Drawer Menu
+        document.getElementById('menuToggle').addEventListener('click', () => this.openDrawer());
+        document.getElementById('drawerClose').addEventListener('click', () => this.closeDrawer());
+        document.getElementById('drawerOverlay').addEventListener('click', () => this.closeDrawer());
+
+        // Drawer Settings
+        document.getElementById('drawerDarkModeToggle').addEventListener('change', (e) => {
+            if (e.target.checked !== this.darkMode) this.toggleDarkMode();
+        });
+        document.getElementById('fontSizeDown').addEventListener('click', () => this.changeFontSize(-1));
+        document.getElementById('fontSizeUp').addEventListener('click', () => this.changeFontSize(1));
+        document.getElementById('drawerTranslation').addEventListener('change', (e) => {
+            this.changeTranslation(e.target.value);
+            document.getElementById('translationSelect').value = e.target.value;
+        });
+        document.getElementById('dailyVerseBtn').addEventListener('click', () => this.loadDailyVerse());
+        document.getElementById('drawerExportBtn').addEventListener('click', () => { this.exportAllData(); this.closeDrawer(); });
+        document.getElementById('drawerClearBtn').addEventListener('click', () => this.confirmClearData());
+
+        // Bottom Navigation
+        document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = e.currentTarget;
+                this.switchSection(target.dataset.section);
+            });
+        });
+
+        // Sub-tab Navigation (Bible / Commentary)
+        document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.switchSubTab(e.target.dataset.subtab));
         });
 
         // Translation Selection
@@ -113,6 +153,15 @@ class TheologicalStudyApp {
         document.getElementById('importNotesBtn').addEventListener('click', () => document.getElementById('importNotesFile').click());
         document.getElementById('importNotesFile').addEventListener('change', (e) => this.importNotes(e));
 
+        // Gemini AI Search
+        document.getElementById('saveGeminiKeyBtn').addEventListener('click', () => this.saveGeminiApiKey());
+        document.getElementById('changeGeminiKeyBtn').addEventListener('click', () => this.showGeminiKeyForm());
+        document.getElementById('geminiSearchBtn').addEventListener('click', () => this.geminiSearchCommentaries());
+        document.getElementById('geminiSearchInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) this.geminiSearchCommentaries();
+        });
+        document.getElementById('drawerSaveGeminiKeyBtn').addEventListener('click', () => this.saveGeminiApiKeyFromDrawer());
+
         // Collections
         document.getElementById('createCollectionBtn').addEventListener('click', () => this.showCollectionModal());
         document.getElementById('saveCollectionBtn').addEventListener('click', () => this.saveCollection());
@@ -134,28 +183,196 @@ class TheologicalStudyApp {
 
     initializeDarkMode() {
         if (this.darkMode) {
+            document.documentElement.classList.add('dark-mode');
             document.body.classList.add('dark-mode');
         }
+        this.updateThemeColor();
     }
 
     toggleDarkMode() {
         this.darkMode = !this.darkMode;
+        document.documentElement.classList.toggle('dark-mode');
         document.body.classList.toggle('dark-mode');
+        this.updateThemeColor();
         this.saveToStorage();
+        // Sync drawer toggle
+        const drawerToggle = document.getElementById('drawerDarkModeToggle');
+        if (drawerToggle) drawerToggle.checked = this.darkMode;
+    }
+
+    updateThemeColor() {
+        const metas = document.querySelectorAll('meta[name="theme-color"]');
+        const color = this.darkMode ? '#8a3458' : '#c75480';
+        metas.forEach(meta => meta.setAttribute('content', color));
     }
 
     // ===================================
-    // Tab Navigation
+    // Navigation
     // ===================================
 
-    switchTab(tabName) {
-        // Remove active class from all tabs and sections
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    switchSection(sectionName) {
+        // Update bottom nav active state
+        document.querySelectorAll('.bottom-nav-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.bottom-nav-btn[data-section="${sectionName}"]`).classList.add('active');
+
+        // Hide all content sections
         document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
 
-        // Add active class to selected tab and section
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-        document.getElementById(`${tabName}Tab`).classList.add('active');
+        // Show/hide sub-tabs based on section
+        const subTabs = document.getElementById('studySubTabs');
+        if (sectionName === 'study') {
+            subTabs.classList.remove('hidden');
+            // Show whichever sub-tab is active (passage or commentary)
+            const activeSubTab = document.querySelector('.sub-tab-btn.active');
+            const subTabName = activeSubTab ? activeSubTab.dataset.subtab : 'passage';
+            document.getElementById(`${subTabName}Tab`).classList.add('active');
+        } else {
+            subTabs.classList.add('hidden');
+            document.getElementById(`${sectionName}Tab`).classList.add('active');
+        }
+    }
+
+    switchSubTab(subTabName) {
+        // Update sub-tab active state
+        document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.sub-tab-btn[data-subtab="${subTabName}"]`).classList.add('active');
+
+        // Hide all study sub-sections, show selected
+        document.getElementById('passageTab').classList.remove('active');
+        document.getElementById('commentaryTab').classList.remove('active');
+        document.getElementById('aisearchTab').classList.remove('active');
+        document.getElementById(`${subTabName}Tab`).classList.add('active');
+    }
+
+    // ===================================
+    // Drawer Menu
+    // ===================================
+
+    openDrawer() {
+        this.drawerOpen = true;
+        const drawer = document.getElementById('drawerMenu');
+        const overlay = document.getElementById('drawerOverlay');
+        drawer.classList.add('open');
+        overlay.classList.remove('hidden');
+        // Slight delay for the hidden removal to take effect before opacity transition
+        requestAnimationFrame(() => overlay.classList.add('visible'));
+        // Sync drawer settings with current state
+        document.getElementById('drawerDarkModeToggle').checked = this.darkMode;
+        document.getElementById('fontSizeLabel').textContent = this.fontSize;
+        document.getElementById('drawerTranslation').value = this.selectedTranslation;
+        document.body.style.overflow = 'hidden';
+    }
+
+    closeDrawer() {
+        this.drawerOpen = false;
+        const drawer = document.getElementById('drawerMenu');
+        const overlay = document.getElementById('drawerOverlay');
+        drawer.classList.remove('open');
+        overlay.classList.remove('visible');
+        setTimeout(() => overlay.classList.add('hidden'), 300);
+        document.body.style.overflow = '';
+    }
+
+    // ===================================
+    // Font Size
+    // ===================================
+
+    changeFontSize(delta) {
+        this.fontSize = Math.max(12, Math.min(24, this.fontSize + delta));
+        this.applyFontSize();
+        document.getElementById('fontSizeLabel').textContent = this.fontSize;
+        this.saveToStorage();
+    }
+
+    applyFontSize() {
+        document.documentElement.style.fontSize = this.fontSize + 'px';
+    }
+
+    // ===================================
+    // Daily Verse
+    // ===================================
+
+    loadDailyVerse() {
+        const dailyVerses = [
+            'John 3:16', 'Romans 8:28', 'Philippians 4:13', 'Psalm 23:1',
+            'Proverbs 3:5', 'Isaiah 40:31', 'Jeremiah 29:11', 'Romans 12:2',
+            'Galatians 2:20', 'Ephesians 2:8', '2 Corinthians 5:17', 'Psalm 46:10',
+            'Matthew 11:28', 'Romans 5:8', 'Hebrews 11:1', '1 John 4:19',
+            'Psalm 119:105', 'James 1:5', 'Colossians 3:23', 'Micah 6:8'
+        ];
+        // Pick based on day of year for consistency
+        const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+        const verse = dailyVerses[dayOfYear % dailyVerses.length];
+
+        this.closeDrawer();
+        // Navigate to the daily verse
+        document.getElementById('passageSearch').value = verse;
+        this.switchSection('study');
+        this.switchSubTab('passage');
+        this.searchPassage();
+        this.showToast(`Daily verse: ${verse}`);
+    }
+
+    // ===================================
+    // Data Export / Clear
+    // ===================================
+
+    exportAllData() {
+        const data = {
+            notes: this.notes,
+            bookmarks: this.bookmarks,
+            collections: this.collections,
+            settings: {
+                darkMode: this.darkMode,
+                fontSize: this.fontSize,
+                translation: this.selectedTranslation
+            }
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `theos-lgos-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.showToast('Data exported successfully');
+    }
+
+    confirmClearData() {
+        if (confirm('This will permanently delete all notes, bookmarks, and collections. Are you sure?')) {
+            this.notes = [];
+            this.bookmarks = [];
+            this.collections = [];
+            this.saveToStorage();
+            this.renderNotes();
+            this.renderBookmarks();
+            this.closeDrawer();
+            this.showToast('All data cleared');
+        }
+    }
+
+    // ===================================
+    // Toast Notifications
+    // ===================================
+
+    showToast(message, type = 'info') {
+        // Remove existing toast if any
+        const existing = document.querySelector('.toast-notification');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.classList.add('visible');
+        });
+
+        setTimeout(() => {
+            toast.classList.remove('visible');
+            setTimeout(() => toast.remove(), 400);
+        }, 2800);
     }
 
     // ===================================
@@ -1034,6 +1251,204 @@ class TheologicalStudyApp {
     }
 
     // ===================================
+    // Gemini AI Commentary Search
+    // ===================================
+
+    initGeminiUI() {
+        const drawerInput = document.getElementById('drawerGeminiKeyInput');
+        if (drawerInput && this.geminiApiKey) drawerInput.value = this.geminiApiKey;
+
+        if (this.geminiApiKey) {
+            document.getElementById('geminiKeyForm').classList.add('hidden');
+            const statusEl = document.getElementById('geminiKeyStatus');
+            statusEl.classList.remove('hidden');
+            document.getElementById('geminiKeyStatusText').textContent = 'API key saved — ready to search';
+        } else {
+            document.getElementById('geminiKeyForm').classList.remove('hidden');
+            document.getElementById('geminiKeyStatus').classList.add('hidden');
+        }
+    }
+
+    saveGeminiApiKey() {
+        const input = document.getElementById('geminiApiKeyInput');
+        const key = input.value.trim();
+        if (!key) { this.showNotification('Please enter a valid API key', 'error'); return; }
+        this.geminiApiKey = key;
+        localStorage.setItem('geminiApiKey', key);
+        const drawerInput = document.getElementById('drawerGeminiKeyInput');
+        if (drawerInput) drawerInput.value = key;
+        this.initGeminiUI();
+        this.showNotification('Gemini API key saved', 'success');
+    }
+
+    saveGeminiApiKeyFromDrawer() {
+        const input = document.getElementById('drawerGeminiKeyInput');
+        const key = input.value.trim();
+        if (!key) { this.showNotification('Please enter a valid API key', 'error'); return; }
+        this.geminiApiKey = key;
+        localStorage.setItem('geminiApiKey', key);
+        const tabInput = document.getElementById('geminiApiKeyInput');
+        if (tabInput) tabInput.value = key;
+        this.initGeminiUI();
+        this.showNotification('Gemini API key saved', 'success');
+    }
+
+    showGeminiKeyForm() {
+        document.getElementById('geminiKeyForm').classList.remove('hidden');
+        document.getElementById('geminiKeyStatus').classList.add('hidden');
+        const input = document.getElementById('geminiApiKeyInput');
+        if (input) { input.value = this.geminiApiKey || ''; input.focus(); }
+    }
+
+    /**
+     * Score commentaries by keyword relevance and return top results.
+     * Keeps Gemini token usage lean by only sending the most relevant entries.
+     */
+    preFilterCommentaries(query, traditions, maxResults = 60) {
+        const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+        const pool = this.commentaries.filter(c => traditions.includes(c.tradition));
+        if (words.length === 0) return pool.slice(0, maxResults);
+
+        const scored = pool.map(c => {
+            const haystack = `${c.reference} ${c.author} ${c.source} ${c.text}`.toLowerCase();
+            const score = words.reduce((acc, w) => {
+                const re = new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+                const hits = haystack.match(re);
+                return acc + (hits ? hits.length : 0);
+            }, 0);
+            return { commentary: c, score };
+        });
+
+        return scored
+            .filter(s => s.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, maxResults)
+            .map(s => s.commentary);
+    }
+
+    async geminiSearchCommentaries() {
+        const query = document.getElementById('geminiSearchInput').value.trim();
+        if (!query) { this.showNotification('Please enter a question or topic', 'error'); return; }
+
+        if (!this.geminiApiKey) {
+            this.showNotification('Please save your Gemini API key first', 'error');
+            document.getElementById('geminiKeyForm').classList.remove('hidden');
+            document.getElementById('geminiKeyStatus').classList.add('hidden');
+            return;
+        }
+
+        const enabledTraditions = Array.from(
+            document.querySelectorAll('.ai-tradition-filter:checked')
+        ).map(cb => cb.value);
+
+        if (enabledTraditions.length === 0) {
+            this.showNotification('Please select at least one tradition to search', 'error');
+            return;
+        }
+
+        const display = document.getElementById('geminiResults');
+        display.innerHTML = `
+            <div class="gemini-loading">
+                <div class="gemini-spinner"></div>
+                <p>Searching commentaries with Gemini...</p>
+            </div>`;
+
+        const relevant = this.preFilterCommentaries(query, enabledTraditions, 60);
+
+        if (relevant.length === 0) {
+            display.innerHTML = `
+                <div class="placeholder-message">
+                    <p>No commentaries found in the selected traditions.</p>
+                    <p class="text-muted">Try enabling more traditions or broadening your query.</p>
+                </div>`;
+            return;
+        }
+
+        const commentaryBlock = relevant.map(c =>
+            `[${c.reference} | ${c.author}, ${c.source} (${c.year || '?'}) | ${c.tradition}]\n${c.text}`
+        ).join('\n\n---\n\n');
+
+        const prompt = `You are a theological research assistant. Answer the question below using ONLY the commentary excerpts provided. Do not use outside knowledge.
+
+Question/Topic: "${query}"
+
+Instructions:
+1. Synthesize what the commentators collectively say about this topic
+2. Note any meaningful agreements or tensions between commentators or traditions
+3. Cite specific authors and passages inline (e.g., "Calvin on Romans 8:28 argues...")
+4. If no relevant commentary exists, say so clearly
+
+Commentary excerpts:
+${commentaryBlock}`;
+
+        try {
+            const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.geminiApiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { maxOutputTokens: 2048, temperature: 0.2, topP: 0.9 }
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error?.message || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) throw new Error('Empty response from Gemini');
+
+            const traditionLabels = enabledTraditions.map(t => this.getTraditionLabel(t)).join(', ');
+            const totalInTraditions = this.commentaries.filter(c => enabledTraditions.includes(c.tradition)).length;
+
+            display.innerHTML = `
+                <div class="gemini-result-card">
+                    <div class="gemini-result-header">
+                        <span class="gemini-badge">
+                            <svg width="13" height="13" viewBox="0 0 28 28" fill="none" style="margin-right:3px;vertical-align:middle;">
+                                <path d="M14 2C14 2 10 9 2 14C10 19 14 26 14 26C14 26 18 19 26 14C18 9 14 2 14 2Z" fill="url(#gr1)"/>
+                                <defs><linearGradient id="gr1" x1="2" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#4285F4"/><stop offset="50%" stop-color="#9B59B6"/><stop offset="100%" stop-color="#E91E63"/>
+                                </linearGradient></defs>
+                            </svg>Gemini 2.0 Flash
+                        </span>
+                        <span class="gemini-result-meta">${relevant.length} of ${totalInTraditions} commentaries searched · ${traditionLabels}</span>
+                    </div>
+                    <blockquote class="gemini-result-query">${this.escapeHtml(query)}</blockquote>
+                    <div class="gemini-result-body">${this.formatGeminiResponse(text)}</div>
+                    <p class="gemini-disclaimer">AI-generated synthesis. Verify citations against the Commentary tab.</p>
+                </div>`;
+
+        } catch (error) {
+            const isAuthError = /API_KEY|401|403/i.test(error.message);
+            display.innerHTML = `
+                <div class="gemini-error">
+                    <strong>Error:</strong> ${this.escapeHtml(error.message)}
+                    ${isAuthError ? '<p style="margin-top:0.5rem;">Check that your API key is correct and has Gemini API access enabled.</p>' : ''}
+                </div>`;
+        }
+    }
+
+    formatGeminiResponse(text) {
+        let html = this.escapeHtml(text);
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        html = html.replace(/^#{1,3}\s+(.+)$/gm, '<h4 class="gemini-section-heading">$1</h4>');
+        html = html.split(/\n{2,}/).map(p => {
+            p = p.trim();
+            if (!p) return '';
+            if (p.startsWith('<h4')) return p;
+            return `<p>${p.replace(/\n/g, '<br>')}</p>`;
+        }).join('');
+        return html;
+    }
+
+    // ===================================
     // Utility Functions
     // ===================================
 
@@ -1044,15 +1459,7 @@ class TheologicalStudyApp {
     }
 
     showNotification(message, type = 'info') {
-        // Simple console notification for MVP
-        // Could be enhanced with toast notifications later
-        console.log(`[${type.toUpperCase()}] ${message}`);
-
-        // Show alert for important messages
-        if (type === 'error' || type === 'warning') {
-            // Use a more subtle approach than alert for production
-            console.warn(message);
-        }
+        this.showToast(message, type);
     }
 }
 
