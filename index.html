@@ -41,7 +41,6 @@
     <nav class="sub-tab-navigation" id="studySubTabs">
         <button class="sub-tab-btn active" data-subtab="passage">Bible</button>
         <button class="sub-tab-btn" data-subtab="commentary">Commentary</button>
-        <button class="sub-tab-btn" data-subtab="aisearch">AI Search</button>
     </nav>
 
     <!-- Main Content Area -->
@@ -196,6 +195,39 @@
         <!-- Commentary Tab -->
         <section id="commentaryTab" class="content-section">
             <div class="commentary-container">
+
+                <!-- AI Commentary Search -->
+                <div class="gemini-search-panel">
+                    <!-- Key prompt — hidden once key is saved to localStorage -->
+                    <div id="geminiKeyPrompt" class="gemini-search-bar-row">
+                        <svg class="gemini-icon-sm" viewBox="0 0 28 28" fill="none">
+                            <path d="M14 2C14 2 10 9 2 14C10 19 14 26 14 26C14 26 18 19 26 14C18 9 14 2 14 2Z" fill="url(#gK)"/>
+                            <defs><linearGradient id="gK" x1="2" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#4285F4"/><stop offset="50%" stop-color="#9B59B6"/><stop offset="100%" stop-color="#E91E63"/>
+                            </linearGradient></defs>
+                        </svg>
+                        <input type="password" id="geminiKeyEntry" class="gemini-inline-input"
+                            placeholder="Paste Gemini API key to enable AI search...">
+                        <button id="geminiSaveKeyBtn" class="btn btn-primary gemini-search-btn">Save</button>
+                    </div>
+                    <!-- Search bar — disabled until key is set -->
+                    <div class="gemini-search-bar-row">
+                        <svg class="gemini-icon-sm" viewBox="0 0 28 28" fill="none">
+                            <path d="M14 2C14 2 10 9 2 14C10 19 14 26 14 26C14 26 18 19 26 14C18 9 14 2 14 2Z" fill="url(#gG)"/>
+                            <defs><linearGradient id="gG" x1="2" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#4285F4"/><stop offset="50%" stop-color="#9B59B6"/><stop offset="100%" stop-color="#E91E63"/>
+                            </linearGradient></defs>
+                        </svg>
+                        <input
+                            type="text"
+                            id="geminiSearchInput"
+                            class="gemini-inline-input"
+                            placeholder="Ask AI about any theological topic across all commentaries...">
+                        <button id="geminiSearchBtn" class="btn btn-primary gemini-search-btn">Ask</button>
+                    </div>
+                    <div id="geminiResults" class="gemini-results hidden"></div>
+                </div>
+
                 <!-- Tradition Filter -->
                 <div class="filter-bar">
                     <h3>Theological Traditions</h3>
@@ -240,86 +272,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <!-- AI Search Tab -->
-        <section id="aisearchTab" class="content-section">
-            <div class="aisearch-container">
-
-                <!-- API Key Setup -->
-                <div class="aisearch-setup">
-                    <div class="gemini-logo-row">
-                        <svg class="gemini-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M14 2C14 2 10 9 2 14C10 19 14 26 14 26C14 26 18 19 26 14C18 9 14 2 14 2Z" fill="url(#geminiGrad)"/>
-                            <defs>
-                                <linearGradient id="geminiGrad" x1="2" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
-                                    <stop offset="0%" stop-color="#4285F4"/>
-                                    <stop offset="50%" stop-color="#9B59B6"/>
-                                    <stop offset="100%" stop-color="#E91E63"/>
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                        <h3 class="aisearch-title">Gemini AI Commentary Search</h3>
-                    </div>
-                    <p class="aisearch-desc">Search across all commentaries using natural language. Powered by Google Gemini (free tier).</p>
-
-                    <div id="geminiKeyForm" class="gemini-key-form">
-                        <div class="form-group">
-                            <label for="geminiApiKeyInput">Gemini API Key</label>
-                            <div class="key-input-row">
-                                <input type="password" id="geminiApiKeyInput" class="form-input" placeholder="Paste your Gemini API key here...">
-                                <button id="saveGeminiKeyBtn" class="btn btn-primary">Save</button>
-                            </div>
-                            <p class="text-muted" style="font-size: 0.78rem; margin-top: 0.4rem;">
-                                Get a free key at <strong>aistudio.google.com</strong> — 15 req/min, 1M tokens/day
-                            </p>
-                        </div>
-                    </div>
-
-                    <div id="geminiKeyStatus" class="gemini-key-status hidden">
-                        <span class="key-status-dot"></span>
-                        <span id="geminiKeyStatusText">API key saved</span>
-                        <button id="changeGeminiKeyBtn" class="btn-link">Change key</button>
-                    </div>
-                </div>
-
-                <!-- Search Interface -->
-                <div class="aisearch-interface">
-                    <div class="aisearch-search-bar">
-                        <textarea
-                            id="geminiSearchInput"
-                            class="gemini-search-textarea"
-                            rows="3"
-                            placeholder="Ask a theological question or topic&#10;e.g. 'What do the commentators say about justification by faith?'&#10;e.g. 'How is predestination explained across traditions?'"></textarea>
-                        <div class="aisearch-bar-footer">
-                            <div class="ai-tradition-filters">
-                                <span class="filter-label">Traditions:</span>
-                                <label class="filter-chip"><input type="checkbox" value="reformed" class="ai-tradition-filter" checked><span>Reformed</span></label>
-                                <label class="filter-chip"><input type="checkbox" value="patristic" class="ai-tradition-filter" checked><span>Patristic</span></label>
-                                <label class="filter-chip"><input type="checkbox" value="catholic" class="ai-tradition-filter"><span>Catholic</span></label>
-                                <label class="filter-chip"><input type="checkbox" value="orthodox" class="ai-tradition-filter"><span>Orthodox</span></label>
-                                <label class="filter-chip"><input type="checkbox" value="mainline" class="ai-tradition-filter"><span>Mainline</span></label>
-                            </div>
-                            <button id="geminiSearchBtn" class="btn btn-primary gemini-search-btn">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:0.3rem;">
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                </svg>
-                                Search
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Results -->
-                    <div id="geminiResults" class="gemini-results">
-                        <div class="placeholder-message">
-                            <p>Ask a theological question to search across all commentaries.</p>
-                            <p class="text-muted">Gemini will synthesize the most relevant entries and cite its sources.</p>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </section>
 
@@ -560,25 +512,6 @@
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                 </button>
-            </div>
-
-            <!-- AI Section -->
-            <div class="drawer-section">
-                <h3 class="drawer-section-title">AI Integration</h3>
-                <div class="drawer-item drawer-item-stacked">
-                    <div class="drawer-item-label">
-                        <svg class="drawer-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"></path>
-                        </svg>
-                        <span>Gemini API Key</span>
-                    </div>
-                    <div class="drawer-ai-key-row">
-                        <input type="password" id="drawerGeminiKeyInput" class="drawer-input" placeholder="Paste API key...">
-                        <button id="drawerSaveGeminiKeyBtn" class="btn btn-primary" style="font-size:0.8rem;padding:0.35rem 0.75rem;">Save</button>
-                    </div>
-                    <p class="text-muted" style="font-size:0.75rem;margin:0.3rem 0 0;">Free key at aistudio.google.com</p>
-                </div>
             </div>
 
             <!-- About Section -->

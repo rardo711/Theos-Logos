@@ -16,10 +16,10 @@ class TheologicalStudyApp {
         this.fontSize = 16; // Default font size
         this.drawerOpen = false;
 
-        // API Keys (get free keys at respective websites)
-        this.esvApiKey = '948f99e1f43d00f0d3fef28825fb24022c09a127'; // ESV: https://api.esv.org/
-        this.apiBibleKey = ''; // API.Bible: https://scripture.api.bible/ (for future use)
-        this.geminiApiKey = ''; // Gemini: https://aistudio.google.com/
+        // API Keys
+        this.esvApiKey = '948f99e1f43d00f0d3fef28825fb24022c09a127';
+        this.apiBibleKey = '';
+        this.geminiApiKey = localStorage.getItem('geminiApiKey') || '';
 
         this.init();
     }
@@ -37,7 +37,7 @@ class TheologicalStudyApp {
         this.renderBookmarks();
         this.updateTagFilter();
         this.setupTraditionFilters();
-        this.initGeminiUI();
+        this.setupGeminiSearch();
     }
 
     // ===================================
@@ -53,7 +53,6 @@ class TheologicalStudyApp {
             this.currentPassage = JSON.parse(localStorage.getItem('currentPassage')) || null;
             this.selectedTranslation = localStorage.getItem('selectedTranslation') || 'kjv';
             this.fontSize = parseInt(localStorage.getItem('fontSize')) || 16;
-            this.geminiApiKey = localStorage.getItem('geminiApiKey') || '';
 
             // Set translation selector
             const translationSelect = document.getElementById('translationSelect');
@@ -78,9 +77,6 @@ class TheologicalStudyApp {
             localStorage.setItem('currentPassage', JSON.stringify(this.currentPassage));
             localStorage.setItem('selectedTranslation', this.selectedTranslation);
             localStorage.setItem('fontSize', this.fontSize.toString());
-            if (this.geminiApiKey) {
-                localStorage.setItem('geminiApiKey', this.geminiApiKey);
-            }
         } catch (error) {
             console.error('Error saving to storage:', error);
             this.showNotification('Error saving data', 'error');
@@ -152,15 +148,6 @@ class TheologicalStudyApp {
         document.getElementById('exportNotesBtn').addEventListener('click', () => this.exportNotes());
         document.getElementById('importNotesBtn').addEventListener('click', () => document.getElementById('importNotesFile').click());
         document.getElementById('importNotesFile').addEventListener('change', (e) => this.importNotes(e));
-
-        // Gemini AI Search
-        document.getElementById('saveGeminiKeyBtn').addEventListener('click', () => this.saveGeminiApiKey());
-        document.getElementById('changeGeminiKeyBtn').addEventListener('click', () => this.showGeminiKeyForm());
-        document.getElementById('geminiSearchBtn').addEventListener('click', () => this.geminiSearchCommentaries());
-        document.getElementById('geminiSearchInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) this.geminiSearchCommentaries();
-        });
-        document.getElementById('drawerSaveGeminiKeyBtn').addEventListener('click', () => this.saveGeminiApiKeyFromDrawer());
 
         // Collections
         document.getElementById('createCollectionBtn').addEventListener('click', () => this.showCollectionModal());
@@ -237,10 +224,9 @@ class TheologicalStudyApp {
         document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelector(`.sub-tab-btn[data-subtab="${subTabName}"]`).classList.add('active');
 
-        // Hide all study sub-sections, show selected
+        // Hide passage and commentary, show selected
         document.getElementById('passageTab').classList.remove('active');
         document.getElementById('commentaryTab').classList.remove('active');
-        document.getElementById('aisearchTab').classList.remove('active');
         document.getElementById(`${subTabName}Tab`).classList.add('active');
     }
 
@@ -1254,59 +1240,37 @@ class TheologicalStudyApp {
     // Gemini AI Commentary Search
     // ===================================
 
-    initGeminiUI() {
-        const drawerInput = document.getElementById('drawerGeminiKeyInput');
-        if (drawerInput && this.geminiApiKey) drawerInput.value = this.geminiApiKey;
-
-        if (this.geminiApiKey) {
-            document.getElementById('geminiKeyForm').classList.add('hidden');
-            const statusEl = document.getElementById('geminiKeyStatus');
-            statusEl.classList.remove('hidden');
-            document.getElementById('geminiKeyStatusText').textContent = 'API key saved — ready to search';
-        } else {
-            document.getElementById('geminiKeyForm').classList.remove('hidden');
-            document.getElementById('geminiKeyStatus').classList.add('hidden');
-        }
+    setupGeminiSearch() {
+        document.getElementById('geminiSearchBtn').addEventListener('click', () => this.geminiSearch());
+        document.getElementById('geminiSearchInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.geminiSearch();
+        });
+        document.getElementById('geminiSaveKeyBtn').addEventListener('click', () => this.saveGeminiKey());
+        document.getElementById('geminiKeyEntry').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.saveGeminiKey();
+        });
+        this.updateGeminiKeyState();
     }
 
-    saveGeminiApiKey() {
-        const input = document.getElementById('geminiApiKeyInput');
-        const key = input.value.trim();
-        if (!key) { this.showNotification('Please enter a valid API key', 'error'); return; }
+    saveGeminiKey() {
+        const key = document.getElementById('geminiKeyEntry').value.trim();
+        if (!key) return;
         this.geminiApiKey = key;
         localStorage.setItem('geminiApiKey', key);
-        const drawerInput = document.getElementById('drawerGeminiKeyInput');
-        if (drawerInput) drawerInput.value = key;
-        this.initGeminiUI();
-        this.showNotification('Gemini API key saved', 'success');
+        this.updateGeminiKeyState();
+        this.showNotification('API key saved', 'success');
     }
 
-    saveGeminiApiKeyFromDrawer() {
-        const input = document.getElementById('drawerGeminiKeyInput');
-        const key = input.value.trim();
-        if (!key) { this.showNotification('Please enter a valid API key', 'error'); return; }
-        this.geminiApiKey = key;
-        localStorage.setItem('geminiApiKey', key);
-        const tabInput = document.getElementById('geminiApiKeyInput');
-        if (tabInput) tabInput.value = key;
-        this.initGeminiUI();
-        this.showNotification('Gemini API key saved', 'success');
+    updateGeminiKeyState() {
+        const hasKey = !!this.geminiApiKey;
+        document.getElementById('geminiKeyPrompt').classList.toggle('hidden', hasKey);
+        document.getElementById('geminiSearchInput').disabled = !hasKey;
+        document.getElementById('geminiSearchBtn').disabled = !hasKey;
     }
 
-    showGeminiKeyForm() {
-        document.getElementById('geminiKeyForm').classList.remove('hidden');
-        document.getElementById('geminiKeyStatus').classList.add('hidden');
-        const input = document.getElementById('geminiApiKeyInput');
-        if (input) { input.value = this.geminiApiKey || ''; input.focus(); }
-    }
-
-    /**
-     * Score commentaries by keyword relevance and return top results.
-     * Keeps Gemini token usage lean by only sending the most relevant entries.
-     */
-    preFilterCommentaries(query, traditions, maxResults = 60) {
+    preFilterCommentaries(query, maxResults = 60) {
         const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-        const pool = this.commentaries.filter(c => traditions.includes(c.tradition));
+        const pool = this.commentaries.filter(c => this.enabledTraditions.includes(c.tradition));
         if (words.length === 0) return pool.slice(0, maxResults);
 
         const scored = pool.map(c => {
@@ -1326,41 +1290,22 @@ class TheologicalStudyApp {
             .map(s => s.commentary);
     }
 
-    async geminiSearchCommentaries() {
+    async geminiSearch() {
         const query = document.getElementById('geminiSearchInput').value.trim();
-        if (!query) { this.showNotification('Please enter a question or topic', 'error'); return; }
-
-        if (!this.geminiApiKey) {
-            this.showNotification('Please save your Gemini API key first', 'error');
-            document.getElementById('geminiKeyForm').classList.remove('hidden');
-            document.getElementById('geminiKeyStatus').classList.add('hidden');
-            return;
-        }
-
-        const enabledTraditions = Array.from(
-            document.querySelectorAll('.ai-tradition-filter:checked')
-        ).map(cb => cb.value);
-
-        if (enabledTraditions.length === 0) {
-            this.showNotification('Please select at least one tradition to search', 'error');
-            return;
-        }
+        if (!query) return;
 
         const display = document.getElementById('geminiResults');
+        display.classList.remove('hidden');
         display.innerHTML = `
             <div class="gemini-loading">
                 <div class="gemini-spinner"></div>
-                <p>Searching commentaries with Gemini...</p>
+                <p>Searching commentaries...</p>
             </div>`;
 
-        const relevant = this.preFilterCommentaries(query, enabledTraditions, 60);
+        const relevant = this.preFilterCommentaries(query, 60);
 
         if (relevant.length === 0) {
-            display.innerHTML = `
-                <div class="placeholder-message">
-                    <p>No commentaries found in the selected traditions.</p>
-                    <p class="text-muted">Try enabling more traditions or broadening your query.</p>
-                </div>`;
+            display.innerHTML = `<div class="placeholder-message"><p>No commentaries matched in the active traditions. Try enabling more traditions above.</p></div>`;
             return;
         }
 
@@ -1368,22 +1313,22 @@ class TheologicalStudyApp {
             `[${c.reference} | ${c.author}, ${c.source} (${c.year || '?'}) | ${c.tradition}]\n${c.text}`
         ).join('\n\n---\n\n');
 
-        const prompt = `You are a theological research assistant. Answer the question below using ONLY the commentary excerpts provided. Do not use outside knowledge.
+        const prompt = `You are a theological research assistant. Answer the question or topic below using ONLY the commentary excerpts provided.
 
-Question/Topic: "${query}"
+Topic: "${query}"
 
 Instructions:
-1. Synthesize what the commentators collectively say about this topic
-2. Note any meaningful agreements or tensions between commentators or traditions
-3. Cite specific authors and passages inline (e.g., "Calvin on Romans 8:28 argues...")
-4. If no relevant commentary exists, say so clearly
+1. Synthesize what the commentators say
+2. Note agreements or tensions between authors or traditions
+3. Cite inline (e.g., "Calvin on Romans 8:28 argues...")
+4. If nothing is relevant, say so clearly
 
 Commentary excerpts:
 ${commentaryBlock}`;
 
         try {
             const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.geminiApiKey}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${this.geminiApiKey}`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1395,42 +1340,34 @@ ${commentaryBlock}`;
             );
 
             if (!response.ok) {
-                const errData = await response.json().catch(() => ({}));
-                throw new Error(errData.error?.message || `HTTP ${response.status}`);
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error?.message || `HTTP ${response.status}`);
             }
 
             const data = await response.json();
             const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!text) throw new Error('Empty response from Gemini');
-
-            const traditionLabels = enabledTraditions.map(t => this.getTraditionLabel(t)).join(', ');
-            const totalInTraditions = this.commentaries.filter(c => enabledTraditions.includes(c.tradition)).length;
+            if (!text) throw new Error('Empty response');
 
             display.innerHTML = `
                 <div class="gemini-result-card">
                     <div class="gemini-result-header">
                         <span class="gemini-badge">
                             <svg width="13" height="13" viewBox="0 0 28 28" fill="none" style="margin-right:3px;vertical-align:middle;">
-                                <path d="M14 2C14 2 10 9 2 14C10 19 14 26 14 26C14 26 18 19 26 14C18 9 14 2 14 2Z" fill="url(#gr1)"/>
-                                <defs><linearGradient id="gr1" x1="2" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+                                <path d="M14 2C14 2 10 9 2 14C10 19 14 26 14 26C14 26 18 19 26 14C18 9 14 2 14 2Z" fill="url(#gR)"/>
+                                <defs><linearGradient id="gR" x1="2" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
                                     <stop offset="0%" stop-color="#4285F4"/><stop offset="50%" stop-color="#9B59B6"/><stop offset="100%" stop-color="#E91E63"/>
                                 </linearGradient></defs>
-                            </svg>Gemini 2.0 Flash
+                            </svg>Gemini 2.0 Flash Lite
                         </span>
-                        <span class="gemini-result-meta">${relevant.length} of ${totalInTraditions} commentaries searched · ${traditionLabels}</span>
+                        <span class="gemini-result-meta">${relevant.length} commentaries searched</span>
                     </div>
                     <blockquote class="gemini-result-query">${this.escapeHtml(query)}</blockquote>
                     <div class="gemini-result-body">${this.formatGeminiResponse(text)}</div>
-                    <p class="gemini-disclaimer">AI-generated synthesis. Verify citations against the Commentary tab.</p>
+                    <p class="gemini-disclaimer">AI synthesis — verify against the commentary entries below.</p>
                 </div>`;
 
         } catch (error) {
-            const isAuthError = /API_KEY|401|403/i.test(error.message);
-            display.innerHTML = `
-                <div class="gemini-error">
-                    <strong>Error:</strong> ${this.escapeHtml(error.message)}
-                    ${isAuthError ? '<p style="margin-top:0.5rem;">Check that your API key is correct and has Gemini API access enabled.</p>' : ''}
-                </div>`;
+            display.innerHTML = `<div class="gemini-error"><strong>Error:</strong> ${this.escapeHtml(error.message)}</div>`;
         }
     }
 
@@ -1441,8 +1378,7 @@ ${commentaryBlock}`;
         html = html.replace(/^#{1,3}\s+(.+)$/gm, '<h4 class="gemini-section-heading">$1</h4>');
         html = html.split(/\n{2,}/).map(p => {
             p = p.trim();
-            if (!p) return '';
-            if (p.startsWith('<h4')) return p;
+            if (!p || p.startsWith('<h4')) return p;
             return `<p>${p.replace(/\n/g, '<br>')}</p>`;
         }).join('');
         return html;
