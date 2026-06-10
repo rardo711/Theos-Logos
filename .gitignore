@@ -1,1 +1,12 @@
-# No ignores needed currently
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env
+.env.local
+!.env.example
+resources/*.pdf
+resources/*.doc
+resources/*.webarchive
