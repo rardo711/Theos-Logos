@@ -20,6 +20,23 @@ export async function generateCommentary(
   return data.text;
 }
 
+export async function generateWordStudy(
+  word: string,
+  reference: string = "",
+): Promise<string> {
+  const res = await fetch("/api/wordstudy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ word, reference }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: `Server error ${res.status}` }));
+    throw new Error(err.error || `Word study request failed (${res.status})`);
+  }
+  const data = await res.json();
+  return data.text;
+}
+
 export async function generateFollowUp(
   passage: string,
   reference: string,

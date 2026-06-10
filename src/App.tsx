@@ -2,6 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { BibleViewer } from "./components/BibleViewer";
 import { CommentaryPanel, CommentaryState } from "./components/CommentaryPanel";
+import {
+  WordStudyPanel,
+  WordStudyState,
+  defaultWordStudyState,
+} from "./components/WordStudyPanel";
 import { FloatingBibleNav } from "./components/FloatingBibleNav";
 import { BIBLE_BOOKS, Book, BibleChapter } from "./types";
 import { fetchBibleChapter } from "./services/bibleService";
@@ -16,6 +21,7 @@ import {
   History as HistoryIcon,
   Bookmark,
   Menu,
+  Languages,
 } from "lucide-react";
 
 export interface HistoryItem {
@@ -59,7 +65,13 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [showInstallHint, setShowInstallHint] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
-  const [viewMode, setViewMode] = useState<"bible" | "commentary">("bible");
+  const [viewMode, setViewMode] = useState<
+    "bible" | "commentary" | "wordstudy"
+  >("bible");
+  // Desktop right-hand panel toggle (mobile uses viewMode instead)
+  const [desktopPanel, setDesktopPanel] = useState<"commentary" | "wordstudy">(
+    "commentary",
+  );
   const [searchTrigger, setSearchTrigger] = useState<{
     query: string;
     verse: number | null;
@@ -154,6 +166,28 @@ export default function App() {
       JSON.stringify(commentaryState),
     );
   }, [commentaryState]);
+
+  const [wordStudyState, setWordStudyState] = useState<WordStudyState>(() => {
+    const saved = localStorage.getItem("theos_logos_wordstudy");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === "object") {
+          return { ...defaultWordStudyState, ...parsed, loading: false };
+        }
+      } catch (e) {
+        console.error("Failed to parse saved word study state", e);
+      }
+    }
+    return defaultWordStudyState;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(
+      "theos_logos_wordstudy",
+      JSON.stringify(wordStudyState),
+    );
+  }, [wordStudyState]);
 
   useEffect(() => {
     localStorage.setItem("theos_logos_book", JSON.stringify(currentBook));
@@ -807,6 +841,24 @@ export default function App() {
                   />
                 </motion.div>
               )}
+
+              {/* Word Study Panel */}
+              {viewMode === "wordstudy" && (
+                <motion.div
+                  key="wordstudy"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="w-full h-full overflow-hidden flex flex-col"
+                >
+                  <WordStudyPanel
+                    chapter={chapterData}
+                    state={wordStudyState}
+                    setState={setWordStudyState}
+                    onCrossReference={handleCrossReference}
+                  />
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
 
@@ -827,6 +879,7 @@ export default function App() {
                 error={error}
                 onVerseSearch={(verse, query) => {
                   setSearchTrigger({ query, verse, timestamp: Date.now() });
+                  setDesktopPanel("commentary");
                   if (!isCommentaryVisible) setIsCommentaryVisible(true);
                 }}
                 onNextChapter={handleNextChapter}
@@ -846,15 +899,43 @@ export default function App() {
                   initial={{ width: 0, opacity: 0 }}
                   animate={{ width: commentaryWidth, opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
-                  className="h-full overflow-hidden border-l border-stone-200 dark:border-stone-800 transition-colors"
+                  className="h-full overflow-hidden border-l border-stone-200 dark:border-stone-800 transition-colors flex flex-col"
                 >
-                  <CommentaryPanel
-                    chapter={chapterData}
-                    searchTrigger={searchTrigger}
-                    state={commentaryState}
-                    setState={setCommentaryState}
-                    onCrossReference={handleCrossReference}
-                  />
+                  {/* Desktop panel switcher */}
+                  <div className="shrink-0 flex items-center gap-1 p-2 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800">
+                    <button
+                      onClick={() => setDesktopPanel("commentary")}
+                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${desktopPanel === "commentary" ? "bg-stone-100 dark:bg-stone-800 text-[#821111] dark:text-red-400 shadow-sm" : "text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+                    >
+                      <Search size={13} />
+                      Research
+                    </button>
+                    <button
+                      onClick={() => setDesktopPanel("wordstudy")}
+                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${desktopPanel === "wordstudy" ? "bg-stone-100 dark:bg-stone-800 text-[#821111] dark:text-red-400 shadow-sm" : "text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+                    >
+                      <Languages size={13} />
+                      Word Study
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    {desktopPanel === "commentary" ? (
+                      <CommentaryPanel
+                        chapter={chapterData}
+                        searchTrigger={searchTrigger}
+                        state={commentaryState}
+                        setState={setCommentaryState}
+                        onCrossReference={handleCrossReference}
+                      />
+                    ) : (
+                      <WordStudyPanel
+                        chapter={chapterData}
+                        state={wordStudyState}
+                        setState={setWordStudyState}
+                        onCrossReference={handleCrossReference}
+                      />
+                    )}
+                  </div>
                 </motion.div>
               </>
             )}
@@ -869,7 +950,7 @@ export default function App() {
           <nav className="bg-white/30 dark:bg-stone-900/30 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center p-1 rounded-full pointer-events-auto max-w-max transition-colors">
             <button
               onClick={() => setViewMode("bible")}
-              className={`flex flex-row items-center justify-center gap-2 px-4 py-1.5 transition-all duration-400 rounded-full ${viewMode === "bible" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+              className={`flex flex-row items-center justify-center gap-1.5 px-3.5 py-1.5 transition-all duration-400 rounded-full ${viewMode === "bible" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
             >
               <BookOpen
                 size={14}
@@ -883,7 +964,7 @@ export default function App() {
             </button>
             <button
               onClick={() => setViewMode("commentary")}
-              className={`flex flex-row items-center justify-center gap-2 px-4 py-1.5 transition-all duration-400 rounded-full ${viewMode === "commentary" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+              className={`flex flex-row items-center justify-center gap-1.5 px-3.5 py-1.5 transition-all duration-400 rounded-full ${viewMode === "commentary" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
             >
               <Search
                 size={14}
@@ -893,6 +974,20 @@ export default function App() {
                 className={`text-[9px] font-bold uppercase tracking-[0.2em] mt-[1px] ${viewMode === "commentary" ? "opacity-100" : "opacity-80"}`}
               >
                 Research
+              </span>
+            </button>
+            <button
+              onClick={() => setViewMode("wordstudy")}
+              className={`flex flex-row items-center justify-center gap-1.5 px-3.5 py-1.5 transition-all duration-400 rounded-full ${viewMode === "wordstudy" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+            >
+              <Languages
+                size={14}
+                strokeWidth={viewMode === "wordstudy" ? 2.5 : 2}
+              />
+              <span
+                className={`text-[9px] font-bold uppercase tracking-[0.2em] mt-[1px] ${viewMode === "wordstudy" ? "opacity-100" : "opacity-80"}`}
+              >
+                Words
               </span>
             </button>
           </nav>
