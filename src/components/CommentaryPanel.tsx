@@ -102,11 +102,12 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
     }
   }, [searchTrigger, chapter]);
 
+  // Scroll to top when a new generation starts (not on every streamed chunk)
   useEffect(() => {
-    if (state.text && scrollRef.current) {
+    if (state.loading && scrollRef.current) {
       scrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [state.text]);
+  }, [state.loading]);
 
   // Handle text selection for follow-up questions
   useEffect(() => {
@@ -217,7 +218,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
     const currentVerse =
       overrideVerse !== undefined ? overrideVerse : state.selectedVerse;
 
-    setState((prev) => ({ ...prev, loading: true, error: null }));
+    setState((prev) => ({ ...prev, loading: true, error: null, text: null }));
     setSelectionRect(null); // Clear any selection when generating new content
     try {
       const result = await generateCommentary(
@@ -225,6 +226,10 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         chapter.reference,
         currentQuery,
         currentVerse === null ? undefined : currentVerse,
+        // Render the commentary incrementally as the server streams it
+        (partial) => {
+          setState((prev) => ({ ...prev, text: partial }));
+        },
       );
       setState((prev) => ({
         ...prev,
@@ -564,7 +569,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         </div>
 
         <div className="pt-6 px-6">
-          {state.loading ? (
+          {state.loading && !state.text ? (
             <div className="flex flex-col items-center justify-center h-full gap-5 text-stone-400 dark:text-stone-500 animate-pulse py-20">
               <Loader2
                 className="animate-spin text-[#821111] dark:text-red-400"
@@ -594,6 +599,20 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                     <MemoizedMarkdown content={state.text} onCrossReference={onCrossReference} />
                   </div>
 
+                  {state.loading && (
+                    <div className="mt-4 flex items-center gap-2 text-stone-400 dark:text-stone-500">
+                      <Loader2
+                        className="animate-spin text-[#821111] dark:text-red-400"
+                        size={16}
+                      />
+                      <span className="text-xs font-serif italic">
+                        Streaming synthesis…
+                      </span>
+                    </div>
+                  )}
+
+                  {!state.loading && (
+                  <>
                   <div className="mt-8 p-4 bg-stone-50 dark:bg-stone-900 border-l-4 border-stone-300 dark:border-stone-700 rounded-r-xl flex items-start gap-3">
                     <HelpCircle
                       className="text-stone-500 shrink-0 mt-0.5"
@@ -665,6 +684,8 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                       </div>
                     </div>
                   </div>
+                  </>
+                  )}
                 </div>
               )}
               {!state.text && !state.error && (

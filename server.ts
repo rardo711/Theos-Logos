@@ -12,6 +12,14 @@ Every substantive claim must be attributed to a verifiable source:
 - Lexical Authority: BDAG (Bauer-Danker-Arndt-Gingrich, 3rd ed.), HALOT (Koehler-Baumgartner), Thayer's Greek Lexicon, LSJ (Liddell-Scott-Jones), or Strong's Concordance
 - Digital Archive for verification: CCEL (ccel.org), Perseus Digital Library (perseus.tufts.edu), Internet Archive (archive.org)
 
+Source Tier Priority (strictly enforced):
+  Tier 1 — CCEL (ccel.org), Perseus Digital Library (perseus.tufts.edu), Internet Archive (archive.org)
+  Tier 2 — Reformers' own published works, Westminster Standards, Heidelberg/Belgic/Dort
+  Tier 3 — BibleHub (lexicons only), OpenBible.info
+  Tier 4 — General academic web
+
+If a Tier 1 source is available for a claim, you MUST cite it. Do not cite a lower-tier source when a higher-tier source covers the same material. General blog, sermon, or devotional sites are never acceptable citations.
+
 Theological Mandate:
 1. Primary Sources Before Commentary: Cite the primary source first. Use blockquotes (>) for direct quotations with author, work title, and chapter/section.
 2. Broad Reformed Scope: Treat "Reformed" as covenantal and confessional, not merely the Five Points.
@@ -81,32 +89,32 @@ async function startServer() {
     }
   });
 
-  // Gemini commentary — server-side, API key never sent to client
+  // Gemini commentary — server-side, API key never sent to client.
+  // Streams the response as Server-Sent Events (generation with search
+  // grounding takes 15–30s; streaming lets the client render as it arrives).
   app.post("/api/commentary", async (req, res) => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return res.status(503).json({ error: "AI commentary is not configured on this server." });
     }
-    const { passage, reference, context = "", selectedVerse } = req.body;
+    const { passage, reference, selectedVerse, question = "" } = req.body;
     if (!passage || !reference) {
       return res.status(400).json({ error: "Missing 'passage' or 'reference'" });
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const ccelUrl = `https://www.ccel.org/study/${reference.replace(/ /g, "_")}`;
+    const ccelUrl = `https://ccel.org/search?q=${encodeURIComponent(reference)}`;
     const verseContext = selectedVerse ? `The user is specifically asking about Verse ${selectedVerse}.` : "";
-    const isQuestion = (context as string).trim().length > 0;
+    const isQuestion = typeof question === "string" && question.trim().length >= 10;
 
     const prompt = isQuestion
-      ? `${theologicalFraming}
-
-Reference: ${reference}
+      ? `Reference: ${reference}
 Passage context: ${passage}
 ${verseContext}
 CCEL Reference: ${ccelUrl}
 
 THE USER'S QUESTION (this is your sole assignment — answer THIS, nothing else):
-"${context}"
+"${question}"
 
 Rules for this response:
 - Answer the user's exact question directly. Do NOT produce a general verse-by-verse commentary unless the question explicitly asks for one.
@@ -115,9 +123,7 @@ Rules for this response:
 - If, and only if, the question touches a disputed point, add a \`## Across the Traditions\` section with \`###\` sub-headings per tradition.
 - Only include lexical detail that bears on the question. Stay on topic.
 - Use Google Search to verify every quote and historical claim.`
-      : `${theologicalFraming}
-
-Reference: ${reference}
+      : `Reference: ${reference}
 Passage: ${passage}
 ${verseContext}
 CCEL Reference: ${ccelUrl}
@@ -141,22 +147,38 @@ Cited quotations from the Church Fathers and Reformers (use blockquotes with att
 
 Use Google Search to verify every quote and historical claim.`;
 
+    // Set SSE headers before streaming begins
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
     try {
-      const response = await withRetry(() =>
-        ai.models.generateContent({
+      const stream = await withRetry(() =>
+        ai.models.generateContentStream({
           model: "gemini-3.5-flash",
-          contents: prompt,
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
           config: {
+            systemInstruction: theologicalFraming,
             tools: [{ googleSearch: {} }],
             toolConfig: { includeServerSideToolInvocations: true },
           },
         })
       );
-      if (!response.text) return res.status(500).json({ error: "The AI returned an empty response." });
-      return res.json({ text: response.text });
+
+      for await (const chunk of stream) {
+        const text = chunk.text;
+        if (text) {
+          res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        }
+      }
+
+      res.write("data: [DONE]\n\n");
+      res.end();
     } catch (error: any) {
       console.error("[Server] Gemini commentary error:", error);
-      return res.status(500).json({ error: error.message || "AI commentary failed." });
+      res.write(`data: ${JSON.stringify({ error: error.message || "Stream failed." })}\n\n`);
+      res.end();
     }
   });
 
@@ -172,14 +194,39 @@ Use Google Search to verify every quote and historical claim.`;
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const prompt = `${theologicalFraming}\n\nThe user is studying ${reference}.\nPassage: ${passage}\n\nThey highlighted: "${selectedText}"\nQuestion: "${question}"\n\nFull commentary for context:\n${fullCommentaryText || "Not provided"}\n\nProvide a concise, scholarly answer with source citations.\n`;
+    const prompt = `
+The user is studying ${reference}.
+Passage: ${passage}
+
+They highlighted: "${selectedText}"
+Question: "${question}"
+
+Full commentary for context (excerpt):
+${fullCommentaryText ? fullCommentaryText.slice(0, 2000) : "Not provided"}
+
+Respond using this structure:
+
+## Direct Answer
+2–4 sentences a layperson can understand.
+
+## Scholarly Basis
+Supporting primary sources, exegetical reasoning, and any relevant original-language
+terms (script, transliteration, Strong's number). Cite Tier 1 sources first (CCEL,
+Perseus, archive.org).
+
+## Across the Traditions (only if the question touches a disputed point)
+Use ### sub-headings per tradition. Omit this section if not applicable.
+
+Use Google Search to verify every quote and source.
+`;
 
     try {
       const response = await withRetry(() =>
         ai.models.generateContent({
           model: "gemini-3.5-flash",
-          contents: prompt,
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
           config: {
+            systemInstruction: theologicalFraming,
             tools: [{ googleSearch: {} }],
             toolConfig: { includeServerSideToolInvocations: true },
           },
@@ -208,9 +255,7 @@ Use Google Search to verify every quote and historical claim.`;
       ? `The user is studying this word in the context of ${reference}. Anchor the analysis to how it is used there.`
       : `No specific verse was given. Treat this as a general lexical study and cite the most representative biblical occurrences.`;
 
-    const prompt = `${theologicalFraming}
-
-You are performing a WORD STUDY. The user wants concrete lexical answers about a single word in its original language, backed by sources. The input may be English, Greek, or Hebrew.
+    const prompt = `You are performing a WORD STUDY. The user wants concrete lexical answers about a single word in its original language, backed by sources. The input may be English, Greek, or Hebrew.
 
 Word to study: "${word}"
 ${refContext}
@@ -243,8 +288,9 @@ Use Google Search to verify the Strong's number, definitions, and every scriptur
       const response = await withRetry(() =>
         ai.models.generateContent({
           model: "gemini-3.5-flash",
-          contents: prompt,
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
           config: {
+            systemInstruction: theologicalFraming,
             tools: [{ googleSearch: {} }],
             toolConfig: { includeServerSideToolInvocations: true },
           },
