@@ -58,18 +58,82 @@
   }
 }
 
+/* ── Design tokens ──────────────────────────────────────────────── */
+:root {
+  --oxblood: #821111;
+  --oxblood-deep: #6a0d0d;
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-soft: 300ms;
+}
+
+/* ── Utility classes ─────────────────────────────────────────────── */
+
+/* Scholarly catalog-card eyebrow label */
+.tl-eyebrow {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  @apply text-stone-400 dark:text-stone-500;
+}
+
+/* Atmospheric glass surface */
+.tl-glass {
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  @apply bg-white/30 dark:bg-stone-950/30 border border-white/50 dark:border-white/10;
+  box-shadow: var(--shadow-md);
+}
+
+/* Skeleton shimmer animation */
+@keyframes tl-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.tl-shimmer {
+  @apply rounded-md;
+  background: linear-gradient(
+    90deg,
+    theme(colors.stone.100) 25%,
+    theme(colors.stone.50)  50%,
+    theme(colors.stone.100) 75%
+  );
+  background-size: 800px 100%;
+  animation: tl-shimmer 1.4s ease-in-out infinite;
+}
+
+.dark .tl-shimmer {
+  background: linear-gradient(
+    90deg,
+    theme(colors.stone.800) 25%,
+    theme(colors.stone.700) 50%,
+    theme(colors.stone.800) 75%
+  );
+  background-size: 800px 100%;
+}
+
+/* ── Existing styles ─────────────────────────────────────────────── */
+
 .bible-text {
   @apply leading-relaxed dark:text-stone-200;
   font-size: var(--reading-font-size, 1.125rem);
 }
 
 .verse-number {
-  @apply text-stone-400 dark:text-stone-500 text-[0.6em] align-top mr-1 font-mono tracking-tighter opacity-80;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.56em;
+  vertical-align: super;
+  margin-right: 3px;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  @apply text-stone-400 dark:text-stone-500 opacity-70;
 }
 
 .commentary-content {
   @apply prose prose-stone dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-serif;
   font-size: var(--reading-font-size, 1rem);
-  /* Make sure internal elements scale nicely relative to the base font-size */
 }
 

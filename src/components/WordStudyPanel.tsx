@@ -112,19 +112,12 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
   return (
     <div className="w-full h-full flex flex-col bg-stone-50 dark:bg-stone-950 relative transition-colors duration-300">
       {/* Header */}
-      <div className="p-5 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between shrink-0 transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="bg-stone-100 dark:bg-stone-800 p-2 rounded-xl">
-            <Languages className="text-[#821111] dark:text-red-400" size={20} />
-          </div>
-          <div>
-            <h2 className="font-serif font-bold text-xl text-stone-800 dark:text-stone-100 leading-none">
-              Word Study
-            </h2>
-            <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
-              Original Language Lexicon
-            </span>
-          </div>
+      <div className="px-5 py-4 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between shrink-0 transition-colors">
+        <div className="flex items-baseline gap-2.5">
+          <h2 className="font-serif font-bold text-stone-900 dark:text-stone-100 leading-none" style={{ fontSize: 19, letterSpacing: "-0.02em" }}>
+            Word Study
+          </h2>
+          <span className="tl-eyebrow" style={{ fontSize: 8 }}>Original Language Lexicon</span>
         </div>
         {state.text && !state.loading && (
           <div className="flex items-center gap-2">

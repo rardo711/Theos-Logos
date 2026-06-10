@@ -455,24 +455,12 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         )}
       </AnimatePresence>
 
-      <div className="p-5 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0 transition-colors">
-        <div className="flex items-center justify-between md:justify-start gap-3">
-          <div className="flex items-center gap-3">
-            <div className="bg-stone-100 dark:bg-stone-800 p-2 rounded-xl">
-              <MessageSquare
-                className="text-[#821111] dark:text-red-400"
-                size={20}
-              />
-            </div>
-            <div>
-              <h2 className="font-serif font-bold text-xl text-stone-800 dark:text-stone-100 leading-none">
-                Research Room
-              </h2>
-              <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
-                Historical & Theological Synthesis
-              </span>
-            </div>
-          </div>
+      <div className="px-5 py-4 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between shrink-0 transition-colors">
+        <div className="flex items-baseline gap-2.5">
+          <h2 className="font-serif font-bold text-stone-900 dark:text-stone-100 leading-none" style={{ fontSize: 19, letterSpacing: "-0.02em" }}>
+            Research Room
+          </h2>
+          <span className="tl-eyebrow" style={{ fontSize: 8 }}>Historical Synthesis</span>
         </div>
         {state.text && !state.loading && (
           <div className="flex items-center gap-2">
@@ -570,14 +558,24 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
 
         <div className="pt-6 px-6">
           {state.loading && !state.text ? (
-            <div className="flex flex-col items-center justify-center h-full gap-5 text-stone-400 dark:text-stone-500 animate-pulse py-20">
-              <Loader2
-                className="animate-spin text-[#821111] dark:text-red-400"
-                size={40}
-              />
-              <p className="text-sm font-serif italic">
-                Compiling historical reception and scholarship...
-              </p>
+            <div className="flex flex-col gap-4 py-2">
+              <div className="flex items-center gap-2.5 mb-1">
+                <Loader2 className="animate-spin text-[#821111] dark:text-red-400 shrink-0" size={15} />
+                <span className="font-serif italic text-stone-400 dark:text-stone-500" style={{ fontSize: 13 }}>
+                  Compiling historical reception…
+                </span>
+              </div>
+              {/* Skeleton shimmer blocks */}
+              <div className="tl-shimmer h-[18px] w-3/5 rounded-md" />
+              <div className="tl-shimmer h-[13px] w-full rounded-md" />
+              <div className="tl-shimmer h-[13px] w-[92%] rounded-md" />
+              <div className="tl-shimmer h-[13px] w-[85%] rounded-md" />
+              <div className="rounded-lg border border-stone-100 dark:border-stone-800 border-l-[3px] border-l-stone-300 dark:border-l-stone-700 p-4 flex flex-col gap-2 mt-1">
+                <div className="tl-shimmer h-[12px] w-4/5 rounded-md" />
+                <div className="tl-shimmer h-[12px] w-[55%] rounded-md" />
+              </div>
+              <div className="tl-shimmer h-[13px] w-full rounded-md" />
+              <div className="tl-shimmer h-[13px] w-3/4 rounded-md" />
             </div>
           ) : (
             <div className="flex flex-col gap-6">

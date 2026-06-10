@@ -618,18 +618,35 @@ export default function App() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full relative overflow-hidden">
         {/* Header */}
-        <header className="pt-[env(safe-area-inset-top)] bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 z-10 shrink-0 transition-colors">
+        <header className="pt-[env(safe-area-inset-top)] bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 z-10 shrink-0 transition-colors relative shadow-[0_1px_0_rgb(231,229,228),0_4px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_0_rgb(41,37,36),0_4px_16px_rgba(0,0,0,0.08)]">
+          {/* Oxblood authority stripe */}
+          <div
+            className="absolute top-0 left-0 right-0 h-[2px] pointer-events-none"
+            style={{ background: "linear-gradient(90deg, #821111 0%, rgba(130,17,17,0.4) 60%, transparent 100%)" }}
+          />
           <div className="h-14 flex items-center px-3 md:px-4">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <div className="relative flex items-center justify-center bg-[#821111] dark:bg-red-900 text-white w-8 h-8 rounded-lg shadow-sm shrink-0 overflow-hidden border border-red-950/20">
-                <BookOpen
-                  size={16}
-                  strokeWidth={2.5}
-                  className="absolute opacity-20"
-                />
-                <span className="font-serif font-bold text-sm leading-none tracking-tighter relative z-10 pt-0.5">
-                  TL
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              {/* Logo mark with gradient + inner highlight */}
+              <div
+                className="flex items-center justify-center w-8 h-8 shrink-0"
+                style={{
+                  borderRadius: 9,
+                  background: "linear-gradient(145deg, #9b1515 0%, #821111 50%, #6a0d0d 100%)",
+                  boxShadow: "0 1px 3px rgba(130,17,17,0.5), inset 0 1px 0 rgba(255,255,255,0.18)",
+                  border: "1px solid rgba(60,5,5,0.4)",
+                }}
+              >
+                <span
+                  className="font-serif font-bold text-white leading-none"
+                  style={{ fontSize: 13, letterSpacing: "-0.04em", paddingTop: 1, textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
+                >TL</span>
+              </div>
+              {/* Brand name — hidden on mobile */}
+              <div className="hidden sm:flex flex-col gap-[1px]">
+                <span className="font-serif font-bold text-stone-900 dark:text-stone-100 leading-none" style={{ fontSize: 15, letterSpacing: "-0.02em" }}>
+                  Theos Logos
                 </span>
+                <span className="tl-eyebrow leading-none">Scholarly Study</span>
               </div>
             </div>
 

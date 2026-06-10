@@ -321,6 +321,11 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
       onTouchEnd={onTouchEnd}
       className="flex-1 w-full bg-white dark:bg-stone-950 overflow-y-auto px-[max(1.5rem,env(safe-area-inset-left))] pt-6 pb-32 lg:pb-16 md:px-[max(3rem,env(safe-area-inset-left))] md:pt-12 lg:px-[max(4rem,env(safe-area-inset-left))] lg:pt-16 max-w-4xl mx-auto shadow-sm border-x border-stone-100 dark:border-stone-900 relative scroll-smooth transition-colors"
     >
+      {/* Subtle oxblood left-margin rule — a nod to a physical Bible's gutter */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-[3px] pointer-events-none"
+        style={{ background: "linear-gradient(180deg, transparent 0%, #821111 10%, #821111 90%, transparent 100%)", opacity: 0.15 }}
+      />
       <div className="absolute right-6 top-6 z-10 hidden md:flex items-center">
         {isLocalSearchOpen ? (
           <div className="flex items-center bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-full px-3 py-1.5 animate-in fade-in slide-in-from-right-4">
@@ -363,35 +368,59 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
           transition={{ duration: 0.2, ease: "easeInOut" }}
         >
           <div className="mb-10 md:mb-16 text-center relative">
-            <h1 className="font-serif text-3xl md:text-5xl font-bold mb-3 text-stone-800 dark:text-stone-100 tracking-tight">
-              {chapter.reference}
+            {/* Translation eyebrow */}
+            <div className="flex items-center justify-center gap-2.5 mb-4">
+              <span className="inline-block w-7 h-px bg-stone-300 dark:bg-stone-700" />
+              <span className="tl-eyebrow">{chapter.translation_name}</span>
+              <span className="inline-block w-7 h-px bg-stone-300 dark:bg-stone-700" />
+            </div>
+            <h1 className="font-serif text-3xl md:text-[52px] font-bold text-stone-900 dark:text-stone-100 leading-[1.05]" style={{ letterSpacing: "-0.03em" }}>
+              {chapter.verses[0]?.book_name ?? chapter.reference.replace(/\s+\d+$/, "")}
             </h1>
-            <p className="text-stone-400 dark:text-stone-500 text-[10px] md:text-xs uppercase tracking-[0.2em] font-bold">
-              {chapter.translation_name}
+            <p className="font-mono text-stone-400 dark:text-stone-500 mt-2" style={{ fontSize: 13, fontWeight: 500, letterSpacing: "0.1em" }}>
+              Chapter {chapter.verses[0]?.chapter ?? chapter.reference.match(/\d+$/)?.[0]}
             </p>
+            {/* Ornamental divider */}
+            <div className="flex items-center justify-center gap-2.5 mt-6">
+              <div className="h-px w-14" style={{ background: "linear-gradient(90deg, transparent, rgb(214,211,209))" }} />
+              <div className="w-[5px] h-[5px] rounded-full bg-[#821111] opacity-60" />
+              <div className="h-px w-14" style={{ background: "linear-gradient(90deg, rgb(214,211,209), transparent)" }} />
+            </div>
           </div>
 
           <div
             ref={textContainerRef}
             className="bible-text leading-relaxed md:leading-loose text-stone-800 dark:text-stone-200"
           >
-            {chapter.verses.map((verse) => (
-              <span
-                key={verse.verse}
-                className={`inline-block mr-2 mb-2 cursor-pointer transition-all duration-200 rounded-lg px-2 py-1 ${selectedVerse === verse.verse ? "bg-red-50 dark:bg-red-950/30 text-[#821111] dark:text-red-400 ring-1 ring-red-100 dark:ring-red-900/50" : "hover:bg-stone-100 dark:hover:bg-stone-800/50"}`}
-                onClick={() => {
-                  setSelectedVerse(verse.verse);
-                  setSearchQuery("");
-                }}
-              >
-                <sup className="verse-number">
-                  {verse.verse}
-                </sup>
-                <span className="font-serif">
-                  {renderHighlightedText(verse.text)}
+            {chapter.verses.map((verse) => {
+              const sel = selectedVerse === verse.verse;
+              return (
+                <span
+                  key={verse.verse}
+                  className="inline cursor-pointer transition-all duration-200"
+                  style={{
+                    borderRadius: 4,
+                    padding: "2px 5px",
+                    background: sel
+                      ? "linear-gradient(120deg, rgba(254,226,226,0.7) 0%, rgba(254,202,202,0.5) 100%)"
+                      : "transparent",
+                    color: sel ? "#821111" : undefined,
+                    boxShadow: sel ? "inset 0 0 0 1px rgba(130,17,17,0.15)" : "none",
+                  }}
+                  onClick={() => {
+                    setSelectedVerse(sel ? null : verse.verse);
+                    setSearchQuery("");
+                  }}
+                >
+                  <sup className="verse-number" style={{ color: sel ? "#821111" : undefined, opacity: sel ? 0.9 : undefined }}>
+                    {verse.verse}
+                  </sup>
+                  <span className="font-serif">
+                    {renderHighlightedText(verse.text)}
+                  </span>{" "}
                 </span>
-              </span>
-            ))}
+              );
+            })}
           </div>
 
           {chapter.translation_note && (
