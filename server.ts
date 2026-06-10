@@ -255,6 +255,9 @@ Use Google Search to verify every quote and source.
       ? `The user is studying this word in the context of ${reference}. Anchor the analysis to how it is used there.`
       : `No specific verse was given. Treat this as a general lexical study and cite the most representative biblical occurrences.`;
 
+    const prompt = `${theologicalFraming}
+
+You are performing a WORD STUDY. The user wants concrete lexical answers about a single word in its original language, backed by sources. The input may be English, Greek, or Hebrew.
     const prompt = `You are performing a WORD STUDY. The user wants concrete lexical answers about a single word in its original language, backed by sources. The input may be English, Greek, or Hebrew.
 
 Word to study: "${word}"
