@@ -121,7 +121,7 @@ Use the imperative mood and keep the first line under 72 characters:
 ```
 feat: add cross-reference panel with CCEL linking
 fix: correct Strong's number for John 1:1 logos entry
-chore: update gemini model to gemini-2.5-flash
+chore: update gemini model to gemini-3.5-flash
 docs: add Heidelberg Catechism to SOURCES.md
 ```
 

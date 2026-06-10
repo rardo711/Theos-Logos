@@ -37,6 +37,22 @@ FORMATTING CONTRACT — follow EXACTLY for visual consistency:
 Tone: Objective, academic, surgically precise — but define technical terms in plain language the first time they appear.
 `;
 
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+
+const geminiConfig = {
+  systemInstruction: theologicalFraming,
+  tools: [{ googleSearch: {} }],
+  toolConfig: { includeServerSideToolInvocations: true },
+};
+
+let aiClient: GoogleGenAI | null = null;
+function getAI(): GoogleGenAI | null {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+  if (!aiClient) aiClient = new GoogleGenAI({ apiKey });
+  return aiClient;
+}
+
 async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3, initialDelay = 1000): Promise<T> {
   let retries = 0;
   while (true) {
@@ -93,8 +109,8 @@ async function startServer() {
   // Streams the response as Server-Sent Events (generation with search
   // grounding takes 15–30s; streaming lets the client render as it arrives).
   app.post("/api/commentary", async (req, res) => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    const ai = getAI();
+    if (!ai) {
       return res.status(503).json({ error: "AI commentary is not configured on this server." });
     }
     const { passage, reference, selectedVerse, question = "" } = req.body;
@@ -102,10 +118,15 @@ async function startServer() {
       return res.status(400).json({ error: "Missing 'passage' or 'reference'" });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
     const ccelUrl = `https://ccel.org/search?q=${encodeURIComponent(reference)}`;
     const verseContext = selectedVerse ? `The user is specifically asking about Verse ${selectedVerse}.` : "";
-    const isQuestion = typeof question === "string" && question.trim().length >= 10;
+    const trimmedQuestion = typeof question === "string" ? question.trim() : "";
+    const isQuestion = trimmedQuestion.length >= 10;
+    // A short query (e.g. "baptism") isn't a full question, but it should
+    // still steer the commentary rather than be silently dropped.
+    const topicHint = !isQuestion && trimmedQuestion
+      ? `\nThe user flagged a topic of interest: "${trimmedQuestion}". Give it particular attention where the passage warrants.`
+      : "";
 
     const prompt = isQuestion
       ? `Reference: ${reference}
@@ -114,7 +135,7 @@ ${verseContext}
 CCEL Reference: ${ccelUrl}
 
 THE USER'S QUESTION (this is your sole assignment — answer THIS, nothing else):
-"${question}"
+"${trimmedQuestion}"
 
 Rules for this response:
 - Answer the user's exact question directly. Do NOT produce a general verse-by-verse commentary unless the question explicitly asks for one.
@@ -125,7 +146,7 @@ Rules for this response:
 - Use Google Search to verify every quote and historical claim.`
       : `Reference: ${reference}
 Passage: ${passage}
-${verseContext}
+${verseContext}${topicHint}
 CCEL Reference: ${ccelUrl}
 
 Produce a structured commentary on this passage using EXACTLY these sections in this order:
@@ -156,13 +177,9 @@ Use Google Search to verify every quote and historical claim.`;
     try {
       const stream = await withRetry(() =>
         ai.models.generateContentStream({
-          model: "gemini-3.5-flash",
+          model: GEMINI_MODEL,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: {
-            systemInstruction: theologicalFraming,
-            tools: [{ googleSearch: {} }],
-            toolConfig: { includeServerSideToolInvocations: true },
-          },
+          config: geminiConfig,
         })
       );
 
@@ -184,8 +201,8 @@ Use Google Search to verify every quote and historical claim.`;
 
   // Gemini follow-up — server-side
   app.post("/api/followup", async (req, res) => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    const ai = getAI();
+    if (!ai) {
       return res.status(503).json({ error: "AI commentary is not configured on this server." });
     }
     const { passage, reference, selectedText, question, fullCommentaryText } = req.body;
@@ -193,7 +210,6 @@ Use Google Search to verify every quote and historical claim.`;
       return res.status(400).json({ error: "Missing required fields." });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
     const prompt = `
 The user is studying ${reference}.
 Passage: ${passage}
@@ -223,13 +239,9 @@ Use Google Search to verify every quote and source.
     try {
       const response = await withRetry(() =>
         ai.models.generateContent({
-          model: "gemini-3.5-flash",
+          model: GEMINI_MODEL,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: {
-            systemInstruction: theologicalFraming,
-            tools: [{ googleSearch: {} }],
-            toolConfig: { includeServerSideToolInvocations: true },
-          },
+          config: geminiConfig,
         })
       );
       return res.json({ text: response.text || "Empty response from AI." });
@@ -241,8 +253,8 @@ Use Google Search to verify every quote and source.
 
   // Word Study — dedicated lexical analysis with a strict, consistent format
   app.post("/api/wordstudy", async (req, res) => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    const ai = getAI();
+    if (!ai) {
       return res.status(503).json({ error: "AI word study is not configured on this server." });
     }
     const { word, reference = "" } = req.body;
@@ -250,7 +262,6 @@ Use Google Search to verify every quote and source.
       return res.status(400).json({ error: "Missing 'word' to study." });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
     const refContext = reference
       ? `The user is studying this word in the context of ${reference}. Anchor the analysis to how it is used there.`
       : `No specific verse was given. Treat this as a general lexical study and cite the most representative biblical occurrences.`;
@@ -287,13 +298,9 @@ Use Google Search to verify the Strong's number, definitions, and every scriptur
     try {
       const response = await withRetry(() =>
         ai.models.generateContent({
-          model: "gemini-3.5-flash",
+          model: GEMINI_MODEL,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: {
-            systemInstruction: theologicalFraming,
-            tools: [{ googleSearch: {} }],
-            toolConfig: { includeServerSideToolInvocations: true },
-          },
+          config: geminiConfig,
         })
       );
       if (!response.text) return res.status(500).json({ error: "The AI returned an empty response." });

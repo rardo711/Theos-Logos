@@ -16,11 +16,8 @@ import {
   X,
   ArrowRight,
   ChevronDown,
-  RotateCcw,
   Type,
   History as HistoryIcon,
-  Bookmark,
-  Menu,
   Languages,
 } from "lucide-react";
 
@@ -161,6 +158,9 @@ export default function App() {
   );
 
   useEffect(() => {
+    // Skip writes while streaming — the text updates on every chunk and
+    // partial commentary shouldn't be persisted anyway.
+    if (commentaryState.loading) return;
     localStorage.setItem(
       "theos_logos_commentary",
       JSON.stringify(commentaryState),
@@ -569,9 +569,16 @@ export default function App() {
                     <button
                       key={item.id}
                       onClick={() => {
+                        // Book names can contain spaces ("1 John", "Song of
+                        // Solomon") — the chapter is everything after the
+                        // last space.
+                        const lastSpace = item.reference.lastIndexOf(" ");
                         handleCrossReference(
-                          item.reference.split(" ")[0],
-                          parseInt(item.reference.split(" ")[1].split(":")[0]),
+                          item.reference.slice(0, lastSpace),
+                          parseInt(
+                            item.reference.slice(lastSpace + 1).split(":")[0],
+                            10,
+                          ),
                         );
                         setCommentaryState(item.state);
                         setViewMode("commentary");
