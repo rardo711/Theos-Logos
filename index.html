@@ -1,374 +1,67 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Bible Study">
-    <meta name="theme-color" content="#e8e0f0" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#1a1028" media="(prefers-color-scheme: dark)">
-    <title>Theological Study</title>
-
-    <!-- App Icons -->
-    <link rel="icon" type="image/svg+xml" href="icon.svg">
-    <link rel="apple-touch-icon" href="icon.svg">
-    <link rel="manifest" href="manifest.json">
-
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <!-- Main Header -->
-    <header class="main-header">
-        <div class="header-content">
-            <h1 class="app-title">Theological Study</h1>
-            <div class="header-actions">
-                <button id="darkModeToggle" class="icon-btn" aria-label="Toggle dark mode">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </button>
-                <button id="menuToggle" class="icon-btn" aria-label="Toggle menu">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Navigation Tabs -->
-    <nav class="tab-navigation">
-        <button class="tab-btn active" data-tab="passage">Passage</button>
-        <button class="tab-btn" data-tab="commentary">Commentary</button>
-        <button class="tab-btn" data-tab="notes">Notes</button>
-        <button class="tab-btn" data-tab="bookmarks">Bookmarks</button>
-    </nav>
-
-    <!-- Main Content Area -->
-    <main class="main-content">
-
-        <!-- Passage Tab -->
-        <section id="passageTab" class="content-section active">
-            <!-- Passage Navigation -->
-            <div class="passage-nav">
-                <div class="search-container">
-                    <input
-                        type="text"
-                        id="passageSearch"
-                        class="search-input"
-                        placeholder="Search passage (e.g., John 3:16)"
-                        aria-label="Search passage">
-                    <button id="searchBtn" class="btn btn-primary">Go</button>
-                </div>
-
-                <div class="translation-selector">
-                    <label for="translationSelect">Translation:</label>
-                    <select id="translationSelect" class="select-input">
-                        <option value="kjv">KJV (King James)</option>
-                        <option value="esv">ESV (English Standard)</option>
-                        <option value="lsb">LSB (Legacy Standard)</option>
-                    </select>
-                </div>
-
-                <div class="quick-nav">
-                    <select id="bookSelect" class="select-input">
-                        <option value="">Select Book</option>
-                        <optgroup label="Old Testament">
-                            <option value="genesis">Genesis</option>
-                            <option value="exodus">Exodus</option>
-                            <option value="leviticus">Leviticus</option>
-                            <option value="numbers">Numbers</option>
-                            <option value="deuteronomy">Deuteronomy</option>
-                            <option value="joshua">Joshua</option>
-                            <option value="judges">Judges</option>
-                            <option value="ruth">Ruth</option>
-                            <option value="1samuel">1 Samuel</option>
-                            <option value="2samuel">2 Samuel</option>
-                            <option value="1kings">1 Kings</option>
-                            <option value="2kings">2 Kings</option>
-                            <option value="1chronicles">1 Chronicles</option>
-                            <option value="2chronicles">2 Chronicles</option>
-                            <option value="ezra">Ezra</option>
-                            <option value="nehemiah">Nehemiah</option>
-                            <option value="esther">Esther</option>
-                            <option value="job">Job</option>
-                            <option value="psalms">Psalms</option>
-                            <option value="proverbs">Proverbs</option>
-                            <option value="ecclesiastes">Ecclesiastes</option>
-                            <option value="songofsolomon">Song of Solomon</option>
-                            <option value="isaiah">Isaiah</option>
-                            <option value="jeremiah">Jeremiah</option>
-                            <option value="lamentations">Lamentations</option>
-                            <option value="ezekiel">Ezekiel</option>
-                            <option value="daniel">Daniel</option>
-                            <option value="hosea">Hosea</option>
-                            <option value="joel">Joel</option>
-                            <option value="amos">Amos</option>
-                            <option value="obadiah">Obadiah</option>
-                            <option value="jonah">Jonah</option>
-                            <option value="micah">Micah</option>
-                            <option value="nahum">Nahum</option>
-                            <option value="habakkuk">Habakkuk</option>
-                            <option value="zephaniah">Zephaniah</option>
-                            <option value="haggai">Haggai</option>
-                            <option value="zechariah">Zechariah</option>
-                            <option value="malachi">Malachi</option>
-                        </optgroup>
-                        <optgroup label="New Testament">
-                            <option value="matthew">Matthew</option>
-                            <option value="mark">Mark</option>
-                            <option value="luke">Luke</option>
-                            <option value="john">John</option>
-                            <option value="acts">Acts</option>
-                            <option value="romans">Romans</option>
-                            <option value="1corinthians">1 Corinthians</option>
-                            <option value="2corinthians">2 Corinthians</option>
-                            <option value="galatians">Galatians</option>
-                            <option value="ephesians">Ephesians</option>
-                            <option value="philippians">Philippians</option>
-                            <option value="colossians">Colossians</option>
-                            <option value="1thessalonians">1 Thessalonians</option>
-                            <option value="2thessalonians">2 Thessalonians</option>
-                            <option value="1timothy">1 Timothy</option>
-                            <option value="2timothy">2 Timothy</option>
-                            <option value="titus">Titus</option>
-                            <option value="philemon">Philemon</option>
-                            <option value="hebrews">Hebrews</option>
-                            <option value="james">James</option>
-                            <option value="1peter">1 Peter</option>
-                            <option value="2peter">2 Peter</option>
-                            <option value="1john">1 John</option>
-                            <option value="2john">2 John</option>
-                            <option value="3john">3 John</option>
-                            <option value="jude">Jude</option>
-                            <option value="revelation">Revelation</option>
-                        </optgroup>
-                    </select>
-
-                    <input
-                        type="number"
-                        id="chapterInput"
-                        class="number-input"
-                        placeholder="Ch"
-                        min="1"
-                        aria-label="Chapter">
-
-                    <input
-                        type="number"
-                        id="verseInput"
-                        class="number-input"
-                        placeholder="Vs"
-                        min="1"
-                        aria-label="Verse">
-
-                    <button id="quickNavBtn" class="btn btn-secondary">Jump</button>
-                </div>
-            </div>
-
-            <!-- Passage Display -->
-            <div class="passage-display">
-                <div id="passageHeader" class="passage-header">
-                    <h2 id="passageTitle">Select a passage to begin</h2>
-                    <div class="passage-actions">
-                        <button id="bookmarkPassageBtn" class="icon-btn" title="Bookmark this passage">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="passageText" class="passage-text">
-                    <div class="placeholder-message">
-                        <p>Use the search bar or quick navigation above to find a passage.</p>
-                        <p class="text-muted">Bible text will be displayed here once added to the application.</p>
-                    </div>
-                </div>
-
-                <!-- Chapter Navigation -->
-                <div id="chapterNav" class="chapter-navigation hidden">
-                    <button id="prevChapterBtn" class="btn btn-secondary">← Previous Chapter</button>
-                    <button id="nextChapterBtn" class="btn btn-secondary">Next Chapter →</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Commentary Tab -->
-        <section id="commentaryTab" class="content-section">
-            <div class="commentary-container">
-                <!-- Tradition Filter -->
-                <div class="filter-bar">
-                    <h3>Theological Traditions</h3>
-                    <div class="tradition-filters">
-                        <label class="filter-checkbox">
-                            <input type="checkbox" value="reformed" checked>
-                            <span>Reformed</span>
-                        </label>
-                        <label class="filter-checkbox">
-                            <input type="checkbox" value="patristic" checked>
-                            <span>Patristic</span>
-                        </label>
-                        <label class="filter-checkbox">
-                            <input type="checkbox" value="catholic">
-                            <span>Catholic</span>
-                        </label>
-                        <label class="filter-checkbox">
-                            <input type="checkbox" value="orthodox">
-                            <span>Orthodox</span>
-                        </label>
-                        <label class="filter-checkbox">
-                            <input type="checkbox" value="mainline">
-                            <span>Mainline Protestant</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Commentary Display -->
-                <div id="commentaryDisplay" class="commentary-display">
-                    <div class="placeholder-message">
-                        <p>Commentary for the current passage will appear here.</p>
-                        <p class="text-muted">The commentary system is ready to receive content organized by theological tradition.</p>
-                        <div class="info-box">
-                            <h4>Supported Traditions:</h4>
-                            <ul>
-                                <li><strong>Reformed:</strong> Scholastics and dogmatics</li>
-                                <li><strong>Patristic:</strong> Church fathers</li>
-                                <li><strong>Catholic:</strong> Roman Catholic theology</li>
-                                <li><strong>Orthodox:</strong> Eastern Orthodox theology</li>
-                                <li><strong>Mainline Protestant:</strong> Conservative mainline scholars</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Notes Tab -->
-        <section id="notesTab" class="content-section">
-            <div class="notes-container">
-                <!-- Note Creation -->
-                <div class="note-editor">
-                    <h3>Create Note</h3>
-                    <div class="form-group">
-                        <label for="noteReference">Passage Reference</label>
-                        <input
-                            type="text"
-                            id="noteReference"
-                            class="form-input"
-                            placeholder="e.g., John 3:16">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="noteTags">Tags (comma-separated)</label>
-                        <input
-                            type="text"
-                            id="noteTags"
-                            class="form-input"
-                            placeholder="justification, grace, soteriology">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="noteContent">Note</label>
-                        <textarea
-                            id="noteContent"
-                            class="form-textarea"
-                            rows="6"
-                            placeholder="Write your theological insights..."></textarea>
-                    </div>
-
-                    <div class="button-group">
-                        <button id="saveNoteBtn" class="btn btn-primary">Save Note</button>
-                        <button id="clearNoteBtn" class="btn btn-secondary">Clear</button>
-                    </div>
-                </div>
-
-                <!-- Notes Search -->
-                <div class="notes-search">
-                    <input
-                        type="text"
-                        id="notesSearchInput"
-                        class="search-input"
-                        placeholder="Search notes...">
-                    <select id="tagFilter" class="select-input">
-                        <option value="">All Tags</option>
-                    </select>
-                </div>
-
-                <!-- Notes List -->
-                <div id="notesList" class="notes-list">
-                    <div class="placeholder-message">
-                        <p>No notes yet. Create your first note above.</p>
-                    </div>
-                </div>
-
-                <!-- Export Notes -->
-                <div class="export-section">
-                    <button id="exportNotesBtn" class="btn btn-secondary">Export All Notes</button>
-                    <button id="importNotesBtn" class="btn btn-secondary">Import Notes</button>
-                    <input type="file" id="importNotesFile" accept=".json" class="hidden">
-                </div>
-            </div>
-        </section>
-
-        <!-- Bookmarks Tab -->
-        <section id="bookmarksTab" class="content-section">
-            <div class="bookmarks-container">
-                <div class="bookmarks-header">
-                    <h3>Saved Passages</h3>
-                    <button id="createCollectionBtn" class="btn btn-primary">New Collection</button>
-                </div>
-
-                <!-- Collections -->
-                <div id="collectionsContainer" class="collections-container">
-                    <div class="collection-item default-collection">
-                        <h4>All Bookmarks</h4>
-                        <div id="allBookmarksList" class="bookmarks-list">
-                            <div class="placeholder-message">
-                                <p>No bookmarks yet. Bookmark passages from the Passage tab.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Collection Modal -->
-    <div id="collectionModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Create Collection</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="collectionName">Collection Name</label>
-                    <input
-                        type="text"
-                        id="collectionName"
-                        class="form-input"
-                        placeholder="e.g., Justification Study">
-                </div>
-                <div class="form-group">
-                    <label for="collectionDescription">Description (optional)</label>
-                    <textarea
-                        id="collectionDescription"
-                        class="form-textarea"
-                        rows="3"
-                        placeholder="Brief description of this collection..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="saveCollectionBtn" class="btn btn-primary">Create</button>
-                <button class="btn btn-secondary modal-close">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
+    <title>THEOS LOGOS</title>
+    
+    <!-- PWA / iOS Web App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="THEOS LOGOS" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#fafaf9" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%23821111'/%3E%3Cpath d='M128 160c0-26.5 21.5-48 48-48h80v288h-80c-26.5 0-48 21.5-48 48V160z' fill='%23ffffff'/%3E%3Cpath d='M384 160c0-26.5-21.5-48-48-48h-80v288h80c26.5 0 48 21.5 48 48V160z' fill='%23ffffff'/%3E%3Cpath d='M244 180h24v120h-24z' fill='%23821111'/%3E%3Cpath d='M214 210h84v24h-84z' fill='%23821111'/%3E%3C/svg%3E" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0;
+        background-color: #fafaf9; /* stone-50 */
+        color: #1c1917; /* stone-900 */
+      }
+      @media (prefers-color-scheme: dark) {
+        body, html {
+          background-color: #0c0a09; /* stone-950 */
+          color: #fafaf9; /* stone-50 */
+        }
+      }
+      /* Fallback handling for themes until React handles it */
+      html.dark body, html.dark {
+        background-color: #0c0a09 !important;
+        color: #fafaf9 !important;
+      }
+      html.light body, html.light {
+        background-color: #fafaf9 !important;
+        color: #1c1917 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      (function() {
+        var saved = localStorage.getItem('theos_logos_typography');
+        var theme = 'auto';
+        if (saved) {
+          try {
+            var parsed = JSON.parse(saved);
+            theme = parsed.theme || 'auto';
+          } catch(e) {}
+        }
+        if (theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
+

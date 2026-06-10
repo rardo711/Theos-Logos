@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    @apply bg-white dark:bg-stone-950;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    overscroll-behavior: none;
+  }
+  
+  #root {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    @apply bg-white dark:bg-stone-950;
+    overscroll-behavior: none;
+  }
+  
+  body {
+    @apply text-stone-900 dark:text-stone-100 font-sans select-none transition-colors duration-300;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Allow text selection only in specific areas */
+  .bible-text, .commentary-content, input, textarea {
+    @apply select-text;
+  }
+
+  button, a {
+    touch-action: manipulation;
+  }
+  .force-sans .font-serif {
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  }
+  
+  .force-sans .prose * {
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  }
+}
+
+.bible-text {
+  @apply leading-relaxed dark:text-stone-200;
+  font-size: var(--reading-font-size, 1.125rem);
+}
+
+.verse-number {
+  @apply text-stone-400 dark:text-stone-500 text-[0.6em] align-top mr-1 font-mono tracking-tighter opacity-80;
+}
+
+.commentary-content {
+  @apply prose prose-stone dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-serif;
+  font-size: var(--reading-font-size, 1rem);
+  /* Make sure internal elements scale nicely relative to the base font-size */
+}
+

@@ -1,0 +1,17 @@
+{
+  "name": "THEOS LOGOS",
+  "short_name": "THEOS LOGOS",
+  "description": "Scholarly Bible study and theological research tool.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafaf9",
+  "theme_color": "#821111",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%23821111'/%3E%3Cpath d='M128 160c0-26.5 21.5-48 48-48h80v288h-80c-26.5 0-48 21.5-48 48V160z' fill='%23ffffff'/%3E%3Cpath d='M384 160c0-26.5-21.5-48-48-48h-80v288h80c26.5 0 48 21.5 48 48V160z' fill='%23ffffff'/%3E%3Cpath d='M244 180h24v120h-24z' fill='%23821111'/%3E%3Cpath d='M214 210h84v24h-84z' fill='%23821111'/%3E%3C/svg%3E",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
