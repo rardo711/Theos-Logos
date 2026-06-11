@@ -6,8 +6,9 @@ import {
   Copy,
   ScrollText,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
-import { generateWordStudy } from "../services/geminiService";
+import { generateWordStudy, generateWordStudyExpand } from "../services/geminiService";
 import { BibleChapter } from "../types";
 import { useI18n } from "../i18n";
 import { MemoizedMarkdown } from "./markdown";
@@ -19,6 +20,9 @@ export interface WordStudyState {
   word: string;
   studiedWord: string | null;
   useVerseContext: boolean;
+  expandedText: string | null;
+  expandedLoading: boolean;
+  expandedError: string | null;
 }
 
 export const defaultWordStudyState: WordStudyState = {
@@ -28,6 +32,9 @@ export const defaultWordStudyState: WordStudyState = {
   word: "",
   studiedWord: null,
   useVerseContext: true,
+  expandedText: null,
+  expandedLoading: false,
+  expandedError: null,
 };
 
 interface WordStudyPanelProps {
@@ -82,6 +89,9 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
       loading: true,
       error: null,
       studiedWord: word,
+      expandedText: null,
+      expandedLoading: false,
+      expandedError: null,
     }));
 
     try {
@@ -110,7 +120,26 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
       error: null,
       word: "",
       studiedWord: null,
+      expandedText: null,
+      expandedLoading: false,
+      expandedError: null,
     }));
+
+  const handleExpand = async () => {
+    const word = state.studiedWord;
+    if (!word || state.expandedLoading) return;
+    const reference = state.useVerseContext && chapter ? chapter.reference : "";
+    setState(prev => ({ ...prev, expandedLoading: true, expandedError: null }));
+    try {
+      const result = await generateWordStudyExpand(word, reference, lang, partial => {
+        setState(prev => ({ ...prev, expandedText: partial }));
+      });
+      setState(prev => ({ ...prev, expandedText: result || "No expanded analysis generated.", expandedLoading: false }));
+      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    } catch (err: any) {
+      setState(prev => ({ ...prev, expandedError: err.message || "Failed to generate full analysis.", expandedLoading: false }));
+    }
+  };
 
   const copy = () => {
     if (state.text) navigator.clipboard.writeText(state.text);
@@ -248,6 +277,52 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
               {!state.loading && (
                 <div className="mt-8 p-4 bg-stone-50 dark:bg-stone-900 border-l-4 border-stone-300 dark:border-stone-700 rounded-r-xl text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-serif">
                   <strong>{s.verifySourcesTitle}</strong> {s.verifySourcesBody}
+                </div>
+              )}
+              {!state.loading && state.text && !state.expandedText && !state.expandedLoading && (
+                <button
+                  onClick={handleExpand}
+                  className="mt-4 w-full py-3 rounded-2xl border-2 border-dashed border-stone-200 dark:border-stone-800 text-stone-500 dark:text-stone-400 hover:border-[#821111]/40 hover:text-[#821111] dark:hover:text-red-400 dark:hover:border-red-900/50 transition-all text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 group"
+                >
+                  <ChevronDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
+                  {s.expandStudy}
+                </button>
+              )}
+              {(state.expandedText || state.expandedLoading) && (
+                <div className="mt-6 pt-5 border-t-2 border-stone-100 dark:border-stone-800 animate-in fade-in duration-500">
+                  <div className="flex items-center gap-2 mb-5">
+                    <div className="w-1 h-4 bg-[#821111] dark:bg-red-800 rounded-full" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#821111] dark:text-red-400">
+                      {s.expandedStudy}
+                    </span>
+                  </div>
+                  {state.expandedLoading && !state.expandedText ? (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="animate-spin text-[#821111] dark:text-red-400 shrink-0" size={14} />
+                        <span className="font-serif italic text-stone-400 dark:text-stone-500 text-[13px]">{s.expandLoading}</span>
+                      </div>
+                      <div className="tl-shimmer h-[13px] w-2/3 rounded-md" />
+                      <div className="tl-shimmer h-[13px] w-full rounded-md" />
+                      <div className="tl-shimmer h-[13px] w-4/5 rounded-md" />
+                      <div className="tl-shimmer h-[13px] w-full rounded-md" />
+                      <div className="tl-shimmer h-[13px] w-3/5 rounded-md" />
+                    </div>
+                  ) : state.expandedError ? (
+                    <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-xl text-red-600 dark:text-red-400 text-sm">
+                      <p className="font-serif italic">{state.expandedError}</p>
+                    </div>
+                  ) : state.expandedText ? (
+                    <div className="commentary-content prose prose-stone dark:prose-invert prose-sm max-w-none">
+                      <MemoizedMarkdown content={state.expandedText} onCrossReference={onCrossReference} />
+                      {state.expandedLoading && (
+                        <div className="mt-3 flex items-center gap-2 text-stone-400 dark:text-stone-500">
+                          <Loader2 className="animate-spin text-[#821111] dark:text-red-400" size={13} />
+                          <span className="text-xs font-serif italic">{s.expandLoading}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               )}
             </div>

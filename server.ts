@@ -77,6 +77,7 @@ const HEADINGS = {
     traditionExample: "Reformed Perspective",
     originalLanguage: "Original Language",
     definition: "Definition",
+    keyUsages: "Key Usages",
     semanticRange: "Semantic Range",
     usage: "Usage in Scripture",
     etymology: "Etymology & Cognates",
@@ -94,6 +95,7 @@ const HEADINGS = {
     traditionExample: "Perspectiva Reformada",
     originalLanguage: "Lengua Original",
     definition: "Definición",
+    keyUsages: "Usos Clave",
     semanticRange: "Rango Semántico",
     usage: "Uso en las Escrituras",
     etymology: "Etimología y Cognados",
@@ -399,34 +401,26 @@ Use Google Search to verify every quote and source.
       ? `The user is studying this word in the context of ${reference}. Anchor the analysis to how it is used there.`
       : `No specific verse was given. Treat this as a general lexical study and cite the most representative biblical occurrences.`;
 
-    const prompt = `You are performing a WORD STUDY. The user wants concrete lexical answers about a single word in its original language, backed by sources. The input may be English, Spanish, Greek, or Hebrew.
+    const prompt = `You are performing a WORD STUDY — QUICK REFERENCE. Give a fast, readable overview.
 
-Word to study: "${word}"
+Word to study: "${word.trim()}"
 ${refContext}
 
-Respond using EXACTLY this structure and nothing else. If the word maps to more than one distinct original-language term, repeat the "Lexical Entry" block for each.
+Respond using EXACTLY this structure. If the word maps to more than one original-language term, handle the most common one.
 
-## ${word}
+## ${word.trim()}
 
 ### ${H.originalLanguage}
-The original word in its script, transliteration in italics, Strong's number, and the language (Greek or Hebrew). Example: **λόγος** (*logos*, G3056) — Greek.
+The original word in its script, transliteration in italics, Strong's number, and language. Example: **λόγος** (*logos*, G3056) — Greek.
 
 ### ${H.definition}
-A concise gloss a layperson can understand (1–2 sentences), then the formal lexical definition structured after BDAG (Greek) or HALOT (Hebrew).
+A concise 1–2 sentence gloss a layperson can understand, followed by the core formal definition from BDAG (Greek) or HALOT (Hebrew) in one sentence.
 
-### ${H.semanticRange}
-A bullet list of the distinct senses the word can carry, each with a one-line gloss.
+### ${H.keyUsages}
+The 2 most representative occurrences. Format: reference (real, verifiable) + one-sentence note on the sense used.
 
-### ${H.usage}
-2–4 representative occurrences as a list. For each: the reference (real, verifiable) and a short note on the sense used there. Make every reference a real verse.
-
-### ${H.etymology}
-Root, related forms, and cognates where relevant. Keep brief.
-
-### ${H.sources}
-A bullet list of the specific lexicons and tools consulted (e.g. BDAG 3rd ed., Thayer's, LSJ, Strong's, HALOT) with a verification link to CCEL, Perseus (perseus.tufts.edu), or Bible Hub where available.
-
-Draw on your training knowledge of BDAG, HALOT, Thayer, and Strong's. Never invent a Strong's number or a verse.`;
+Be concise. This is a quick reference — omit etymology and semantic range. The user can expand for the full analysis.
+Draw on BDAG, HALOT, Thayer, and Strong's. Never invent a Strong's number or a verse.`;
 
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
@@ -449,6 +443,70 @@ Draw on your training knowledge of BDAG, HALOT, Thayer, and Strong's. Never inve
       res.end();
     } catch (error: any) {
       console.error("[Server] Gemini word study error:", error);
+      res.write(`data: ${JSON.stringify({ error: extractGeminiError(error, lang) })}\n\n`);
+      res.end();
+    }
+  });
+
+  // Word Study Expand — full scholarly analysis; streams as SSE; no search grounding
+  app.post("/api/wordstudy/expand", async (req, res) => {
+    const ai = getAI();
+    if (!ai) {
+      return res.status(503).json({ error: "AI word study is not configured on this server." });
+    }
+    const { word, reference = "" } = req.body;
+    if (!word || typeof word !== "string" || !word.trim()) {
+      return res.status(400).json({ error: "Missing 'word' to study." });
+    }
+    const lang = parseLang(req.body.lang);
+    const H = HEADINGS[lang];
+
+    const refContext = reference
+      ? `The user is studying this word in the context of ${reference}. Anchor the analysis to how it is used there.`
+      : `No specific verse was given. Treat this as a general lexical study and cite the most representative biblical occurrences.`;
+
+    const prompt = `You are completing a WORD STUDY — FULL SCHOLARLY ANALYSIS. The user has already seen the quick reference (Original Language, Definition, 2 Key Usages). Provide the deeper academic layers only.
+
+Word: "${word.trim()}"
+${refContext}
+
+Do NOT restate the Original Language or Definition. Begin directly with Semantic Range.
+
+### ${H.semanticRange}
+All distinct senses this word can carry, as a bullet list with a one-line gloss each.
+
+### ${H.usage}
+4–6 representative occurrences. Format: reference (real, verifiable) + note on sense used. Real verses only.
+
+### ${H.etymology}
+Root, parent language, related forms, cognates. 2–3 sentences.
+
+### ${H.sources}
+Bullet list: lexicons consulted (BDAG 3rd ed., Thayer's Greek Lexicon, LSJ, HALOT, Strong's Concordance) with verification links to CCEL (ccel.org), Perseus (perseus.tufts.edu), or Bible Hub where available.
+
+Draw on BDAG, HALOT, Thayer, and Strong's. Never invent a Strong's number or a verse.`;
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    try {
+      const stream = await withRetry(() =>
+        ai.models.generateContentStream({
+          model: GEMINI_MODEL,
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          config: geminiConfigFor(lang, { grounded: false }),
+        })
+      );
+      for await (const chunk of stream) {
+        const text = chunk.text;
+        if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
+      }
+      res.write("data: [DONE]\n\n");
+      res.end();
+    } catch (error: any) {
+      console.error("[Server] Gemini word study expand error:", error);
       res.write(`data: ${JSON.stringify({ error: extractGeminiError(error, lang) })}\n\n`);
       res.end();
     }

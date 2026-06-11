@@ -65,6 +65,15 @@ export async function generateWordStudy(
   return readSSEStream("/api/wordstudy", { word, reference, lang }, onChunk);
 }
 
+export async function generateWordStudyExpand(
+  word: string,
+  reference: string = "",
+  lang: Lang = "en",
+  onChunk?: (fullText: string) => void,
+): Promise<string> {
+  return readSSEStream("/api/wordstudy/expand", { word, reference, lang }, onChunk);
+}
+
 export async function generateFollowUp(
   passage: string,
   reference: string,
