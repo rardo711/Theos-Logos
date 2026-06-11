@@ -54,7 +54,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
   setState,
   onCrossReference,
 }) => {
-  const { s } = useI18n();
+  const { s, lang } = useI18n();
   const lastProcessedTrigger = React.useRef<number>(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const commentaryContainerRef = useRef<HTMLDivElement>(null);
@@ -232,6 +232,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         (partial) => {
           setState((prev) => ({ ...prev, text: partial }));
         },
+        lang,
       );
       setState((prev) => ({
         ...prev,
@@ -267,6 +268,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         followUp.selectedText,
         followUp.query,
         state.text || undefined,
+        lang,
       );
       setFollowUp((prev) => ({ ...prev, response: result, loading: false }));
     } catch (err: any) {

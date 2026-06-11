@@ -37,7 +37,10 @@ interface WordStudyPanelProps {
   onCrossReference?: (book: string, chapter: number) => void;
 }
 
-const EXAMPLE_WORDS = ["agape", "logos", "chesed", "propitiation", "shalom"];
+const EXAMPLE_WORDS: Record<string, string[]> = {
+  en: ["agape", "logos", "chesed", "propitiation", "shalom"],
+  es: ["agape", "logos", "chesed", "propiciación", "shalom"],
+};
 
 export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
   chapter,
@@ -45,7 +48,7 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
   setState,
   onCrossReference,
 }) => {
-  const { s } = useI18n();
+  const { s, lang } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
 
@@ -82,7 +85,7 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
     }));
 
     try {
-      const result = await generateWordStudy(word, reference);
+      const result = await generateWordStudy(word, reference, lang);
       setState((prev) => ({
         ...prev,
         text: result || "No analysis generated.",
@@ -252,7 +255,7 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
                 <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-600 w-full">
                   {s.tryLabel}
                 </span>
-                {EXAMPLE_WORDS.map((w) => (
+                {(EXAMPLE_WORDS[lang] ?? EXAMPLE_WORDS.en).map((w) => (
                   <button
                     key={w}
                     onClick={() => handleStudy(undefined, w)}

@@ -39,11 +39,69 @@ Tone: Objective, academic, surgically precise — but define technical terms in 
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 
-const geminiConfig = {
-  systemInstruction: theologicalFraming,
-  tools: [{ googleSearch: {} }],
-  toolConfig: { includeServerSideToolInvocations: true },
-};
+type ResponseLang = "en" | "es";
+
+const spanishDirective = `
+LANGUAGE MANDATE — SPANISH OUTPUT:
+The user is studying in Spanish. Write the ENTIRE response in Spanish, to these standards:
+- Register: neutral, professional Latin American Spanish — natural prose written directly in Spanish, never translationese. Address the reader with the formal "usted" (implicitly); avoid regionalisms (no voseo, no "vosotros").
+- Scholarly but accessible: define technical terms (e.g. "propiciación", "exégesis", "escatología") in lenguaje llano the first time they appear.
+- Headings: every Markdown heading in Spanish, in title case.
+- Original languages: keep Greek/Hebrew script, transliterations, and Strong's numbers in standard scholarly convention, e.g. **ἀγάπη** (*agapē*, G26).
+- Quotations: render quotations from the Fathers, Reformers, and confessions in faithful Spanish translation; cite each work by its received Spanish title where one exists (e.g. Calvino, *Institución de la Religión Cristiana*; Agustín, *Confesiones*; *Confesión de Fe de Westminster*), otherwise keep the original title.
+- Scripture: use Spanish book names (Juan 3:16; 1 Corintios 13) and follow the Reina-Valera 1960 wording when quoting verses.
+`;
+
+function geminiConfigFor(lang: ResponseLang) {
+  return {
+    systemInstruction:
+      lang === "es" ? theologicalFraming + spanishDirective : theologicalFraming,
+    tools: [{ googleSearch: {} }],
+    toolConfig: { includeServerSideToolInvocations: true },
+  };
+}
+
+function parseLang(value: unknown): ResponseLang {
+  return value === "es" ? "es" : "en";
+}
+
+/* Section headings the model must emit, per response language */
+const HEADINGS = {
+  en: {
+    directAnswer: "Direct Answer",
+    scholarlyBasis: "Scholarly Basis",
+    acrossTraditions: "Across the Traditions",
+    overview: "Overview",
+    languageNotes: "Language Notes",
+    historicalContext: "Historical Context",
+    exegesis: "Exegesis",
+    historicalReception: "Historical Reception",
+    traditionExample: "Reformed Perspective",
+    originalLanguage: "Original Language",
+    definition: "Definition",
+    semanticRange: "Semantic Range",
+    usage: "Usage in Scripture",
+    etymology: "Etymology & Cognates",
+    sources: "Sources",
+  },
+  es: {
+    directAnswer: "Respuesta Directa",
+    scholarlyBasis: "Fundamento Académico",
+    acrossTraditions: "Entre las Tradiciones",
+    overview: "Panorama General",
+    languageNotes: "Notas Lingüísticas",
+    historicalContext: "Contexto Histórico",
+    exegesis: "Exégesis",
+    historicalReception: "Recepción Histórica",
+    traditionExample: "Perspectiva Reformada",
+    originalLanguage: "Lengua Original",
+    definition: "Definición",
+    semanticRange: "Rango Semántico",
+    usage: "Uso en las Escrituras",
+    etymology: "Etimología y Cognados",
+    sources: "Fuentes",
+  },
+} as const;
 
 let aiClient: GoogleGenAI | null = null;
 function getAI(): GoogleGenAI | null {
@@ -126,6 +184,8 @@ async function startServer() {
       return res.status(400).json({ error: "Missing 'passage' or 'reference'" });
     }
 
+    const lang = parseLang(req.body.lang);
+    const H = HEADINGS[lang];
     const ccelUrl = `https://ccel.org/search?q=${encodeURIComponent(reference)}`;
     const verseContext = selectedVerse ? `The user is specifically asking about Verse ${selectedVerse}.` : "";
     const trimmedQuestion = typeof question === "string" ? question.trim() : "";
@@ -147,9 +207,9 @@ THE USER'S QUESTION (this is your sole assignment — answer THIS, nothing else)
 
 Rules for this response:
 - Answer the user's exact question directly. Do NOT produce a general verse-by-verse commentary unless the question explicitly asks for one.
-- Open with a \`## Direct Answer\` section (2–4 sentences) that a layperson can understand.
-- Then a \`## Scholarly Basis\` section with the supporting evidence: cited primary sources, exegetical reasoning, and any relevant original-language terms.
-- If, and only if, the question touches a disputed point, add a \`## Across the Traditions\` section with \`###\` sub-headings per tradition.
+- Open with a \`## ${H.directAnswer}\` section (2–4 sentences) that a layperson can understand.
+- Then a \`## ${H.scholarlyBasis}\` section with the supporting evidence: cited primary sources, exegetical reasoning, and any relevant original-language terms.
+- If, and only if, the question touches a disputed point, add a \`## ${H.acrossTraditions}\` section with \`###\` sub-headings per tradition.
 - Only include lexical detail that bears on the question. Stay on topic.
 - Use Google Search to verify every quote and historical claim.`
       : `Reference: ${reference}
@@ -159,20 +219,20 @@ CCEL Reference: ${ccelUrl}
 
 Produce a structured commentary on this passage using EXACTLY these sections in this order:
 
-## Overview
+## ${H.overview}
 A 2–4 sentence plain-language summary of what the passage says and why it matters. Written for a layperson.
 
-## Language Notes
+## ${H.languageNotes}
 Key Greek/Hebrew terms with script, transliteration, and Strong's number. Skip if not relevant.
 
-## Historical Context
+## ${H.historicalContext}
 The setting, audience, and occasion — with sources.
 
-## Exegesis
+## ${H.exegesis}
 Verse-flow analysis using the grammatical-historical method.
 
-## Historical Reception
-Cited quotations from the Church Fathers and Reformers (use blockquotes with attribution). Where traditions differ, use \`###\` sub-headings (e.g. "### Reformed Perspective").
+## ${H.historicalReception}
+Cited quotations from the Church Fathers and Reformers (use blockquotes with attribution). Where traditions differ, use \`###\` sub-headings (e.g. "### ${H.traditionExample}").
 
 Use Google Search to verify every quote and historical claim.`;
 
@@ -187,7 +247,7 @@ Use Google Search to verify every quote and historical claim.`;
         ai.models.generateContentStream({
           model: GEMINI_MODEL,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: geminiConfig,
+          config: geminiConfigFor(lang),
         })
       );
 
@@ -217,6 +277,8 @@ Use Google Search to verify every quote and historical claim.`;
     if (!passage || !reference || !selectedText || !question) {
       return res.status(400).json({ error: "Missing required fields." });
     }
+    const lang = parseLang(req.body.lang);
+    const H = HEADINGS[lang];
 
     const prompt = `
 The user is studying ${reference}.
@@ -230,15 +292,15 @@ ${fullCommentaryText ? fullCommentaryText.slice(0, 2000) : "Not provided"}
 
 Respond using this structure:
 
-## Direct Answer
+## ${H.directAnswer}
 2–4 sentences a layperson can understand.
 
-## Scholarly Basis
+## ${H.scholarlyBasis}
 Supporting primary sources, exegetical reasoning, and any relevant original-language
 terms (script, transliteration, Strong's number). Cite Tier 1 sources first (CCEL,
 Perseus, archive.org).
 
-## Across the Traditions (only if the question touches a disputed point)
+## ${H.acrossTraditions} (only if the question touches a disputed point)
 Use ### sub-headings per tradition. Omit this section if not applicable.
 
 Use Google Search to verify every quote and source.
@@ -249,7 +311,7 @@ Use Google Search to verify every quote and source.
         ai.models.generateContent({
           model: GEMINI_MODEL,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: geminiConfig,
+          config: geminiConfigFor(lang),
         })
       );
       return res.json({ text: response.text || "Empty response from AI." });
@@ -269,12 +331,14 @@ Use Google Search to verify every quote and source.
     if (!word || typeof word !== "string" || !word.trim()) {
       return res.status(400).json({ error: "Missing 'word' to study." });
     }
+    const lang = parseLang(req.body.lang);
+    const H = HEADINGS[lang];
 
     const refContext = reference
       ? `The user is studying this word in the context of ${reference}. Anchor the analysis to how it is used there.`
       : `No specific verse was given. Treat this as a general lexical study and cite the most representative biblical occurrences.`;
 
-    const prompt = `You are performing a WORD STUDY. The user wants concrete lexical answers about a single word in its original language, backed by sources. The input may be English, Greek, or Hebrew.
+    const prompt = `You are performing a WORD STUDY. The user wants concrete lexical answers about a single word in its original language, backed by sources. The input may be English, Spanish, Greek, or Hebrew.
 
 Word to study: "${word}"
 ${refContext}
@@ -283,22 +347,22 @@ Respond using EXACTLY this structure and nothing else. If the word maps to more 
 
 ## ${word}
 
-### Original Language
+### ${H.originalLanguage}
 The original word in its script, transliteration in italics, Strong's number, and the language (Greek or Hebrew). Example: **λόγος** (*logos*, G3056) — Greek.
 
-### Definition
+### ${H.definition}
 A concise gloss a layperson can understand (1–2 sentences), then the formal lexical definition structured after BDAG (Greek) or HALOT (Hebrew).
 
-### Semantic Range
+### ${H.semanticRange}
 A bullet list of the distinct senses the word can carry, each with a one-line gloss.
 
-### Usage in Scripture
+### ${H.usage}
 2–4 representative occurrences as a list. For each: the reference (real, verifiable) and a short note on the sense used there. Make every reference a real verse.
 
-### Etymology & Cognates
+### ${H.etymology}
 Root, related forms, and cognates where relevant. Keep brief.
 
-### Sources
+### ${H.sources}
 A bullet list of the specific lexicons and tools consulted (e.g. BDAG 3rd ed., Thayer's, LSJ, Strong's, HALOT) with a verification link to CCEL, Perseus (perseus.tufts.edu), or Bible Hub where available.
 
 Use Google Search to verify the Strong's number, definitions, and every scripture reference. Never invent a Strong's number or a verse.`;
@@ -308,7 +372,7 @@ Use Google Search to verify the Strong's number, definitions, and every scriptur
         ai.models.generateContent({
           model: GEMINI_MODEL,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: geminiConfig,
+          config: geminiConfigFor(lang),
         })
       );
       if (!response.text) return res.status(500).json({ error: "The AI returned an empty response." });

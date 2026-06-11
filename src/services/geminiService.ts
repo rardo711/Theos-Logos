@@ -1,5 +1,6 @@
 // All Gemini calls are proxied through the Express server.
 // The API key never touches the client bundle.
+import { Lang } from "../i18n";
 
 /**
  * Streams commentary from the server as Server-Sent Events.
@@ -11,7 +12,8 @@ export async function generateCommentary(
   reference: string,
   question: string = "",
   selectedVerse?: number,
-  onChunk?: (fullText: string) => void
+  onChunk?: (fullText: string) => void,
+  lang: Lang = "en"
 ): Promise<string> {
   const res = await fetch("/api/commentary", {
     method: "POST",
@@ -19,7 +21,7 @@ export async function generateCommentary(
       "Content-Type": "application/json",
       Accept: "text/event-stream",
     },
-    body: JSON.stringify({ passage, reference, question, selectedVerse }),
+    body: JSON.stringify({ passage, reference, question, selectedVerse, lang }),
   });
   if (!res.ok || !res.body) {
     const err = await res.json().catch(() => ({ error: `Server error ${res.status}` }));
@@ -65,11 +67,12 @@ export async function generateCommentary(
 export async function generateWordStudy(
   word: string,
   reference: string = "",
+  lang: Lang = "en",
 ): Promise<string> {
   const res = await fetch("/api/wordstudy", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ word, reference }),
+    body: JSON.stringify({ word, reference, lang }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: `Server error ${res.status}` }));
@@ -84,12 +87,13 @@ export async function generateFollowUp(
   reference: string,
   selectedText: string,
   question: string,
-  fullCommentaryText?: string
+  fullCommentaryText?: string,
+  lang: Lang = "en"
 ): Promise<string> {
   const res = await fetch("/api/followup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ passage, reference, selectedText, question, fullCommentaryText }),
+    body: JSON.stringify({ passage, reference, selectedText, question, fullCommentaryText, lang }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: `Server error ${res.status}` }));
