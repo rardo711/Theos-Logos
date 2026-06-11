@@ -537,8 +537,8 @@ export default function App() {
               </div>
               <div className="w-full flex flex-col gap-3">
                 {([
-                  { l: "en" as Lang, name: "English", subtitle: "Reformed Protestant Scholarship" },
-                  { l: "es" as Lang, name: "Español", subtitle: "Estudio Académico Reformado" },
+                  { l: "en" as Lang, name: "English", subtitle: "Biblical & Historical Scholarship" },
+                  { l: "es" as Lang, name: "Español", subtitle: "Estudio Bíblico e Histórico" },
                 ]).map(({ l, name, subtitle }) => (
                   <button
                     key={l}
