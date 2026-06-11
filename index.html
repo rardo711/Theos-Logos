@@ -18,6 +18,49 @@
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
+    <script>
+      // On-screen error reporter — makes crashes visible on devices without DevTools.
+      (function () {
+        function show(msg) {
+          var el = document.getElementById("__errbox");
+          if (!el) {
+            el = document.createElement("div");
+            el.id = "__errbox";
+            el.style.cssText =
+              "position:fixed;top:0;left:0;right:0;z-index:99999;background:#7f1d1d;color:#fff;" +
+              "font:12px/1.5 monospace;padding:12px;white-space:pre-wrap;word-break:break-word;" +
+              "max-height:60vh;overflow:auto;";
+            (document.body || document.documentElement).appendChild(el);
+          }
+          el.textContent += msg + "\n\n";
+        }
+        window.addEventListener(
+          "error",
+          function (e) {
+            if (e.target && e.target !== window && (e.target.src || e.target.href)) {
+              show("[Failed to load] " + (e.target.src || e.target.href));
+              return;
+            }
+            show("[Error] " + (e.message || "unknown") + " @ " + (e.filename || "?") + ":" + (e.lineno || "?"));
+            if (e.error && e.error.stack) show(e.error.stack);
+          },
+          true
+        );
+        window.addEventListener("unhandledrejection", function (e) {
+          var r = e.reason;
+          show("[Promise] " + ((r && (r.stack || r.message)) || String(r)));
+        });
+        setTimeout(function () {
+          var root = document.getElementById("root");
+          if (root && !root.firstChild) {
+            show(
+              "[Diagnostic] App did not start within 6 seconds and no JS error was caught. " +
+                "The main script likely never loaded. Visit /api/debug for server info."
+            );
+          }
+        }, 6000);
+      })();
+    </script>
     <style>
       body, html {
         margin: 0;
