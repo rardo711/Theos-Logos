@@ -42,14 +42,7 @@ const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 type ResponseLang = "en" | "es";
 
 const spanishDirective = `
-LANGUAGE MANDATE — SPANISH OUTPUT:
-The user is studying in Spanish. Write the ENTIRE response in Spanish, to these standards:
-- Register: neutral, professional Latin American Spanish — natural prose written directly in Spanish, never translationese. Address the reader with the formal "usted" (implicitly); avoid regionalisms (no voseo, no "vosotros").
-- Scholarly but accessible: define technical terms (e.g. "propiciación", "exégesis", "escatología") in lenguaje llano the first time they appear.
-- Headings: every Markdown heading in Spanish, in title case.
-- Original languages: keep Greek/Hebrew script, transliterations, and Strong's numbers in standard scholarly convention, e.g. **ἀγάπη** (*agapē*, G26).
-- Quotations: render quotations from the Fathers, Reformers, and confessions in faithful Spanish translation; cite each work by its received Spanish title where one exists (e.g. Calvino, *Institución de la Religión Cristiana*; Agustín, *Confesiones*; *Confesión de Fe de Westminster*), otherwise keep the original title.
-- Scripture: use Spanish book names (Juan 3:16; 1 Corintios 13) and follow the Reina-Valera 1960 wording when quoting verses.
+MANDATE: Respond entirely in neutral Latin American Spanish (no voseo; formal register). Define technical terms on first use. All Markdown headings in Spanish title case. Greek/Hebrew: keep script, transliteration, and Strong's number. Translate quotations from Fathers/Reformers; use received Spanish titles (e.g. Calvino, *Institución de la Religión Cristiana*). Scripture: RVR1960 wording, Spanish book names.
 `;
 
 function geminiConfigFor(lang: ResponseLang) {
@@ -131,6 +124,36 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3, initialDelay =
       throw error;
     }
   }
+}
+
+function extractGeminiError(error: any, lang: ResponseLang = "en"): string {
+  const raw: string = error?.message || "";
+  // The Gemini SDK sometimes nests the HTTP response body as a JSON string inside error.message
+  try {
+    const outer = JSON.parse(raw);
+    const inner = outer?.error?.message;
+    if (typeof inner === "string") {
+      // May be double-nested in some SDK versions
+      try {
+        const nested = JSON.parse(inner);
+        const msg = nested?.error?.message;
+        if (msg) return String(msg);
+      } catch {}
+      return inner;
+    }
+  } catch {}
+  // Keyword-based fallback with localized messages
+  if (raw.includes("503") || raw.includes("Service Unavailable") || raw.includes("high demand") || raw.includes("UNAVAILABLE")) {
+    return lang === "es"
+      ? "El servicio de IA no está disponible en este momento debido a alta demanda. Por favor, inténtelo de nuevo en unos instantes."
+      : "The AI service is temporarily unavailable due to high demand. Please try again in a moment.";
+  }
+  if (raw.includes("429") || raw.includes("quota") || raw.includes("RESOURCE_EXHAUSTED")) {
+    return lang === "es"
+      ? "Se ha alcanzado el límite de solicitudes. Por favor, espere un momento e inténtelo de nuevo."
+      : "Request quota reached. Please wait a moment and try again.";
+  }
+  return raw || (lang === "es" ? "Error al generar la respuesta de IA." : "Failed to generate AI response.");
 }
 
 async function startServer() {
@@ -262,7 +285,7 @@ Use Google Search to verify every quote and historical claim.`;
       res.end();
     } catch (error: any) {
       console.error("[Server] Gemini commentary error:", error);
-      res.write(`data: ${JSON.stringify({ error: error.message || "Stream failed." })}\n\n`);
+      res.write(`data: ${JSON.stringify({ error: extractGeminiError(error, lang) })}\n\n`);
       res.end();
     }
   });
@@ -317,7 +340,7 @@ Use Google Search to verify every quote and source.
       return res.json({ text: response.text || "Empty response from AI." });
     } catch (error: any) {
       console.error("[Server] Gemini follow-up error:", error);
-      return res.status(500).json({ error: error.message || "AI follow-up failed." });
+      return res.status(500).json({ error: extractGeminiError(error, lang) });
     }
   });
 
@@ -379,7 +402,7 @@ Use Google Search to verify the Strong's number, definitions, and every scriptur
       return res.json({ text: response.text });
     } catch (error: any) {
       console.error("[Server] Gemini word study error:", error);
-      return res.status(500).json({ error: error.message || "AI word study failed." });
+      return res.status(500).json({ error: extractGeminiError(error, lang) });
     }
   });
 

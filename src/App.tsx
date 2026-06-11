@@ -692,28 +692,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Language toggle — EN / ES */}
-              <div
-                className="flex items-center bg-stone-100 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-700 p-0.5"
-                role="group"
-                aria-label="Language"
-              >
-                {(["en", "es"] as Lang[]).map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => setLang(l)}
-                    className={`px-2 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-colors ${
-                      lang === l
-                        ? "bg-white dark:bg-stone-700 text-[#821111] dark:text-red-400 shadow-sm"
-                        : "text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
-                    }`}
-                    title={l === "en" ? "English" : "Español"}
-                  >
-                    {l.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-
               <div className="relative">
                 <button
                   onClick={() => {
@@ -825,6 +803,23 @@ export default function App() {
                                 className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all duration-300 ${typography.theme === t ? "bg-white dark:bg-stone-700 shadow-sm text-[#821111] dark:text-red-400 scale-[1.02]" : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200"}`}
                               >
                                 {s.themeNames[t]}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="pt-1 border-t border-stone-100 dark:border-stone-800">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-2">
+                            {s.language}
+                          </p>
+                          <div className="flex bg-stone-100/50 dark:bg-stone-800/50 rounded-xl p-1 backdrop-blur-sm border border-stone-200/50 dark:border-stone-700/50">
+                            {(["en", "es"] as Lang[]).map((l) => (
+                              <button
+                                key={l}
+                                onClick={() => setLang(l)}
+                                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${lang === l ? "bg-white dark:bg-stone-700 shadow-sm text-[#821111] dark:text-red-400 scale-[1.02]" : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200"}`}
+                              >
+                                {l === "en" ? "English" : "Español"}
                               </button>
                             ))}
                           </div>

@@ -122,6 +122,8 @@ const en = {
     // Header chips
     webGrounded: "Web Grounded",
     geminiActive: "Gemini AI Active",
+    // Typography popover
+    language: "Language",
 };
 
 export type Strings = typeof en;
@@ -218,6 +220,8 @@ const es: Strings = {
     // Header chips
     webGrounded: "Verificado en la Web",
     geminiActive: "Gemini Activo",
+    // Typography popover
+    language: "Idioma",
 };
 
 const STRINGS: Record<Lang, Strings> = { en, es };
