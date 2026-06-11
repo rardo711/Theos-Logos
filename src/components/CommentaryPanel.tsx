@@ -88,6 +88,49 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
     error: null,
   });
 
+  const handleGenerate = useCallback(async (
+    e?: React.FormEvent,
+    overrideQuery?: string,
+    overrideVerse?: number | null,
+  ) => {
+    if (e) e.preventDefault();
+    if (!chapter) return;
+
+    const currentQuery =
+      overrideQuery !== undefined ? overrideQuery : state.query;
+    const currentVerse =
+      overrideVerse !== undefined ? overrideVerse : state.selectedVerse;
+
+    setState((prev) => ({ ...prev, loading: true, error: null, text: null }));
+    setSelectionRect(null);
+    try {
+      const result = await generateCommentary(
+        chapter.text,
+        chapter.reference,
+        currentQuery,
+        currentVerse === null ? undefined : currentVerse,
+        (partial) => {
+          setState((prev) => ({ ...prev, text: partial }));
+        },
+        lang,
+      );
+      setState((prev) => ({
+        ...prev,
+        text: result || "No commentary generated.",
+        loading: false,
+      }));
+    } catch (err: any) {
+      setState((prev) => ({
+        ...prev,
+        error:
+          err.message ||
+          "Failed to generate commentary. Please check your connection.",
+        loading: false,
+      }));
+      console.error(err);
+    }
+  }, [chapter, lang, setState, state.query, state.selectedVerse]);
+
   useEffect(() => {
     if (
       searchTrigger &&
@@ -206,49 +249,6 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
       }
     };
   }, [selectionRect]);
-
-  const handleGenerate = useCallback(async (
-    e?: React.FormEvent,
-    overrideQuery?: string,
-    overrideVerse?: number | null,
-  ) => {
-    if (e) e.preventDefault();
-    if (!chapter) return;
-
-    const currentQuery =
-      overrideQuery !== undefined ? overrideQuery : state.query;
-    const currentVerse =
-      overrideVerse !== undefined ? overrideVerse : state.selectedVerse;
-
-    setState((prev) => ({ ...prev, loading: true, error: null, text: null }));
-    setSelectionRect(null);
-    try {
-      const result = await generateCommentary(
-        chapter.text,
-        chapter.reference,
-        currentQuery,
-        currentVerse === null ? undefined : currentVerse,
-        (partial) => {
-          setState((prev) => ({ ...prev, text: partial }));
-        },
-        lang,
-      );
-      setState((prev) => ({
-        ...prev,
-        text: result || "No commentary generated.",
-        loading: false,
-      }));
-    } catch (err: any) {
-      setState((prev) => ({
-        ...prev,
-        error:
-          err.message ||
-          "Failed to generate commentary. Please check your connection.",
-        loading: false,
-      }));
-      console.error(err);
-    }
-  }, [chapter, lang, setState, state.query, state.selectedVerse]);
 
   const handleFollowUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
