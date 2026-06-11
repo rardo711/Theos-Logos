@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Loader2,
   Search,
@@ -102,7 +102,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
       }));
       handleGenerate(undefined, searchTrigger.query, searchTrigger.verse);
     }
-  }, [searchTrigger, chapter]);
+  }, [searchTrigger, chapter, handleGenerate]);
 
   // Scroll to top when a new generation starts (not on every streamed chunk)
   useEffect(() => {
@@ -207,7 +207,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
     };
   }, [selectionRect]);
 
-  const handleGenerate = async (
+  const handleGenerate = useCallback(async (
     e?: React.FormEvent,
     overrideQuery?: string,
     overrideVerse?: number | null,
@@ -221,14 +221,13 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
       overrideVerse !== undefined ? overrideVerse : state.selectedVerse;
 
     setState((prev) => ({ ...prev, loading: true, error: null, text: null }));
-    setSelectionRect(null); // Clear any selection when generating new content
+    setSelectionRect(null);
     try {
       const result = await generateCommentary(
         chapter.text,
         chapter.reference,
         currentQuery,
         currentVerse === null ? undefined : currentVerse,
-        // Render the commentary incrementally as the server streams it
         (partial) => {
           setState((prev) => ({ ...prev, text: partial }));
         },
@@ -249,7 +248,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
       }));
       console.error(err);
     }
-  };
+  }, [chapter, lang, setState, state.query, state.selectedVerse]);
 
   const handleFollowUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
