@@ -26,6 +26,7 @@ import {
   Type,
   History as HistoryIcon,
   Languages,
+  Smartphone,
 } from "lucide-react";
 
 export interface HistoryItem {
@@ -41,6 +42,7 @@ export default function App() {
     const saved = localStorage.getItem("theos_logos_lang");
     return saved === "es" ? "es" : "en";
   });
+  const [showLangPicker, setShowLangPicker] = useState(() => localStorage.getItem("theos_logos_lang") === null);
   const s = getStrings(lang);
 
   useEffect(() => {
@@ -79,6 +81,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showInstallHint, setShowInstallHint] = useState(false);
+  const [installPlatform, setInstallPlatform] = useState<"ios" | "android" | null>(null);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [viewMode, setViewMode] = useState<
     "bible" | "commentary" | "wordstudy"
@@ -328,15 +331,23 @@ export default function App() {
       setViewMode("bible");
     }
 
-    // Check if it's iOS and not already in standalone mode
+    // Check if it's iOS or Android and not already in standalone mode
     const isIOS =
       /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isAndroid = /Android/.test(navigator.userAgent);
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone;
+    const installDismissed = localStorage.getItem("theos_logos_install_dismissed");
 
-    if (isIOS && !isStandalone) {
-      setShowInstallHint(true);
+    if (!isStandalone && !installDismissed) {
+      if (isIOS) {
+        setInstallPlatform("ios");
+        setShowInstallHint(true);
+      } else if (isAndroid) {
+        setInstallPlatform("android");
+        setShowInstallHint(true);
+      }
     }
   }, []);
 
@@ -489,9 +500,71 @@ export default function App() {
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
         }}
       />
+      {/* Language Onboarding Picker */}
+      <AnimatePresence>
+        {showLangPicker && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+            style={{ background: "#0c0a09" }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm flex flex-col items-center gap-6"
+            >
+              {/* Logo mark */}
+              <div
+                className="flex items-center justify-center w-14 h-14 shrink-0"
+                style={{
+                  borderRadius: 8,
+                  background: "linear-gradient(145deg, #9b1515 0%, #821111 50%, #6a0d0d 100%)",
+                  boxShadow: "0 1px 3px rgba(130,17,17,0.5), inset 0 1px 0 rgba(255,255,255,0.18)",
+                  border: "1px solid rgba(60,5,5,0.4)",
+                }}
+              >
+                <span
+                  className="font-serif font-bold text-white leading-none"
+                  style={{ fontSize: 22, letterSpacing: "-0.04em", textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
+                >TL</span>
+              </div>
+              <div className="text-center">
+                <h1 className="font-serif font-bold text-white text-3xl tracking-tight mb-1">THEOS LOGOS</h1>
+                <p className="text-stone-400 text-sm">Choose your language · Elige tu idioma</p>
+              </div>
+              <div className="w-full flex flex-col gap-3">
+                {([
+                  { l: "en" as Lang, name: "English", subtitle: "Reformed Protestant Scholarship" },
+                  { l: "es" as Lang, name: "Español", subtitle: "Estudio Académico Reformado" },
+                ]).map(({ l, name, subtitle }) => (
+                  <button
+                    key={l}
+                    onClick={() => {
+                      setLang(l);
+                      localStorage.setItem("theos_logos_lang", l);
+                      setShowLangPicker(false);
+                    }}
+                    className="bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 rounded-2xl p-4 w-full text-left flex items-center gap-4 group transition-all"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-white text-base leading-tight">{name}</p>
+                      <p className="text-stone-400 text-xs mt-0.5">{subtitle}</p>
+                    </div>
+                    <ArrowRight className="text-stone-500 group-hover:text-white shrink-0 transition-colors" size={18} />
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Disclaimer Modal */}
       <AnimatePresence>
-        {showDisclaimer && (
+        {!showLangPicker && showDisclaimer && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1052,30 +1125,40 @@ export default function App() {
           </nav>
         </div>
 
-        {/* iOS Install Hint */}
-        {showInstallHint && (
+        {/* Install Hint Card */}
+        {showInstallHint && !showLangPicker && !showDisclaimer && (
           <div
-            className="fixed left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-sm bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-2xl p-4 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 transition-colors text-stone-950 dark:text-stone-50"
-            style={{ bottom: "calc(env(safe-area-inset-bottom) + 80px)" }}
+            className="fixed left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-500 transition-colors"
+            style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}
           >
-            <div className="bg-stone-100 dark:bg-stone-800 p-2 rounded-xl">
-              <BookOpen
-                className="text-[#821111] dark:text-red-400"
-                size={24}
-              />
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Smartphone className="text-[#821111] dark:text-red-400" size={18} />
+                <span className="text-sm font-bold text-stone-900 dark:text-stone-100">{s.installTitle}</span>
+              </div>
+              <button
+                onClick={() => setShowInstallHint(false)}
+                className="p-1 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors"
+              >
+                <X size={16} className="text-stone-400" />
+              </button>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold">Install THEOS LOGOS</p>
-              <p className="text-xs text-stone-500 dark:text-stone-400">
-                Tap the share icon and select "Add to Home Screen" for the best
-                experience.
-              </p>
-            </div>
+            <ol className="space-y-1.5 mb-3">
+              {(installPlatform === "android" ? s.installAndroidSteps : s.installIOSSteps).map((step, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs text-stone-600 dark:text-stone-400">
+                  <span className="shrink-0 w-4 h-4 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 text-[10px] font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
+                  <span dangerouslySetInnerHTML={{ __html: step.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") }} />
+                </li>
+              ))}
+            </ol>
             <button
-              onClick={() => setShowInstallHint(false)}
-              className="p-1 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full"
+              onClick={() => {
+                localStorage.setItem("theos_logos_install_dismissed", "1");
+                setShowInstallHint(false);
+              }}
+              className="w-full py-2 rounded-xl text-xs font-bold text-stone-300 dark:text-stone-400 bg-stone-700 dark:bg-stone-800 hover:bg-stone-600 dark:hover:bg-stone-700 transition-colors"
             >
-              <X size={16} className="text-stone-400" />
+              {s.installGotIt}
             </button>
           </div>
         )}

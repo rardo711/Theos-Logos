@@ -124,6 +124,15 @@ const en = {
     geminiActive: "Gemini AI Active",
     // Typography popover
     language: "Language",
+    // Word study expand
+    expandStudy: "Expand Full Scholarly Analysis",
+    expandedStudy: "Full Scholarly Analysis",
+    expandLoading: "Generating full analysis…",
+    // Install hint
+    installTitle: "Add to Home Screen",
+    installIOSSteps: ["Tap the Share button (↑) in Safari", "Select \"Add to Home Screen\"", "Tap \"Add\" to confirm"],
+    installAndroidSteps: ["Tap the ⋮ menu in Chrome", "Select \"Add to Home Screen\" or \"Install App\"", "Tap \"Install\" to confirm"],
+    installGotIt: "Got it, don't show again",
 };
 
 export type Strings = typeof en;
@@ -222,6 +231,15 @@ const es: Strings = {
     geminiActive: "Gemini Activo",
     // Typography popover
     language: "Idioma",
+    // Word study expand
+    expandStudy: "Expandir Análisis Académico Completo",
+    expandedStudy: "Análisis Académico Completo",
+    expandLoading: "Generando análisis completo…",
+    // Install hint
+    installTitle: "Agregar a Pantalla de Inicio",
+    installIOSSteps: ["Toque el botón Compartir (↑) en Safari", "Seleccione \"Agregar a pantalla de inicio\"", "Toque \"Agregar\" para confirmar"],
+    installAndroidSteps: ["Toque el menú ⋮ en Chrome", "Seleccione \"Agregar a pantalla de inicio\" o \"Instalar aplicación\"", "Toque \"Instalar\" para confirmar"],
+    installGotIt: "Entendido, no mostrar de nuevo",
 };
 
 const STRINGS: Record<Lang, Strings> = { en, es };
