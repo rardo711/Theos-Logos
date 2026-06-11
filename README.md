@@ -11,6 +11,7 @@ Theos Logos is a mobile-first web application for deep biblical study. It combin
 ## Features
 
 - **Bible Text Viewer** — ESV (via Bolls Life proxy) with World English Bible fallback (public domain)
+- **Spanish Mode (ES)** — one-tap language toggle: Reina-Valera 1960 scripture text and a fully localized scholarly UI
 - **AI Commentary Engine** — Powered by Google Gemini, grounded in Google Search and primary source citations
 - **Greek & Hebrew Notes** — Structured lexical entries in BDAG/HALOT methodology
 - **Historical Voices** — Quotes from Church Fathers, Calvin, Luther, and other Reformers
@@ -79,7 +80,7 @@ All AI-generated commentary is required to cite a verifiable primary or secondar
 | Styling | Tailwind CSS v4 |
 | Server | Express (Node.js) |
 | AI | Google Gemini (via `@google/genai`) |
-| Bible Text | Bolls Life API (ESV) / bible-api.com (WEB) |
+| Bible Text | Bolls Life API (ESV · RVR1960) / bible-api.com (WEB) |
 | Scholarly Archive | CCEL (ccel.org) |
 
 ---

@@ -11,6 +11,14 @@ This document lists all verified primary and secondary sources used by Theos Log
 - **Copyright**: © 2001 Crossway. Scripture quotations are from the ESV® Bible, used under fair use terms for study applications. The ESV text may not be reproduced in quantity without permission from Crossway.
 - **Note**: ESV is the primary display translation. It is NOT public domain.
 
+### Reina-Valera 1960 (RVR1960) — Spanish
+- **Provider**: Bolls Life API proxy (`bolls.life/get-text/RV1960/`)
+- **Copyright**: © Sociedades Bíblicas en América Latina, 1960; renovado © Sociedades Bíblicas Unidas, 1988. NOT public domain.
+- **Note**: The scholarly standard translation of the Spanish-speaking Protestant church — formal-equivalence, dignified register, universally understood. Used when the app's language toggle is set to ES.
+- **Alternatives considered**:
+  - *La Biblia de las Américas (LBLA)* — the most rigorously literal Spanish translation (NASB equivalent, © The Lockman Foundation); also available on Bolls Life if a more formal text is preferred.
+  - *Reina-Valera 1909* — fully public domain; archaic in places but unencumbered for redistribution.
+
 ### World English Bible (WEB)
 - **Provider**: bible-api.com (fallback)
 - **Copyright**: Public domain. Modern English, no archaic language.
