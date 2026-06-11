@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import path from "path";
-import { existsSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import { GoogleGenAI } from "@google/genai";
 
 const theologicalFraming = `
@@ -169,6 +169,25 @@ async function startServer() {
 
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok" });
+  });
+
+  // Deployment diagnostics — reports what the server sees on disk so blank-page
+  // issues can be debugged from any device without log access.
+  app.get("/api/debug", (_req, res) => {
+    const dist = path.join(process.cwd(), "dist");
+    let distFiles: string[] = [];
+    let assetFiles: string[] = [];
+    try { distFiles = readdirSync(dist); } catch {}
+    try { assetFiles = readdirSync(path.join(dist, "assets")); } catch {}
+    res.json({
+      nodeEnv: process.env.NODE_ENV ?? null,
+      nodeVersion: process.version,
+      cwd: process.cwd(),
+      distIndexExists: existsSync(path.join(dist, "index.html")),
+      distFiles,
+      assetFiles,
+      geminiKeyConfigured: Boolean(process.env.GEMINI_API_KEY),
+    });
   });
 
   // Bible text proxy (Bolls Life — no key required).
