@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import path from "path";
+import { existsSync } from "fs";
 import { GoogleGenAI } from "@google/genai";
 
 const theologicalFraming = `
@@ -434,8 +435,15 @@ Draw on your training knowledge of BDAG, HALOT, Thayer, and Strong's. Never inve
     }
   });
 
-  // Vite dev middleware / production static files
-  if (process.env.NODE_ENV !== "production") {
+  // Serve from dist/ if it exists (production build); otherwise start Vite dev middleware.
+  // Checking dist/ existence directly avoids a blank screen when NODE_ENV is not set.
+  const distPath = path.join(process.cwd(), "dist");
+  if (existsSync(path.join(distPath, "index.html"))) {
+    app.use(express.static(distPath));
+    app.get("*", (_req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
+  } else if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -443,10 +451,8 @@ Draw on your training knowledge of BDAG, HALOT, Thayer, and Strong's. Never inve
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
     app.get("*", (_req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+      res.status(503).send("App not built. Run: npm run build");
     });
   }
 
