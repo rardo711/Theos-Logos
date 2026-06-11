@@ -85,23 +85,31 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  // ESV Bible proxy (Bolls Life — no key required)
-  app.get("/api/bible/esv", async (req, res) => {
+  // Bible text proxy (Bolls Life — no key required).
+  // ESV (English) and RVR1960 (Spanish, Reina-Valera 1960 — the scholarly
+  // standard in the Spanish-speaking church). Extend the allowlist to add
+  // more translations (e.g. LBLA).
+  const BIBLE_TRANSLATIONS = new Set(["ESV", "RV1960"]);
+  app.get("/api/bible/:translation", async (req, res) => {
+    const translation = String(req.params.translation).toUpperCase();
+    if (!BIBLE_TRANSLATIONS.has(translation)) {
+      return res.status(400).json({ error: `Unsupported translation '${translation}'` });
+    }
     const { bookId, chapter } = req.query;
     if (!bookId || !chapter) {
       return res.status(400).json({ error: "Missing 'bookId' or 'chapter'" });
     }
     try {
-      const url = `https://bolls.life/get-text/ESV/${bookId}/${chapter}/`;
+      const url = `https://bolls.life/get-text/${translation}/${bookId}/${chapter}/`;
       const response = await fetch(url, { headers: { "Accept": "application/json" } });
       if (!response.ok) {
         const errorText = await response.text();
-        return res.status(response.status).json({ error: "ESV API Error", details: errorText });
+        return res.status(response.status).json({ error: "Bible API Error", details: errorText });
       }
       return res.json(await response.json());
     } catch (error: any) {
-      console.error("[Server] ESV Proxy Error:", error);
-      return res.status(500).json({ error: "Failed to fetch from ESV API", message: error.message });
+      console.error("[Server] Bible Proxy Error:", error);
+      return res.status(500).json({ error: "Failed to fetch Bible text", message: error.message });
     }
   });
 

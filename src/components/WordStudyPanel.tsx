@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { generateWordStudy } from "../services/geminiService";
 import { BibleChapter } from "../types";
+import { useI18n } from "../i18n";
 import { MemoizedMarkdown } from "./markdown";
 
 export interface WordStudyState {
@@ -44,6 +45,7 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
   setState,
   onCrossReference,
 }) => {
+  const { s } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
 
@@ -115,9 +117,9 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
       <div className="px-5 py-4 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between shrink-0 transition-colors">
         <div className="flex items-baseline gap-2.5">
           <h2 className="font-serif font-bold text-stone-900 dark:text-stone-100 leading-none" style={{ fontSize: 19, letterSpacing: "-0.02em" }}>
-            Word Study
+            {s.wordStudy}
           </h2>
-          <span className="tl-eyebrow" style={{ fontSize: 8 }}>Original Language Lexicon</span>
+          <span className="tl-eyebrow" style={{ fontSize: 8 }}>{s.originalLanguageLexicon}</span>
         </div>
         {state.text && !state.loading && (
           <div className="flex items-center gap-2">
@@ -126,14 +128,14 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
               className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-all flex items-center gap-1.5 border border-transparent hover:border-stone-200 dark:hover:border-stone-700"
             >
               <X size={12} />
-              Clear
+              {s.clear}
             </button>
             <button
               onClick={copy}
               className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-[#821111] dark:text-red-400 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/50 transition-all flex items-center gap-1.5 border border-red-100 dark:border-red-900/50 shadow-sm"
             >
               <Copy size={12} />
-              Copy
+              {s.copy}
             </button>
           </div>
         )}
@@ -155,7 +157,7 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
               />
               <input
                 type="text"
-                placeholder="A word in English, Greek, or Hebrew…"
+                placeholder={s.wordPlaceholder}
                 className="w-full pl-11 pr-4 py-3 border border-stone-200 dark:border-stone-800 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-[#821111]/20 dark:focus:ring-red-900/20 bg-stone-50/50 dark:bg-stone-950/50 text-stone-800 dark:text-stone-100 transition-all font-serif"
                 value={state.word}
                 onChange={(e) =>
@@ -177,7 +179,7 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
                   }
                   className="accent-[#821111] w-4 h-4"
                 />
-                Anchor to current passage
+                {s.anchorTo}
                 <span className="font-bold text-[#821111] dark:text-red-400">
                   {chapter.reference}
                 </span>
@@ -194,7 +196,7 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
               ) : (
                 <Languages size={18} />
               )}
-              {state.loading ? "Consulting lexicons…" : "Study Word"}
+              {state.loading ? s.consultingLexicons : s.studyWord}
             </button>
           </form>
         </div>
@@ -208,13 +210,13 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
                 size={40}
               />
               <p className="text-sm font-serif italic">
-                Parsing original languages and verifying sources…
+                {s.parsingLanguages}
               </p>
             </div>
           ) : state.error ? (
             <div className="p-5 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-2xl text-red-600 dark:text-red-400 text-sm leading-relaxed">
               <p className="font-bold mb-1 uppercase tracking-widest text-[10px]">
-                Lexicon Error
+                {s.lexiconError}
               </p>
               <p className="font-serif italic">{state.error}</p>
             </div>
@@ -227,9 +229,7 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
                 />
               </div>
               <div className="mt-8 p-4 bg-stone-50 dark:bg-stone-900 border-l-4 border-stone-300 dark:border-stone-700 rounded-r-xl text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-serif">
-                <strong>Verify your sources:</strong> AI-generated lexical
-                entries approximate the methodology of BDAG and HALOT. For formal
-                study, confirm definitions against the published lexicons.
+                <strong>{s.verifySourcesTitle}</strong> {s.verifySourcesBody}
               </div>
             </div>
           ) : (
@@ -242,16 +242,15 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
               </div>
               <div className="max-w-xs space-y-2">
                 <h4 className="font-serif font-bold text-stone-700 dark:text-stone-300 text-lg tracking-tight">
-                  Define a Word
+                  {s.defineAWord}
                 </h4>
                 <p className="text-sm font-serif italic leading-relaxed text-stone-500 dark:text-stone-500">
-                  Get the original Greek or Hebrew, Strong's number, semantic
-                  range, and cited sources for any biblical term.
+                  {s.wordEmptyBody}
                 </p>
               </div>
               <div className="flex flex-wrap items-center justify-center gap-2 max-w-sm">
                 <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-600 w-full">
-                  Try
+                  {s.tryLabel}
                 </span>
                 {EXAMPLE_WORDS.map((w) => (
                   <button

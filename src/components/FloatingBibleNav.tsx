@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { BIBLE_BOOKS, Book } from "../types";
+import { useI18n, getBookDisplayName, ES_BOOK_NAMES } from "../i18n";
 import { ChevronDown, X } from "lucide-react";
 
 interface FloatingBibleNavProps {
@@ -20,13 +21,18 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
   isVisible,
   onClose
 }) => {
+  const { lang, s } = useI18n();
   const [isBookDropdownOpen, setIsBookDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const chapterContainerRef = useRef<HTMLDivElement>(null);
 
-  const filteredBooks = BIBLE_BOOKS.filter(book => 
-    book.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredBooks = BIBLE_BOOKS.filter((book) => {
+    const q = searchQuery.toLowerCase();
+    return (
+      book.name.toLowerCase().includes(q) ||
+      (ES_BOOK_NAMES[book.id] ?? "").toLowerCase().includes(q)
+    );
+  });
 
   const oldTestament = filteredBooks.filter(book => BIBLE_BOOKS.indexOf(book) < 39);
   const newTestament = filteredBooks.filter(book => BIBLE_BOOKS.indexOf(book) >= 39);
@@ -78,12 +84,12 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
                 onClick={() => setIsBookDropdownOpen(!isBookDropdownOpen)}
               >
                 <div className="flex items-center text-[#821111] dark:text-red-400">
-                  <span className="font-serif font-bold text-xl text-stone-800 dark:text-stone-100 group-hover:text-[#821111] dark:group-hover:text-red-400 transition-colors">{currentBook.name}</span>
+                  <span className="font-serif font-bold text-xl text-stone-800 dark:text-stone-100 group-hover:text-[#821111] dark:group-hover:text-red-400 transition-colors">{getBookDisplayName(currentBook, lang)}</span>
                   <ChevronDown size={20} className={`ml-2 transition-transform duration-300 ${isBookDropdownOpen ? 'rotate-180 text-[#821111] dark:text-red-400' : 'text-stone-400'}`} />
                 </div>
               </div>
               <div className="flex justify-end items-center gap-4 shrink-0">
-                <span className="text-[10px] font-bold text-[#821111] dark:text-red-400 bg-stone-100 dark:bg-stone-800 px-3 py-1.5 rounded-full uppercase tracking-widest border border-stone-200 dark:border-stone-700">CH {currentChapter}</span>
+                <span className="text-[10px] font-bold text-[#821111] dark:text-red-400 bg-stone-100 dark:bg-stone-800 px-3 py-1.5 rounded-full uppercase tracking-widest border border-stone-200 dark:border-stone-700">{s.chapterAbbrev} {currentChapter}</span>
                 <button 
                   onClick={onClose} 
                   className="p-1.5 rounded-full hover:bg-stone-200 dark:hover:bg-stone-800 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 transition-colors active:scale-95"
@@ -107,7 +113,7 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
                     <div className="mb-5 sticky top-0 z-10">
                       <input 
                         type="text"
-                        placeholder="Search books..."
+                        placeholder={s.searchBooks}
                         autoFocus
                         className="w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-[#821111]/20 dark:focus:ring-red-400/20 text-stone-800 dark:text-stone-100 placeholder:font-serif placeholder:italic shadow-sm"
                         value={searchQuery}
@@ -118,7 +124,7 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
 
                     {oldTestament.length > 0 && (
                       <div className="mb-6">
-                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#821111] dark:text-red-400 mb-3 px-1">Old Testament</h4>
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#821111] dark:text-red-400 mb-3 px-1">{s.oldTestament}</h4>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                           {oldTestament.map((book) => (
                             <button
@@ -134,7 +140,7 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
                                   : 'text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-transparent hover:border-stone-200 dark:hover:border-stone-700 shadow-sm hover:shadow-md'
                               }`}
                             >
-                              {book.name}
+                              {getBookDisplayName(book, lang)}
                             </button>
                           ))}
                         </div>
@@ -143,7 +149,7 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
 
                     {newTestament.length > 0 && (
                       <div>
-                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#821111] dark:text-red-400 mb-3 px-1">New Testament</h4>
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#821111] dark:text-red-400 mb-3 px-1">{s.newTestament}</h4>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                           {newTestament.map((book) => (
                             <button
@@ -159,7 +165,7 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
                                   : 'text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-transparent hover:border-stone-200 dark:hover:border-stone-700 shadow-sm hover:shadow-md'
                               }`}
                             >
-                              {book.name}
+                              {getBookDisplayName(book, lang)}
                             </button>
                           ))}
                         </div>
@@ -168,7 +174,7 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
 
                     {filteredBooks.length === 0 && (
                       <div className="py-10 text-center">
-                        <p className="text-stone-400 dark:text-stone-500 italic font-serif">No books found matching "{searchQuery}"</p>
+                        <p className="text-stone-400 dark:text-stone-500 italic font-serif">{s.noBooksFound} "{searchQuery}"</p>
                       </div>
                     )}
                   </div>

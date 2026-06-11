@@ -11,6 +11,13 @@ import { FloatingBibleNav } from "./components/FloatingBibleNav";
 import { BIBLE_BOOKS, Book, BibleChapter } from "./types";
 import { fetchBibleChapter } from "./services/bibleService";
 import {
+  I18nContext,
+  Lang,
+  getStrings,
+  getBookDisplayName,
+  ES_BOOK_NAMES,
+} from "./i18n";
+import {
   BookOpen,
   Search,
   X,
@@ -30,6 +37,17 @@ export interface HistoryItem {
 }
 
 export default function App() {
+  const [lang, setLang] = useState<Lang>(() => {
+    const saved = localStorage.getItem("theos_logos_lang");
+    return saved === "es" ? "es" : "en";
+  });
+  const s = getStrings(lang);
+
+  useEffect(() => {
+    localStorage.setItem("theos_logos_lang", lang);
+    document.documentElement.lang = lang;
+  }, [lang]);
+
   const [currentBook, setCurrentBook] = useState<Book>(() => {
     const saved = localStorage.getItem("theos_logos_book");
     if (saved) {
@@ -283,7 +301,7 @@ export default function App() {
         const newItem: HistoryItem = {
           id: Date.now().toString(),
           reference: chapterData.reference,
-          query: commentaryState.query || "General Commentary",
+          query: commentaryState.query || s.generalCommentary,
           state: { ...commentaryState },
           timestamp: Date.now(),
         };
@@ -332,7 +350,7 @@ export default function App() {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetchBibleChapter(currentBook.id, currentChapter);
+        const data = await fetchBibleChapter(currentBook.id, currentChapter, lang);
         setChapterData(data);
 
         // Scroll to top on chapter change
@@ -341,14 +359,14 @@ export default function App() {
 
         // Optimistically pre-fetch the next chapter in the background
         if (currentChapter < currentBook.chapters) {
-          fetchBibleChapter(currentBook.id, currentChapter + 1).catch(() => {});
+          fetchBibleChapter(currentBook.id, currentChapter + 1, lang).catch(() => {});
         } else {
           // pre-fetch next book's first chapter
           const currentIndex = BIBLE_BOOKS.findIndex(
             (b) => b.id === currentBook.id,
           );
           if (currentIndex >= 0 && currentIndex < BIBLE_BOOKS.length - 1) {
-            fetchBibleChapter(BIBLE_BOOKS[currentIndex + 1].id, 1).catch(
+            fetchBibleChapter(BIBLE_BOOKS[currentIndex + 1].id, 1, lang).catch(
               () => {},
             );
           }
@@ -362,7 +380,7 @@ export default function App() {
     };
 
     loadChapter();
-  }, [currentBook, currentChapter]);
+  }, [currentBook, currentChapter, lang]);
 
   const handleBookChange = (book: Book) => {
     setCurrentBook(book);
@@ -392,10 +410,12 @@ export default function App() {
 
   const handleCrossReference = useCallback(
     (bookName: string, chapter: number) => {
+      const needle = bookName.toLowerCase();
       const book = BIBLE_BOOKS.find(
         (b) =>
-          b.name.toLowerCase() === bookName.toLowerCase() ||
-          b.id === bookName.toLowerCase(),
+          b.name.toLowerCase() === needle ||
+          b.id.toLowerCase() === needle ||
+          ES_BOOK_NAMES[b.id]?.toLowerCase() === needle,
       );
       if (book) {
         setCurrentBook(book);
@@ -460,6 +480,7 @@ export default function App() {
   }, [currentBook, currentChapter]);
 
   return (
+    <I18nContext.Provider value={{ lang, setLang, s }}>
     <div className="absolute inset-0 w-full h-full flex bg-white dark:bg-stone-950 overflow-hidden flex-col md:flex-row transition-colors duration-300">
       {/* Noise Texture */}
       <div 
@@ -491,25 +512,22 @@ export default function App() {
               </div>
               <div className="p-8 md:p-10">
                 <h2 className="font-serif text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-100 mb-4 text-center">
-                  A Research Tool, Not a Teacher
+                  {s.disclaimerTitle}
                 </h2>
                 <div className="space-y-4 mb-8">
                   <p className="text-stone-600 dark:text-stone-400 leading-relaxed text-center">
-                    THEOS LOGOS surfaces historical commentary and scholarship
-                    to support your Bible study. It is not a substitute for your
-                    pastor, your local church, or the community of believers.
+                    {s.disclaimerBody}
                   </p>
                   <div className="bg-stone-50 dark:bg-stone-950 p-4 rounded-2xl border border-stone-100 dark:border-stone-800">
                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-2">
-                      Our Methodology
+                      {s.methodology}
                     </h4>
                     <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed text-center">
-                      We prioritize the{" "}
+                      {s.methodologyBody1}
                       <span className="text-[#821111] dark:text-red-400 font-bold">
-                        Grammatical-Historical method
+                        {s.methodologyEmphasis}
                       </span>
-                      , drawing from Church Fathers, Reformers, and Puritans to
-                      provide objective, scholarly insights.
+                      {s.methodologyBody2}
                     </p>
                   </div>
                 </div>
@@ -517,7 +535,7 @@ export default function App() {
                   onClick={dismissDisclaimer}
                   className="w-full py-4 bg-stone-900 dark:bg-stone-800 text-white rounded-2xl font-bold tracking-wide hover:bg-[#821111] dark:hover:bg-red-900 transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2"
                 >
-                  Enter Library
+                  {s.enterLibraryBtn}
                   <ArrowRight size={18} />
                 </button>
               </div>
@@ -548,7 +566,7 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   <HistoryIcon className="text-stone-500" size={18} />
                   <h3 className="font-serif font-bold text-lg text-stone-800 dark:text-stone-100">
-                    Study History
+                    {s.studyHistory}
                   </h3>
                 </div>
                 <button
@@ -562,7 +580,7 @@ export default function App() {
               <div className="flex-1 overflow-y-auto p-4 pb-[max(env(safe-area-inset-bottom),1rem)] space-y-3">
                 {history.length === 0 ? (
                   <div className="text-center py-10 text-stone-400 dark:text-stone-600 font-serif italic text-sm">
-                    No study history yet. Generate commentary to save it here.
+                    {s.noHistory}
                   </div>
                 ) : (
                   history.map((item) => (
@@ -646,7 +664,7 @@ export default function App() {
                 <span className="font-serif font-bold text-stone-900 dark:text-stone-100 leading-none" style={{ fontSize: 15, letterSpacing: "-0.02em" }}>
                   Theos Logos
                 </span>
-                <span className="tl-eyebrow leading-none">Scholarly Study</span>
+                <span className="tl-eyebrow leading-none">{s.scholarlyStudy}</span>
               </div>
             </div>
 
@@ -656,7 +674,7 @@ export default function App() {
                 className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-full transition-colors border border-stone-200 dark:border-stone-700 shadow-sm whitespace-nowrap"
               >
                 <span className="font-serif font-bold text-stone-800 dark:text-stone-100 text-xs sm:text-sm">
-                  {currentBook.name} {currentChapter}
+                  {getBookDisplayName(currentBook, lang)} {currentChapter}
                 </span>
                 <ChevronDown size={14} className="text-stone-500 shrink-0" />
               </button>
@@ -666,12 +684,34 @@ export default function App() {
               <div className="hidden lg:flex items-center gap-3 mr-2">
                 <div className="flex items-center gap-2 px-2 py-1 bg-stone-100 dark:bg-stone-800 rounded-full text-stone-500 dark:text-stone-400 text-[10px] font-medium border border-stone-200 dark:border-stone-700">
                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-                  <span>Web Grounded</span>
+                  <span>{s.webGrounded}</span>
                 </div>
                 <div className="flex items-center gap-2 px-2 py-1 bg-stone-100 dark:bg-stone-800 rounded-full text-stone-500 dark:text-stone-400 text-[10px] font-medium border border-stone-200 dark:border-stone-700">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  <span>Gemini AI Active</span>
+                  <span>{s.geminiActive}</span>
                 </div>
+              </div>
+
+              {/* Language toggle — EN / ES */}
+              <div
+                className="flex items-center bg-stone-100 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-700 p-0.5"
+                role="group"
+                aria-label="Language"
+              >
+                {(["en", "es"] as Lang[]).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => setLang(l)}
+                    className={`px-2 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                      lang === l
+                        ? "bg-white dark:bg-stone-700 text-[#821111] dark:text-red-400 shadow-sm"
+                        : "text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
+                    }`}
+                    title={l === "en" ? "English" : "Español"}
+                  >
+                    {l.toUpperCase()}
+                  </button>
+                ))}
               </div>
 
               <div className="relative">
@@ -697,13 +737,13 @@ export default function App() {
                       className="absolute right-0 top-12 w-64 bg-white/80 dark:bg-stone-900/80 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] z-50 p-6"
                     >
                       <h4 className="text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-4">
-                        Reading Appearance
+                        {s.readingAppearance}
                       </h4>
 
                       <div className="space-y-4">
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-2">
-                            Font Size
+                            {s.fontSize}
                           </p>
                           <div className="flex items-center gap-4 bg-stone-100/50 dark:bg-stone-800/50 p-3 rounded-xl border border-stone-200/50 dark:border-stone-700/50">
                             <button
@@ -741,7 +781,7 @@ export default function App() {
 
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-2">
-                            Typeface
+                            {s.typeface}
                           </p>
                           <div className="flex bg-stone-100/50 dark:bg-stone-800/50 rounded-xl p-1 backdrop-blur-sm border border-stone-200/50 dark:border-stone-700/50">
                             <button
@@ -770,7 +810,7 @@ export default function App() {
                         </div>
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-2">
-                            Theme
+                            {s.theme}
                           </p>
                           <div className="flex bg-stone-100/50 dark:bg-stone-800/50 rounded-xl p-1 backdrop-blur-sm border border-stone-200/50 dark:border-stone-700/50">
                             {["auto", "light", "dark"].map((t) => (
@@ -784,7 +824,7 @@ export default function App() {
                                 }
                                 className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all duration-300 ${typography.theme === t ? "bg-white dark:bg-stone-700 shadow-sm text-[#821111] dark:text-red-400 scale-[1.02]" : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200"}`}
                               >
-                                {t}
+                                {s.themeNames[t]}
                               </button>
                             ))}
                           </div>
@@ -802,7 +842,7 @@ export default function App() {
                     setShowTypography(false);
                   }}
                   className={`p-2 rounded-lg transition-colors border ${showHistory ? "bg-[#821111] border-[#821111] text-white" : "bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300"}`}
-                  title="Study History"
+                  title={s.studyHistory}
                 >
                   <HistoryIcon size={16} />
                 </button>
@@ -932,14 +972,14 @@ export default function App() {
                       className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${desktopPanel === "commentary" ? "bg-stone-100 dark:bg-stone-800 text-[#821111] dark:text-red-400 shadow-sm" : "text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
                     >
                       <Search size={13} />
-                      Research
+                      {s.panelResearch}
                     </button>
                     <button
                       onClick={() => setDesktopPanel("wordstudy")}
                       className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${desktopPanel === "wordstudy" ? "bg-stone-100 dark:bg-stone-800 text-[#821111] dark:text-red-400 shadow-sm" : "text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
                     >
                       <Languages size={13} />
-                      Word Study
+                      {s.panelWordStudy}
                     </button>
                   </div>
                   <div className="flex-1 overflow-hidden">
@@ -983,7 +1023,7 @@ export default function App() {
               <span
                 className={`text-[9px] font-bold uppercase tracking-[0.2em] mt-[1px] ${viewMode === "bible" ? "opacity-100" : "opacity-80"}`}
               >
-                Bible
+                {s.nav.bible}
               </span>
             </button>
             <button
@@ -997,7 +1037,7 @@ export default function App() {
               <span
                 className={`text-[9px] font-bold uppercase tracking-[0.2em] mt-[1px] ${viewMode === "commentary" ? "opacity-100" : "opacity-80"}`}
               >
-                Research
+                {s.nav.research}
               </span>
             </button>
             <button
@@ -1011,7 +1051,7 @@ export default function App() {
               <span
                 className={`text-[9px] font-bold uppercase tracking-[0.2em] mt-[1px] ${viewMode === "wordstudy" ? "opacity-100" : "opacity-80"}`}
               >
-                Words
+                {s.nav.words}
               </span>
             </button>
           </nav>
@@ -1046,5 +1086,6 @@ export default function App() {
         )}
       </div>
     </div>
+    </I18nContext.Provider>
   );
 }

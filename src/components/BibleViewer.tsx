@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { BibleChapter } from "../types";
+import { useI18n } from "../i18n";
 import { Loader2, Search, X, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -20,6 +21,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
   onNextChapter,
   onPrevChapter,
 }) => {
+  const { s } = useI18n();
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [localSearchQuery, setLocalSearchQuery] = useState("");
@@ -295,7 +297,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
       <div className="flex-1 flex items-center justify-center bg-white dark:bg-stone-950 p-8 transition-colors">
         <div className="text-red-600 dark:text-red-400 text-center bg-red-50 dark:bg-red-950/30 p-6 rounded-2xl border border-red-100 dark:border-red-900/50 max-w-md">
           <p className="font-bold mb-2 uppercase tracking-widest text-[10px]">
-            Failed to Load
+            {s.failedToLoad}
           </p>
           <p className="text-sm font-serif italic">{error}</p>
         </div>
@@ -307,7 +309,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
     return (
       <div className="flex-1 flex items-center justify-center bg-white dark:bg-stone-950 p-8 transition-colors">
         <p className="text-stone-400 dark:text-stone-500 italic font-serif">
-          Select a book and chapter to begin.
+          {s.selectToBegin}
         </p>
       </div>
     );
@@ -336,7 +338,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
             <input
               ref={localSearchInputRef}
               type="text"
-              placeholder="Find in chapter..."
+              placeholder={s.findInChapter}
               className="bg-transparent border-none outline-none text-base w-32 md:w-48 text-stone-700 dark:text-stone-200 placeholder:text-stone-400 dark:placeholder:text-stone-600"
               value={localSearchQuery}
               onChange={(e) => setLocalSearchQuery(e.target.value)}
@@ -378,7 +380,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
               {chapter.verses[0]?.book_name ?? chapter.reference.replace(/\s+\d+$/, "")}
             </h1>
             <p className="font-mono text-stone-400 dark:text-stone-500 mt-2" style={{ fontSize: 13, fontWeight: 500, letterSpacing: "0.1em" }}>
-              Chapter {chapter.verses[0]?.chapter ?? chapter.reference.match(/\d+$/)?.[0]}
+              {s.chapter} {chapter.verses[0]?.chapter ?? chapter.reference.match(/\d+$/)?.[0]}
             </p>
             {/* Ornamental divider */}
             <div className="flex items-center justify-center gap-2.5 mt-6">
@@ -468,7 +470,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
                   // But the user might just want to define it generally.
                   onVerseSearch(
                     selectedVerse,
-                    `Define in Greek/Hebrew: "${selectionRect.text}"`,
+                    `${s.defineGreekHebrew}: "${selectionRect.text}"`,
                   );
                   window.getSelection()?.removeAllRanges();
                   setSelectionRect(null);
@@ -477,7 +479,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
             >
               <button className="bg-[#821111] dark:bg-red-900 text-white px-5 py-2.5 md:px-4 md:py-2 rounded-2xl text-xs sm:text-sm font-medium flex items-center gap-2 hover:bg-[#6a0d0d] dark:hover:bg-red-800 transition-colors shadow-2xl border border-red-900/80 whitespace-nowrap">
                 <BookOpen size={16} className="text-red-200" />
-                Define in Greek/Hebrew
+                {s.defineGreekHebrew}
               </button>
               {/* Little triangle pointer */}
               <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-3 h-3 bg-[#821111] dark:bg-red-900 rotate-45 border-r border-b border-red-900/80" />
@@ -503,7 +505,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 bg-[#821111] dark:bg-red-500 rounded-full animate-pulse" />
               <span className="text-[10px] font-bold text-stone-800 dark:text-stone-100 uppercase tracking-widest">
-                Theological Inquiry: Verse {selectedVerse}
+                {s.theologicalInquiry} {selectedVerse}
               </span>
             </div>
             <button
@@ -522,7 +524,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Ask about context, puritan views..."
+                placeholder={s.askPlaceholder}
                 className="w-full pl-9 portrait:pl-11 pr-3 portrait:pr-4 py-2.5 portrait:py-3 border border-stone-200 dark:border-stone-800 rounded-2xl text-sm portrait:text-base focus:outline-none focus:ring-2 focus:ring-[#821111]/30 dark:focus:ring-red-900/30 bg-stone-50/50 dark:bg-stone-950/50 text-stone-800 dark:text-stone-100 transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -533,7 +535,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
               disabled={!searchQuery.trim()}
               className="px-5 portrait:px-6 py-2.5 portrait:py-3 bg-[#821111] dark:bg-red-900 text-white rounded-2xl text-sm md:text-base font-bold hover:bg-[#6a0d0d] dark:hover:bg-red-800 disabled:opacity-50 shadow-lg shadow-[#821111]/20 dark:shadow-black/20 transition-all active:scale-95"
             >
-              Ask
+              {s.ask}
             </button>
           </form>
         </div>

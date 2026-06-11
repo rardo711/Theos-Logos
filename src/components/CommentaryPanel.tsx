@@ -14,6 +14,7 @@ import {
   generateFollowUp,
 } from "../services/geminiService";
 import { BibleChapter } from "../types";
+import { useI18n } from "../i18n";
 import { motion, AnimatePresence } from "motion/react";
 import { MemoizedMarkdown } from "./markdown";
 
@@ -53,6 +54,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
   setState,
   onCrossReference,
 }) => {
+  const { s } = useI18n();
   const lastProcessedTrigger = React.useRef<number>(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const commentaryContainerRef = useRef<HTMLDivElement>(null);
@@ -324,7 +326,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                   size={16}
                   className="text-stone-300 group-hover:text-white transition-colors"
                 />
-                Research this reference
+                {s.researchReference}
               </button>
               {/* Little triangle pointer */}
               <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-3 h-3 bg-stone-900 dark:bg-stone-800 group-hover:bg-[#821111] dark:group-hover:bg-red-900 transition-colors rotate-45 border-r border-b border-stone-800/80" />
@@ -361,7 +363,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                     <MessageSquare size={20} />
                   </div>
                   <h3 className="font-serif font-bold text-lg md:text-xl">
-                    Follow-up Research
+                    {s.followUpTitle}
                   </h3>
                 </div>
                 <button
@@ -379,12 +381,12 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                 <div className="mb-6 space-y-4">
                   <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-stone-400 bg-stone-50 dark:bg-stone-950 px-3 py-1.5 rounded-lg w-fit border border-stone-100 dark:border-stone-800">
                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                    Deep Context Enabled
+                    {s.deepContext}
                   </div>
 
                   <div>
                     <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-2 block">
-                      Referenced Text:
+                      {s.referencedText}
                     </span>
                     <blockquote className="border-l-4 border-[#821111]/40 dark:border-red-900/40 bg-stone-50 dark:bg-stone-950 py-3 px-4 rounded-r-xl italic text-stone-600 dark:text-stone-400 text-sm">
                       "{followUp.selectedText}"
@@ -399,7 +401,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                       size={32}
                     />
                     <p className="text-sm font-serif italic text-center">
-                      Consulting historical sources and secondary scholarship...
+                      {s.followUpLoading}
                     </p>
                   </div>
                 ) : followUp.error ? (
@@ -409,7 +411,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                 ) : followUp.response ? (
                   <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-3 block">
-                      Synthesis:
+                      {s.synthesisLabel}
                     </span>
                     <div className="commentary-content prose prose-stone dark:prose-invert prose-sm max-w-none">
                       <MemoizedMarkdown content={followUp.response} onCrossReference={onCrossReference} />
@@ -417,7 +419,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                   </div>
                 ) : (
                   <div className="py-8 text-center text-stone-400 dark:text-stone-500 font-serif italic text-sm">
-                    Ask a question about the selected text above.
+                    {s.followUpEmpty}
                   </div>
                 )}
               </div>
@@ -427,7 +429,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                 <form onSubmit={handleFollowUpSubmit} className="flex gap-3">
                   <input
                     type="text"
-                    placeholder="Ask your follow-up research question..."
+                    placeholder={s.followUpPlaceholder}
                     className="flex-1 px-4 py-3 border border-stone-200 dark:border-stone-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#821111]/20 dark:focus:ring-red-900/20 bg-white dark:bg-stone-800 text-stone-800 dark:text-white"
                     value={followUp.query}
                     onChange={(e) =>
@@ -458,9 +460,9 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
       <div className="px-5 py-4 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-between shrink-0 transition-colors">
         <div className="flex items-baseline gap-2.5">
           <h2 className="font-serif font-bold text-stone-900 dark:text-stone-100 leading-none" style={{ fontSize: 19, letterSpacing: "-0.02em" }}>
-            Research Room
+            {s.researchRoom}
           </h2>
-          <span className="tl-eyebrow" style={{ fontSize: 8 }}>Historical Synthesis</span>
+          <span className="tl-eyebrow" style={{ fontSize: 8 }}>{s.historicalSynthesis}</span>
         </div>
         {state.text && !state.loading && (
           <div className="flex items-center gap-2">
@@ -476,14 +478,14 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
               className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-all flex items-center gap-1.5 border border-transparent hover:border-stone-200 dark:hover:border-stone-700"
             >
               <X size={12} />
-              Clear
+              {s.clear}
             </button>
             <button
               onClick={copyToClipboard}
               className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-[#821111] dark:text-red-400 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/50 transition-all flex items-center gap-1.5 border border-red-100 dark:border-red-900/50 shadow-sm"
             >
               <BookOpen size={12} />
-              Copy
+              {s.copy}
             </button>
           </div>
         )}
@@ -500,7 +502,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
               <div className="text-[10px] font-bold text-[#821111] dark:text-red-400 bg-red-50/50 dark:bg-red-950/30 p-3 rounded-xl border border-red-100 dark:border-red-900/50 flex justify-between items-center animate-in fade-in slide-in-from-top-2 duration-300 uppercase tracking-widest">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 bg-[#821111] dark:bg-red-500 rounded-full animate-pulse" />
-                  <span>Verse {state.selectedVerse} Focus</span>
+                  <span>{s.verseFocus.replace("{n}", String(state.selectedVerse))}</span>
                 </div>
                 <button
                   type="button"
@@ -520,7 +522,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
               />
               <input
                 type="text"
-                placeholder="Theological question or topic..."
+                placeholder={s.questionPlaceholder}
                 className="w-full pl-11 pr-4 py-3 border border-stone-200 dark:border-stone-800 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-[#821111]/20 dark:focus:ring-red-900/20 bg-stone-50/50 dark:bg-stone-950/50 text-stone-800 dark:text-stone-100 transition-all font-serif italic"
                 value={state.query}
                 onChange={(e) =>
@@ -538,9 +540,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
               ) : (
                 <BookOpen size={18} />
               )}
-              {state.loading
-                ? "Consulting sources..."
-                : "Synthesize Commentary"}
+              {state.loading ? s.consultingSources : s.synthesizeCommentary}
             </button>
 
             <div className="flex items-center justify-center gap-3 text-[10px] text-stone-400 dark:text-stone-500 font-bold uppercase tracking-widest">
@@ -562,7 +562,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
               <div className="flex items-center gap-2.5 mb-1">
                 <Loader2 className="animate-spin text-[#821111] dark:text-red-400 shrink-0" size={15} />
                 <span className="font-serif italic text-stone-400 dark:text-stone-500" style={{ fontSize: 13 }}>
-                  Compiling historical reception…
+                  {s.compiling}
                 </span>
               </div>
               {/* Skeleton shimmer blocks */}
@@ -582,7 +582,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
               {state.error && (
                 <div className="p-5 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-2xl text-red-600 dark:text-red-400 text-sm leading-relaxed animate-in fade-in zoom-in-95 duration-300">
                   <p className="font-bold mb-1 uppercase tracking-widest text-[10px]">
-                    Inquiry Error
+                    {s.inquiryError}
                   </p>
                   <p className="font-serif italic">{state.error}</p>
                 </div>
@@ -604,7 +604,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                         size={16}
                       />
                       <span className="text-xs font-serif italic">
-                        Streaming synthesis…
+                        {s.streaming}
                       </span>
                     </div>
                   )}
@@ -617,9 +617,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                       size={18}
                     />
                     <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-serif">
-                      <strong>Deep Research:</strong> Highlight any text in the
-                      synthesis above to trigger a specific follow-up inquiry
-                      focused on that context.
+                      <strong>{s.deepResearchTitle}</strong> {s.deepResearchBody}
                     </p>
                   </div>
 
@@ -629,10 +627,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                       size={18}
                     />
                     <p className="text-[10px] italic text-stone-500 dark:text-stone-500 leading-relaxed font-serif">
-                      Historical scholarship provides analytical starting
-                      points. All theological inquiry should be brought before
-                      your local elders/pastors, as the Church is the primary
-                      community for the interpretation of Sacred Scripture.
+                      {s.eldersNote}
                     </p>
                   </div>
 
@@ -642,16 +637,14 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                     </div>
                     <div className="relative z-10">
                       <h3 className="font-serif font-bold text-xl mb-3">
-                        Ecclesial Study
+                        {s.ecclesialTitle}
                       </h3>
                       <p className="text-stone-300 text-sm leading-relaxed mb-6 italic font-serif">
-                        "The local church is the pillar and buttress of the
-                        truth." These insights are research aids; the living
-                        community of faith is where theology should be refined.
+                        {s.ecclesialBody}
                       </p>
                       <div className="space-y-4">
                         <span className="text-[9px] text-stone-500 uppercase tracking-widest font-bold block">
-                          Church Research Resources
+                          {s.churchResources}
                         </span>
                         <div className="flex flex-wrap gap-2 text-[10px]">
                           <a
@@ -696,11 +689,10 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                   </div>
                   <div className="max-w-xs space-y-2">
                     <h4 className="font-serif font-bold text-stone-700 dark:text-stone-300 text-lg tracking-tight">
-                      Enter the Library
+                      {s.enterLibrary}
                     </h4>
                     <p className="text-sm font-serif italic leading-relaxed text-stone-500 dark:text-stone-500">
-                      Initiate an inquiry to retrieve historical commentary,
-                      lexical analysis, and theological synthesis.
+                      {s.emptyResearchBody}
                     </p>
                   </div>
                 </div>
