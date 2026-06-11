@@ -4,37 +4,29 @@ import path from "path";
 import { GoogleGenAI } from "@google/genai";
 
 const theologicalFraming = `
-You are the Sovereign-Logic Engine, the specialized backend for an open-source Reformed Protestant biblical studies application. Your readers range from trained scholars to thoughtful laypeople, so every answer must be both rigorous AND accessible.
+You are the Sovereign-Logic Engine, the specialized backend for a Reformed Protestant biblical studies application. Readers range from trained scholars to thoughtful laypeople — be both rigorous AND accessible.
 
-CITATION MANDATE — NON-NEGOTIABLE:
-Every substantive claim must be attributed to a verifiable source:
-- Primary First-Hand Source: Church Fathers (CCEL: ccel.org), Reformers (Calvin's Commentaries/Institutes, Luther's Works), Reformed Confessions (Westminster, Heidelberg, Belgic, Canons of Dort)
-- Lexical Authority: BDAG (Bauer-Danker-Arndt-Gingrich, 3rd ed.), HALOT (Koehler-Baumgartner), Thayer's Greek Lexicon, LSJ (Liddell-Scott-Jones), or Strong's Concordance
-- Digital Archive for verification: CCEL (ccel.org), Perseus Digital Library (perseus.tufts.edu), Internet Archive (archive.org)
-
-Source Tier Priority (strictly enforced):
-  Tier 1 — CCEL (ccel.org), Perseus Digital Library (perseus.tufts.edu), Internet Archive (archive.org)
-  Tier 2 — Reformers' own published works, Westminster Standards, Heidelberg/Belgic/Dort
-  Tier 3 — BibleHub (lexicons only), OpenBible.info
-  Tier 4 — General academic web
-
-If a Tier 1 source is available for a claim, you MUST cite it. Do not cite a lower-tier source when a higher-tier source covers the same material. General blog, sermon, or devotional sites are never acceptable citations.
+CITATION MANDATE:
+Attribute every substantive claim to a verifiable source. Preferred order:
+- Church Fathers (ccel.org), Reformers (Calvin's Commentaries/Institutes, Luther's Works), Reformed Confessions (Westminster, Heidelberg, Belgic, Dort)
+- Lexicons: BDAG (3rd ed.), HALOT, Thayer's Greek Lexicon, LSJ, Strong's Concordance
+- Archives: CCEL (ccel.org), Perseus (perseus.tufts.edu), Internet Archive (archive.org)
+Cite the highest-tier available. No blogs, sermons, or devotional sites.
 
 Theological Mandate:
-1. Primary Sources Before Commentary: Cite the primary source first. Use blockquotes (>) for direct quotations with author, work title, and chapter/section.
-2. Broad Reformed Scope: Treat "Reformed" as covenantal and confessional, not merely the Five Points.
-3. Zero-Synthesis: Provide historical data and arguments (Reformed, Catholic, Orthodox, Anabaptist, Lutheran) and stop. Do not synthesize personal conclusions or exhort.
+1. Primary source first. Blockquote (>) direct quotations with author, work, and chapter/section.
+2. "Reformed" means covenantal and confessional — not merely the Five Points.
+3. Zero-Synthesis: present historical data and arguments; do not conclude or exhort.
 
-FORMATTING CONTRACT — follow EXACTLY for visual consistency:
-- Use Markdown headings to structure the response. NEVER use bold text as a substitute for a heading.
-- Use \`##\` for major sections and \`###\` for tradition perspectives or sub-sections.
-- Title-case every heading (e.g. "Historical Reception", "Reformed Perspective"). Do NOT write headings in ALL CAPS — the app styles them automatically.
-- Keep paragraphs short (2–4 sentences). Use bullet lists for enumerations.
-- Original-language words: write the script, then transliteration in italics, then Strong's number, e.g. **ἀγάπη** (*agapē*, G26).
-- Use blockquotes (>) only for direct quotations from a named source, with attribution on the same line.
-- Do NOT open with filler ("As an AI...", "Certainly!", "In this passage..."). Begin directly with the first heading.
+FORMATTING:
+- \`##\` major sections, \`###\` sub-sections. Never use bold as a heading substitute.
+- Title-case headings. Not ALL CAPS.
+- Short paragraphs (2–4 sentences). Bullet lists for enumerations.
+- Original-language terms: **ἀγάπη** (*agapē*, G26).
+- Blockquotes for direct quotations only, with attribution on the same line.
+- Begin directly with the first heading — no filler openers.
 
-Tone: Objective, academic, surgically precise — but define technical terms in plain language the first time they appear.
+Tone: Objective, academic, precise — define technical terms on first use.
 `;
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
@@ -45,13 +37,25 @@ const spanishDirective = `
 MANDATE: Respond entirely in neutral Latin American Spanish (no voseo; formal register). Define technical terms on first use. All Markdown headings in Spanish title case. Greek/Hebrew: keep script, transliteration, and Strong's number. Translate quotations from Fathers/Reformers; use received Spanish titles (e.g. Calvino, *Institución de la Religión Cristiana*). Scripture: RVR1960 wording, Spanish book names.
 `;
 
-function geminiConfigFor(lang: ResponseLang) {
-  return {
+function geminiConfigFor(lang: ResponseLang, opts: { grounded?: boolean } = {}) {
+  const { grounded = true } = opts;
+  const base = {
     systemInstruction:
       lang === "es" ? theologicalFraming + spanishDirective : theologicalFraming,
-    tools: [{ googleSearch: {} }],
-    toolConfig: { includeServerSideToolInvocations: true },
   };
+  if (!grounded) return base;
+  return { ...base, tools: [{ googleSearch: {} }], toolConfig: { includeServerSideToolInvocations: true } };
+}
+
+// When a specific verse is selected, send only a ±5-verse window instead of
+// the full chapter — saves 1000–3000 tokens on long chapters.
+function verseWindow(fullText: string, centerVerse: number, radius = 5): string {
+  const matches = [...fullText.matchAll(/\[(\d+)\][^\[]+/g)];
+  if (matches.length <= radius * 2) return fullText;
+  const idx = Math.max(0, centerVerse - 1); // convert to 0-based
+  const start = Math.max(0, idx - radius);
+  const end = Math.min(matches.length, idx + radius + 1);
+  return matches.slice(start, end).map(m => m[0].trimEnd()).join(" ");
 }
 
 function parseLang(value: unknown): ResponseLang {
@@ -213,15 +217,18 @@ async function startServer() {
     const verseContext = selectedVerse ? `The user is specifically asking about Verse ${selectedVerse}.` : "";
     const trimmedQuestion = typeof question === "string" ? question.trim() : "";
     const isQuestion = trimmedQuestion.length >= 10;
-    // A short query (e.g. "baptism") isn't a full question, but it should
-    // still steer the commentary rather than be silently dropped.
     const topicHint = !isQuestion && trimmedQuestion
       ? `\nThe user flagged a topic of interest: "${trimmedQuestion}". Give it particular attention where the passage warrants.`
       : "";
 
+    // For single-verse focus send only the surrounding context — saves tokens on long chapters
+    const passageForPrompt = (selectedVerse && typeof selectedVerse === "number")
+      ? verseWindow(passage, selectedVerse)
+      : passage;
+
     const prompt = isQuestion
       ? `Reference: ${reference}
-Passage context: ${passage}
+Passage context: ${passageForPrompt}
 ${verseContext}
 CCEL Reference: ${ccelUrl}
 
@@ -236,7 +243,7 @@ Rules for this response:
 - Only include lexical detail that bears on the question. Stay on topic.
 - Use Google Search to verify every quote and historical claim.`
       : `Reference: ${reference}
-Passage: ${passage}
+Passage: ${passageForPrompt}
 ${verseContext}${topicHint}
 CCEL Reference: ${ccelUrl}
 
@@ -290,7 +297,7 @@ Use Google Search to verify every quote and historical claim.`;
     }
   });
 
-  // Gemini follow-up — server-side
+  // Gemini follow-up — streams as SSE, same pattern as commentary
   app.post("/api/followup", async (req, res) => {
     const ai = getAI();
     if (!ai) {
@@ -320,8 +327,7 @@ Respond using this structure:
 
 ## ${H.scholarlyBasis}
 Supporting primary sources, exegetical reasoning, and any relevant original-language
-terms (script, transliteration, Strong's number). Cite Tier 1 sources first (CCEL,
-Perseus, archive.org).
+terms (script, transliteration, Strong's number). Cite CCEL, Perseus, archive.org first.
 
 ## ${H.acrossTraditions} (only if the question touches a disputed point)
 Use ### sub-headings per tradition. Omit this section if not applicable.
@@ -329,22 +335,34 @@ Use ### sub-headings per tradition. Omit this section if not applicable.
 Use Google Search to verify every quote and source.
 `;
 
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
     try {
-      const response = await withRetry(() =>
-        ai.models.generateContent({
+      const stream = await withRetry(() =>
+        ai.models.generateContentStream({
           model: GEMINI_MODEL,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           config: geminiConfigFor(lang),
         })
       );
-      return res.json({ text: response.text || "Empty response from AI." });
+      for await (const chunk of stream) {
+        const text = chunk.text;
+        if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
+      }
+      res.write("data: [DONE]\n\n");
+      res.end();
     } catch (error: any) {
       console.error("[Server] Gemini follow-up error:", error);
-      return res.status(500).json({ error: extractGeminiError(error, lang) });
+      res.write(`data: ${JSON.stringify({ error: extractGeminiError(error, lang) })}\n\n`);
+      res.end();
     }
   });
 
-  // Word Study — dedicated lexical analysis with a strict, consistent format
+  // Word Study — dedicated lexical analysis; streams as SSE; no search grounding
+  // (Greek/Hebrew lexicons are static knowledge — grounding adds latency with no benefit)
   app.post("/api/wordstudy", async (req, res) => {
     const ai = getAI();
     if (!ai) {
@@ -388,21 +406,31 @@ Root, related forms, and cognates where relevant. Keep brief.
 ### ${H.sources}
 A bullet list of the specific lexicons and tools consulted (e.g. BDAG 3rd ed., Thayer's, LSJ, Strong's, HALOT) with a verification link to CCEL, Perseus (perseus.tufts.edu), or Bible Hub where available.
 
-Use Google Search to verify the Strong's number, definitions, and every scripture reference. Never invent a Strong's number or a verse.`;
+Draw on your training knowledge of BDAG, HALOT, Thayer, and Strong's. Never invent a Strong's number or a verse.`;
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
 
     try {
-      const response = await withRetry(() =>
-        ai.models.generateContent({
+      const stream = await withRetry(() =>
+        ai.models.generateContentStream({
           model: GEMINI_MODEL,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: geminiConfigFor(lang),
+          config: geminiConfigFor(lang, { grounded: false }),
         })
       );
-      if (!response.text) return res.status(500).json({ error: "The AI returned an empty response." });
-      return res.json({ text: response.text });
+      for await (const chunk of stream) {
+        const text = chunk.text;
+        if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
+      }
+      res.write("data: [DONE]\n\n");
+      res.end();
     } catch (error: any) {
       console.error("[Server] Gemini word study error:", error);
-      return res.status(500).json({ error: extractGeminiError(error, lang) });
+      res.write(`data: ${JSON.stringify({ error: extractGeminiError(error, lang) })}\n\n`);
+      res.end();
     }
   });
 

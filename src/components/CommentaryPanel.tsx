@@ -268,6 +268,9 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         followUp.query,
         state.text || undefined,
         lang,
+        (partial) => {
+          setFollowUp((prev) => ({ ...prev, response: partial }));
+        },
       );
       setFollowUp((prev) => ({ ...prev, response: result, loading: false }));
     } catch (err: any) {
@@ -395,7 +398,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                   </div>
                 </div>
 
-                {followUp.loading ? (
+                {followUp.loading && !followUp.response ? (
                   <div className="flex flex-col items-center justify-center py-10 gap-4 text-stone-400 dark:text-stone-500">
                     <Loader2
                       className="animate-spin text-[#821111] dark:text-red-400"
@@ -417,6 +420,12 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                     <div className="commentary-content prose prose-stone dark:prose-invert prose-sm max-w-none">
                       <MemoizedMarkdown content={followUp.response} onCrossReference={onCrossReference} />
                     </div>
+                    {followUp.loading && (
+                      <div className="mt-4 flex items-center gap-2 text-stone-400 dark:text-stone-500">
+                        <Loader2 className="animate-spin text-[#821111] dark:text-red-400" size={14} />
+                        <span className="text-xs font-serif italic">{s.streaming}</span>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="py-8 text-center text-stone-400 dark:text-stone-500 font-serif italic text-sm">

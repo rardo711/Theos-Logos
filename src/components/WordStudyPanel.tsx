@@ -85,7 +85,9 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
     }));
 
     try {
-      const result = await generateWordStudy(word, reference, lang);
+      const result = await generateWordStudy(word, reference, lang, (partial) => {
+        setState((prev) => ({ ...prev, text: partial }));
+      });
       setState((prev) => ({
         ...prev,
         text: result || "No analysis generated.",
@@ -206,15 +208,21 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
 
         {/* Results */}
         <div className="pt-6 px-6">
-          {state.loading ? (
-            <div className="flex flex-col items-center justify-center gap-5 text-stone-400 dark:text-stone-500 animate-pulse py-20">
-              <Loader2
-                className="animate-spin text-[#821111] dark:text-red-400"
-                size={40}
-              />
-              <p className="text-sm font-serif italic">
-                {s.parsingLanguages}
-              </p>
+          {state.loading && !state.text ? (
+            <div className="flex flex-col gap-4 py-2">
+              <div className="flex items-center gap-2.5 mb-1">
+                <Loader2 className="animate-spin text-[#821111] dark:text-red-400 shrink-0" size={15} />
+                <span className="font-serif italic text-stone-400 dark:text-stone-500" style={{ fontSize: 13 }}>
+                  {s.parsingLanguages}
+                </span>
+              </div>
+              <div className="tl-shimmer h-[18px] w-2/5 rounded-md" />
+              <div className="tl-shimmer h-[13px] w-full rounded-md" />
+              <div className="tl-shimmer h-[13px] w-[88%] rounded-md" />
+              <div className="tl-shimmer h-[13px] w-[75%] rounded-md" />
+              <div className="tl-shimmer h-[18px] w-1/3 rounded-md mt-2" />
+              <div className="tl-shimmer h-[13px] w-[95%] rounded-md" />
+              <div className="tl-shimmer h-[13px] w-[70%] rounded-md" />
             </div>
           ) : state.error ? (
             <div className="p-5 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-2xl text-red-600 dark:text-red-400 text-sm leading-relaxed">
@@ -231,9 +239,17 @@ export const WordStudyPanel: React.FC<WordStudyPanelProps> = ({
                   onCrossReference={onCrossReference}
                 />
               </div>
-              <div className="mt-8 p-4 bg-stone-50 dark:bg-stone-900 border-l-4 border-stone-300 dark:border-stone-700 rounded-r-xl text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-serif">
-                <strong>{s.verifySourcesTitle}</strong> {s.verifySourcesBody}
-              </div>
+              {state.loading && (
+                <div className="mt-4 flex items-center gap-2 text-stone-400 dark:text-stone-500">
+                  <Loader2 className="animate-spin text-[#821111] dark:text-red-400" size={14} />
+                  <span className="text-xs font-serif italic">{s.consultingLexicons}</span>
+                </div>
+              )}
+              {!state.loading && (
+                <div className="mt-8 p-4 bg-stone-50 dark:bg-stone-900 border-l-4 border-stone-300 dark:border-stone-700 rounded-r-xl text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-serif">
+                  <strong>{s.verifySourcesTitle}</strong> {s.verifySourcesBody}
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center text-center gap-6 px-6 py-16">
