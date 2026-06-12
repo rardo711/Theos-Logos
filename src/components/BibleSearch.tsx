@@ -1,0 +1,259 @@
+import React, { useState, useEffect, useRef } from "react";
+import { Search, X, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { searchBible, BibleSearchResult } from "../services/bibleService";
+import { useI18n, Lang } from "../i18n";
+
+interface BibleSearchProps {
+  isOpen: boolean;
+  onClose: () => void;
+  lang: Lang;
+  onNavigate: (bookName: string, chapter: number, verse: number) => void;
+}
+
+export const BibleSearch: React.FC<BibleSearchProps> = ({
+  isOpen,
+  onClose,
+  lang,
+  onNavigate,
+}) => {
+  const { s } = useI18n();
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<BibleSearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [translation, setTranslation] = useState<"ESV" | "RV1960">(
+    lang === "es" ? "RV1960" : "ESV",
+  );
+  const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Reset and autofocus on open
+  useEffect(() => {
+    if (isOpen) {
+      setQuery("");
+      setResults([]);
+      setError(null);
+      setLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 120);
+    }
+  }, [isOpen]);
+
+  // Sync translation with lang when lang changes
+  useEffect(() => {
+    setTranslation(lang === "es" ? "RV1960" : "ESV");
+  }, [lang]);
+
+  // Debounced search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!query.trim() || query.trim().length < 2) {
+      setResults([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const data = await searchBible(query.trim(), translation);
+        setResults(data);
+        setError(null);
+      } catch (err: any) {
+        setError(err.message || "Search failed.");
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 400);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query, translation]);
+
+  // Escape key dismiss
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (isOpen) document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [isOpen, onClose]);
+
+  const highlightMatch = (text: string) => {
+    const q = query.trim();
+    if (!q) return <>{text}</>;
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(${escaped})`, "gi");
+    const parts = text.split(regex);
+    return (
+      <>
+        {parts.map((part, i) =>
+          part.toLowerCase() === q.toLowerCase() ? (
+            <mark key={i} className="tl-search-mark">
+              {part}
+            </mark>
+          ) : (
+            <span key={i}>{part}</span>
+          ),
+        )}
+      </>
+    );
+  };
+
+  const handleResult = (r: BibleSearchResult) => {
+    onNavigate(r.book_name, r.chapter, r.verse);
+    onClose();
+  };
+
+  const hasQuery = query.trim().length >= 2;
+  const showEmpty = hasQuery && !loading && results.length === 0 && !error;
+  const showCap = results.length === 50;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm p-0 md:p-6"
+        >
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 220 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-stone-900 rounded-t-3xl md:rounded-2xl shadow-2xl w-full max-w-2xl h-[85vh] md:h-[75vh] md:max-h-[700px] flex flex-col overflow-hidden border-t md:border border-stone-200 dark:border-stone-800"
+          >
+            {/* Drag handle (mobile) */}
+            <div className="w-full flex justify-center pt-3 pb-1 md:hidden bg-stone-50 dark:bg-stone-900 shrink-0">
+              <div className="w-12 h-1.5 bg-stone-300 dark:bg-stone-700 rounded-full" />
+            </div>
+
+            {/* Header */}
+            <div className="px-4 pt-2 pb-3 md:px-5 md:pt-4 md:pb-3 bg-stone-50 dark:bg-stone-900 border-b border-stone-100 dark:border-stone-800 shrink-0 flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1">
+                  <Search
+                    size={16}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500 pointer-events-none"
+                  />
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={s.searchPlaceholder}
+                    className="w-full pl-9 pr-4 py-2.5 border border-stone-200 dark:border-stone-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#821111]/20 dark:focus:ring-red-900/20 bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-100 transition-all font-serif italic"
+                  />
+                </div>
+
+                {/* Translation toggle */}
+                <div className="flex shrink-0 bg-stone-100 dark:bg-stone-800 rounded-lg p-0.5 gap-0.5">
+                  {(["ESV", "RV1960"] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTranslation(t)}
+                      className={`px-2.5 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${
+                        translation === t
+                          ? "bg-white dark:bg-stone-700 text-[#821111] dark:text-red-400 shadow-sm"
+                          : "text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
+                      }`}
+                    >
+                      {t === "RV1960" ? "RVR" : t}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={onClose}
+                  className="p-2 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 rounded-full transition-colors shrink-0"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Results */}
+            <div className="flex-1 overflow-y-auto tl-scrollbar">
+              {/* Loading skeletons */}
+              {loading && (
+                <div className="p-4 space-y-3">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="flex gap-3 p-3 rounded-xl">
+                      <div className="tl-shimmer h-4 w-24 rounded-md shrink-0 mt-0.5" />
+                      <div className="flex-1 space-y-2">
+                        <div className="tl-shimmer h-3.5 w-full rounded-md" />
+                        <div className="tl-shimmer h-3.5 w-4/5 rounded-md" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Results list */}
+              {!loading && results.length > 0 && (
+                <div className="divide-y divide-stone-100 dark:divide-stone-800">
+                  {results.map((r, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleResult(r)}
+                      className="w-full text-left px-4 py-3.5 hover:bg-stone-50 dark:hover:bg-stone-800/60 transition-colors flex gap-3 group"
+                    >
+                      <span
+                        className="shrink-0 font-mono text-[11px] font-medium text-stone-400 dark:text-stone-500 mt-0.5 whitespace-nowrap group-hover:text-[#821111] dark:group-hover:text-red-400 transition-colors"
+                        style={{ fontFamily: '"JetBrains Mono", monospace', letterSpacing: "0.02em" }}
+                      >
+                        {r.book_name} {r.chapter}:{r.verse}
+                      </span>
+                      <span className="text-stone-700 dark:text-stone-300 text-sm leading-relaxed font-serif">
+                        {highlightMatch(r.text)}
+                      </span>
+                    </button>
+                  ))}
+                  {showCap && (
+                    <div className="px-4 py-3 text-center text-xs text-stone-400 dark:text-stone-500 font-serif italic">
+                      {s.searchResultsCap}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Empty state */}
+              {showEmpty && (
+                <div className="flex flex-col items-center justify-center h-full px-6 py-20 text-center gap-3">
+                  <Search size={36} className="text-stone-200 dark:text-stone-700" />
+                  <p className="text-sm font-serif font-bold text-stone-600 dark:text-stone-400">
+                    {s.searchNoResults.replace("{query}", query.trim())}
+                  </p>
+                  <p className="text-xs text-stone-400 dark:text-stone-500 font-serif italic">
+                    {s.searchNoResultsHint}
+                  </p>
+                </div>
+              )}
+
+              {/* Idle state (no query entered yet) */}
+              {!hasQuery && !loading && (
+                <div className="flex flex-col items-center justify-center h-full px-6 py-16 gap-3 text-center text-stone-400 dark:text-stone-600">
+                  <Search size={40} className="opacity-30" />
+                  <p className="text-sm font-serif italic">
+                    {s.searchPlaceholder}
+                  </p>
+                </div>
+              )}
+
+              {/* Error */}
+              {error && (
+                <div className="m-4 p-4 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-xl text-red-600 dark:text-red-400 text-sm font-serif italic">
+                  {error}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};

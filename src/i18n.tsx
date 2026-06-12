@@ -136,6 +136,11 @@ const en = {
     // Other Traditions
     otherTraditions: "Other Traditions",
     hideOtherTraditions: "Hide Other Traditions",
+    // Scripture search
+    searchPlaceholder: "Search scripture…",
+    searchResultsCap: "Showing first 50 results — refine your search.",
+    searchNoResults: "No results for \"{query}\"",
+    searchNoResultsHint: "Check spelling or try a shorter phrase.",
 };
 
 export type Strings = typeof en;
@@ -246,6 +251,11 @@ const es: Strings = {
     // Other Traditions
     otherTraditions: "Otras Tradiciones",
     hideOtherTraditions: "Ocultar Otras Tradiciones",
+    // Scripture search
+    searchPlaceholder: "Buscar en las Escrituras…",
+    searchResultsCap: "Mostrando los primeros 50 resultados — refine su búsqueda.",
+    searchNoResults: "Sin resultados para \"{query}\"",
+    searchNoResultsHint: "Verifique la ortografía o intente una frase más corta.",
 };
 
 const STRINGS: Record<Lang, Strings> = { en, es };

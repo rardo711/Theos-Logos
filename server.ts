@@ -266,6 +266,33 @@ async function startServer() {
     }
   });
 
+  // Bible full-text keyword search proxy (Bolls Life)
+  app.get("/api/bible/search", async (req, res) => {
+    const { q, translation = "ESV" } = req.query;
+    const tx = String(translation).toUpperCase();
+
+    if (!q || String(q).trim().length < 2) {
+      return res.status(400).json({ error: "Query too short." });
+    }
+    if (!BIBLE_TRANSLATIONS.has(tx)) {
+      return res.status(400).json({ error: `Unsupported translation '${tx}'` });
+    }
+
+    try {
+      const url = `https://bolls.life/search/${tx}/${encodeURIComponent(String(q).trim())}/`;
+      const response = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!response.ok) {
+        return res.status(response.status).json({ error: "Search API error." });
+      }
+      const data = await response.json();
+      // Bolls Life returns an array of { book_id, book_name, chapter, verse, text }
+      return res.json(Array.isArray(data) ? data.slice(0, 50) : data);
+    } catch (error: any) {
+      console.error("[Server] Bible search error:", error);
+      return res.status(500).json({ error: "Failed to search Bible.", message: error.message });
+    }
+  });
+
   // Gemini commentary — server-side, API key never sent to client.
   // Streams the response as Server-Sent Events (generation with search
   // grounding takes 15–30s; streaming lets the client render as it arrives).

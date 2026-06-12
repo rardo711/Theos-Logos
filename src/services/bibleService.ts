@@ -123,6 +123,27 @@ export async function fetchBibleChapter(
   return result;
 }
 
+export interface BibleSearchResult {
+  book_name: string;
+  chapter: number;
+  verse: number;
+  text: string;
+}
+
+export async function searchBible(
+  query: string,
+  translation: "ESV" | "RV1960" = "ESV",
+): Promise<BibleSearchResult[]> {
+  const res = await fetch(
+    `/api/bible/search?q=${encodeURIComponent(query)}&translation=${translation}`,
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Search failed" }));
+    throw new Error(err.error || "Search failed");
+  }
+  return res.json();
+}
+
 function processFallbackResponse(data: any): BibleChapter {
   if (!data || !data.verses || !Array.isArray(data.verses)) {
     throw new Error("Invalid data received from fallback Bible API");

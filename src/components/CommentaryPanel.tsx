@@ -554,7 +554,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto scroll-smooth bg-white dark:bg-stone-950 transition-colors pb-32 lg:pb-0"
+        className="flex-1 overflow-y-auto tl-scrollbar scroll-smooth bg-white dark:bg-stone-950 transition-colors pb-32 lg:pb-0"
       >
         <div className="p-5 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800">
           <form onSubmit={handleGenerate} className="flex flex-col gap-4">
@@ -593,7 +593,8 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
             <button
               type="submit"
               disabled={state.loading || !chapter}
-              className="w-full py-3 bg-stone-800 dark:bg-stone-700 text-white rounded-2xl text-sm font-bold hover:bg-stone-900 dark:hover:bg-stone-600 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg dark:shadow-black/20"
+              className="w-full py-3 bg-[#821111] text-white rounded-2xl text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-[#821111]/20"
+              style={{ boxShadow: "0 8px 32px rgba(130,17,17,0.2)" }}
             >
               {state.loading ? (
                 <Loader2 className="animate-spin" size={18} />
