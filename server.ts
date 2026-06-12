@@ -243,6 +243,37 @@ async function startServer() {
   // standard in the Spanish-speaking church). Extend the allowlist to add
   // more translations (e.g. LBLA).
   const BIBLE_TRANSLATIONS = new Set(["ESV", "RV1960"]);
+
+  // Bible full-text keyword search proxy (Bolls Life v2 find API).
+  // MUST be registered before /api/bible/:translation — otherwise Express
+  // matches "search" as a translation name and this route is unreachable.
+  app.get("/api/bible/search", async (req, res) => {
+    const { q, translation = "ESV" } = req.query;
+    const tx = String(translation).toUpperCase();
+
+    if (!q || String(q).trim().length < 2) {
+      return res.status(400).json({ error: "Query too short." });
+    }
+    if (!BIBLE_TRANSLATIONS.has(tx)) {
+      return res.status(400).json({ error: `Unsupported translation '${tx}'` });
+    }
+
+    try {
+      const url = `https://bolls.life/v2/find/${tx}?search=${encodeURIComponent(String(q).trim())}&match_case=false&match_whole=false&limit=50&page=1`;
+      const response = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!response.ok) {
+        return res.status(response.status).json({ error: "Search API error." });
+      }
+      const data = await response.json();
+      // v2/find wraps results: { exact_matches, total, results: [{ pk, translation, book, chapter, verse, text }] }
+      const results = Array.isArray(data) ? data : (data?.results ?? []);
+      return res.json(results.slice(0, 50));
+    } catch (error: any) {
+      console.error("[Server] Bible search error:", error);
+      return res.status(500).json({ error: "Failed to search Bible.", message: error.message });
+    }
+  });
+
   app.get("/api/bible/:translation", async (req, res) => {
     const translation = String(req.params.translation).toUpperCase();
     if (!BIBLE_TRANSLATIONS.has(translation)) {
@@ -263,33 +294,6 @@ async function startServer() {
     } catch (error: any) {
       console.error("[Server] Bible Proxy Error:", error);
       return res.status(500).json({ error: "Failed to fetch Bible text", message: error.message });
-    }
-  });
-
-  // Bible full-text keyword search proxy (Bolls Life)
-  app.get("/api/bible/search", async (req, res) => {
-    const { q, translation = "ESV" } = req.query;
-    const tx = String(translation).toUpperCase();
-
-    if (!q || String(q).trim().length < 2) {
-      return res.status(400).json({ error: "Query too short." });
-    }
-    if (!BIBLE_TRANSLATIONS.has(tx)) {
-      return res.status(400).json({ error: `Unsupported translation '${tx}'` });
-    }
-
-    try {
-      const url = `https://bolls.life/search/${tx}/${encodeURIComponent(String(q).trim())}/`;
-      const response = await fetch(url, { headers: { Accept: "application/json" } });
-      if (!response.ok) {
-        return res.status(response.status).json({ error: "Search API error." });
-      }
-      const data = await response.json();
-      // Bolls Life returns an array of { book_id, book_name, chapter, verse, text }
-      return res.json(Array.isArray(data) ? data.slice(0, 50) : data);
-    } catch (error: any) {
-      console.error("[Server] Bible search error:", error);
-      return res.status(500).json({ error: "Failed to search Bible.", message: error.message });
     }
   });
 
