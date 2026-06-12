@@ -82,10 +82,11 @@ export async function generateFollowUp(
   fullCommentaryText?: string,
   lang: Lang = "en",
   onChunk?: (fullText: string) => void,
+  selectedVerse?: number,
 ): Promise<string> {
   return readSSEStream(
     "/api/followup",
-    { passage, reference, selectedText, question, fullCommentaryText, lang },
+    { passage, reference, selectedText, question, fullCommentaryText, lang, selectedVerse },
     onChunk,
   );
 }

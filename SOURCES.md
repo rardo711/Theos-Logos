@@ -72,6 +72,15 @@ All are public domain. Primary digital archive: CCEL and Internet Archive.
 | London Baptist Confession | 1689 | [1689.com](https://www.1689.com/) |
 | Second Helvetic Confession | 1566 | CCEL |
 
+### Other Traditions' Confessional Standards
+
+Used by the *Across the Traditions* sections so that each tradition is represented from its own authoritative texts — never solely through its critics.
+
+| Standard | Tradition | Access |
+|----------|-----------|--------|
+| Book of Concord | Lutheran | [bookofconcord.org](https://bookofconcord.org/) |
+| Catechism of the Catholic Church | Roman Catholic | [vatican.va](https://www.vatican.va/archive/ENG0015/_INDEX.HTM) |
+
 ### Biblical Languages
 
 **Greek New Testament**
@@ -115,6 +124,16 @@ All are public domain. Primary digital archive: CCEL and Internet Archive.
 **Strong's Exhaustive Concordance** — Strong, J. 1890. Public domain.
 - Available at [BibleHub](https://biblehub.com/strongs/) and many other sites.
 
+### Lexical Verification Sites
+
+Used for verification links in word-study output — not as primary lexical authorities.
+
+| Site | URL | Notes |
+|------|-----|-------|
+| BibleHub | [biblehub.com](https://biblehub.com/) | Interlinear and lexicon pages |
+| Blue Letter Bible | [blueletterbible.org](https://www.blueletterbible.org/) | Strong's number verification |
+| STEP Bible | [stepbible.org](https://www.stepbible.org/) | Tyndale House lexical data |
+
 ---
 
 ## Digital Archives
@@ -122,8 +141,11 @@ All are public domain. Primary digital archive: CCEL and Internet Archive.
 | Archive | URL | Description |
 |---------|-----|-------------|
 | CCEL | [ccel.org](https://ccel.org) | Church Fathers, Reformers, Puritans — fully searchable |
+| New Advent Fathers | [newadvent.org/fathers](https://www.newadvent.org/fathers/) | Complete Ante-Nicene, Nicene, and Post-Nicene Fathers series with stable URLs |
 | Perseus Digital Library | [perseus.tufts.edu](https://www.perseus.tufts.edu/) | Greek and Latin primary texts with morphological analysis |
 | Internet Archive | [archive.org](https://archive.org) | Historical theological works, out-of-print commentaries |
+| Post-Reformation Digital Library | [prdl.org](https://www.prdl.org/) | Index of digitized 16th–17th century Reformed and post-Reformation sources |
+| Monergism Free Library | [monergism.com](https://www.monergism.com/) | Public-domain Puritan and Reformed full texts (Owen, Sibbes, Brooks) |
 | Project Gutenberg | [gutenberg.org](https://www.gutenberg.org/) | Public domain books including theological works |
 | OpenBible.info | [openbible.info](https://www.openbible.info/) | Cross-references, topical data, open license |
 

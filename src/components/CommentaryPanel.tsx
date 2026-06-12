@@ -271,6 +271,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         (partial) => {
           setFollowUp((prev) => ({ ...prev, response: partial }));
         },
+        state.selectedVerse === null ? undefined : state.selectedVerse,
       );
       setFollowUp((prev) => ({ ...prev, response: result, loading: false }));
     } catch (err: any) {
