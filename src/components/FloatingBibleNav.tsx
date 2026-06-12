@@ -134,9 +134,9 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
                                 setIsBookDropdownOpen(false);
                                 setSearchQuery("");
                               }}
-                              className={`text-left px-4 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                                currentBook.id === book.id 
-                                  ? 'bg-[#821111] dark:bg-red-900 border border-[#821111] dark:border-red-800 text-white font-bold shadow-md' 
+                              className={`text-left px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                                currentBook.id === book.id
+                                  ? 'bg-[#821111] dark:bg-red-900 border border-[#821111] dark:border-red-800 text-white font-bold shadow-md'
                                   : 'text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-transparent hover:border-stone-200 dark:hover:border-stone-700 shadow-sm hover:shadow-md'
                               }`}
                             >
@@ -159,9 +159,9 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
                                 setIsBookDropdownOpen(false);
                                 setSearchQuery("");
                               }}
-                              className={`text-left px-4 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                                currentBook.id === book.id 
-                                  ? 'bg-[#821111] dark:bg-red-900 border border-[#821111] dark:border-red-800 text-white font-bold shadow-md' 
+                              className={`text-left px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                                currentBook.id === book.id
+                                  ? 'bg-[#821111] dark:bg-red-900 border border-[#821111] dark:border-red-800 text-white font-bold shadow-md'
                                   : 'text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-transparent hover:border-stone-200 dark:hover:border-stone-700 shadow-sm hover:shadow-md'
                               }`}
                             >
@@ -195,9 +195,9 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
                      onChapterChange(ch);
                      onClose();
                   }}
-                  className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 border ${
-                    currentChapter === ch 
-                      ? 'bg-[#821111] dark:bg-red-900 border-[#821111] dark:border-red-800 text-white shadow-lg scale-110 active-chapter ring-2 ring-[#821111]/20 dark:ring-red-900/40 ring-offset-2 dark:ring-offset-stone-900' 
+                  className={`flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 border ${
+                    currentChapter === ch
+                      ? 'bg-[#821111] dark:bg-red-900 border-[#821111] dark:border-red-800 text-white shadow-lg scale-110 active-chapter ring-2 ring-[#821111]/20 dark:ring-red-900/40 ring-offset-2 dark:ring-offset-stone-900'
                       : 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 hover:border-stone-300 dark:hover:border-stone-600'
                   }`}
                 >
