@@ -62,18 +62,11 @@
       })();
     </script>
     <style>
-      /* Match #root bg exactly so no gap shows at screen edges on any device */
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: #ffffff;
-        color: #1c1917;
-      }
-      @media (prefers-color-scheme: dark) {
-        html, body { background: #0c0a09; color: #fafaf9; }
-      }
-      html.dark, html.dark body { background: #0c0a09 !important; color: #fafaf9 !important; }
-      html.light, html.light body { background: #ffffff !important; color: #1c1917 !important; }
+      /* Pre-React paint — must match Tailwind bg-white / dark:bg-stone-950 exactly */
+      html, body { background: #ffffff; }
+      @media (prefers-color-scheme: dark) { html, body { background: #0c0a09; } }
+      html.dark, html.dark body { background: #0c0a09 !important; }
+      html.light, html.light body { background: #ffffff !important; }
     </style>
   </head>
   <body>
