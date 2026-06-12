@@ -28,6 +28,19 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Track visual viewport so the overlay shrinks with the iOS keyboard
+  // and the card never exceeds 72% of the visible area (keyboard-aware)
+  const [vpHeight, setVpHeight] = useState(() => window.visualViewport?.height ?? window.innerHeight);
+  const [vpOffsetTop, setVpOffsetTop] = useState(0);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => { setVpHeight(vv.height); setVpOffsetTop(vv.offsetTop); };
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => { vv.removeEventListener("resize", update); vv.removeEventListener("scroll", update); };
+  }, []);
+
   // Reset and autofocus on open
   useEffect(() => {
     if (isOpen) {
@@ -109,6 +122,9 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
   const showEmpty = hasQuery && !loading && results.length === 0 && !error;
   const showCap = results.length === 50;
 
+  // 72% of visible area on phones, hard-capped at 780px on large screens
+  const cardMaxH = Math.min(Math.round(vpHeight * 0.72), 780);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -117,10 +133,10 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm px-4 md:px-8"
+          className="fixed left-0 right-0 z-[80] flex items-center justify-center bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm px-4 md:px-8"
           style={{
-            paddingTop: "max(env(safe-area-inset-top), 1.25rem)",
-            paddingBottom: "max(env(safe-area-inset-bottom), 1.25rem)",
+            top: vpOffsetTop,
+            height: vpHeight,
           }}
         >
           <motion.div
@@ -129,7 +145,8 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
             exit={{ y: 40, scale: 0.97, opacity: 0 }}
             transition={{ type: "spring", damping: 30, stiffness: 260 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-stone-900 rounded-[24px] shadow-[0_32px_64px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_32px_64px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)] w-full max-w-2xl max-h-full md:max-h-[min(820px,100%)] flex flex-col overflow-hidden"
+            className="bg-white dark:bg-stone-900 rounded-[24px] shadow-[0_32px_64px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_32px_64px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)] w-full max-w-2xl flex flex-col overflow-hidden"
+            style={{ maxHeight: cardMaxH }}
           >
             {/* Header */}
             <div className="px-4 pt-4 pb-3 md:px-6 md:pt-5 md:pb-4 border-b border-stone-100 dark:border-stone-800/60 shrink-0 flex flex-col gap-3">

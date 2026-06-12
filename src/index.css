@@ -12,24 +12,26 @@
 
 @layer base {
   html, body {
-    /* No explicit width/height: a fixed box with inset: 0 stretches to
-       both screen edges directly. Setting height as well would override
-       bottom: 0 and size the box from iOS's (unreliable) viewport units,
-       which is what left a gap at the bottom edge. */
     margin: 0;
     padding: 0;
-    position: fixed;
-    inset: 0;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
-    @apply bg-white dark:bg-stone-950;
+    overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
-    overscroll-behavior: none;
   }
 
+  /* #root is the true viewport anchor — position: fixed with inset: 0
+     is computed from the INITIAL containing block (physical screen edges),
+     so it always fills edge-to-edge regardless of iOS Safari toolbar state */
   #root {
-    position: absolute;
-    inset: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
     @apply bg-white dark:bg-stone-950;
     overscroll-behavior: none;
   }
