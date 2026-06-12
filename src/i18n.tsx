@@ -133,6 +133,9 @@ const en = {
     installIOSSteps: ["Tap the Share button (↑) in Safari", "Select \"Add to Home Screen\"", "Tap \"Add\" to confirm"],
     installAndroidSteps: ["Tap the ⋮ menu in Chrome", "Select \"Add to Home Screen\" or \"Install App\"", "Tap \"Install\" to confirm"],
     installGotIt: "Got it, don't show again",
+    // Other Traditions
+    otherTraditions: "Other Traditions",
+    hideOtherTraditions: "Hide Other Traditions",
 };
 
 export type Strings = typeof en;
@@ -240,6 +243,9 @@ const es: Strings = {
     installIOSSteps: ["Toque el botón Compartir (↑) en Safari", "Seleccione \"Agregar a pantalla de inicio\"", "Toque \"Agregar\" para confirmar"],
     installAndroidSteps: ["Toque el menú ⋮ en Chrome", "Seleccione \"Agregar a pantalla de inicio\" o \"Instalar aplicación\"", "Toque \"Instalar\" para confirmar"],
     installGotIt: "Entendido, no mostrar de nuevo",
+    // Other Traditions
+    otherTraditions: "Otras Tradiciones",
+    hideOtherTraditions: "Ocultar Otras Tradiciones",
 };
 
 const STRINGS: Record<Lang, Strings> = { en, es };

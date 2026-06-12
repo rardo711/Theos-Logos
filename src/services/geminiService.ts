@@ -74,6 +74,21 @@ export async function generateWordStudyExpand(
   return readSSEStream("/api/wordstudy/expand", { word, reference, lang }, onChunk);
 }
 
+export async function generateTraditions(
+  passage: string,
+  reference: string,
+  selectedVerse?: number,
+  commentaryExcerpt?: string,
+  lang: Lang = "en",
+  onChunk?: (fullText: string) => void,
+): Promise<string> {
+  return readSSEStream(
+    "/api/traditions",
+    { passage, reference, selectedVerse, commentaryExcerpt, lang },
+    onChunk,
+  );
+}
+
 export async function generateFollowUp(
   passage: string,
   reference: string,

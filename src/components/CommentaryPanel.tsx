@@ -12,6 +12,7 @@ import {
 import {
   generateCommentary,
   generateFollowUp,
+  generateTraditions,
 } from "../services/geminiService";
 import { BibleChapter } from "../types";
 import { useI18n } from "../i18n";
@@ -79,6 +80,16 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
     left: number;
     text: string;
   } | null>(null);
+
+  const [traditionsAvailable, setTraditionsAvailable] = useState(true);
+  const [traditions, setTraditions] = useState<{
+    text: string | null;
+    loading: boolean;
+    error: string | null;
+    visible: boolean;
+    cacheKey: string | null;
+  }>({ text: null, loading: false, error: null, visible: false, cacheKey: null });
+
   const [followUp, setFollowUp] = useState<FollowUpState>({
     isOpen: false,
     selectedText: "",
@@ -87,6 +98,9 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
     loading: false,
     error: null,
   });
+
+  const stripMarker = (text: string) =>
+    text.replace(/\s*<!--TRADITIONS:(DISPUTED|NONE)-->\s*$/, "").trimEnd();
 
   const handleGenerate = useCallback(async (
     e?: React.FormEvent,
@@ -103,6 +117,8 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
 
     setState((prev) => ({ ...prev, loading: true, error: null, text: null }));
     setSelectionRect(null);
+    setTraditions({ text: null, loading: false, error: null, visible: false, cacheKey: null });
+    setTraditionsAvailable(true);
     try {
       const result = await generateCommentary(
         chapter.text,
@@ -110,13 +126,15 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         currentQuery,
         currentVerse === null ? undefined : currentVerse,
         (partial) => {
-          setState((prev) => ({ ...prev, text: partial }));
+          setState((prev) => ({ ...prev, text: stripMarker(partial) }));
         },
         lang,
       );
+      const markerMatch = result.match(/<!--TRADITIONS:(DISPUTED|NONE)-->/);
+      setTraditionsAvailable(!markerMatch || markerMatch[1] === "DISPUTED");
       setState((prev) => ({
         ...prev,
-        text: result || "No commentary generated.",
+        text: stripMarker(result) || "No commentary generated.",
         loading: false,
       }));
     } catch (err: any) {
@@ -249,6 +267,35 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
       }
     };
   }, [selectionRect]);
+
+  const handleTraditions = async () => {
+    if (!chapter) return;
+    const cacheKey = `${chapter.reference}:${state.selectedVerse ?? "all"}`;
+    if (traditions.text !== null && traditions.cacheKey === cacheKey) {
+      setTraditions((prev) => ({ ...prev, visible: !prev.visible }));
+      return;
+    }
+    setTraditions({ text: null, loading: true, error: null, visible: true, cacheKey });
+    try {
+      const result = await generateTraditions(
+        chapter.text,
+        chapter.reference,
+        state.selectedVerse === null ? undefined : state.selectedVerse,
+        state.text ? state.text.slice(0, 800) : undefined,
+        lang,
+        (partial) => {
+          setTraditions((prev) => ({ ...prev, text: partial }));
+        },
+      );
+      setTraditions((prev) => ({ ...prev, text: result, loading: false }));
+    } catch (err: any) {
+      setTraditions((prev) => ({
+        ...prev,
+        error: err.message || "Failed to load traditions.",
+        loading: false,
+      }));
+    }
+  };
 
   const handleFollowUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -478,14 +525,16 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         {state.text && !state.loading && (
           <div className="flex items-center gap-2">
             <button
-              onClick={() =>
+              onClick={() => {
                 setState((prev) => ({
                   ...prev,
                   text: null,
                   query: "",
                   selectedVerse: null,
-                }))
-              }
+                }));
+                setTraditions({ text: null, loading: false, error: null, visible: false, cacheKey: null });
+                setTraditionsAvailable(true);
+              }}
               className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-all flex items-center gap-1.5 border border-transparent hover:border-stone-200 dark:hover:border-stone-700"
             >
               <X size={12} />
@@ -622,6 +671,76 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
 
                   {!state.loading && (
                   <>
+                  {traditionsAvailable && (
+                    <div className="mt-6">
+                      <button
+                        onClick={handleTraditions}
+                        disabled={traditions.loading}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-400 hover:border-[#821111] hover:text-[#821111] dark:hover:border-red-700 dark:hover:text-red-400 disabled:opacity-50 transition-all"
+                      >
+                        {traditions.loading ? (
+                          <Loader2 size={13} className="animate-spin" />
+                        ) : (
+                          <Users size={13} />
+                        )}
+                        {traditions.text !== null && traditions.cacheKey === `${chapter?.reference}:${state.selectedVerse ?? "all"}`
+                          ? (traditions.visible ? s.hideOtherTraditions : s.otherTraditions)
+                          : s.otherTraditions}
+                      </button>
+
+                      <AnimatePresence>
+                        {traditions.visible && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mt-4 border border-stone-200 dark:border-stone-800 rounded-2xl overflow-hidden">
+                              <div className="px-4 py-3 bg-stone-100 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 flex items-center gap-2">
+                                <Users size={13} className="text-stone-500 dark:text-stone-400" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
+                                  {s.otherTraditions}
+                                </span>
+                              </div>
+                              <div className="p-5 bg-white dark:bg-stone-950">
+                                {traditions.loading && !traditions.text ? (
+                                  <div className="flex flex-col gap-3 py-2">
+                                    <div className="flex items-center gap-2.5 mb-1">
+                                      <Loader2 className="animate-spin text-[#821111] dark:text-red-400 shrink-0" size={14} />
+                                      <span className="font-serif italic text-stone-400 dark:text-stone-500 text-xs">{s.compiling}</span>
+                                    </div>
+                                    <div className="tl-shimmer h-[16px] w-2/5 rounded-md" />
+                                    <div className="tl-shimmer h-[12px] w-full rounded-md" />
+                                    <div className="tl-shimmer h-[12px] w-[88%] rounded-md" />
+                                    <div className="tl-shimmer h-[16px] w-2/5 rounded-md mt-2" />
+                                    <div className="tl-shimmer h-[12px] w-full rounded-md" />
+                                    <div className="tl-shimmer h-[12px] w-[75%] rounded-md" />
+                                  </div>
+                                ) : traditions.error ? (
+                                  <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-xl text-red-600 dark:text-red-400 text-sm font-serif italic">
+                                    {traditions.error}
+                                  </div>
+                                ) : traditions.text ? (
+                                  <div className="commentary-content prose prose-stone dark:prose-invert prose-sm max-w-none">
+                                    <MemoizedMarkdown content={traditions.text} onCrossReference={onCrossReference} />
+                                    {traditions.loading && (
+                                      <div className="mt-3 flex items-center gap-2 text-stone-400 dark:text-stone-500">
+                                        <Loader2 className="animate-spin text-[#821111] dark:text-red-400" size={13} />
+                                        <span className="text-xs font-serif italic">{s.streaming}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : null}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
+
                   <div className="mt-8 p-4 bg-stone-50 dark:bg-stone-900 border-l-4 border-stone-300 dark:border-stone-700 rounded-r-xl flex items-start gap-3">
                     <HelpCircle
                       className="text-stone-500 shrink-0 mt-0.5"
