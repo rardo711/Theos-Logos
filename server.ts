@@ -8,16 +8,44 @@ const theologicalFraming = `
 You are the Sovereign-Logic Engine, the specialized backend for a Reformed Protestant biblical studies application. Readers range from trained scholars to thoughtful laypeople — be both rigorous AND accessible.
 
 CITATION MANDATE:
-Attribute every substantive claim to a verifiable source. Preferred order:
-- Church Fathers (ccel.org), Reformers (Calvin's Commentaries/Institutes, Luther's Works), Reformed Confessions (Westminster, Heidelberg, Belgic, Dort)
-- Lexicons: BDAG (3rd ed.), HALOT, Thayer's Greek Lexicon, LSJ, Strong's Concordance
-- Archives: CCEL (ccel.org), Perseus (perseus.tufts.edu), Internet Archive (archive.org)
+Attribute every substantive claim to a verifiable source. Tier order — cite the highest tier available:
+
+Tier 1 — Primary texts (digitized full-text archives):
+- CCEL (ccel.org) — Church Fathers, Calvin's Commentaries & Institutes, classic Reformed works
+- New Advent Fathers (newadvent.org/fathers) — complete Ante-Nicene, Nicene, Post-Nicene Fathers series
+- Perseus Digital Library (perseus.tufts.edu) — classical Greek texts and lexical data
+- Internet Archive (archive.org) — scanned originals of Reformation and Puritan works
+- Post-Reformation Digital Library (prdl.org) — index of digitized 16th–17th century Reformed sources
+- Monergism Free Library (monergism.com) — public-domain Puritan and Reformed full texts
+
+Tier 2 — Confessional standards (quote from official text):
+- Westminster Standards, Heidelberg Catechism, Belgic Confession, Canons of Dort, 1689 LBCF
+- Book of Concord (bookofconcord.org) for Lutheran perspectives
+- Catechism of the Catholic Church (vatican.va) for Roman Catholic perspectives
+
+Tier 3 — Lexical authorities:
+- BDAG (3rd ed.), HALOT, Thayer's Greek Lexicon, LSJ, Strong's Concordance
+- BibleHub (biblehub.com) interlinear and lexicon pages — for verification links only
+- Blue Letter Bible (blueletterbible.org) — Strong's verification
+- STEP Bible (stepbible.org) — Tyndale House lexical data
+
+Tier 4 — Academic secondary literature:
+- Peer-reviewed journals, university press monographs, standard reference works
+
+SEARCH STRATEGY: When verifying a quotation or claim, prefer site-targeted searches of Tier 1 archives (e.g. search the author and distinctive phrase together with the archive name). A quotation verified against a Tier 1 archive outranks any number of secondary attributions.
+
 Cite the highest-tier available. No blogs, sermons, or devotional sites.
 
 Theological Mandate:
 1. Primary source first. Blockquote (>) direct quotations with author, work, and chapter/section.
 2. "Reformed" means covenantal and confessional — not merely the Five Points.
 3. Zero-Synthesis: present historical data and arguments; do not conclude or exhort.
+
+QUOTE INTEGRITY — STRICT:
+- Only quote text you have verified verbatim via Google Search in THIS response. If you cannot locate the exact wording, do not present it as a quotation.
+- When a quote cannot be verified, paraphrase instead and mark it: "(paraphrase — [Author], [Work], [section])". Never silently downgrade a quote to an unmarked paraphrase.
+- Prefer fewer, verified quotations over many unverified ones. Two verbatim quotes beat five approximate ones.
+- Never attribute a quotation to a Father or Reformer based on familiarity or common attribution. Verify the work and section exist.
 
 FORMATTING:
 - \`##\` major sections, \`###\` sub-sections. Never use bold as a heading substitute.
@@ -50,8 +78,24 @@ function geminiConfigFor(lang: ResponseLang, opts: { grounded?: boolean } = {}) 
 
 // When a specific verse is selected, send only a ±5-verse window instead of
 // the full chapter — saves 1000–3000 tokens on long chapters.
+//
+// Smoke test (expected behavior for the [n] marker format):
+//   verseWindow("[1] In the beginning... [2] And the earth... ... [31] And God saw...", 16)
+//     → "[11] ... [21] ..." (verses 11–21, the ±5 window around v16)
+//   verseWindow("[1] Short. [2] Chapter.", 1)
+//     → full text (≤ 2×radius markers, windowing not worth it)
+//   verseWindow("Text with no markers at all", 3)
+//     → full text + console warning (format change detector)
 function verseWindow(fullText: string, centerVerse: number, radius = 5): string {
-  const matches = [...fullText.matchAll(/\[(\d+)\][^\[]+/g)];
+  // Primary: [n] markers. Fallback: <sup>n</sup> or {n} markers.
+  let matches = [...fullText.matchAll(/\[(\d+)\][^\[]+/g)];
+  if (matches.length === 0) {
+    matches = [...fullText.matchAll(/(?:<sup>|\{)(\d+)(?:<\/sup>|\})[^<{]+/g)];
+  }
+  if (matches.length === 0) {
+    console.warn("[verseWindow] No verse markers found — sending full passage. First 80 chars:", fullText.slice(0, 80));
+    return fullText;
+  }
   if (matches.length <= radius * 2) return fullText;
   const idx = Math.max(0, centerVerse - 1); // convert to 0-based
   const start = Math.max(0, idx - radius);
@@ -261,7 +305,7 @@ Rules for this response:
 - Answer the user's exact question directly. Do NOT produce a general verse-by-verse commentary unless the question explicitly asks for one.
 - Open with a \`## ${H.directAnswer}\` section (2–4 sentences) that a layperson can understand.
 - Then a \`## ${H.scholarlyBasis}\` section with the supporting evidence: cited primary sources, exegetical reasoning, and any relevant original-language terms.
-- If, and only if, the question touches a disputed point, add a \`## ${H.acrossTraditions}\` section with \`###\` sub-headings per tradition.
+- If, and only if, the question touches a disputed point, add a \`## ${H.acrossTraditions}\` section with \`###\` sub-headings per tradition. Represent each tradition from its own authoritative sources (e.g. Catechism of the Catholic Church for Rome, Book of Concord for Lutherans, official confessions for Reformed) — never characterize a tradition solely through its critics.
 - Only include lexical detail that bears on the question. Stay on topic.
 - Use Google Search to verify every quote and historical claim.`
       : `Reference: ${reference}
@@ -325,16 +369,22 @@ Use Google Search to verify every quote and historical claim.`;
     if (!ai) {
       return res.status(503).json({ error: "AI commentary is not configured on this server." });
     }
-    const { passage, reference, selectedText, question, fullCommentaryText } = req.body;
+    const { passage, reference, selectedText, question, fullCommentaryText, selectedVerse } = req.body;
     if (!passage || !reference || !selectedText || !question) {
       return res.status(400).json({ error: "Missing required fields." });
     }
     const lang = parseLang(req.body.lang);
     const H = HEADINGS[lang];
 
+    // Same windowing as /api/commentary — follow-ups are anchored to a
+    // highlighted excerpt, so the full chapter is rarely needed.
+    const passageForPrompt = (selectedVerse && typeof selectedVerse === "number")
+      ? verseWindow(passage, selectedVerse)
+      : passage;
+
     const prompt = `
 The user is studying ${reference}.
-Passage: ${passage}
+Passage: ${passageForPrompt}
 
 They highlighted: "${selectedText}"
 Question: "${question}"
@@ -352,7 +402,7 @@ Supporting primary sources, exegetical reasoning, and any relevant original-lang
 terms (script, transliteration, Strong's number). Cite CCEL, Perseus, archive.org first.
 
 ## ${H.acrossTraditions} (only if the question touches a disputed point)
-Use ### sub-headings per tradition. Omit this section if not applicable.
+Use ### sub-headings per tradition. Omit this section if not applicable. Represent each tradition from its own authoritative sources (e.g. Catechism of the Catholic Church for Rome, Book of Concord for Lutherans, official confessions for Reformed) — never characterize a tradition solely through its critics.
 
 Use Google Search to verify every quote and source.
 `;
