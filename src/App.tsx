@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useWindowSize } from "./hooks/useWindowSize";
 import { motion, AnimatePresence } from "motion/react";
 import { BibleViewer } from "./components/BibleViewer";
 import { CommentaryPanel, CommentaryState } from "./components/CommentaryPanel";
@@ -222,6 +223,7 @@ export default function App() {
   }, [currentChapter]);
 
   const [navVisible, setNavVisible] = useState(true);
+  const windowSize = useWindowSize();
 
   useEffect(() => {
     const handleNavVisibility = (e: Event) => {
@@ -1123,45 +1125,45 @@ export default function App() {
           className={`lg:hidden fixed left-0 right-0 flex justify-center z-50 pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${navVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-[150%] opacity-0 scale-95"}`}
           style={{ bottom: "calc(16px + env(safe-area-inset-bottom))" }}
         >
-          <nav className="bg-white/30 dark:bg-stone-900/30 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center p-1 rounded-full pointer-events-auto max-w-max transition-colors">
+          <nav className="bg-white/30 dark:bg-stone-900/30 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center p-1.5 rounded-full pointer-events-auto max-w-max transition-colors">
             <button
               onClick={() => setViewMode("bible")}
-              className={`flex flex-row items-center justify-center gap-1.5 px-3.5 py-1.5 transition-all duration-400 rounded-full ${viewMode === "bible" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+              className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "bible" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
             >
               <BookOpen
-                size={14}
+                size={16}
                 strokeWidth={viewMode === "bible" ? 2.5 : 2}
               />
               <span
-                className={`text-[9px] font-bold uppercase tracking-[0.2em] mt-[1px] ${viewMode === "bible" ? "opacity-100" : "opacity-80"}`}
+                className={`text-[10px] font-bold uppercase tracking-[0.18em] ${viewMode === "bible" ? "opacity-100" : "opacity-80"}`}
               >
                 {s.nav.bible}
               </span>
             </button>
             <button
               onClick={() => setViewMode("commentary")}
-              className={`flex flex-row items-center justify-center gap-1.5 px-3.5 py-1.5 transition-all duration-400 rounded-full ${viewMode === "commentary" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+              className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "commentary" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
             >
               <Search
-                size={14}
+                size={16}
                 strokeWidth={viewMode === "commentary" ? 2.5 : 2}
               />
               <span
-                className={`text-[9px] font-bold uppercase tracking-[0.2em] mt-[1px] ${viewMode === "commentary" ? "opacity-100" : "opacity-80"}`}
+                className={`text-[10px] font-bold uppercase tracking-[0.18em] ${viewMode === "commentary" ? "opacity-100" : "opacity-80"}`}
               >
                 {s.nav.research}
               </span>
             </button>
             <button
               onClick={() => setViewMode("wordstudy")}
-              className={`flex flex-row items-center justify-center gap-1.5 px-3.5 py-1.5 transition-all duration-400 rounded-full ${viewMode === "wordstudy" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+              className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "wordstudy" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
             >
               <Languages
-                size={14}
+                size={16}
                 strokeWidth={viewMode === "wordstudy" ? 2.5 : 2}
               />
               <span
-                className={`text-[9px] font-bold uppercase tracking-[0.2em] mt-[1px] ${viewMode === "wordstudy" ? "opacity-100" : "opacity-80"}`}
+                className={`text-[10px] font-bold uppercase tracking-[0.18em] ${viewMode === "wordstudy" ? "opacity-100" : "opacity-80"}`}
               >
                 {s.nav.words}
               </span>
