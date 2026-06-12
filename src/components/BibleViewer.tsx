@@ -27,11 +27,8 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
   const verseRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
   const [searchQuery, setSearchQuery] = useState("");
-  const [localSearchQuery, setLocalSearchQuery] = useState("");
-  const [isLocalSearchOpen, setIsLocalSearchOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const localSearchInputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
@@ -202,14 +199,6 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
     }
   }, [selectedVerse]);
 
-  useEffect(() => {
-    if (isLocalSearchOpen && localSearchInputRef.current) {
-      localSearchInputRef.current.focus();
-    } else if (!isLocalSearchOpen) {
-      setLocalSearchQuery("");
-    }
-  }, [isLocalSearchOpen]);
-
   // When a search result navigates here, highlight and scroll to the target verse
   useEffect(() => {
     if (targetVerse != null && chapter) {
@@ -252,34 +241,6 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
-  };
-
-  const renderHighlightedText = (text: string) => {
-    if (!localSearchQuery.trim()) return <>{text}</>;
-
-    const query = localSearchQuery.trim();
-    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-    // Use regex to match the exact substring ignoring case
-    const regex = new RegExp(`(${escapedQuery})`, "gi");
-    const parts = text.split(regex);
-
-    return (
-      <>
-        {parts.map((part, i) =>
-          part.toLowerCase() === query.toLowerCase() ? (
-            <mark
-              key={i}
-              className="bg-red-200/50 dark:bg-red-900/40 text-[#821111] dark:text-red-300 font-bold rounded-sm px-0.5 shadow-sm"
-            >
-              {part}
-            </mark>
-          ) : (
-            <span key={i}>{part}</span>
-          ),
-        )}
-      </>
-    );
   };
 
   if (loading) {
@@ -342,38 +303,6 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
         className="absolute left-0 top-0 bottom-0 w-[3px] pointer-events-none"
         style={{ background: "linear-gradient(180deg, transparent 0%, #821111 10%, #821111 90%, transparent 100%)", opacity: 0.15 }}
       />
-      <div className="absolute right-6 top-6 z-10 hidden md:flex items-center">
-        {isLocalSearchOpen ? (
-          <div className="flex items-center bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-full px-3 py-1.5 animate-in fade-in slide-in-from-right-4">
-            <Search
-              size={14}
-              className="text-stone-400 dark:text-stone-500 mr-2"
-            />
-            <input
-              ref={localSearchInputRef}
-              type="text"
-              placeholder={s.findInChapter}
-              className="bg-transparent border-none outline-none text-base w-32 md:w-48 text-stone-700 dark:text-stone-200 placeholder:text-stone-400 dark:placeholder:text-stone-600"
-              value={localSearchQuery}
-              onChange={(e) => setLocalSearchQuery(e.target.value)}
-            />
-            <button
-              onClick={() => setIsLocalSearchOpen(false)}
-              className="ml-2 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300"
-            >
-              <X size={14} />
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setIsLocalSearchOpen(true)}
-            className="p-2 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors hidden lg:block"
-            title="Search in chapter"
-          >
-            <Search size={18} />
-          </button>
-        )}
-      </div>
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -424,9 +353,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
                   <sup className="verse-number">
                     {verse.verse}
                   </sup>
-                  <span className="font-serif">
-                    {renderHighlightedText(verse.text)}
-                  </span>{" "}
+                  <span className="font-serif">{verse.text}</span>{" "}
                 </span>
               );
             })}
