@@ -11,7 +11,16 @@
 }
 
 @layer base {
-  html, body {
+  /* html background = iOS rubber-band / overscroll canvas.
+     Must match #root exactly so no strip shows at physical edges. */
+  html {
+    @apply bg-white dark:bg-stone-950;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body {
+    @apply bg-white dark:bg-stone-950;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -22,9 +31,9 @@
     -webkit-touch-callout: none;
   }
 
-  /* #root is the true viewport anchor — position: fixed with inset: 0
-     is computed from the INITIAL containing block (physical screen edges),
-     so it always fills edge-to-edge regardless of iOS Safari toolbar state */
+  /* position: fixed with explicit top/right/bottom/left: 0 is resolved
+     against the initial containing block = physical screen edges on iOS,
+     so this always fills edge-to-edge regardless of Safari toolbar state */
   #root {
     position: fixed;
     top: 0;
