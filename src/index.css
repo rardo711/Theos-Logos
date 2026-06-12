@@ -12,11 +12,10 @@
 
 @layer base {
   html, body {
-    width: 100%;
-    /* 100dvh tracks iOS Safari's dynamic toolbar — plain 100% leaves a
-       gap at the bottom edge when the toolbar collapses */
-    height: 100%;
-    height: 100dvh;
+    /* No explicit width/height: a fixed box with inset: 0 stretches to
+       both screen edges directly. Setting height as well would override
+       bottom: 0 and size the box from iOS's (unreliable) viewport units,
+       which is what left a gap at the bottom edge. */
     margin: 0;
     padding: 0;
     position: fixed;
@@ -29,9 +28,6 @@
   }
 
   #root {
-    width: 100%;
-    height: 100%;
-    height: 100dvh;
     position: absolute;
     inset: 0;
     @apply bg-white dark:bg-stone-950;

@@ -117,7 +117,11 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm p-4 md:p-8"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm px-4 md:px-8"
+          style={{
+            paddingTop: "max(env(safe-area-inset-top), 1.25rem)",
+            paddingBottom: "max(env(safe-area-inset-bottom), 1.25rem)",
+          }}
         >
           <motion.div
             initial={{ y: 40, scale: 0.97, opacity: 0 }}
@@ -125,7 +129,7 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
             exit={{ y: 40, scale: 0.97, opacity: 0 }}
             transition={{ type: "spring", damping: 30, stiffness: 260 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-stone-900 rounded-[24px] shadow-[0_32px_64px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_32px_64px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)] w-full max-w-2xl max-h-[88vh] md:max-h-[820px] flex flex-col overflow-hidden"
+            className="bg-white dark:bg-stone-900 rounded-[24px] shadow-[0_32px_64px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_32px_64px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)] w-full max-w-2xl max-h-full md:max-h-[min(820px,100%)] flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="px-4 pt-4 pb-3 md:px-6 md:pt-5 md:pb-4 border-b border-stone-100 dark:border-stone-800/60 shrink-0 flex flex-col gap-3">
