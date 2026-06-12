@@ -141,7 +141,24 @@ export async function searchBible(
     const err = await res.json().catch(() => ({ error: "Search failed" }));
     throw new Error(err.error || "Search failed");
   }
-  return res.json();
+  const raw = await res.json();
+  if (!Array.isArray(raw)) return [];
+  // Bolls returns a numeric book id (1=Genesis … 66=Revelation, the same
+  // ordinal used by fetchBibleChapter) and HTML-laden text — normalize both.
+  return raw
+    .map((r: any): BibleSearchResult | null => {
+      const book = BIBLE_BOOKS[Number(r.book) - 1];
+      if (!book) return null;
+      const book_name =
+        translation === "RV1960" ? (ES_BOOK_NAMES[book.id] ?? book.name) : book.name;
+      return {
+        book_name,
+        chapter: Number(r.chapter),
+        verse: Number(r.verse),
+        text: String(r.text ?? "").replace(/<[^>]+>/g, "").trim(),
+      };
+    })
+    .filter((r): r is BibleSearchResult => r !== null);
 }
 
 function processFallbackResponse(data: any): BibleChapter {
