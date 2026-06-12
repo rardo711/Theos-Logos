@@ -141,10 +141,13 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
           />
 
           {/* Layer 2: card container — tracks the visual viewport so it sits
-              above the keyboard and the card is centered in visible space. */}
+              above the keyboard and the card is centered in visible space.
+              No pointer-events-none here: Safari needs the container to be
+              a real pointer-events target or touch-scroll breaks on iPad. */}
           <div
-            className="fixed left-0 right-0 z-[80] flex items-center justify-center px-4 md:px-8 pointer-events-none"
+            className="fixed left-0 right-0 z-[80] flex items-center justify-center px-4 md:px-8"
             style={{ top: vpOffsetTop, height: vpHeight }}
+            onClick={onClose}
           >
             <motion.div
               key="search-card"
@@ -153,7 +156,7 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
               exit={{ y: 40, scale: 0.97, opacity: 0 }}
               transition={{ type: "spring", damping: 30, stiffness: 260 }}
               onClick={(e) => e.stopPropagation()}
-              className="pointer-events-auto bg-white dark:bg-stone-900 rounded-[24px] shadow-[0_32px_64px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_32px_64px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)] w-full max-w-2xl flex flex-col overflow-hidden"
+              className="bg-white dark:bg-stone-900 rounded-[24px] shadow-[0_32px_64px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_32px_64px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)] w-full max-w-2xl flex flex-col overflow-hidden"
               style={{ maxHeight: cardMaxH }}
             >
               {/* Header */}
@@ -201,7 +204,7 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
             </div>
 
             {/* Results */}
-            <div className="flex-1 overflow-y-auto tl-scrollbar">
+            <div className="flex-1 min-h-0 overflow-y-auto tl-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
               {/* Loading skeletons */}
               {loading && (
                 <div className="p-4 space-y-3">
