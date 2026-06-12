@@ -8,6 +8,7 @@ import {
   defaultWordStudyState,
 } from "./components/WordStudyPanel";
 import { FloatingBibleNav } from "./components/FloatingBibleNav";
+import { BibleSearch } from "./components/BibleSearch";
 import { BIBLE_BOOKS, Book, BibleChapter } from "./types";
 import { fetchBibleChapter } from "./services/bibleService";
 import {
@@ -81,6 +82,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showInstallHint, setShowInstallHint] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [bibleTargetVerse, setBibleTargetVerse] = useState<number | null>(null);
   const [installPlatform, setInstallPlatform] = useState<"ios" | "android" | null>(null);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [viewMode, setViewMode] = useState<
@@ -393,9 +396,26 @@ export default function App() {
     loadChapter();
   }, [currentBook, currentChapter, lang]);
 
+  const handleSearchNavigate = useCallback((bookName: string, chapter: number, verse: number) => {
+    const lower = bookName.toLowerCase();
+    const book = BIBLE_BOOKS.find(
+      (b) =>
+        b.name.toLowerCase() === lower ||
+        b.id.toLowerCase() === lower ||
+        ES_BOOK_NAMES[b.id]?.toLowerCase() === lower,
+    );
+    if (book) {
+      setCurrentBook(book);
+      setCurrentChapter(chapter);
+      setBibleTargetVerse(verse);
+      setViewMode("bible");
+    }
+  }, []);
+
   const handleBookChange = (book: Book) => {
     setCurrentBook(book);
     setCurrentChapter(1);
+    setBibleTargetVerse(null);
     setSearchTrigger(null);
     setCommentaryState((prev) => ({
       ...prev,
@@ -410,6 +430,7 @@ export default function App() {
 
   const handleChapterChange = (chapter: number) => {
     setCurrentChapter(chapter);
+    setBibleTargetVerse(null);
     setSearchTrigger(null);
     setCommentaryState((prev) => ({
       ...prev,
@@ -442,6 +463,7 @@ export default function App() {
 
     // Clear commentary & search state when changing chapters manually
     setSearchTrigger(null);
+    setBibleTargetVerse(null);
     setCommentaryState((prev) => ({
       ...prev,
       text: null,
@@ -468,6 +490,7 @@ export default function App() {
 
     // Clear commentary & search state when changing chapters manually
     setSearchTrigger(null);
+    setBibleTargetVerse(null);
     setCommentaryState((prev) => ({
       ...prev,
       text: null,
@@ -706,6 +729,14 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Scripture Search Sheet */}
+      <BibleSearch
+        isOpen={showSearch}
+        onClose={() => setShowSearch(false)}
+        lang={lang}
+        onNavigate={handleSearchNavigate}
+      />
+
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full relative overflow-hidden">
         {/* Header */}
@@ -915,6 +946,18 @@ export default function App() {
                   <HistoryIcon size={16} />
                 </button>
               </div>
+
+              <button
+                onClick={() => {
+                  setShowSearch(true);
+                  setShowTypography(false);
+                  setShowHistory(false);
+                }}
+                className={`p-2 rounded-lg transition-colors border ${showSearch ? "bg-[#821111] border-[#821111] text-white" : "bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300"}`}
+                title={s.searchPlaceholder}
+              >
+                <Search size={16} />
+              </button>
             </div>
           </div>
         </header>
@@ -945,6 +988,7 @@ export default function App() {
                     chapter={chapterData}
                     loading={loading}
                     error={error}
+                    targetVerse={bibleTargetVerse}
                     onVerseSearch={(verse, query) => {
                       setSearchTrigger({ query, verse, timestamp: Date.now() });
                       setViewMode("commentary");

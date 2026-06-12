@@ -126,6 +126,7 @@ const HEADINGS = {
     usage: "Usage in Scripture",
     etymology: "Etymology & Cognates",
     sources: "Sources",
+    keyDifferences: "Key Differences",
   },
   es: {
     directAnswer: "Respuesta Directa",
@@ -144,6 +145,7 @@ const HEADINGS = {
     usage: "Uso en las Escrituras",
     etymology: "Etimología y Cognados",
     sources: "Fuentes",
+    keyDifferences: "Diferencias Clave",
   },
 } as const;
 
@@ -264,6 +266,33 @@ async function startServer() {
     }
   });
 
+  // Bible full-text keyword search proxy (Bolls Life)
+  app.get("/api/bible/search", async (req, res) => {
+    const { q, translation = "ESV" } = req.query;
+    const tx = String(translation).toUpperCase();
+
+    if (!q || String(q).trim().length < 2) {
+      return res.status(400).json({ error: "Query too short." });
+    }
+    if (!BIBLE_TRANSLATIONS.has(tx)) {
+      return res.status(400).json({ error: `Unsupported translation '${tx}'` });
+    }
+
+    try {
+      const url = `https://bolls.life/search/${tx}/${encodeURIComponent(String(q).trim())}/`;
+      const response = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!response.ok) {
+        return res.status(response.status).json({ error: "Search API error." });
+      }
+      const data = await response.json();
+      // Bolls Life returns an array of { book_id, book_name, chapter, verse, text }
+      return res.json(Array.isArray(data) ? data.slice(0, 50) : data);
+    } catch (error: any) {
+      console.error("[Server] Bible search error:", error);
+      return res.status(500).json({ error: "Failed to search Bible.", message: error.message });
+    }
+  });
+
   // Gemini commentary — server-side, API key never sent to client.
   // Streams the response as Server-Sent Events (generation with search
   // grounding takes 15–30s; streaming lets the client render as it arrives).
@@ -328,7 +357,11 @@ The setting, audience, and occasion — with sources.
 Verse-flow analysis using the grammatical-historical method.
 
 ## ${H.historicalReception}
-Cited quotations from the Church Fathers and Reformers (use blockquotes with attribution). Where traditions differ, use \`###\` sub-headings (e.g. "### ${H.traditionExample}").
+Cited quotations from the Church Fathers and Reformers only (use blockquotes with attribution). Focus on Patristic writers (up to the 5th century) and the Reformers (Calvin, Luther, Owen, Westminster divines, etc.). Do NOT include Catholic, Orthodox, or Lutheran comparative sub-sections here.
+
+After your final section, on its own line with no surrounding text, emit EXACTLY ONE of these markers:
+\`<!--TRADITIONS:DISPUTED-->\` — if Catholic, Orthodox, or Lutheran readings meaningfully diverge from the Reformed interpretation on this passage.
+\`<!--TRADITIONS:NONE-->\` — if the traditions read this passage in substantial agreement.
 
 Use Google Search to verify every quote and historical claim.`;
 
@@ -557,6 +590,74 @@ Draw on BDAG, HALOT, Thayer, and Strong's. Never invent a Strong's number or a v
       res.end();
     } catch (error: any) {
       console.error("[Server] Gemini word study expand error:", error);
+      res.write(`data: ${JSON.stringify({ error: extractGeminiError(error, lang) })}\n\n`);
+      res.end();
+    }
+  });
+
+  // Other Traditions — on-demand comparative survey (Catholic / Orthodox / Lutheran)
+  app.post("/api/traditions", async (req, res) => {
+    const ai = getAI();
+    if (!ai) {
+      return res.status(503).json({ error: "AI commentary is not configured on this server." });
+    }
+    const { passage, reference, selectedVerse, commentaryExcerpt } = req.body;
+    if (!passage || !reference) {
+      return res.status(400).json({ error: "Missing 'passage' or 'reference'" });
+    }
+
+    const lang = parseLang(req.body.lang);
+    const H = HEADINGS[lang];
+
+    const passageForPrompt = (selectedVerse && typeof selectedVerse === "number")
+      ? verseWindow(passage, selectedVerse)
+      : passage;
+
+    const verseContext = selectedVerse ? `Focus verse: ${selectedVerse}.\n` : "";
+    const contextBlock = commentaryExcerpt
+      ? `\nReformed commentary excerpt (for context — do not repeat it):\n${String(commentaryExcerpt).slice(0, 800)}\n`
+      : "";
+
+    const prompt = `Reference: ${reference}
+Passage: ${passageForPrompt}
+${verseContext}${contextBlock}
+Produce a comparative survey of how three traditions interpret this passage. Draw ONLY from each tradition's own authoritative sources — never characterize a tradition through its critics.
+
+## Roman Catholic Perspective
+Draw from: Catechism of the Catholic Church (cite paragraph numbers), Church Fathers as received by Rome, and official magisterial commentaries.
+
+## Eastern Orthodox Perspective
+Draw from: Patristic consensus as received by Orthodoxy — John Chrysostom, Athanasius, the Cappadocians. Emphasize theosis/deification where relevant to this passage.
+
+## Lutheran Perspective
+Draw from: The Book of Concord (Augsburg Confession, Luther's Large and Small Catechisms, Formula of Concord), Luther's own biblical commentaries, and confessional Lutheran exegesis.
+
+## ${H.keyDifferences}
+A concise bullet list of the most significant interpretive divergences across these three traditions regarding this passage. Note briefly where the Reformed reading (already given in the main commentary) agrees or diverges from each.
+
+Use Google Search to verify all quotations and source references.`;
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    try {
+      const stream = await withRetry(() =>
+        ai.models.generateContentStream({
+          model: GEMINI_MODEL,
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          config: geminiConfigFor(lang),
+        })
+      );
+      for await (const chunk of stream) {
+        const text = chunk.text;
+        if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
+      }
+      res.write("data: [DONE]\n\n");
+      res.end();
+    } catch (error: any) {
+      console.error("[Server] Gemini traditions error:", error);
       res.write(`data: ${JSON.stringify({ error: extractGeminiError(error, lang) })}\n\n`);
       res.end();
     }

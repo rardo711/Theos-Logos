@@ -106,3 +106,45 @@ The brand color is a deep, scholarly **Oxblood Red** (#821111). It is used spari
 ## Responsive Strategy
 - **Mobile/Vertical Orientation**: Optimized for one-handed reading. The floating pill is kept within thumb range.
 - **Desktop/Side-by-Side**: Transitions from an "either-or" view to a multi-pane workspace. The commentary panel on desktop is resizable, acknowledging that different users have different "comfort widths" for analytical reading.
+
+## Component Patterns
+
+### Button Hierarchy
+
+Three tiers, applied via CSS classes `.tl-btn-primary`, `.tl-btn-secondary`, `.tl-btn-ghost`:
+
+| Tier | Background | Border | Text | Use |
+|------|-----------|--------|------|-----|
+| **Primary** | `#821111` (oxblood) | none | white | Generate Commentary, submit actions |
+| **Secondary** | transparent | `1px solid` muted token | body color | Other Traditions, Expand word study |
+| **Ghost** | none | none | muted token | follow-up triggers, small inline actions |
+
+All buttons: `border-radius: 8px` (sm token), `font-family: Inter`, `font-weight: 500`, `transition: all 200ms cubic-bezier(0.2, 0.8, 0.2, 1)`.
+
+Primary hover: `opacity: 0.9`, `box-shadow: 0 8px 32px rgba(0,0,0,0.08)` (md shadow). Active: `scale(0.98)`.
+
+### Blockquote Treatment
+
+Blockquotes in commentary prose carry primary evidential weight:
+
+- Left border: `3px solid #821111` (oxblood accent)
+- Background: `rgba(231,229,228,0.5)` light / `rgba(255,255,255,0.06)` dark (glass/subtle token)
+- Padding: `0.75rem 1rem`
+- Border-radius: `0 8px 8px 0` (sm token on right side only)
+- Font: body font, `font-style: italic`, `line-height: 1.6`
+- Attribution (second paragraph inside blockquote): `font-style: normal`, `color: muted`, `font-size: 14px`, `font-weight: 500`
+
+### Verse Number Style
+
+- Font: JetBrains Mono (mono token)
+- Size: `10px` (between tiny and small UI tokens)
+- `font-weight: 500`, `vertical-align: super`
+- Color: muted token (`#a8a29e` light / `#57534e` dark), `opacity: 0.65`
+- `user-select: none` — prevents verse numbers from being copied with selected text
+
+### Commentary Prose Layout
+
+- `max-width: 72ch` centered within the panel — standard scholarly reading measure
+- Body text `line-height: 1.75`, blockquotes `line-height: 1.6`
+- `## ` headings: Playfair Display 18px/600, hairline `border-top` at `opacity: 0.4`, top margin `1.75rem`
+- `### ` headings: Inter 16px/600, muted color, top margin `1.25rem`

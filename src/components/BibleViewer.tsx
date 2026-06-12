@@ -11,6 +11,7 @@ interface BibleViewerProps {
   onVerseSearch?: (verse: number | null, query: string) => void;
   onNextChapter?: () => void;
   onPrevChapter?: () => void;
+  targetVerse?: number | null;
 }
 
 export const BibleViewer: React.FC<BibleViewerProps> = ({
@@ -20,9 +21,11 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
   onVerseSearch,
   onNextChapter,
   onPrevChapter,
+  targetVerse,
 }) => {
   const { s } = useI18n();
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
+  const verseRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
   const [searchQuery, setSearchQuery] = useState("");
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [isLocalSearchOpen, setIsLocalSearchOpen] = useState(false);
@@ -206,6 +209,17 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
       setLocalSearchQuery("");
     }
   }, [isLocalSearchOpen]);
+
+  // When a search result navigates here, highlight and scroll to the target verse
+  useEffect(() => {
+    if (targetVerse != null && chapter) {
+      setSelectedVerse(targetVerse);
+      requestAnimationFrame(() => {
+        const el = verseRefs.current.get(targetVerse);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+  }, [targetVerse, chapter?.reference]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -399,22 +413,15 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
               return (
                 <span
                   key={verse.verse}
-                  className="inline cursor-pointer transition-all duration-200"
-                  style={{
-                    borderRadius: 4,
-                    padding: "2px 5px",
-                    background: sel
-                      ? "linear-gradient(120deg, rgba(254,226,226,0.7) 0%, rgba(254,202,202,0.5) 100%)"
-                      : "transparent",
-                    color: sel ? "#821111" : undefined,
-                    boxShadow: sel ? "inset 0 0 0 1px rgba(130,17,17,0.15)" : "none",
-                  }}
+                  ref={(el) => { if (el) verseRefs.current.set(verse.verse, el); }}
+                  className={`inline cursor-pointer transition-all duration-200 ${sel ? "verse-selected" : ""}`}
+                  style={{ borderRadius: 4, padding: "2px 5px" }}
                   onClick={() => {
                     setSelectedVerse(sel ? null : verse.verse);
                     setSearchQuery("");
                   }}
                 >
-                  <sup className="verse-number" style={{ color: sel ? "#821111" : undefined, opacity: sel ? 0.9 : undefined }}>
+                  <sup className="verse-number">
                     {verse.verse}
                   </sup>
                   <span className="font-serif">

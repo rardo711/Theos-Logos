@@ -94,22 +94,22 @@
 }
 
 .tl-shimmer {
-  @apply rounded-md;
+  border-radius: 8px;
   background: linear-gradient(
     90deg,
     theme(colors.stone.100) 25%,
-    theme(colors.stone.50)  50%,
+    rgba(255, 255, 255, 0.6) 50%,
     theme(colors.stone.100) 75%
   );
   background-size: 800px 100%;
-  animation: tl-shimmer 1.4s ease-in-out infinite;
+  animation: tl-shimmer 1.5s ease-in-out infinite;
 }
 
 .dark .tl-shimmer {
   background: linear-gradient(
     90deg,
     theme(colors.stone.800) 25%,
-    theme(colors.stone.700) 50%,
+    rgba(255, 255, 255, 0.08) 50%,
     theme(colors.stone.800) 75%
   );
   background-size: 800px 100%;
@@ -124,16 +124,192 @@
 
 .verse-number {
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.56em;
+  font-size: 10px;
   vertical-align: super;
   margin-right: 3px;
   letter-spacing: -0.04em;
   font-weight: 500;
-  @apply text-stone-400 dark:text-stone-500 opacity-70;
+  user-select: none;
+  @apply text-stone-400 dark:text-stone-500 opacity-[0.65];
 }
 
 .commentary-content {
   @apply prose prose-stone dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-serif;
   font-size: var(--reading-font-size, 1rem);
+  max-width: 72ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── Commentary Typography Refinements ──────────────────────────── */
+
+/* 2a. Prose line-height */
+.commentary-content :where(p, li) {
+  line-height: 1.75 !important;
+}
+
+/* Spacing after last element before external buttons */
+.commentary-content > :last-child {
+  padding-bottom: 2rem;
+}
+
+/* 2b. ## headings — Playfair Display, 18 px, hairline rule above */
+.commentary-content :where(h2) {
+  font-family: "Playfair Display", ui-serif, Georgia, serif !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  margin-top: 1.75rem !important;
+  margin-bottom: 0.5rem !important;
+  color: #1c1917;
+  border-top: 1px solid rgba(231, 229, 228, 0.4);
+  padding-top: 1.25rem;
+}
+
+.dark .commentary-content :where(h2) {
+  color: #fafaf9;
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 2b. ### headings — Inter, 16 px, muted */
+.commentary-content :where(h3) {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #a8a29e !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.dark .commentary-content :where(h3) {
+  color: #57534e !important;
+}
+
+/* 2c. Blockquotes — oxblood left border, glass background */
+.commentary-content :where(blockquote) {
+  border-left: 3px solid #821111 !important;
+  background: rgba(231, 229, 228, 0.5);
+  padding: 0.75rem 1rem !important;
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  line-height: 1.6 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.dark .commentary-content :where(blockquote) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Attribution line = second paragraph inside a blockquote */
+.commentary-content :where(blockquote) > :where(p + p) {
+  font-style: normal;
+  color: #a8a29e;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0 !important;
+}
+
+/* ── Selected verse highlight ────────────────────────────────────── */
+.verse-selected {
+  background: rgba(130, 17, 17, 0.08) !important;
+  transition: background 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dark .verse-selected {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* ── Button hierarchy ────────────────────────────────────────────── */
+.tl-btn-primary {
+  background: #821111;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  transition: all 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.tl-btn-primary:hover {
+  opacity: 0.9;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.tl-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.tl-btn-secondary {
+  background: transparent;
+  border: 1px solid #a8a29e;
+  color: #44403c;
+  border-radius: 8px;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  transition: all 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dark .tl-btn-secondary {
+  border-color: #57534e;
+  color: #d6d3d1;
+}
+
+.tl-btn-secondary:hover {
+  background: rgba(231, 229, 228, 0.5);
+}
+
+.dark .tl-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tl-btn-ghost {
+  background: transparent;
+  border: none;
+  color: #a8a29e;
+  border-radius: 8px;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  transition: all 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.tl-btn-ghost:hover {
+  color: #44403c;
+}
+
+.dark .tl-btn-ghost:hover {
+  color: #d6d3d1;
+}
+
+/* ── Thin scrollbar (commentary panel, search sheet) ─────────────── */
+.tl-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #a8a29e transparent;
+}
+
+.tl-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tl-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tl-scrollbar::-webkit-scrollbar-thumb {
+  background: #a8a29e;
+  border-radius: 9999px;
+}
+
+/* ── Scripture search mark highlight ─────────────────────────────── */
+mark.tl-search-mark {
+  background: rgba(130, 17, 17, 0.1);
+  color: inherit;
+  font-weight: inherit;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.dark mark.tl-search-mark {
+  background: rgba(239, 68, 68, 0.18);
 }
 

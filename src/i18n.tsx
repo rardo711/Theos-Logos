@@ -133,6 +133,14 @@ const en = {
     installIOSSteps: ["Tap the Share button (↑) in Safari", "Select \"Add to Home Screen\"", "Tap \"Add\" to confirm"],
     installAndroidSteps: ["Tap the ⋮ menu in Chrome", "Select \"Add to Home Screen\" or \"Install App\"", "Tap \"Install\" to confirm"],
     installGotIt: "Got it, don't show again",
+    // Other Traditions
+    otherTraditions: "Other Traditions",
+    hideOtherTraditions: "Hide Other Traditions",
+    // Scripture search
+    searchPlaceholder: "Search scripture…",
+    searchResultsCap: "Showing first 50 results — refine your search.",
+    searchNoResults: "No results for \"{query}\"",
+    searchNoResultsHint: "Check spelling or try a shorter phrase.",
 };
 
 export type Strings = typeof en;
@@ -240,6 +248,14 @@ const es: Strings = {
     installIOSSteps: ["Toque el botón Compartir (↑) en Safari", "Seleccione \"Agregar a pantalla de inicio\"", "Toque \"Agregar\" para confirmar"],
     installAndroidSteps: ["Toque el menú ⋮ en Chrome", "Seleccione \"Agregar a pantalla de inicio\" o \"Instalar aplicación\"", "Toque \"Instalar\" para confirmar"],
     installGotIt: "Entendido, no mostrar de nuevo",
+    // Other Traditions
+    otherTraditions: "Otras Tradiciones",
+    hideOtherTraditions: "Ocultar Otras Tradiciones",
+    // Scripture search
+    searchPlaceholder: "Buscar en las Escrituras…",
+    searchResultsCap: "Mostrando los primeros 50 resultados — refine su búsqueda.",
+    searchNoResults: "Sin resultados para \"{query}\"",
+    searchNoResultsHint: "Verifique la ortografía o intente una frase más corta.",
 };
 
 const STRINGS: Record<Lang, Strings> = { en, es };
