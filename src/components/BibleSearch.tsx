@@ -133,23 +133,26 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed left-0 right-0 z-[80] flex items-center justify-center bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm px-4 md:px-8"
+          className="fixed left-0 right-0 z-[80] flex items-end md:items-center justify-center md:px-8 bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm"
           style={{
             top: vpOffsetTop,
             height: vpHeight,
           }}
         >
           <motion.div
-            initial={{ y: 40, scale: 0.97, opacity: 0 }}
-            animate={{ y: 0, scale: 1, opacity: 1 }}
-            exit={{ y: 40, scale: 0.97, opacity: 0 }}
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", damping: 30, stiffness: 260 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-stone-900 rounded-[24px] shadow-[0_32px_64px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_32px_64px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)] w-full max-w-2xl flex flex-col overflow-hidden"
+            className="bg-white dark:bg-stone-900 rounded-t-[24px] md:rounded-[24px] shadow-[0_-8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.04)] md:shadow-[0_32px_64px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_-8px_40px_rgba(0,0,0,0.4)] dark:md:shadow-[0_32px_64px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)] w-full md:max-w-2xl flex flex-col overflow-hidden"
             style={{ maxHeight: cardMaxH }}
           >
-            {/* Header */}
-            <div className="px-4 pt-4 pb-3 md:px-6 md:pt-5 md:pb-4 border-b border-stone-100 dark:border-stone-800/60 shrink-0 flex flex-col gap-3">
+            {/* Drag handle (mobile only) */}
+            <div className="md:hidden w-full flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-10 h-1 bg-stone-300 dark:bg-stone-700 rounded-full" />
+            </div>
+            <div className="px-4 pt-2 pb-3 md:px-6 md:pt-5 md:pb-4 border-b border-stone-100 dark:border-stone-800/60 shrink-0 flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <div className="relative flex-1">
                   <Search
