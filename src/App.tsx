@@ -1123,7 +1123,7 @@ export default function App() {
         {/* Mobile Bottom Navigation - iOS 26 Floating Pill Style */}
         <div
           className={`lg:hidden fixed left-0 right-0 flex justify-center z-50 pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${navVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-[150%] opacity-0 scale-95"}`}
-          style={{ bottom: "calc(16px + env(safe-area-inset-bottom))" }}
+          style={{ bottom: "max(env(safe-area-inset-bottom), 10px)" }}
         >
           <nav className="bg-white/30 dark:bg-stone-900/30 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center p-1.5 rounded-full pointer-events-auto max-w-max transition-colors">
             <button

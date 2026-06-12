@@ -13,7 +13,10 @@
 @layer base {
   html, body {
     width: 100%;
+    /* 100dvh tracks iOS Safari's dynamic toolbar — plain 100% leaves a
+       gap at the bottom edge when the toolbar collapses */
     height: 100%;
+    height: 100dvh;
     margin: 0;
     padding: 0;
     position: fixed;
@@ -24,10 +27,11 @@
     -webkit-touch-callout: none;
     overscroll-behavior: none;
   }
-  
+
   #root {
     width: 100%;
     height: 100%;
+    height: 100dvh;
     position: absolute;
     inset: 0;
     @apply bg-white dark:bg-stone-950;
