@@ -117,23 +117,23 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm p-0 md:p-6"
+          className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm p-0 md:p-8"
         >
           <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 28, stiffness: 220 }}
+            initial={{ y: "100%", scale: 0.98, opacity: 0 }}
+            animate={{ y: 0, scale: 1, opacity: 1 }}
+            exit={{ y: "100%", scale: 0.98, opacity: 0 }}
+            transition={{ type: "spring", damping: 30, stiffness: 240 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-stone-900 rounded-t-3xl md:rounded-2xl shadow-2xl w-full max-w-2xl h-[85vh] md:h-[75vh] md:max-h-[700px] flex flex-col overflow-hidden border-t md:border border-stone-200 dark:border-stone-800"
+            className="bg-white dark:bg-stone-900 rounded-t-[28px] md:rounded-[24px] shadow-[0_32px_64px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_32px_64px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)] w-full max-w-2xl h-[88vh] md:h-[82vh] md:max-h-[820px] flex flex-col overflow-hidden"
           >
             {/* Drag handle (mobile) */}
-            <div className="w-full flex justify-center pt-3 pb-1 md:hidden bg-stone-50 dark:bg-stone-900 shrink-0">
-              <div className="w-12 h-1.5 bg-stone-300 dark:bg-stone-700 rounded-full" />
+            <div className="w-full flex justify-center pt-3 pb-1 md:hidden shrink-0">
+              <div className="w-10 h-1 bg-stone-300 dark:bg-stone-700 rounded-full" />
             </div>
 
             {/* Header */}
-            <div className="px-4 pt-2 pb-3 md:px-5 md:pt-4 md:pb-3 bg-stone-50 dark:bg-stone-900 border-b border-stone-100 dark:border-stone-800 shrink-0 flex flex-col gap-3">
+            <div className="px-4 pt-2 pb-3 md:px-6 md:pt-5 md:pb-4 border-b border-stone-100 dark:border-stone-800/60 shrink-0 flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <div className="relative flex-1">
                   <Search
@@ -146,7 +146,7 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder={s.searchPlaceholder}
-                    className="w-full pl-9 pr-4 py-2.5 border border-stone-200 dark:border-stone-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#821111]/20 dark:focus:ring-red-900/20 bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-100 transition-all font-serif italic"
+                    className="w-full pl-9 pr-4 py-2.5 border border-stone-200 dark:border-stone-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#821111]/20 dark:focus:ring-red-900/30 bg-stone-50 dark:bg-stone-800 text-stone-800 dark:text-stone-100 transition-all font-serif italic placeholder:text-stone-400 dark:placeholder:text-stone-500"
                   />
                 </div>
 
