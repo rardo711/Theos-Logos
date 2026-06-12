@@ -62,27 +62,18 @@
       })();
     </script>
     <style>
-      body, html {
+      /* Match #root bg exactly so no gap shows at screen edges on any device */
+      html, body {
         margin: 0;
         padding: 0;
-        background-color: #fafaf9; /* stone-50 */
-        color: #1c1917; /* stone-900 */
+        background: #ffffff;
+        color: #1c1917;
       }
       @media (prefers-color-scheme: dark) {
-        body, html {
-          background-color: #0c0a09; /* stone-950 */
-          color: #fafaf9; /* stone-50 */
-        }
+        html, body { background: #0c0a09; color: #fafaf9; }
       }
-      /* Fallback handling for themes until React handles it */
-      html.dark body, html.dark {
-        background-color: #0c0a09 !important;
-        color: #fafaf9 !important;
-      }
-      html.light body, html.light {
-        background-color: #fafaf9 !important;
-        color: #1c1917 !important;
-      }
+      html.dark, html.dark body { background: #0c0a09 !important; color: #fafaf9 !important; }
+      html.light, html.light body { background: #ffffff !important; color: #1c1917 !important; }
     </style>
   </head>
   <body>
