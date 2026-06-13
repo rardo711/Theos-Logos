@@ -76,6 +76,11 @@
   .scroll-container, [data-scroll-container] {
     -webkit-overflow-scrolling: touch;
   }
+
+  /* Enable smooth scrolling for all overflow-y-auto elements */
+  [class*="overflow-y-auto"] {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* ── Design tokens ──────────────────────────────────────────────── */
