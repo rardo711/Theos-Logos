@@ -28,6 +28,8 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
   const [isBookDropdownOpen, setIsBookDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const chapterContainerRef = useRef<HTMLDivElement>(null);
+  const bookListRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const q = searchQuery.trim().toLowerCase();
   const matches = useCallback(
@@ -53,6 +55,20 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
     });
     return () => cancelAnimationFrame(id);
   }, [isVisible, isBookDropdownOpen, currentBook.id]);
+
+  // When the book list opens, focus the search (without yanking scroll) and
+  // center the currently-selected book instead of resetting to the top.
+  useEffect(() => {
+    if (!isBookDropdownOpen) return;
+    const id = requestAnimationFrame(() => {
+      searchInputRef.current?.focus({ preventScroll: true });
+      const el = bookListRef.current?.querySelector(
+        '[data-active-book="true"]',
+      ) as HTMLElement | null;
+      el?.scrollIntoView({ block: "center", behavior: "auto" });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isBookDropdownOpen]);
 
   // Reset transient state whenever the sheet hides.
   useEffect(() => {
@@ -88,6 +104,7 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
       <button
         key={book.id}
         onClick={() => selectBook(book)}
+        data-active-book={active ? "true" : undefined}
         aria-current={active ? "true" : undefined}
         className={`text-left px-3.5 py-3 rounded-xl text-sm transition-all duration-200 truncate ${
           active
@@ -166,7 +183,7 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
                   transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
                   className="shrink-0 overflow-hidden border-b border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-900"
                 >
-                  <div className="max-h-[48vh] overflow-y-auto tl-scrollbar p-5">
+                  <div ref={bookListRef} className="max-h-[48vh] overflow-y-auto tl-scrollbar p-5">
                     {/* Search */}
                     <div className="relative mb-5">
                       <Search
@@ -174,9 +191,9 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
                         className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
                       />
                       <input
+                        ref={searchInputRef}
                         type="text"
                         placeholder={s.searchBooks}
-                        autoFocus
                         enterKeyHint="go"
                         className="w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl pl-11 pr-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-[#821111]/30 dark:focus:ring-red-400/30 text-stone-800 dark:text-stone-100 placeholder:font-serif placeholder:italic shadow-sm"
                         value={searchQuery}
@@ -224,7 +241,9 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
               )}
             </AnimatePresence>
 
-            {/* Chapter grid — responsive, wraps, scrolls vertically */}
+            {/* Chapter grid — responsive, wraps, scrolls vertically.
+                Hidden while choosing a book so the picker stays focused. */}
+            {!isBookDropdownOpen && (
             <div
               ref={chapterContainerRef}
               className="flex-1 min-h-0 overflow-y-auto tl-scrollbar p-4 bg-white dark:bg-stone-900"
@@ -259,6 +278,7 @@ export const FloatingBibleNav: React.FC<FloatingBibleNavProps> = ({
                 )}
               </div>
             </div>
+            )}
           </motion.div>
         </motion.div>
       )}
