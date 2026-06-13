@@ -1150,32 +1150,60 @@ export default function App() {
           className={`lg:hidden fixed left-0 right-0 flex justify-center z-50 pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${navVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-[150%] opacity-0 scale-95"}`}
           style={{ bottom: "max(env(safe-area-inset-bottom), 10px)" }}
         >
-          <nav className="bg-white/30 dark:bg-stone-900/30 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center gap-1 p-1.5 rounded-full pointer-events-auto max-w-[calc(100vw-20px)] transition-colors">
-            {([
-              { mode: "home", Icon: Library, label: s.nav.home },
-              { mode: "bible", Icon: BookOpen, label: s.nav.bible },
-              { mode: "commentary", Icon: Search, label: s.nav.research },
-              { mode: "wordstudy", Icon: Languages, label: s.nav.words },
-            ] as const).map(({ mode, Icon, label }) => {
-              const active = viewMode === mode;
-              return (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  aria-current={active ? "page" : undefined}
-                  className={`flex flex-row items-center justify-center gap-2 py-2.5 rounded-full transition-all duration-400 ${active ? "px-4 bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "px-3 text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
-                >
-                  <Icon size={16} strokeWidth={active ? 2.5 : 2} className="shrink-0" />
-                  {active ? (
-                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] whitespace-nowrap">
-                      {label}
-                    </span>
-                  ) : (
-                    <span className="sr-only">{label}</span>
-                  )}
-                </button>
-              );
-            })}
+          <nav className="bg-white/30 dark:bg-stone-900/30 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center p-1.5 rounded-full pointer-events-auto max-w-max transition-colors">
+            <button
+              onClick={() => setViewMode("home")}
+              className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "home" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+            >
+              <Library size={16} strokeWidth={viewMode === "home" ? 2.5 : 2} />
+              <span
+                className={`text-[10px] font-bold uppercase tracking-[0.18em] ${viewMode === "home" ? "opacity-100" : "opacity-80"}`}
+              >
+                {s.nav.home}
+              </span>
+            </button>
+            <button
+              onClick={() => setViewMode("bible")}
+              className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "bible" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+            >
+              <BookOpen
+                size={16}
+                strokeWidth={viewMode === "bible" ? 2.5 : 2}
+              />
+              <span
+                className={`text-[10px] font-bold uppercase tracking-[0.18em] ${viewMode === "bible" ? "opacity-100" : "opacity-80"}`}
+              >
+                {s.nav.bible}
+              </span>
+            </button>
+            <button
+              onClick={() => setViewMode("commentary")}
+              className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "commentary" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+            >
+              <Search
+                size={16}
+                strokeWidth={viewMode === "commentary" ? 2.5 : 2}
+              />
+              <span
+                className={`text-[10px] font-bold uppercase tracking-[0.18em] ${viewMode === "commentary" ? "opacity-100" : "opacity-80"}`}
+              >
+                {s.nav.research}
+              </span>
+            </button>
+            <button
+              onClick={() => setViewMode("wordstudy")}
+              className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "wordstudy" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+            >
+              <Languages
+                size={16}
+                strokeWidth={viewMode === "wordstudy" ? 2.5 : 2}
+              />
+              <span
+                className={`text-[10px] font-bold uppercase tracking-[0.18em] ${viewMode === "wordstudy" ? "opacity-100" : "opacity-80"}`}
+              >
+                {s.nav.words}
+              </span>
+            </button>
           </nav>
         </div>
 

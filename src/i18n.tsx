@@ -44,9 +44,6 @@ const en = {
       recentActivity: "Recent Activity",
       noActivity: "No study activity yet. Open a passage to begin.",
       open: "Open",
-      back: "Collections",
-      bookCount: "{n} books",
-      chapters: "{n} chapters",
     },
     collectionNames: {
       pentateuch: "The Pentateuch",
@@ -182,9 +179,6 @@ const es: Strings = {
       recentActivity: "Actividad Reciente",
       noActivity: "Aún no hay actividad de estudio. Abra un pasaje para comenzar.",
       open: "Abrir",
-      back: "Colecciones",
-      bookCount: "{n} libros",
-      chapters: "{n} capítulos",
     },
     collectionNames: {
       pentateuch: "El Pentateuco",

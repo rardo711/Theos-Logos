@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import React from "react";
+import { motion } from "motion/react";
 import { BIBLE_BOOKS, Book } from "../types";
 import { useI18n, getBookDisplayName, Lang } from "../i18n";
 import {
@@ -8,8 +8,6 @@ import {
   Library,
   History as HistoryIcon,
   BookMarked,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import type { HistoryItem } from "../App";
 
@@ -58,42 +56,15 @@ const DAILY_VERSES: { en: string; es: string; refEn: string; refEs: string }[] =
   },
 ];
 
-/** Curated reading collections. Selecting a card opens a detail panel listing
- *  the books it contains. Gradients evoke the archival, museum-quality mood of
- *  the scriptorium. */
-const COLLECTIONS: { key: string; gradient: string; bookIds: string[] }[] = [
-  {
-    key: "pentateuch",
-    gradient: "linear-gradient(150deg,#3a2a22 0%,#1c1917 100%)",
-    bookIds: ["GEN", "EXO", "LEV", "NUM", "DEU"],
-  },
-  {
-    key: "gospels",
-    gradient: "linear-gradient(150deg,#7a1414 0%,#3a0a0a 100%)",
-    bookIds: ["MAT", "MRK", "LUK", "JHN"],
-  },
-  {
-    key: "psalms",
-    gradient: "linear-gradient(150deg,#2c3340 0%,#16181d 100%)",
-    bookIds: ["JOB", "PSA", "PRO", "ECC", "SNG"],
-  },
-  {
-    key: "pauline",
-    gradient: "linear-gradient(150deg,#2d3a2d 0%,#161d16 100%)",
-    bookIds: ["ROM", "1CO", "2CO", "GAL", "EPH", "PHP", "COL", "1TH", "2TH", "1TI", "2TI", "TIT", "PHM"],
-  },
-  {
-    key: "prophets",
-    gradient: "linear-gradient(150deg,#5a4012 0%,#2a1d08 100%)",
-    bookIds: ["ISA", "JER", "LAM", "EZE", "DAN", "HOS", "JOL", "AMO", "OBA", "JON", "MIC", "NAM", "HAB", "ZEP", "HAG", "ZEC", "MAL"],
-  },
+/** Curated reading collections — each opens a representative book. Gradients
+ *  evoke the archival, museum-quality mood of the scriptorium. */
+const COLLECTIONS: { key: string; bookId: string; gradient: string }[] = [
+  { key: "pentateuch", bookId: "GEN", gradient: "linear-gradient(150deg,#3a2a22 0%,#1c1917 100%)" },
+  { key: "gospels", bookId: "MAT", gradient: "linear-gradient(150deg,#7a1414 0%,#3a0a0a 100%)" },
+  { key: "psalms", bookId: "PSA", gradient: "linear-gradient(150deg,#2c3340 0%,#16181d 100%)" },
+  { key: "pauline", bookId: "ROM", gradient: "linear-gradient(150deg,#2d3a2d 0%,#161d16 100%)" },
+  { key: "prophets", bookId: "ISA", gradient: "linear-gradient(150deg,#5a4012 0%,#2a1d08 100%)" },
 ];
-
-function booksFor(bookIds: string[]): Book[] {
-  return bookIds
-    .map((id) => BIBLE_BOOKS.find((b) => b.id === id))
-    .filter((b): b is Book => Boolean(b));
-}
 
 function relativeTime(ts: number, lang: Lang): string {
   const diff = Date.now() - ts;
@@ -117,7 +88,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onSelectHistory,
 }) => {
   const { lang, s } = useI18n();
-  const [openCollection, setOpenCollection] = useState<string | null>(null);
 
   const verse = DAILY_VERSES[Math.floor(Date.now() / 86400000) % DAILY_VERSES.length];
   const progress = Math.min(
@@ -125,13 +95,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     Math.round((currentChapter / Math.max(1, currentBook.chapters)) * 100),
   );
 
-  const detailBooks = openCollection
-    ? booksFor(COLLECTIONS.find((c) => c.key === openCollection)!.bookIds)
-    : [];
-
   return (
-    <div className="relative w-full h-full overflow-hidden bg-white dark:bg-stone-950 transition-colors">
-      <div className="absolute inset-0 overflow-y-auto tl-scrollbar">
+    <div className="w-full h-full overflow-y-auto tl-scrollbar bg-white dark:bg-stone-950 transition-colors">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-5 pb-32">
         {/* ── Hero: Continue Reading ───────────────────────────────── */}
         <motion.section
@@ -231,11 +196,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </button>
           </div>
           <div className="flex overflow-x-auto gap-4 px-4 sm:px-6 pb-2 tl-scrollbar snap-x">
-            {COLLECTIONS.map(({ key, gradient }) => {
+            {COLLECTIONS.map(({ key, bookId, gradient }) => {
+              const book = BIBLE_BOOKS.find((b) => b.id === bookId);
+              if (!book) return null;
               return (
                 <button
                   key={key}
-                  onClick={() => setOpenCollection(key)}
+                  onClick={() => onSelectBook(book)}
                   className="group flex-shrink-0 w-44 snap-start text-left"
                 >
                   <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md border border-stone-200/40 dark:border-white/10">
@@ -315,60 +282,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           )}
         </motion.section>
       </div>
-      </div>
-
-      {/* ── Collection detail: books within the selected collection ─── */}
-      <AnimatePresence>
-        {openCollection && (
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 28, stiffness: 260 }}
-            className="absolute inset-0 z-20 overflow-y-auto tl-scrollbar bg-white dark:bg-stone-950"
-          >
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-5 pb-32">
-              <button
-                onClick={() => setOpenCollection(null)}
-                className="flex items-center gap-1 -ml-1 mb-5 text-sm font-medium text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 transition-colors active:scale-95"
-              >
-                <ChevronLeft size={18} />
-                {s.home.back}
-              </button>
-              <h2 className="font-serif font-bold text-2xl text-[#821111] dark:text-red-400 leading-tight">
-                {s.collectionNames[openCollection]}
-              </h2>
-              <p className="text-xs text-stone-400 dark:text-stone-500 mt-1 mb-5">
-                {s.home.bookCount.replace("{n}", String(detailBooks.length))}
-              </p>
-              <div className="space-y-2">
-                {detailBooks.map((book) => (
-                  <button
-                    key={book.id}
-                    onClick={() => onSelectBook(book)}
-                    className="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-900 border border-stone-100 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-600 transition-colors text-left shadow-sm hover:shadow-md active:scale-[0.99]"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="w-9 h-9 shrink-0 rounded-xl bg-[#821111]/10 dark:bg-red-900/20 flex items-center justify-center">
-                        <BookMarked size={16} className="text-[#821111] dark:text-red-400" />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="font-bold text-stone-900 dark:text-stone-100 text-sm truncate">
-                          {getBookDisplayName(book, lang)}
-                        </p>
-                        <p className="text-xs text-stone-500 dark:text-stone-400">
-                          {s.home.chapters.replace("{n}", String(book.chapters))}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight size={18} className="text-stone-400 dark:text-stone-500 shrink-0" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
