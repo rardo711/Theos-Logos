@@ -973,9 +973,10 @@ export default function App() {
               {viewMode === "bible" && (
                 <motion.div
                   key="bible"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                   className="flex-1 w-full h-full overflow-hidden flex flex-col relative"
                 >
                   <FloatingBibleNav
@@ -1005,9 +1006,10 @@ export default function App() {
               {viewMode === "commentary" && (
                 <motion.div
                   key="commentary"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                   className="w-full h-full overflow-hidden flex flex-col"
                 >
                   <CommentaryPanel
@@ -1024,9 +1026,10 @@ export default function App() {
               {viewMode === "wordstudy" && (
                 <motion.div
                   key="wordstudy"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                   className="w-full h-full overflow-hidden flex flex-col"
                 >
                   <WordStudyPanel
