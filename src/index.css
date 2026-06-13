@@ -67,6 +67,15 @@
   .force-sans .prose * {
     font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
   }
+
+  /* Ensure proper scroll container behavior for nested scrollers */
+  main {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .scroll-container, [data-scroll-container] {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* ── Design tokens ──────────────────────────────────────────────── */
