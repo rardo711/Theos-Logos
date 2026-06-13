@@ -10,6 +10,7 @@ import {
 } from "./components/WordStudyPanel";
 import { FloatingBibleNav } from "./components/FloatingBibleNav";
 import { BibleSearch } from "./components/BibleSearch";
+import { HomeScreen } from "./components/HomeScreen";
 import { BIBLE_BOOKS, Book, BibleChapter } from "./types";
 import { fetchBibleChapter } from "./services/bibleService";
 import {
@@ -29,6 +30,7 @@ import {
   History as HistoryIcon,
   Languages,
   Smartphone,
+  Library,
 } from "lucide-react";
 
 export interface HistoryItem {
@@ -88,8 +90,8 @@ export default function App() {
   const [installPlatform, setInstallPlatform] = useState<"ios" | "android" | null>(null);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [viewMode, setViewMode] = useState<
-    "bible" | "commentary" | "wordstudy"
-  >("bible");
+    "home" | "bible" | "commentary" | "wordstudy"
+  >("home");
   // Desktop right-hand panel toggle (mobile uses viewMode instead)
   const [desktopPanel, setDesktopPanel] = useState<"commentary" | "wordstudy">(
     "commentary",
@@ -331,10 +333,8 @@ export default function App() {
       setShowDisclaimer(true);
     }
 
-    // On mobile/tablet portrait, start with bible view
-    if (window.innerWidth < 1024) {
-      setViewMode("bible");
-    }
+    // Always open onto the Library home screen
+    setViewMode("home");
 
     // Check if it's iOS or Android and not already in standalone mode
     const isIOS =
@@ -458,6 +458,22 @@ export default function App() {
       }
     },
     [],
+  );
+
+  const openHistoryItem = useCallback(
+    (item: HistoryItem) => {
+      // Book names can contain spaces ("1 John", "Song of Solomon") — the
+      // chapter is everything after the last space.
+      const lastSpace = item.reference.lastIndexOf(" ");
+      handleCrossReference(
+        item.reference.slice(0, lastSpace),
+        parseInt(item.reference.slice(lastSpace + 1).split(":")[0], 10),
+      );
+      setCommentaryState(item.state);
+      setViewMode("commentary");
+      setShowHistory(false);
+    },
+    [handleCrossReference],
   );
 
   const handleNextChapter = useCallback(() => {
@@ -684,22 +700,7 @@ export default function App() {
                   history.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => {
-                        // Book names can contain spaces ("1 John", "Song of
-                        // Solomon") — the chapter is everything after the
-                        // last space.
-                        const lastSpace = item.reference.lastIndexOf(" ");
-                        handleCrossReference(
-                          item.reference.slice(0, lastSpace),
-                          parseInt(
-                            item.reference.slice(lastSpace + 1).split(":")[0],
-                            10,
-                          ),
-                        );
-                        setCommentaryState(item.state);
-                        setViewMode("commentary");
-                        setShowHistory(false);
-                      }}
+                      onClick={() => openHistoryItem(item)}
                       className="w-full text-left p-4 rounded-xl border border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-900 hover:border-stone-300 dark:hover:border-stone-600 transition-colors group shadow-sm hover:shadow-md"
                     >
                       <div className="flex justify-between items-start mb-2">
@@ -749,10 +750,14 @@ export default function App() {
             style={{ background: "linear-gradient(90deg, #821111 0%, rgba(130,17,17,0.4) 60%, transparent 100%)" }}
           />
           <div className="h-14 flex items-center px-3 md:px-4">
-            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <button
+              onClick={() => setViewMode("home")}
+              className="flex items-center gap-2.5 flex-1 min-w-0 group"
+              title={s.nav.home}
+            >
               {/* Logo mark with gradient + inner highlight */}
               <div
-                className="flex items-center justify-center w-8 h-8 shrink-0"
+                className="flex items-center justify-center w-8 h-8 shrink-0 group-active:scale-95 transition-transform"
                 style={{
                   borderRadius: 9,
                   background: "linear-gradient(145deg, #9b1515 0%, #821111 50%, #6a0d0d 100%)",
@@ -766,13 +771,13 @@ export default function App() {
                 >TL</span>
               </div>
               {/* Brand name — hidden on mobile */}
-              <div className="hidden sm:flex flex-col gap-[1px]">
+              <div className="hidden sm:flex flex-col gap-[1px] text-left">
                 <span className="font-serif font-bold text-stone-900 dark:text-stone-100 leading-none" style={{ fontSize: 15, letterSpacing: "-0.02em" }}>
                   Theos Logos
                 </span>
                 <span className="tl-eyebrow leading-none">{s.scholarlyStudy}</span>
               </div>
-            </div>
+            </button>
 
             <div className="flex justify-center shrink-0 mx-2">
               <button
@@ -966,6 +971,23 @@ export default function App() {
 
         {/* Content - Mobile Responsive */}
         <main className="flex-1 min-h-0 flex overflow-hidden relative">
+          {/* Library Home Screen (overlays content for all breakpoints) */}
+          {viewMode === "home" && (
+            <div className="absolute inset-0 z-30">
+              <HomeScreen
+                currentBook={currentBook}
+                currentChapter={currentChapter}
+                history={history}
+                onResume={() => setViewMode("bible")}
+                onOpenSearch={() => setShowSearch(true)}
+                onSelectBook={(book) => {
+                  handleBookChange(book);
+                  setViewMode("bible");
+                }}
+                onSelectHistory={openHistoryItem}
+              />
+            </div>
+          )}
           {/* Mobile/Tablet Layout (Animated) */}
           <div className="flex-1 min-h-0 min-w-0 flex lg:hidden relative overflow-hidden">
             <AnimatePresence mode="wait">
@@ -1129,6 +1151,17 @@ export default function App() {
           style={{ bottom: "max(env(safe-area-inset-bottom), 10px)" }}
         >
           <nav className="bg-white/30 dark:bg-stone-900/30 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center p-1.5 rounded-full pointer-events-auto max-w-max transition-colors">
+            <button
+              onClick={() => setViewMode("home")}
+              className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "home" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+            >
+              <Library size={16} strokeWidth={viewMode === "home" ? 2.5 : 2} />
+              <span
+                className={`text-[10px] font-bold uppercase tracking-[0.18em] ${viewMode === "home" ? "opacity-100" : "opacity-80"}`}
+              >
+                {s.nav.home}
+              </span>
+            </button>
             <button
               onClick={() => setViewMode("bible")}
               className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "bible" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
