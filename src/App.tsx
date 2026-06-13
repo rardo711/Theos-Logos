@@ -369,9 +369,8 @@ export default function App() {
         const data = await fetchBibleChapter(currentBook.id, currentChapter, lang);
         setChapterData(data);
 
-        // Scroll to top on chapter change
-        const mainElement = document.querySelector("main");
-        if (mainElement) mainElement.scrollTo({ top: 0, behavior: "smooth" });
+        // Scroll-to-top on chapter change is handled inside BibleViewer, where
+        // the actual scroll container lives (main is overflow-hidden).
 
         // Optimistically pre-fetch the next chapter in the background
         if (currentChapter < currentBook.chapters) {
@@ -779,17 +778,20 @@ export default function App() {
               </div>
             </button>
 
-            <div className="flex justify-center shrink-0 mx-2">
-              <button
-                onClick={() => setShowFloatingNav(true)}
-                className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-full transition-colors border border-stone-200 dark:border-stone-700 shadow-sm whitespace-nowrap"
-              >
-                <span className="font-serif font-bold text-stone-800 dark:text-stone-100 text-xs sm:text-sm">
-                  {getBookDisplayName(currentBook, lang)} {currentChapter}
-                </span>
-                <ChevronDown size={14} className="text-stone-500 shrink-0" />
-              </button>
-            </div>
+            {/* Book/chapter picker — hidden on the home screen (nothing to read yet) */}
+            {viewMode !== "home" && (
+              <div className="flex justify-center shrink-0 mx-2">
+                <button
+                  onClick={() => setShowFloatingNav(true)}
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-full transition-colors border border-stone-200 dark:border-stone-700 shadow-sm whitespace-nowrap"
+                >
+                  <span className="font-serif font-bold text-stone-800 dark:text-stone-100 text-xs sm:text-sm">
+                    {getBookDisplayName(currentBook, lang)} {currentChapter}
+                  </span>
+                  <ChevronDown size={14} className="text-stone-500 shrink-0" />
+                </button>
+              </div>
+            )}
 
             <div className="flex items-center justify-end flex-1 gap-2 min-w-0">
               <div className="hidden lg:flex items-center gap-3 mr-2">

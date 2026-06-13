@@ -210,6 +210,21 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
     }
   }, [targetVerse, chapter?.reference]);
 
+  // Reset to the top of each new chapter. The scroll container is reused
+  // across chapter changes (both loading and loaded states render a root
+  // <div>), so its scrollTop would otherwise persist — leaving you at the
+  // bottom of the next chapter after a swipe. Skip when navigating to a
+  // specific verse from search. Force instant (bypass CSS scroll-smooth).
+  useEffect(() => {
+    if (targetVerse != null) return;
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const prev = el.style.scrollBehavior;
+    el.style.scrollBehavior = "auto";
+    el.scrollTop = 0;
+    el.style.scrollBehavior = prev;
+  }, [chapter?.reference]);
+
   useEffect(() => {
     const handleScroll = () => {
       if (!scrollContainerRef.current) return;
