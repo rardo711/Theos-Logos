@@ -296,7 +296,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
       onScroll={handleScroll}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
-      className="flex-1 w-full bg-white dark:bg-stone-950 overflow-y-auto px-[max(1.5rem,env(safe-area-inset-left))] pt-6 pb-32 lg:pb-16 md:px-[max(3rem,env(safe-area-inset-left))] md:pt-12 lg:px-[max(4rem,env(safe-area-inset-left))] lg:pt-16 max-w-4xl mx-auto shadow-sm border-x border-stone-100 dark:border-stone-900 relative scroll-smooth transition-colors"
+      className="flex-1 min-h-0 w-full bg-white dark:bg-stone-950 overflow-y-auto px-[max(1.5rem,env(safe-area-inset-left))] pt-6 pb-32 lg:pb-16 md:px-[max(3rem,env(safe-area-inset-left))] md:pt-12 lg:px-[max(4rem,env(safe-area-inset-left))] lg:pt-16 max-w-4xl mx-auto shadow-sm border-x border-stone-100 dark:border-stone-900 relative scroll-smooth transition-colors"
     >
       {/* Subtle oxblood left-margin rule — a nod to a physical Bible's gutter */}
       <div

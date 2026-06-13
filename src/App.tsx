@@ -740,7 +740,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full relative overflow-hidden">
+      <div className="flex-1 min-h-0 min-w-0 flex flex-col h-full relative overflow-hidden">
         {/* Header */}
         <header className="pt-[env(safe-area-inset-top)] bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 z-10 shrink-0 transition-colors relative shadow-[0_1px_0_rgb(231,229,228),0_4px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_0_rgb(41,37,36),0_4px_16px_rgba(0,0,0,0.08)]">
           {/* Oxblood authority stripe */}
@@ -965,9 +965,9 @@ export default function App() {
         </header>
 
         {/* Content - Mobile Responsive */}
-        <main className="flex-1 flex overflow-hidden relative">
+        <main className="flex-1 min-h-0 flex overflow-hidden relative">
           {/* Mobile/Tablet Layout (Animated) */}
-          <div className="flex-1 flex lg:hidden relative overflow-hidden">
+          <div className="flex-1 min-h-0 min-w-0 flex lg:hidden relative overflow-hidden">
             <AnimatePresence mode="wait">
               {/* Bible Viewer */}
               {viewMode === "bible" && (
@@ -977,7 +977,7 @@ export default function App() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="flex-1 w-full h-full overflow-hidden flex flex-col relative"
+                  className="flex-1 min-h-0 min-w-0 w-full h-full overflow-hidden flex flex-col relative"
                 >
                   <FloatingBibleNav
                     currentBook={currentBook}
@@ -1044,8 +1044,8 @@ export default function App() {
           </div>
 
           {/* Desktop Layout (Static) */}
-          <div className="hidden lg:flex flex-1 h-full overflow-hidden relative">
-            <div className="flex-1 h-full overflow-hidden relative">
+          <div className="hidden lg:flex flex-1 min-h-0 h-full overflow-hidden relative">
+            <div className="flex-1 min-h-0 min-w-0 h-full overflow-hidden relative flex flex-col">
               <FloatingBibleNav
                 currentBook={currentBook}
                 currentChapter={currentChapter}
