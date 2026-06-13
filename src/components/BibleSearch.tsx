@@ -151,10 +151,10 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
           >
             <motion.div
               key="search-card"
-              initial={{ y: 40, scale: 0.97, opacity: 0 }}
-              animate={{ y: 0, scale: 1, opacity: 1 }}
-              exit={{ y: 40, scale: 0.97, opacity: 0 }}
-              transition={{ type: "spring", damping: 30, stiffness: 260 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               onClick={(e) => e.stopPropagation()}
               className="bg-white dark:bg-stone-900 rounded-[24px] shadow-[0_32px_64px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_32px_64px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)] w-full max-w-2xl flex flex-col overflow-hidden"
               style={{ height: cardMaxH }}
@@ -205,12 +205,8 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
 
             {/* Results */}
             <div
-              className="flex-1 min-h-0 overflow-y-auto tl-scrollbar"
-              style={{
-                WebkitOverflowScrolling: "touch",
-                touchAction: "pan-y",
-                overscrollBehavior: "contain",
-              }}
+              className="flex-1 min-h-0 overflow-y-auto overscroll-contain tl-scrollbar"
+              style={{ touchAction: "pan-y" }}
             >
               {/* Loading skeletons */}
               {loading && (
