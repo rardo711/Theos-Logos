@@ -32,7 +32,30 @@ export function getBookDisplayName(book: Book, lang: Lang): string {
 /* UI strings. Spanish uses the formal "usted" register — scholarly but plain. */
 const en = {
     scholarlyStudy: "Scholarly Study",
-    nav: { bible: "Bible", research: "Research", words: "Words" },
+    nav: { home: "Library", bible: "Bible", research: "Research", words: "Words" },
+    // Home screen
+    home: {
+      continueReading: "Continue Reading",
+      resume: "Resume",
+      completed: "{n}% Completed",
+      dailyLogos: "The Daily Logos",
+      collections: "Scholarly Collections",
+      viewAll: "View All",
+      recentActivity: "Recent Activity",
+      noActivity: "No study activity yet. Open a passage to begin.",
+      open: "Open",
+      back: "Collections",
+      bookCount: "{n} books",
+      chapters: "{n} chapters",
+    },
+    collectionNames: {
+      pentateuch: "The Pentateuch",
+      gospels: "The Gospels",
+      psalms: "Wisdom & Psalms",
+      pauline: "Pauline Epistles",
+      prophets: "The Prophets",
+      history: "Historical Books",
+    } as Record<string, string>,
     panelResearch: "Research",
     panelWordStudy: "Word Study",
     // Bible viewer
@@ -147,7 +170,30 @@ export type Strings = typeof en;
 
 const es: Strings = {
     scholarlyStudy: "Estudio Académico",
-    nav: { bible: "Biblia", research: "Investigación", words: "Léxico" },
+    nav: { home: "Biblioteca", bible: "Biblia", research: "Investigación", words: "Léxico" },
+    // Home screen
+    home: {
+      continueReading: "Continuar Lectura",
+      resume: "Reanudar",
+      completed: "{n}% Completado",
+      dailyLogos: "El Logos Diario",
+      collections: "Colecciones Académicas",
+      viewAll: "Ver Todo",
+      recentActivity: "Actividad Reciente",
+      noActivity: "Aún no hay actividad de estudio. Abra un pasaje para comenzar.",
+      open: "Abrir",
+      back: "Colecciones",
+      bookCount: "{n} libros",
+      chapters: "{n} capítulos",
+    },
+    collectionNames: {
+      pentateuch: "El Pentateuco",
+      gospels: "Los Evangelios",
+      psalms: "Sabiduría y Salmos",
+      pauline: "Epístolas Paulinas",
+      prophets: "Los Profetas",
+      history: "Libros Históricos",
+    } as Record<string, string>,
     panelResearch: "Investigación",
     panelWordStudy: "Estudio de Palabras",
     // Bible viewer

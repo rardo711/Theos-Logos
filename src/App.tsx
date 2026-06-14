@@ -10,6 +10,7 @@ import {
 } from "./components/WordStudyPanel";
 import { FloatingBibleNav } from "./components/FloatingBibleNav";
 import { BibleSearch } from "./components/BibleSearch";
+import { HomeScreen } from "./components/HomeScreen";
 import { BIBLE_BOOKS, Book, BibleChapter } from "./types";
 import { fetchBibleChapter } from "./services/bibleService";
 import {
@@ -29,6 +30,7 @@ import {
   History as HistoryIcon,
   Languages,
   Smartphone,
+  Library,
 } from "lucide-react";
 
 export interface HistoryItem {
@@ -88,8 +90,8 @@ export default function App() {
   const [installPlatform, setInstallPlatform] = useState<"ios" | "android" | null>(null);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [viewMode, setViewMode] = useState<
-    "bible" | "commentary" | "wordstudy"
-  >("bible");
+    "home" | "bible" | "commentary" | "wordstudy"
+  >("home");
   // Desktop right-hand panel toggle (mobile uses viewMode instead)
   const [desktopPanel, setDesktopPanel] = useState<"commentary" | "wordstudy">(
     "commentary",
@@ -331,10 +333,8 @@ export default function App() {
       setShowDisclaimer(true);
     }
 
-    // On mobile/tablet portrait, start with bible view
-    if (window.innerWidth < 1024) {
-      setViewMode("bible");
-    }
+    // Always open onto the Library home screen
+    setViewMode("home");
 
     // Check if it's iOS or Android and not already in standalone mode
     const isIOS =
@@ -369,9 +369,8 @@ export default function App() {
         const data = await fetchBibleChapter(currentBook.id, currentChapter, lang);
         setChapterData(data);
 
-        // Scroll to top on chapter change
-        const mainElement = document.querySelector("main");
-        if (mainElement) mainElement.scrollTo({ top: 0, behavior: "smooth" });
+        // Scroll-to-top on chapter change is handled inside BibleViewer, where
+        // the actual scroll container lives (main is overflow-hidden).
 
         // Optimistically pre-fetch the next chapter in the background
         if (currentChapter < currentBook.chapters) {
@@ -458,6 +457,22 @@ export default function App() {
       }
     },
     [],
+  );
+
+  const openHistoryItem = useCallback(
+    (item: HistoryItem) => {
+      // Book names can contain spaces ("1 John", "Song of Solomon") — the
+      // chapter is everything after the last space.
+      const lastSpace = item.reference.lastIndexOf(" ");
+      handleCrossReference(
+        item.reference.slice(0, lastSpace),
+        parseInt(item.reference.slice(lastSpace + 1).split(":")[0], 10),
+      );
+      setCommentaryState(item.state);
+      setViewMode("commentary");
+      setShowHistory(false);
+    },
+    [handleCrossReference],
   );
 
   const handleNextChapter = useCallback(() => {
@@ -684,22 +699,7 @@ export default function App() {
                   history.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => {
-                        // Book names can contain spaces ("1 John", "Song of
-                        // Solomon") — the chapter is everything after the
-                        // last space.
-                        const lastSpace = item.reference.lastIndexOf(" ");
-                        handleCrossReference(
-                          item.reference.slice(0, lastSpace),
-                          parseInt(
-                            item.reference.slice(lastSpace + 1).split(":")[0],
-                            10,
-                          ),
-                        );
-                        setCommentaryState(item.state);
-                        setViewMode("commentary");
-                        setShowHistory(false);
-                      }}
+                      onClick={() => openHistoryItem(item)}
                       className="w-full text-left p-4 rounded-xl border border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-900 hover:border-stone-300 dark:hover:border-stone-600 transition-colors group shadow-sm hover:shadow-md"
                     >
                       <div className="flex justify-between items-start mb-2">
@@ -749,10 +749,14 @@ export default function App() {
             style={{ background: "linear-gradient(90deg, #821111 0%, rgba(130,17,17,0.4) 60%, transparent 100%)" }}
           />
           <div className="h-14 flex items-center px-3 md:px-4">
-            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <button
+              onClick={() => setViewMode("home")}
+              className="flex items-center gap-2.5 flex-1 min-w-0 group"
+              title={s.nav.home}
+            >
               {/* Logo mark with gradient + inner highlight */}
               <div
-                className="flex items-center justify-center w-8 h-8 shrink-0"
+                className="flex items-center justify-center w-8 h-8 shrink-0 group-active:scale-95 transition-transform"
                 style={{
                   borderRadius: 9,
                   background: "linear-gradient(145deg, #9b1515 0%, #821111 50%, #6a0d0d 100%)",
@@ -766,25 +770,28 @@ export default function App() {
                 >TL</span>
               </div>
               {/* Brand name — hidden on mobile */}
-              <div className="hidden sm:flex flex-col gap-[1px]">
+              <div className="hidden sm:flex flex-col gap-[1px] text-left">
                 <span className="font-serif font-bold text-stone-900 dark:text-stone-100 leading-none" style={{ fontSize: 15, letterSpacing: "-0.02em" }}>
                   Theos Logos
                 </span>
                 <span className="tl-eyebrow leading-none">{s.scholarlyStudy}</span>
               </div>
-            </div>
+            </button>
 
-            <div className="flex justify-center shrink-0 mx-2">
-              <button
-                onClick={() => setShowFloatingNav(true)}
-                className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-full transition-colors border border-stone-200 dark:border-stone-700 shadow-sm whitespace-nowrap"
-              >
-                <span className="font-serif font-bold text-stone-800 dark:text-stone-100 text-xs sm:text-sm">
-                  {getBookDisplayName(currentBook, lang)} {currentChapter}
-                </span>
-                <ChevronDown size={14} className="text-stone-500 shrink-0" />
-              </button>
-            </div>
+            {/* Book/chapter picker — hidden on the home screen (nothing to read yet) */}
+            {viewMode !== "home" && (
+              <div className="flex justify-center shrink-0 mx-2">
+                <button
+                  onClick={() => setShowFloatingNav(true)}
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-full transition-colors border border-stone-200 dark:border-stone-700 shadow-sm whitespace-nowrap"
+                >
+                  <span className="font-serif font-bold text-stone-800 dark:text-stone-100 text-xs sm:text-sm">
+                    {getBookDisplayName(currentBook, lang)} {currentChapter}
+                  </span>
+                  <ChevronDown size={14} className="text-stone-500 shrink-0" />
+                </button>
+              </div>
+            )}
 
             <div className="flex items-center justify-end flex-1 gap-2 min-w-0">
               <div className="hidden lg:flex items-center gap-3 mr-2">
@@ -966,6 +973,23 @@ export default function App() {
 
         {/* Content - Mobile Responsive */}
         <main className="flex-1 min-h-0 flex overflow-hidden relative">
+          {/* Library Home Screen (overlays content for all breakpoints) */}
+          {viewMode === "home" && (
+            <div className="absolute inset-0 z-30">
+              <HomeScreen
+                currentBook={currentBook}
+                currentChapter={currentChapter}
+                history={history}
+                onResume={() => setViewMode("bible")}
+                onOpenSearch={() => setShowSearch(true)}
+                onSelectBook={(book) => {
+                  handleBookChange(book);
+                  setViewMode("bible");
+                }}
+                onSelectHistory={openHistoryItem}
+              />
+            </div>
+          )}
           {/* Mobile/Tablet Layout (Animated) */}
           <div className="flex-1 min-h-0 min-w-0 flex lg:hidden relative overflow-hidden">
             <AnimatePresence mode="wait">
@@ -1128,49 +1152,32 @@ export default function App() {
           className={`lg:hidden fixed left-0 right-0 flex justify-center z-50 pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${navVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-[150%] opacity-0 scale-95"}`}
           style={{ bottom: "max(env(safe-area-inset-bottom), 10px)" }}
         >
-          <nav className="bg-white/30 dark:bg-stone-900/30 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center p-1.5 rounded-full pointer-events-auto max-w-max transition-colors">
-            <button
-              onClick={() => setViewMode("bible")}
-              className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "bible" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
-            >
-              <BookOpen
-                size={16}
-                strokeWidth={viewMode === "bible" ? 2.5 : 2}
-              />
-              <span
-                className={`text-[10px] font-bold uppercase tracking-[0.18em] ${viewMode === "bible" ? "opacity-100" : "opacity-80"}`}
-              >
-                {s.nav.bible}
-              </span>
-            </button>
-            <button
-              onClick={() => setViewMode("commentary")}
-              className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "commentary" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
-            >
-              <Search
-                size={16}
-                strokeWidth={viewMode === "commentary" ? 2.5 : 2}
-              />
-              <span
-                className={`text-[10px] font-bold uppercase tracking-[0.18em] ${viewMode === "commentary" ? "opacity-100" : "opacity-80"}`}
-              >
-                {s.nav.research}
-              </span>
-            </button>
-            <button
-              onClick={() => setViewMode("wordstudy")}
-              className={`flex flex-row items-center justify-center gap-2 px-5 py-2.5 transition-all duration-400 rounded-full ${viewMode === "wordstudy" ? "bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
-            >
-              <Languages
-                size={16}
-                strokeWidth={viewMode === "wordstudy" ? 2.5 : 2}
-              />
-              <span
-                className={`text-[10px] font-bold uppercase tracking-[0.18em] ${viewMode === "wordstudy" ? "opacity-100" : "opacity-80"}`}
-              >
-                {s.nav.words}
-              </span>
-            </button>
+          <nav className="bg-white/30 dark:bg-stone-900/30 backdrop-blur-2xl backdrop-saturate-200 border border-white/50 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-center gap-1 p-1.5 rounded-full pointer-events-auto max-w-[calc(100vw-20px)] transition-colors">
+            {([
+              { mode: "home", Icon: Library, label: s.nav.home },
+              { mode: "bible", Icon: BookOpen, label: s.nav.bible },
+              { mode: "commentary", Icon: Search, label: s.nav.research },
+              { mode: "wordstudy", Icon: Languages, label: s.nav.words },
+            ] as const).map(({ mode, Icon, label }) => {
+              const active = viewMode === mode;
+              return (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  aria-current={active ? "page" : undefined}
+                  className={`flex flex-row items-center justify-center gap-2 py-2.5 rounded-full transition-all duration-400 ${active ? "px-4 bg-white/90 dark:bg-white/20 shadow-sm text-[#821111] dark:text-red-300" : "px-3 text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"}`}
+                >
+                  <Icon size={16} strokeWidth={active ? 2.5 : 2} className="shrink-0" />
+                  {active ? (
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] whitespace-nowrap">
+                      {label}
+                    </span>
+                  ) : (
+                    <span className="sr-only">{label}</span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
         </div>
 
