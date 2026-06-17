@@ -60,6 +60,11 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const commentaryContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
+  // Monotonic id for the active commentary generation. A streamed response that
+  // is no longer current (superseded by a new request, or a chapter change) must
+  // not write its text into state. Incremented on each new generation and on
+  // passage change.
+  const genId = useRef(0);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
@@ -110,6 +115,8 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
     if (e) e.preventDefault();
     if (!chapter) return;
 
+    const myId = ++genId.current; // supersede any in-flight generation
+
     const currentQuery =
       overrideQuery !== undefined ? overrideQuery : state.query;
     const currentVerse =
@@ -126,10 +133,12 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         currentQuery,
         currentVerse === null ? undefined : currentVerse,
         (partial) => {
+          if (genId.current !== myId) return; // a newer request/passage took over
           setState((prev) => ({ ...prev, text: stripMarker(partial) }));
         },
         lang,
       );
+      if (genId.current !== myId) return; // stale — don't overwrite the current view
       const markerMatch = result.match(/<!--TRADITIONS:(DISPUTED|NONE)-->/);
       setTraditionsAvailable(!markerMatch || markerMatch[1] === "DISPUTED");
       setState((prev) => ({
@@ -138,6 +147,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         loading: false,
       }));
     } catch (err: any) {
+      if (genId.current !== myId) return; // stale failure — ignore
       setState((prev) => ({
         ...prev,
         error:
@@ -148,6 +158,12 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
       console.error(err);
     }
   }, [chapter, lang, setState, state.query, state.selectedVerse]);
+
+  // Invalidate any in-flight generation when the passage changes, so a slow
+  // stream from the previous chapter can't write into the new one.
+  useEffect(() => {
+    genId.current++;
+  }, [chapter?.reference]);
 
   useEffect(() => {
     if (
@@ -395,6 +411,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm p-0 md:p-6"
+            style={{ paddingBottom: "var(--keyboard-height, 0px)" }}
           >
             <motion.div
               initial={{ y: "100%" }}

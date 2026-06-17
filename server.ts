@@ -90,6 +90,12 @@ SCOPE HONESTY:
 - State the limits of what you checked. If the available sources could not settle a question, say which question remains open rather than presenting a confident resolution.
 - You point users to their pastor and local church; you do not replace pastoral authority. Keep that framing.
 
+BREVITY AND CONSISTENCY:
+- Be concise. Every sentence must earn its place. Prefer tight, information-dense prose over length; do not restate a point in different words or pad a section to appear thorough.
+- Lead with the crux — the textual, lexical, or genre question that actually drives the passage — and let conclusions follow the evidence.
+- Use the exact section headings you are given, in the given order, and only those. Omit a section entirely if it has nothing substantive rather than filling it with generic content.
+- A short, fully-verified answer is better than a long one padded with unverifiable claims.
+
 FORMATTING:
 - \`##\` major sections, \`###\` sub-sections. Never use bold as a heading substitute.
 - Title-case headings. Not ALL CAPS.
@@ -145,7 +151,11 @@ function verseWindow(fullText: string, centerVerse: number, radius = 5): string 
     return fullText;
   }
   if (matches.length <= radius * 2) return fullText;
-  const idx = Math.max(0, centerVerse - 1); // convert to 0-based
+  // Center on the marker whose captured verse number actually equals centerVerse.
+  // Chapters can start at a non-1 verse or skip numbers (textual variants), so a
+  // purely positional index (centerVerse - 1) would window the wrong verses.
+  let idx = matches.findIndex(m => Number(m[1]) === centerVerse);
+  if (idx === -1) idx = Math.max(0, centerVerse - 1); // fall back to positional
   const start = Math.max(0, idx - radius);
   const end = Math.min(matches.length, idx + radius + 1);
   return matches.slice(start, end).map(m => m[0].trimEnd()).join(" ");
@@ -388,8 +398,9 @@ Rules for this response:
 - Answer the user's exact question directly. Do NOT produce a general verse-by-verse commentary unless the question explicitly asks for one.
 - Open with a \`## ${H.directAnswer}\` section (2–4 sentences) that a layperson can understand.
 - Then a \`## ${H.scholarlyBasis}\` section with the supporting evidence: cited primary sources, exegetical reasoning, and any relevant original-language terms.
-- If, and only if, the question touches a disputed point, add a \`## ${H.acrossTraditions}\` section with \`###\` sub-headings per tradition. Represent each tradition from its own authoritative sources (e.g. Catechism of the Catholic Church for Rome, Book of Concord for Lutherans, official confessions for Reformed) — never characterize a tradition solely through its critics.
+- Do NOT lay out Roman Catholic, Eastern Orthodox, or Lutheran positions in this response. If the question touches a point where those traditions diverge, you may note in a single sentence that a comparative reading exists — but do not present it. The user can open a separate comparative survey on demand.
 - Only include lexical detail that bears on the question. Stay on topic.
+- Be concise: answer what was asked, omit filler, and do not pad sections to look thorough.
 - Use Google Search to verify every quote and historical claim.
 - End with a \`## ${H.sourcesConsulted}\` section listing every Tier-1 source retrieved and verified this turn (by name and location). If a claim could not be verified, note it there.`
       : `Reference: ${reference}
@@ -491,8 +502,7 @@ Respond using this structure:
 Supporting primary sources, exegetical reasoning, and any relevant original-language
 terms (script, transliteration, Strong's number). Cite CCEL, Perseus, archive.org first.
 
-## ${H.acrossTraditions} (only if the question touches a disputed point)
-Use ### sub-headings per tradition. Omit this section if not applicable. Represent each tradition from its own authoritative sources (e.g. Catechism of the Catholic Church for Rome, Book of Concord for Lutherans, official confessions for Reformed) — never characterize a tradition solely through its critics.
+Do NOT lay out Roman Catholic, Eastern Orthodox, or Lutheran positions here. If the point is one where traditions diverge, note that in a single sentence — the user can open the comparative survey separately. Keep this answer tight and focused on what was highlighted.
 
 ## ${H.sourcesConsulted}
 List every Tier-1 source retrieved and verified this turn (by name and location). Note any claim that could not be verified.

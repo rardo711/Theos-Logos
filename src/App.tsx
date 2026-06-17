@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useWindowSize } from "./hooks/useWindowSize";
 import { motion, AnimatePresence } from "motion/react";
 import { BibleViewer } from "./components/BibleViewer";
 import { CommentaryPanel, CommentaryState } from "./components/CommentaryPanel";
@@ -111,7 +110,7 @@ export default function App() {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
       // Reverse calculation because panel is on the right
-      const newWidth = document.body.clientWidth - e.clientX;
+      const newWidth = window.innerWidth - e.clientX;
       if (newWidth > 300 && newWidth < 800) {
         setCommentaryWidth(newWidth);
       }
@@ -225,7 +224,6 @@ export default function App() {
   }, [currentChapter]);
 
   const [navVisible, setNavVisible] = useState(true);
-  const windowSize = useWindowSize();
 
   useEffect(() => {
     const handleNavVisibility = (e: Event) => {
@@ -234,6 +232,27 @@ export default function App() {
     };
     window.addEventListener("nav-visibility", handleNavVisibility);
     return () => window.removeEventListener("nav-visibility", handleNavVisibility);
+  }, []);
+
+  // Track on-screen keyboard height via the VisualViewport API and expose it as
+  // a CSS variable. iOS doesn't honor `interactive-widget=resizes-content`, so a
+  // position:fixed input (e.g. the verse prompt field) would otherwise sit behind
+  // the keyboard. Components offset their fixed elements by --keyboard-height.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const keyboard = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      document.documentElement.style.setProperty("--keyboard-height", `${keyboard}px`);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      document.documentElement.style.removeProperty("--keyboard-height");
+    };
   }, []);
 
   // Handle typography changes
@@ -464,6 +483,7 @@ export default function App() {
       // Book names can contain spaces ("1 John", "Song of Solomon") — the
       // chapter is everything after the last space.
       const lastSpace = item.reference.lastIndexOf(" ");
+      if (lastSpace < 0) return; // malformed reference — avoid NaN chapter
       handleCrossReference(
         item.reference.slice(0, lastSpace),
         parseInt(item.reference.slice(lastSpace + 1).split(":")[0], 10),

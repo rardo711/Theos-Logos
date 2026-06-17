@@ -449,7 +449,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
 
       {/* Floating Prompt Field */}
       {selectedVerse !== null && (
-        <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] landscape:bottom-[calc(4rem+env(safe-area-inset-bottom))] lg:bottom-12 left-1/2 -translate-x-1/2 w-[92%] max-w-lg bg-white/95 dark:bg-stone-900/95 backdrop-blur-2xl border border-stone-200 dark:border-stone-800 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-black/50 p-4 portrait:p-5 z-50 animate-in fade-in slide-in-from-bottom-6 duration-500 transition-colors">
+        <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+var(--keyboard-height,0px))] landscape:bottom-[calc(4rem+env(safe-area-inset-bottom)+var(--keyboard-height,0px))] lg:bottom-[calc(3rem+var(--keyboard-height,0px))] left-1/2 -translate-x-1/2 w-[92%] max-w-lg bg-white/95 dark:bg-stone-900/95 backdrop-blur-2xl border border-stone-200 dark:border-stone-800 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-black/50 p-4 portrait:p-5 z-50 animate-in fade-in slide-in-from-bottom-6 duration-500 transition-[bottom] ease-out">
           <div className="flex justify-between items-center mb-3 portrait:mb-4">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 bg-[#821111] dark:bg-red-500 rounded-full animate-pulse" />
