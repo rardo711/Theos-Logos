@@ -86,6 +86,15 @@ THEOLOGICAL MANDATE:
 2. Classical confessional Christianity as the interpretive home base — covenantal, creedal, grammatical-historical. This is not limited to any single tradition.
 3. Zero-Synthesis: present historical data and arguments; do not conclude or exhort.
 
+INTERPRETIVE WITNESSES — draw on the FULL breadth of the church's exegetical tradition, not a narrow recurring handful. Reach for the voice most illuminating for THIS text; vary across responses. Every quotation remains subject to the QUOTE INTEGRITY rules above (verify or paraphrase-and-tag).
+- Apostolic & Ante-Nicene Fathers: Clement of Rome, Ignatius, Polycarp, Justin Martyr, Irenaeus, Tertullian, Clement of Alexandria, Origen, Hippolytus, Cyprian, Methodius.
+- Nicene & Post-Nicene Fathers: Athanasius, the Cappadocians (Basil of Caesarea, Gregory of Nazianzus, Gregory of Nyssa), Hilary of Poitiers, Cyril of Jerusalem, John Chrysostom, Ambrose, Jerome, Augustine, Cyril of Alexandria, Theodoret, Leo the Great, Gregory the Great, John of Damascus.
+- Medieval & monastic: Anselm, Bernard of Clairvaux, Peter Lombard, Bonaventure, Thomas Aquinas, the catena tradition (Glossa Ordinaria).
+- Reformers & Reformation-era: Luther, Melanchthon, Zwingli, Bullinger, Calvin, Beza, Martyr Vermigli, Oecolampadius, Bucer, Cranmer, Knox, Ursinus, Olevianus.
+- Post-Reformation, Puritan & orthodox: the Westminster divines, John Owen, Thomas Goodwin, Richard Sibbes, Thomas Watson, John Flavel, Matthew Henry, Matthew Poole, Francis Turretin, Herman Witsius, Wilhelmus à Brakel, Jonathan Edwards, John Gill.
+- Modern confessional theologians: Charles Hodge, Robert L. Dabney, B. B. Warfield, Geerhardus Vos, Abraham Kuyper, Herman Bavinck, J. Gresham Machen, John Murray, and standard critical commentators where they illuminate the text.
+- Engage other traditions honestly from their own sources when relevant (Eastern fathers on theosis, Roman and Orthodox readings) — represent them fairly, but keep the Protestant/confessional home base.
+
 SCOPE HONESTY:
 - State the limits of what you checked. If the available sources could not settle a question, say which question remains open rather than presenting a confident resolution.
 - You point users to their pastor and local church; you do not replace pastoral authority. Keep that framing.
@@ -385,8 +394,14 @@ async function startServer() {
       ? verseWindow(passage, selectedVerse)
       : passage;
 
-    const prompt = isQuestion
-      ? `Reference: ${reference}
+    // A question tied to a specific verse keeps the fixed answer outline. A
+    // question with no verse anchor is handled adaptively: the model decides
+    // whether it is really about this passage or a standalone theological
+    // question (e.g. "what does it mean to be saved?") and shapes the answer to
+    // the question rather than forcing the template.
+    const isVerseAnchored = !!(selectedVerse && typeof selectedVerse === "number");
+
+    const verseAnchoredQuestionPrompt = `Reference: ${reference}
 Passage context: ${passageForPrompt}
 ${verseContext}
 CCEL Reference: ${ccelUrl}
@@ -394,6 +409,7 @@ CCEL Reference: ${ccelUrl}
 THE USER'S QUESTION (this is your sole assignment — answer THIS, nothing else):
 "${trimmedQuestion}"
 
+This question is anchored to the passage above. Answer it in relation to this text.
 Rules for this response:
 - Answer the user's exact question directly. Do NOT produce a general verse-by-verse commentary unless the question explicitly asks for one.
 - Open with a \`## ${H.directAnswer}\` section (2–4 sentences) that a layperson can understand.
@@ -402,7 +418,32 @@ Rules for this response:
 - Only include lexical detail that bears on the question. Stay on topic.
 - Be concise: answer what was asked, omit filler, and do not pad sections to look thorough.
 - Use Google Search to verify every quote and historical claim.
-- End with a \`## ${H.sourcesConsulted}\` section listing every Tier-1 source retrieved and verified this turn (by name and location). If a claim could not be verified, note it there.`
+- End with a \`## ${H.sourcesConsulted}\` section listing every Tier-1 source retrieved and verified this turn (by name and location). If a claim could not be verified, note it there.`;
+
+    const adaptiveQuestionPrompt = `The user is reading ${reference} but has typed a free-standing question.
+Passage currently on screen (context only — use it if the question bears on it, otherwise set it aside): ${passageForPrompt}
+CCEL Reference: ${ccelUrl}
+
+THE USER'S QUESTION (this is your sole assignment — answer THIS):
+"${trimmedQuestion}"
+
+First judge what kind of question this is, then answer accordingly:
+
+A) If it is genuinely ABOUT this passage, answer in relation to the text: open with a \`## ${H.directAnswer}\` (2–4 sentences a layperson can understand), then a \`## ${H.scholarlyBasis}\` with cited primary sources, exegetical reasoning, and any relevant original-language terms.
+
+B) If it is a BROADER biblical, theological, or doctrinal question that stands apart from this specific text (e.g. "what does it mean to be saved?", "who is the Holy Spirit?"), answer the QUESTION ITSELF — do not force it through the passage on screen. Build the answer from the whole counsel of Scripture and the church's witness:
+   - Open with a \`## ${H.directAnswer}\` (2–4 sentences a layperson can understand).
+   - Then develop the answer under your OWN \`###\` sub-headings, chosen to fit the question — for example the biblical witness (cite the key passages directly), the testimony of the Fathers and Reformers, and the relevant theological distinctions. Use only as many sections as the question genuinely needs; let the shape follow the question, not a fixed template.
+   - Draw widely on Scripture, the Church Fathers, the Reformers, and later theologians (see INTERPRETIVE WITNESSES). Ground every claim and name your sources.
+
+In both cases:
+- Do NOT lay out Roman Catholic, Eastern Orthodox, or Lutheran positions inline; if the point is disputed, note in one sentence that a comparative survey is available on demand.
+- Be concise and answer exactly what was asked.
+- Use Google Search to verify every quote and historical claim.
+- End with a \`## ${H.sourcesConsulted}\` section listing every Tier-1 source retrieved and verified this turn (by name and location). Note anything that could not be verified.`;
+
+    const prompt = isQuestion
+      ? (isVerseAnchored ? verseAnchoredQuestionPrompt : adaptiveQuestionPrompt)
       : `Reference: ${reference}
 Passage: ${passageForPrompt}
 ${verseContext}${topicHint}

@@ -83,6 +83,15 @@ export const BibleSearch: React.FC<BibleSearchProps> = ({
     };
   }, [query, translation]);
 
+  // When the translation changes, drop the previous translation's results
+  // immediately so they can't be clicked during the 400ms debounce before the
+  // new-translation results arrive. Skips the initial mount.
+  const didMountTx = useRef(false);
+  useEffect(() => {
+    if (!didMountTx.current) { didMountTx.current = true; return; }
+    setResults([]);
+  }, [translation]);
+
   // Escape key dismiss
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {

@@ -6,11 +6,13 @@ async function readSSEStream(
   endpoint: string,
   body: Record<string, unknown>,
   onChunk?: (fullText: string) => void,
+  signal?: AbortSignal,
 ): Promise<string> {
   const res = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
     body: JSON.stringify(body),
+    signal,
   });
   if (!res.ok || !res.body) {
     const err = await res.json().catch(() => ({ error: `Server error ${res.status}` }));
@@ -52,8 +54,9 @@ export async function generateCommentary(
   selectedVerse?: number,
   onChunk?: (fullText: string) => void,
   lang: Lang = "en",
+  signal?: AbortSignal,
 ): Promise<string> {
-  return readSSEStream("/api/commentary", { passage, reference, question, selectedVerse, lang }, onChunk);
+  return readSSEStream("/api/commentary", { passage, reference, question, selectedVerse, lang }, onChunk, signal);
 }
 
 export async function generateWordStudy(

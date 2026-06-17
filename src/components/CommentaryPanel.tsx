@@ -65,6 +65,9 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
   // not write its text into state. Incremented on each new generation and on
   // passage change.
   const genId = useRef(0);
+  // Cancels the in-flight commentary request (network + server work) when it is
+  // superseded or the panel unmounts.
+  const abortRef = useRef<AbortController | null>(null);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
@@ -116,6 +119,9 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
     if (!chapter) return;
 
     const myId = ++genId.current; // supersede any in-flight generation
+    abortRef.current?.abort(); // cancel a still-running previous request
+    const ac = new AbortController();
+    abortRef.current = ac;
 
     const currentQuery =
       overrideQuery !== undefined ? overrideQuery : state.query;
@@ -137,6 +143,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
           setState((prev) => ({ ...prev, text: stripMarker(partial) }));
         },
         lang,
+        ac.signal,
       );
       if (genId.current !== myId) return; // stale — don't overwrite the current view
       const markerMatch = result.match(/<!--TRADITIONS:(DISPUTED|NONE)-->/);
@@ -147,7 +154,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
         loading: false,
       }));
     } catch (err: any) {
-      if (genId.current !== myId) return; // stale failure — ignore
+      if (err?.name === "AbortError" || genId.current !== myId) return; // cancelled/stale — ignore
       setState((prev) => ({
         ...prev,
         error:
@@ -159,11 +166,15 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
     }
   }, [chapter, lang, setState, state.query, state.selectedVerse]);
 
-  // Invalidate any in-flight generation when the passage changes, so a slow
-  // stream from the previous chapter can't write into the new one.
+  // Invalidate and cancel any in-flight generation when the passage changes, so
+  // a slow stream from the previous chapter can't write into the new one.
   useEffect(() => {
     genId.current++;
+    abortRef.current?.abort();
   }, [chapter?.reference]);
+
+  // Cancel any in-flight request when the panel unmounts.
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   useEffect(() => {
     if (
