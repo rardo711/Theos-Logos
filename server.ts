@@ -116,7 +116,12 @@ function geminiConfigFor(lang: ResponseLang, opts: { grounded?: boolean } = {}) 
       lang === "es" ? theologicalFraming + spanishDirective : theologicalFraming,
   };
   if (!grounded) return base;
-  return { ...base, tools: [{ googleSearch: {} }], toolConfig: { includeServerSideToolInvocations: true } };
+  // Server-side Google Search grounding. We intentionally do NOT set
+  // toolConfig.includeServerSideToolInvocations — that "context circulation"
+  // flag is a Gemini 3-only feature (rejected by gemini-2.5-flash) and is only
+  // needed when piping tool results into custom function tools, which this app
+  // does not use. Plain googleSearch grounds fine on every current Flash model.
+  return { ...base, tools: [{ googleSearch: {} }] };
 }
 
 // When a specific verse is selected, send only a ±5-verse window instead of
