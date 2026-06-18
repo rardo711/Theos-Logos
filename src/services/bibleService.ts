@@ -1,7 +1,23 @@
 import { BibleChapter, BIBLE_BOOKS } from "../types";
 import { ES_BOOK_NAMES, Lang } from "../i18n";
 
+// Transient, in-memory session cache (never persisted to disk/localStorage).
+// Bounded by total verse count to honor the ESV API license, which forbids
+// locally storing more than 500 verses of ESV text at a time.
 const cache = new Map<string, BibleChapter>();
+const MAX_CACHED_VERSES = 450;
+
+function rememberChapter(key: string, chapter: BibleChapter): void {
+  cache.set(key, chapter);
+  let total = 0;
+  for (const c of cache.values()) total += c.verses.length;
+  // Map preserves insertion order, so the first key is the least-recently used.
+  while (total > MAX_CACHED_VERSES && cache.size > 1) {
+    const oldest = cache.keys().next().value as string;
+    total -= cache.get(oldest)?.verses.length ?? 0;
+    cache.delete(oldest);
+  }
+}
 
 interface TranslationMeta {
   code: string; // Bolls Life translation code
@@ -34,7 +50,11 @@ export async function fetchBibleChapter(
   const cacheKey = `${lang}_${normalizedBookId}_${chapter}`;
 
   if (cache.has(cacheKey)) {
-    return cache.get(cacheKey)!;
+    // Mark as most-recently used so the eviction loop keeps it longest.
+    const hit = cache.get(cacheKey)!;
+    cache.delete(cacheKey);
+    cache.set(cacheKey, hit);
+    return hit;
   }
 
   const bookInfo = BIBLE_BOOKS.find(b => b.id.toUpperCase() === normalizedBookId);
@@ -148,7 +168,7 @@ export async function fetchBibleChapter(
     }
   }
 
-  cache.set(cacheKey, result);
+  rememberChapter(cacheKey, result);
   return result;
 }
 

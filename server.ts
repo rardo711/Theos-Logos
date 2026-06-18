@@ -338,6 +338,14 @@ async function startServer() {
       )
       .replace(/&#(\d+);/g, (_m, n) => String.fromCodePoint(Number(n)));
 
+  // Short-lived, bounded runtime cache for parsed ESV chapters. Keeps repeat
+  // reads and page reloads from spending the ESV API's 5,000-queries/day quota.
+  // Transient memory only (TTL + LRU eviction) — never a persisted copy.
+  type EsvVerse = { verse: number; text: string; title?: string };
+  const esvCache = new Map<string, { at: number; verses: EsvVerse[] }>();
+  const ESV_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+  const ESV_CACHE_MAX = 300; // chapters
+
   // Fetch one chapter from the ESV API and parse its passage HTML into the
   // [{ verse, text, title? }] array the client renders. Section headings
   // (<h3>/<h4>) attach to the verse that immediately follows them.
@@ -453,9 +461,19 @@ async function startServer() {
     // [{ verse, text, title? }] shape the client expects. Falls through to
     // Bolls if the key is absent, the call fails, or no verses come back.
     if (translation === "ESV" && process.env.ESV_API_KEY && book) {
+      const cacheKey = `${String(book).toLowerCase()}|${chapter}`;
+      const cached = esvCache.get(cacheKey);
+      if (cached && Date.now() - cached.at < ESV_CACHE_TTL_MS) {
+        return res.json(cached.verses);
+      }
       try {
         const verses = await fetchEsvChapter(String(book), Number(chapter));
         if (verses.length > 0) {
+          esvCache.set(cacheKey, { at: Date.now(), verses });
+          // Evict the oldest entry once we exceed the cap (Map keeps insertion order).
+          if (esvCache.size > ESV_CACHE_MAX) {
+            esvCache.delete(esvCache.keys().next().value as string);
+          }
           return res.json(verses);
         }
         console.warn("[ESV API] returned no verses; falling back to Bolls.");
