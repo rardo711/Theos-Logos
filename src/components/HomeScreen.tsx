@@ -21,40 +21,46 @@ interface HomeScreenProps {
   onOpenSearch: () => void;
   onSelectBook: (book: Book) => void;
   onSelectHistory: (item: HistoryItem) => void;
+  onDailyVerseClick: (bookId: string, chapter: number, verse: number) => void;
 }
 
 /** Rotating Scripture passage for "The Daily Logos" — keyed to the day so it is
  *  stable for a given date. */
-const DAILY_VERSES: { en: string; es: string; refEn: string; refEs: string }[] = [
+const DAILY_VERSES: { en: string; es: string; refEn: string; refEs: string; bookId: string; chapter: number; verse: number }[] = [
   {
     en: "In the beginning was the Word, and the Word was with God, and the Word was God.",
     es: "En el principio era el Verbo, y el Verbo era con Dios, y el Verbo era Dios.",
     refEn: "John 1:1",
     refEs: "Juan 1:1",
+    bookId: "JHN", chapter: 1, verse: 1,
   },
   {
     en: "Your word is a lamp to my feet and a light to my path.",
     es: "Lámpara es a mis pies tu palabra, y lumbrera a mi camino.",
     refEn: "Psalm 119:105",
     refEs: "Salmos 119:105",
+    bookId: "PSA", chapter: 119, verse: 105,
   },
   {
     en: "The grass withers, the flower fades, but the word of our God will stand forever.",
     es: "Sécase la hierba, marchítase la flor; mas la palabra del Dios nuestro permanece para siempre.",
     refEn: "Isaiah 40:8",
     refEs: "Isaías 40:8",
+    bookId: "ISA", chapter: 40, verse: 8,
   },
   {
     en: "Man shall not live by bread alone, but by every word that comes from the mouth of God.",
     es: "No sólo de pan vivirá el hombre, sino de toda palabra que sale de la boca de Dios.",
     refEn: "Matthew 4:4",
     refEs: "Mateo 4:4",
+    bookId: "MAT", chapter: 4, verse: 4,
   },
   {
     en: "All Scripture is breathed out by God and profitable for teaching, for reproof, for correction, and for training in righteousness.",
     es: "Toda la Escritura es inspirada por Dios, y útil para enseñar, para redargüir, para corregir, para instruir en justicia.",
     refEn: "2 Timothy 3:16",
     refEs: "2 Timoteo 3:16",
+    bookId: "2TI", chapter: 3, verse: 16,
   },
 ];
 
@@ -115,6 +121,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenSearch,
   onSelectBook,
   onSelectHistory,
+  onDailyVerseClick,
 }) => {
   const { lang, s } = useI18n();
   const [openCollection, setOpenCollection] = useState<string | null>(null);
@@ -196,12 +203,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           transition={{ duration: 0.4, delay: 0.05, ease: [0.2, 0.8, 0.2, 1] }}
           className="mb-10"
         >
-          <div className="bg-stone-50 dark:bg-stone-900 border-l-4 border-[#821111] rounded-r-2xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <ScrollText size={16} className="text-[#821111] dark:text-red-400" />
-              <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-stone-400 dark:text-stone-500">
-                {s.home.dailyLogos}
-              </span>
+          <button
+            onClick={() => onDailyVerseClick(verse.bookId, verse.chapter, verse.verse)}
+            className="w-full text-left bg-stone-50 dark:bg-stone-900 border-l-4 border-[#821111] rounded-r-2xl p-6 hover:bg-stone-100 dark:hover:bg-stone-800/80 active:scale-[0.99] transition-all group"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <ScrollText size={16} className="text-[#821111] dark:text-red-400" />
+                <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-stone-400 dark:text-stone-500">
+                  {s.home.dailyLogos}
+                </span>
+              </div>
+              <ArrowRight size={14} className="text-stone-300 dark:text-stone-600 group-hover:text-[#821111] dark:group-hover:text-red-400 transition-colors" />
             </div>
             <blockquote className="font-serif italic text-stone-800 dark:text-stone-100 text-lg leading-relaxed mb-3">
               &ldquo;{lang === "es" ? verse.es : verse.en}&rdquo;
@@ -209,7 +222,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <p className="text-xs text-stone-500 dark:text-stone-400">
               — <span className="italic">{lang === "es" ? verse.refEs : verse.refEn}</span>
             </p>
-          </div>
+          </button>
         </motion.section>
 
         {/* ── Scholarly Collections ────────────────────────────────── */}

@@ -136,16 +136,18 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [typography, setTypography] = useState<{
     size: number;
+    commentarySize: number;
     font: "serif" | "sans";
     theme: "light" | "dark" | "auto";
   }>(() => {
     const saved = localStorage.getItem("theos_logos_typography");
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return { commentarySize: 2, ...parsed };
       } catch (e) {}
     }
-    return { size: 1, font: "serif", theme: "auto" };
+    return { size: 1, commentarySize: 2, font: "serif", theme: "auto" };
   });
 
   const [history, setHistory] = useState<HistoryItem[]>(() => {
@@ -261,6 +263,7 @@ export default function App() {
       localStorage.setItem("theos_logos_typography", JSON.stringify(typography));
       const sizes = ["14px", "16px", "18px", "20px", "24px", "28px", "32px"]; // 7 sizes
       document.documentElement.style.setProperty("--reading-font-size", sizes[typography.size] || "18px");
+      document.documentElement.style.setProperty("--commentary-font-size", sizes[typography.commentarySize] || "18px");
 
       if (typography.font === "sans") {
         document.documentElement.classList.add("force-sans");
@@ -892,6 +895,44 @@ export default function App() {
 
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-2">
+                            {s.commentaryFontSize}
+                          </p>
+                          <div className="flex items-center gap-4 bg-stone-100/50 dark:bg-stone-800/50 p-3 rounded-xl border border-stone-200/50 dark:border-stone-700/50">
+                            <button
+                              onClick={() => setTypography(prev => ({...prev, commentarySize: Math.max(0, prev.commentarySize - 1)}))}
+                              disabled={typography.commentarySize === 0}
+                              className="text-sm font-serif text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            >
+                              A
+                            </button>
+                            <div className="relative flex-1 flex items-center mx-2">
+                              <input
+                                type="range"
+                                min="0"
+                                max="6"
+                                step="1"
+                                value={typography.commentarySize}
+                                onChange={(e) =>
+                                  setTypography((prev) => ({
+                                    ...prev,
+                                    commentarySize: parseInt(e.target.value),
+                                  }))
+                                }
+                                className="w-full appearance-none bg-stone-300 dark:bg-stone-600 h-1 rounded-full outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-[#821111] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
+                              />
+                            </div>
+                            <button
+                              onClick={() => setTypography(prev => ({...prev, commentarySize: Math.min(6, prev.commentarySize + 1)}))}
+                              disabled={typography.commentarySize === 6}
+                              className="text-2xl font-serif text-stone-800 dark:text-stone-200 hover:text-stone-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            >
+                              A
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-2">
                             {s.typeface}
                           </p>
                           <div className="flex bg-stone-100/50 dark:bg-stone-800/50 rounded-xl p-1 backdrop-blur-sm border border-stone-200/50 dark:border-stone-700/50">
@@ -1007,6 +1048,17 @@ export default function App() {
                   setViewMode("bible");
                 }}
                 onSelectHistory={openHistoryItem}
+                onDailyVerseClick={(bookId, chapter, verse) => {
+                  const book = BIBLE_BOOKS.find(b => b.id === bookId);
+                  if (book) {
+                    setCurrentBook(book);
+                    setCurrentChapter(chapter);
+                    setBibleTargetVerse(verse);
+                    setSearchTrigger(null);
+                    setCommentaryState(prev => ({ ...prev, text: null, query: "", error: null }));
+                    setViewMode("bible");
+                  }
+                }}
               />
             </div>
           )}

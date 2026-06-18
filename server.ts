@@ -108,9 +108,10 @@ BREVITY AND CONSISTENCY:
 FORMATTING:
 - \`##\` major sections, \`###\` sub-sections. Never use bold as a heading substitute.
 - Title-case headings. Not ALL CAPS.
+- Every \`##\` or \`###\` heading MUST appear on its own line. Follow it with a blank line, then begin the body text on the next line. NEVER write body text on the same line as a heading marker.
 - Short paragraphs (2–4 sentences). Bullet lists for enumerations.
 - Original-language terms: **ἀγάπη** (*agapē*, G26).
-- Blockquotes for direct quotations only, with attribution on the same line.
+- Blockquotes for direct quotations only, with attribution on the same line as the closing \`>\`.
 - Begin directly with the first heading — no filler openers.
 
 Tone: Objective, academic, precise — define technical terms on first use.
