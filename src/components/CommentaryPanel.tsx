@@ -437,7 +437,11 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="bg-white dark:bg-stone-900 rounded-t-3xl md:rounded-2xl shadow-2xl w-full max-w-2xl h-[85vh] md:h-auto md:max-h-[85vh] flex flex-col overflow-hidden border-t md:border border-stone-200 dark:border-stone-800"
+              className="bg-white dark:bg-stone-900 rounded-t-3xl md:rounded-2xl shadow-2xl w-full max-w-2xl md:h-auto md:max-h-[85vh] flex flex-col overflow-hidden border-t md:border border-stone-200 dark:border-stone-800"
+              // On mobile the sheet shrinks when the keyboard opens so the header
+              // (and close button) always stay on-screen. --keyboard-height is
+              // kept up-to-date by App.tsx via the VisualViewport API.
+              style={{ height: "calc(85vh - var(--keyboard-height, 0px))" }}
             >
               {/* Mobile Drag Indicator */}
               <div className="w-full flex justify-center pt-3 pb-1 md:hidden bg-stone-50 dark:bg-stone-900">
@@ -528,8 +532,10 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                     autoCorrect="on"
                     autoCapitalize="sentences"
                     enterKeyHint="search"
-                    autoFocus
-                    // text-base (≥16px) keeps iOS from auto-zooming on focus.
+                    // text-base (≥16px) prevents iOS from auto-zooming on focus.
+                    // No autoFocus: the modal shows the highlighted-text context
+                    // first so the user can read before typing; they tap to open
+                    // the keyboard when ready.
                     className="flex-1 px-4 py-3 border border-stone-200 dark:border-stone-800 rounded-xl text-base font-medium caret-[#821111] dark:caret-red-400 focus:outline-none focus:ring-2 focus:ring-[#821111]/20 dark:focus:ring-red-900/20 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
                     value={followUp.query}
                     onChange={(e) =>
