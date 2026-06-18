@@ -369,7 +369,13 @@ async function startServer() {
         const errorText = await response.text();
         return res.status(response.status).json({ error: "Bible API Error", details: errorText });
       }
-      return res.json(await response.json());
+      const payload = await response.json();
+      // One-time field audit: log the keys returned by Bolls so we can confirm
+      // whether a 'title' / 'heading' field is actually present in production.
+      if (Array.isArray(payload) && payload.length > 0) {
+        console.log(`[BibleProxy] ${translation} ${bookId}/${chapter} — verse fields:`, Object.keys(payload[0]));
+      }
+      return res.json(payload);
     } catch (error: any) {
       console.error("[Server] Bible Proxy Error:", error);
       return res.status(500).json({ error: "Failed to fetch Bible text", message: error.message });
