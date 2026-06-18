@@ -234,8 +234,11 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
               selectedText = selectedText.substring(0, 400) + "...";
             }
 
+            // Anchor BELOW the selection: iOS renders its own copy/look-up
+            // callout directly above a highlight, which would otherwise hide
+            // this "Research this reference" button behind the system menu.
             setSelectionRect({
-              top: Math.max(10, rect.top - 45), // Position above the selection, keep on screen
+              top: rect.bottom + 12,
               left: rect.left + rect.width / 2,
               text: selectedText,
             });
@@ -386,7 +389,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
       <AnimatePresence>
         {selectionRect && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            initial={{ opacity: 0, y: -10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             className="fixed z-[60]"
@@ -395,20 +398,25 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
               left: selectionRect.left,
               transform: "translateX(-50%)",
             }}
+            // Stop the document-level selection handlers from clearing the
+            // popover on the same gesture that taps it — otherwise the tap
+            // never reaches onClick and the follow-up never opens.
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
           >
             <div
               className="relative group cursor-pointer"
               onClick={openFollowUpModal}
             >
-              <button className="bg-stone-900 dark:bg-stone-800 text-white px-5 py-2.5 md:px-4 md:py-2 rounded-2xl text-sm font-medium flex items-center gap-2 group-hover:bg-[#821111] dark:group-hover:bg-red-900 transition-colors shadow-2xl border border-stone-800/80 whitespace-nowrap">
+              {/* Triangle pointer — on top, since the bar sits below the selection */}
+              <div className="absolute left-1/2 -top-1.5 -translate-x-1/2 w-3 h-3 bg-stone-900 dark:bg-stone-800 group-hover:bg-[#821111] dark:group-hover:bg-red-900 transition-colors rotate-45 border-l border-t border-stone-800/80" />
+              <button className="relative bg-stone-900 dark:bg-stone-800 text-white px-5 py-2.5 md:px-4 md:py-2 rounded-2xl text-sm font-medium flex items-center gap-2 group-hover:bg-[#821111] dark:group-hover:bg-red-900 transition-colors shadow-2xl border border-stone-800/80 whitespace-nowrap">
                 <MessageSquare
                   size={16}
                   className="text-stone-300 group-hover:text-white transition-colors"
                 />
                 {s.researchReference}
               </button>
-              {/* Little triangle pointer */}
-              <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-3 h-3 bg-stone-900 dark:bg-stone-800 group-hover:bg-[#821111] dark:group-hover:bg-red-900 transition-colors rotate-45 border-r border-b border-stone-800/80" />
             </div>
           </motion.div>
         )}
@@ -516,7 +524,13 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
                   <input
                     type="text"
                     placeholder={s.followUpPlaceholder}
-                    className="flex-1 px-4 py-3 border border-stone-200 dark:border-stone-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#821111]/20 dark:focus:ring-red-900/20 bg-white dark:bg-stone-800 text-stone-800 dark:text-white"
+                    autoComplete="off"
+                    autoCorrect="on"
+                    autoCapitalize="sentences"
+                    enterKeyHint="search"
+                    autoFocus
+                    // text-base (≥16px) keeps iOS from auto-zooming on focus.
+                    className="flex-1 px-4 py-3 border border-stone-200 dark:border-stone-800 rounded-xl text-base font-medium caret-[#821111] dark:caret-red-400 focus:outline-none focus:ring-2 focus:ring-[#821111]/20 dark:focus:ring-red-900/20 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
                     value={followUp.query}
                     onChange={(e) =>
                       setFollowUp((prev) => ({

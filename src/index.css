@@ -149,13 +149,19 @@
 
 .verse-number {
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 11px;
   vertical-align: super;
   margin-right: 3px;
   letter-spacing: -0.04em;
-  font-weight: 500;
+  font-weight: 600;
   user-select: none;
-  @apply text-stone-400 dark:text-stone-500 opacity-[0.65];
+  color: #821111;
+  opacity: 0.85;
+}
+
+.dark .verse-number {
+  color: #f87171; /* red-400 — legible against the dark page */
+  opacity: 0.9;
 }
 
 .commentary-content {

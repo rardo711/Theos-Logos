@@ -4,6 +4,8 @@ export interface Verse {
   chapter: number;
   verse: number;
   text: string;
+  /** ESV-style section heading that precedes this verse, when the source provides one. */
+  title?: string;
 }
 
 export interface BibleChapter {
