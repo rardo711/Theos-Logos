@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { BibleChapter } from "../types";
 import { useI18n } from "../i18n";
-import { Loader2, Search, X, BookOpen } from "lucide-react";
+import { Loader2, Search, X, BookOpen, ArrowUp } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface BibleViewerProps {
@@ -119,8 +119,12 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
               selectedText = selectedText.substring(0, 50) + "..."; // limit word size
             }
 
+            // Anchor BELOW the selection. iOS draws its own copy/look-up callout
+            // directly above a selection, so a button placed above collides with
+            // (and is hidden behind) the system menu. Sitting below keeps ours
+            // reachable.
             setSelectionRect({
-              top: Math.max(10, rect.top - 45),
+              top: rect.bottom + 12,
               left: rect.left + rect.width / 2,
               text: selectedText,
             });
@@ -380,21 +384,29 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
             {chapter.verses.map((verse) => {
               const sel = selectedVerse === verse.verse;
               return (
-                <span
-                  key={verse.verse}
-                  ref={(el) => { if (el) verseRefs.current.set(verse.verse, el); }}
-                  className={`inline cursor-pointer transition-all duration-200 ${sel ? "verse-selected" : ""}`}
-                  style={{ borderRadius: 4, padding: "2px 5px" }}
-                  onClick={() => {
-                    setSelectedVerse(sel ? null : verse.verse);
-                    setSearchQuery("");
-                  }}
-                >
-                  <sup className="verse-number">
-                    {verse.verse}
-                  </sup>
-                  <span className="font-serif">{verse.text}</span>{" "}
-                </span>
+                <React.Fragment key={verse.verse}>
+                  {verse.title && (
+                    // ESV section heading. Block-level so it breaks the verse
+                    // flow exactly where a printed Bible starts a new section.
+                    <h3 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-lg md:text-xl mt-8 mb-3 first:mt-0" style={{ letterSpacing: "-0.01em" }}>
+                      {verse.title}
+                    </h3>
+                  )}
+                  <span
+                    ref={(el) => { if (el) verseRefs.current.set(verse.verse, el); }}
+                    className={`inline cursor-pointer transition-all duration-200 ${sel ? "verse-selected" : ""}`}
+                    style={{ borderRadius: 4, padding: "2px 5px" }}
+                    onClick={() => {
+                      setSelectedVerse(sel ? null : verse.verse);
+                      setSearchQuery("");
+                    }}
+                  >
+                    <sup className="verse-number">
+                      {verse.verse}
+                    </sup>
+                    <span className="font-serif">{verse.text}</span>{" "}
+                  </span>
+                </React.Fragment>
               );
             })}
           </div>
@@ -426,7 +438,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
       <AnimatePresence>
         {selectionRect && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            initial={{ opacity: 0, y: -10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             className="fixed z-[60]"
@@ -435,6 +447,10 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
               left: selectionRect.left,
               transform: "translateX(-50%)",
             }}
+            // Keep the document-level selection handlers from clearing this
+            // popover the instant it's tapped, so the tap reaches onClick.
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
           >
             <div
               className="relative group cursor-pointer"
@@ -451,12 +467,12 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
                 }
               }}
             >
-              <button className="bg-[#821111] dark:bg-red-900 text-white px-5 py-2.5 md:px-4 md:py-2 rounded-2xl text-xs sm:text-sm font-medium flex items-center gap-2 hover:bg-[#6a0d0d] dark:hover:bg-red-800 transition-colors shadow-2xl border border-red-900/80 whitespace-nowrap">
+              {/* Triangle pointer — on top, since the bar sits below the selection */}
+              <div className="absolute left-1/2 -top-1.5 -translate-x-1/2 w-3 h-3 bg-[#821111] dark:bg-red-900 rotate-45 border-l border-t border-red-900/80" />
+              <button className="relative bg-[#821111] dark:bg-red-900 text-white px-5 py-2.5 md:px-4 md:py-2 rounded-2xl text-xs sm:text-sm font-medium flex items-center gap-2 hover:bg-[#6a0d0d] dark:hover:bg-red-800 transition-colors shadow-2xl border border-red-900/80 whitespace-nowrap">
                 <BookOpen size={16} className="text-red-200" />
                 {s.defineGreekHebrew}
               </button>
-              {/* Little triangle pointer */}
-              <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-3 h-3 bg-[#821111] dark:bg-red-900 rotate-45 border-r border-b border-red-900/80" />
             </div>
           </motion.div>
         )}
@@ -468,7 +484,7 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
           onClick={scrollToTop}
           className="fixed bottom-24 right-8 z-40 p-3 bg-white/80 dark:bg-stone-900/80 backdrop-blur-md border border-stone-200 dark:border-stone-800 rounded-full shadow-lg text-stone-400 dark:text-stone-500 hover:text-[#821111] dark:hover:text-red-400 hover:border-[#821111]/30 dark:hover:border-red-900/30 transition-all duration-300 hidden md:flex"
         >
-          <Search size={20} className="rotate-180" />
+          <ArrowUp size={20} />
         </button>
       )}
 
@@ -506,7 +522,13 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
                 ref={inputRef}
                 type="text"
                 placeholder={s.askPlaceholder}
-                className="w-full pl-9 portrait:pl-11 pr-3 portrait:pr-4 py-2.5 portrait:py-3 border border-stone-200 dark:border-stone-800 rounded-2xl text-sm portrait:text-base focus:outline-none focus:ring-2 focus:ring-[#821111]/30 dark:focus:ring-red-900/30 bg-stone-50/50 dark:bg-stone-950/50 text-stone-800 dark:text-stone-100 transition-all"
+                autoComplete="off"
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                enterKeyHint="search"
+                // text-base (≥16px) is deliberate: smaller inputs make iOS
+                // auto-zoom on focus, which throws off the view while typing.
+                className="w-full pl-9 portrait:pl-11 pr-3 portrait:pr-4 py-3 border border-stone-200 dark:border-stone-800 rounded-2xl text-base font-medium leading-relaxed caret-[#821111] dark:caret-red-400 focus:outline-none focus:ring-2 focus:ring-[#821111]/30 dark:focus:ring-red-900/30 bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-50 transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />

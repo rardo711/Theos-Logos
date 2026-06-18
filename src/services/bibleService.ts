@@ -66,13 +66,21 @@ export async function fetchBibleChapter(
         if (Array.isArray(data) && data.length > 0) {
           console.log(`[BibleService] ${meta.code} Success: ${bookName} ${chapter}`);
 
-          const verses: { book_id: string; book_name: string; chapter: number; verse: number; text: string }[] = data.map((v: any) => ({
-            book_id: book,
-            book_name: bookName,
-            chapter: chapter,
-            verse: v.verse,
-            text: v.text.replace(/<[^>]+>/g, '') // strip any crude HTML just in case
-          }));
+          const verses: { book_id: string; book_name: string; chapter: number; verse: number; text: string; title?: string }[] = data.map((v: any) => {
+            // Bolls returns the ESV section heading ("The Lord Is My Shepherd",
+            // etc.) on the verse where it begins, in a `title` field that may
+            // carry markup. Strip the markup and pass it through so the reader
+            // can render the headings found in a physical ESV.
+            const rawTitle = typeof v.title === "string" ? v.title.replace(/<[^>]+>/g, '').trim() : "";
+            return {
+              book_id: book,
+              book_name: bookName,
+              chapter: chapter,
+              verse: v.verse,
+              text: v.text.replace(/<[^>]+>/g, ''), // strip any crude HTML just in case
+              title: rawTitle || undefined,
+            };
+          });
 
           result = {
             reference: `${bookName} ${chapter}`,
