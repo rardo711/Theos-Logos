@@ -168,8 +168,11 @@
 
 /* ── Commentary Typography Refinements ──────────────────────────── */
 
-/* 2a. Prose line-height */
+/* 2a. Prose line-height + body text scales with the commentary size slider.
+   The markdown renderer hard-codes text-[15px] on <p>/<li>; override it here so
+   the body — not just headings — responds to --commentary-font-size. */
 .commentary-content :where(p, li) {
+  font-size: var(--commentary-font-size, 1.125rem) !important;
   line-height: 1.75 !important;
 }
 

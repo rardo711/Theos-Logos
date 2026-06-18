@@ -33,6 +33,31 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
   const textContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
 
+  // Keyboard-aware positioning for the floating verse prompt. iOS positions
+  // `position: fixed` elements unreliably while the on-screen keyboard is open
+  // (it anchors them to the visual viewport on some versions, the layout
+  // viewport on others), which is why a plain `bottom` offset sometimes leaves
+  // the bar hidden behind the keyboard. Instead we anchor the bar directly to
+  // the visual viewport's bottom edge — which always tracks the keyboard.
+  const [vp, setVp] = useState(() => ({
+    height: window.visualViewport?.height ?? window.innerHeight,
+    offsetTop: window.visualViewport?.offsetTop ?? 0,
+  }));
+  useEffect(() => {
+    const vvp = window.visualViewport;
+    if (!vvp) return;
+    const update = () => setVp({ height: vvp.height, offsetTop: vvp.offsetTop });
+    vvp.addEventListener("resize", update);
+    vvp.addEventListener("scroll", update);
+    return () => {
+      vvp.removeEventListener("resize", update);
+      vvp.removeEventListener("scroll", update);
+    };
+  }, []);
+  // When the keyboard is up, sit just above it; otherwise sit above the bottom nav.
+  const keyboardOpen = window.innerHeight - (vp.offsetTop + vp.height) > 60;
+  const promptGap = keyboardOpen ? 12 : 88;
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
     
@@ -447,9 +472,16 @@ export const BibleViewer: React.FC<BibleViewerProps> = ({
         </button>
       )}
 
-      {/* Floating Prompt Field */}
+      {/* Floating Prompt Field — anchored to the visual viewport bottom so it
+          always clears the iOS keyboard (see vp tracking above). */}
       {selectedVerse !== null && (
-        <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+var(--keyboard-height,0px))] landscape:bottom-[calc(4rem+env(safe-area-inset-bottom)+var(--keyboard-height,0px))] lg:bottom-[calc(3rem+var(--keyboard-height,0px))] left-1/2 -translate-x-1/2 w-[92%] max-w-lg bg-white/95 dark:bg-stone-900/95 backdrop-blur-2xl border border-stone-200 dark:border-stone-800 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-black/50 p-4 portrait:p-5 z-50 animate-in fade-in slide-in-from-bottom-6 duration-500 transition-[bottom] ease-out">
+        <div
+          className="fixed left-1/2 w-[92%] max-w-lg bg-white/95 dark:bg-stone-900/95 backdrop-blur-2xl border border-stone-200 dark:border-stone-800 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-black/50 p-4 portrait:p-5 z-50 animate-in fade-in slide-in-from-bottom-6 duration-500"
+          style={{
+            top: vp.offsetTop + vp.height,
+            transform: `translateX(-50%) translateY(calc(-100% - ${promptGap}px))`,
+          }}
+        >
           <div className="flex justify-between items-center mb-3 portrait:mb-4">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 bg-[#821111] dark:bg-red-500 rounded-full animate-pulse" />
