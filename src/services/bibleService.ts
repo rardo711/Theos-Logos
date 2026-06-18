@@ -1,6 +1,5 @@
 import { BibleChapter, BIBLE_BOOKS } from "../types";
 import { ES_BOOK_NAMES, Lang } from "../i18n";
-import { getEsvHeading } from "../data/esvHeadings";
 
 const cache = new Map<string, BibleChapter>();
 
@@ -52,7 +51,7 @@ export async function fetchBibleChapter(
   // Primary: backend proxy (Bolls API), translation chosen by language
   if (bookIndex > 0) {
     try {
-      const url = `/api/bible/${meta.code}?bookId=${bookIndex}&chapter=${chapter}`;
+      const url = `/api/bible/${meta.code}?bookId=${bookIndex}&chapter=${chapter}&book=${encodeURIComponent(englishName)}`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -100,7 +99,7 @@ export async function fetchBibleChapter(
               chapter: chapter,
               verse: v.verse,
               text: cleanText,
-              title: rawTitle || getEsvHeading(normalizedBookId, chapter, v.verse) || undefined,
+              title: rawTitle || undefined,
             };
           });
 
