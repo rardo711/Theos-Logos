@@ -314,7 +314,45 @@ async function startServer() {
       distFiles,
       assetFiles,
       geminiKeyConfigured: Boolean(process.env.GEMINI_API_KEY),
+      esvKeyConfigured: Boolean(process.env.ESV_API_KEY),
     });
+  });
+
+  // Live ESV API connectivity check. Reports whether the server can actually
+  // reach Crossway with the configured key — distinguishes "key missing" from
+  // "network egress blocks api.esv.org" from "working". Never returns the key.
+  app.get("/api/debug/esv", async (_req, res) => {
+    if (!process.env.ESV_API_KEY) {
+      return res.json({ ok: false, reason: "ESV_API_KEY not configured on the server." });
+    }
+    try {
+      const resp = await fetch(
+        "https://api.esv.org/v3/passage/text/?q=John+3:16&include-passage-references=false&include-footnotes=false&include-headings=false&include-verse-numbers=false&include-short-copyright=false",
+        { headers: { Authorization: `Token ${process.env.ESV_API_KEY}` } },
+      );
+      const body = await resp.text();
+      if (!resp.ok) {
+        return res.json({
+          ok: false,
+          status: resp.status,
+          reason:
+            resp.status === 401
+              ? "ESV API rejected the key (401) — check the key value."
+              : `ESV API returned ${resp.status}.`,
+          detail: body.slice(0, 200),
+        });
+      }
+      const sample = (() => {
+        try { return (JSON.parse(body)?.passages?.[0] ?? "").trim().slice(0, 120); } catch { return ""; }
+      })();
+      return res.json({ ok: true, status: resp.status, sample });
+    } catch (error: any) {
+      return res.json({
+        ok: false,
+        reason: "Network error reaching api.esv.org (egress allowlist may block it).",
+        detail: String(error?.message ?? error).slice(0, 200),
+      });
+    }
   });
 
   // Bible text proxy (Bolls Life — no key required).
