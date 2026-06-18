@@ -125,13 +125,13 @@ export const getMarkdownComponents = (
   ul: ({ node, ...props }: any) => (
     <ul
       {...props}
-      className="list-disc list-outside ml-5 my-4 space-y-2 text-stone-700 dark:text-stone-300 marker:text-[#821111]/60 dark:marker:text-red-800"
+      className="list-disc list-outside ps-5 my-4 space-y-2 text-stone-700 dark:text-stone-300 marker:text-[#821111]/60 dark:marker:text-red-800"
     />
   ),
   ol: ({ node, ...props }: any) => (
     <ol
       {...props}
-      className="list-decimal list-outside ml-5 my-4 space-y-2 text-stone-700 dark:text-stone-300 marker:text-[#821111] dark:marker:text-red-800 marker:font-bold"
+      className="list-decimal list-outside ps-5 my-4 space-y-2 text-stone-700 dark:text-stone-300 marker:text-[#821111] dark:marker:text-red-800 marker:font-bold"
     />
   ),
   hr: ({ node, ...props }: any) => (

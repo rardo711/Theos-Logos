@@ -828,6 +828,9 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Typography settings are hidden on the Library home screen — there
+                  is no reading content to restyle there. */}
+              {viewMode !== "home" && (
               <div className="relative">
                 <button
                   onClick={() => {
@@ -1003,6 +1006,7 @@ export default function App() {
                   </>
                 )}
               </div>
+              )}
 
               <div className="relative">
                 <button
@@ -1064,6 +1068,19 @@ export default function App() {
           )}
           {/* Mobile/Tablet Layout (Animated) */}
           <div className="flex-1 min-h-0 min-w-0 flex lg:hidden relative overflow-hidden">
+            {/* Book/chapter selector — rendered at the layout level (not inside the
+                Bible tab) so it can be opened from the Bible, Research, or Word
+                Study tabs alike. */}
+            {viewMode !== "home" && (
+              <FloatingBibleNav
+                currentBook={currentBook}
+                currentChapter={currentChapter}
+                onBookChange={handleBookChange}
+                onChapterChange={handleChapterChange}
+                isVisible={showFloatingNav}
+                onClose={() => setShowFloatingNav(false)}
+              />
+            )}
             <AnimatePresence mode="wait">
               {/* Bible Viewer */}
               {viewMode === "bible" && (
@@ -1075,14 +1092,6 @@ export default function App() {
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className="flex-1 min-h-0 min-w-0 w-full h-full overflow-hidden flex flex-col relative"
                 >
-                  <FloatingBibleNav
-                    currentBook={currentBook}
-                    currentChapter={currentChapter}
-                    onBookChange={handleBookChange}
-                    onChapterChange={handleChapterChange}
-                    isVisible={showFloatingNav}
-                    onClose={() => setShowFloatingNav(false)}
-                  />
                   <BibleViewer
                     chapter={chapterData}
                     loading={loading}

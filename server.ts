@@ -18,13 +18,11 @@ CITATION MANDATE — SOURCE HIERARCHY:
 Weight sources by authority, not by how often a claim appears online. Cite the highest tier available.
 
 Tier 1 — Lexical and textual authorities (equal weight with primary texts below):
-- BDB (Brown-Driver-Briggs), HALOT (Hebrew and Aramaic Lexicon of the OT)
-- BDAG (3rd ed.), Thayer's Greek Lexicon, Liddell–Scott–Jones (LSJ)
-- Strong's Concordance — for reference numbers; verify glosses against BDAG/HALOT
-- BibleHub (biblehub.com) interlinear and lexicon pages — for verification links
-- Blue Letter Bible (blueletterbible.org) — Strong's verification
-- STEP Bible (stepbible.org) — Tyndale House lexical data
-- Critical apparatus; NET translator notes
+- Hebrew/Aramaic OT: BDB (Brown-Driver-Briggs), HALOT (Koehler-Baumgartner), Gesenius' Hebrew-Chaldee Lexicon, DCH (Dictionary of Classical Hebrew, Clines), TWOT (Theological Wordbook of the OT), TDOT (Botterweck-Ringgren), NIDOTTE (VanGemeren), Jastrow (Talmudic/Aramaic)
+- Greek NT/classical: BDAG (3rd ed.), Thayer's Greek Lexicon, Liddell–Scott–Jones (LSJ), Louw-Nida Greek-English Lexicon (semantic domains), Moulton-Milligan (Vocabulary of the Greek NT, papyri), Abbott-Smith Manual Greek Lexicon, TDNT (Kittel-Friedrich), NIDNTTE (Silva), Mounce's Expository Dictionary
+- Strong's Concordance — for reference numbers; verify glosses against BDAG/HALOT/Louw-Nida
+- Verification portals: BibleHub (biblehub.com) interlinear and lexicon pages, Blue Letter Bible (blueletterbible.org) Strong's data, STEP Bible (stepbible.org) Tyndale House lexical data, Perseus (perseus.tufts.edu) for LSJ/classical attestation
+- Critical apparatus (NA28/UBS5, BHS/BHQ); NET translator notes
 
 Tier 1 — Primary texts (digitized full-text archives):
 - CCEL (ccel.org) — Church Fathers, Calvin's Commentaries & Institutes, classic Reformed works
@@ -609,13 +607,13 @@ Respond using EXACTLY this structure. If the word maps to more than one original
 The original word in its script, transliteration in italics, Strong's number, and language. Example: **λόγος** (*logos*, G3056) — Greek.
 
 ### ${H.definition}
-A concise 1–2 sentence gloss a layperson can understand, followed by the core formal definition from BDAG (Greek) or HALOT (Hebrew) in one sentence.
+A concise 1–2 sentence gloss a layperson can understand, followed by the core formal definition from the leading lexicon for the language — BDAG or Louw-Nida (Greek), HALOT or DCH (Hebrew) — in one sentence.
 
 ### ${H.keyUsages}
 The 2 most representative occurrences. Format: reference (real, verifiable) + one-sentence note on the sense used.
 
 Be concise. This is a quick reference — omit etymology and semantic range. The user can expand for the full analysis.
-Draw on BDAG, HALOT, Thayer, and Strong's. Never invent a Strong's number or a verse.`;
+Draw on the standard scholarly lexicons for the language: Greek — BDAG, Louw-Nida, Thayer, LSJ, Moulton-Milligan, TDNT/NIDNTTE; Hebrew/Aramaic — HALOT, BDB, Gesenius, DCH, TWOT/NIDOTTE; plus Strong's for the reference number. Never invent a Strong's number or a verse.`;
 
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
@@ -668,18 +666,22 @@ ${refContext}
 Do NOT restate the Original Language or Definition. Begin directly with Semantic Range.
 
 ### ${H.semanticRange}
-All distinct senses this word can carry, as a bullet list with a one-line gloss each.
+All distinct senses this word can carry, as a bullet list with a one-line gloss each. Where a major lexicon (e.g. BDAG, Louw-Nida, HALOT) organizes the senses into numbered domains or sub-entries, follow that structure.
 
 ### ${H.usage}
 4–6 representative occurrences. Format: reference (real, verifiable) + note on sense used. Real verses only.
 
 ### ${H.etymology}
-Root, parent language, related forms, cognates. 2–3 sentences.
+Root, parent language, related forms, cognates. Note any relevant attestation outside the Bible (LXX usage, classical Greek per LSJ/Moulton-Milligan, or cognate Semitic forms per HALOT/Gesenius). 2–3 sentences.
 
 ### ${H.sources}
-Bullet list: lexicons consulted (BDAG 3rd ed., Thayer's Greek Lexicon, LSJ, HALOT, Strong's Concordance) with verification links to CCEL (ccel.org), Perseus (perseus.tufts.edu), or Bible Hub where available.
+Bullet list of the specific lexicons and reference works consulted, chosen for this word's language:
+- Greek: BDAG (3rd ed.), Louw-Nida (semantic domains), Thayer, LSJ, Moulton-Milligan, Abbott-Smith, TDNT (Kittel) or NIDNTTE (Silva) where the word is theologically weighty.
+- Hebrew/Aramaic: HALOT, BDB, Gesenius, DCH, TWOT, NIDOTTE; Jastrow for Aramaic/rabbinic forms.
+- Always: Strong's Concordance for the reference number.
+Add verification links to Bible Hub (biblehub.com), Blue Letter Bible (blueletterbible.org), STEP Bible (stepbible.org), Perseus (perseus.tufts.edu), or CCEL (ccel.org) where available.
 
-Draw on BDAG, HALOT, Thayer, and Strong's. Never invent a Strong's number or a verse.`;
+Cite only lexicons genuinely relevant to the word; do not pad the list. Never invent a Strong's number or a verse.`;
 
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
