@@ -323,6 +323,91 @@ async function startServer() {
   // more translations (e.g. LBLA).
   const BIBLE_TRANSLATIONS = new Set(["ESV", "RV1960"]);
 
+  // Decode the handful of HTML entities the ESV API emits in passage HTML.
+  const ESV_ENTITIES: Record<string, string> = {
+    "&nbsp;": " ", "&mdash;": "—", "&ndash;": "–",
+    "&rsquo;": "’", "&lsquo;": "‘",
+    "&ldquo;": "“", "&rdquo;": "”",
+    "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'",
+  };
+  const decodeEsvEntities = (s: string): string =>
+    s
+      .replace(
+        /&nbsp;|&mdash;|&ndash;|&rsquo;|&lsquo;|&ldquo;|&rdquo;|&amp;|&lt;|&gt;|&quot;|&#39;/g,
+        (m) => ESV_ENTITIES[m] ?? m,
+      )
+      .replace(/&#(\d+);/g, (_m, n) => String.fromCodePoint(Number(n)));
+
+  // Fetch one chapter from the ESV API and parse its passage HTML into the
+  // [{ verse, text, title? }] array the client renders. Section headings
+  // (<h3>/<h4>) attach to the verse that immediately follows them.
+  const fetchEsvChapter = async (
+    book: string,
+    chapter: number,
+  ): Promise<{ verse: number; text: string; title?: string }[]> => {
+    const params = new URLSearchParams({
+      q: `${book} ${chapter}`,
+      "include-passage-references": "false",
+      "include-headings": "true",
+      "include-subheadings": "true",
+      "include-verse-numbers": "true",
+      "include-first-verse-numbers": "true",
+      "include-chapter-numbers": "false",
+      "include-footnotes": "false",
+      "include-audio-link": "false",
+      "include-short-copyright": "false",
+      "include-css-link": "false",
+    });
+    const resp = await fetch(`https://api.esv.org/v3/passage/html/?${params.toString()}`, {
+      headers: { Authorization: `Token ${process.env.ESV_API_KEY}` },
+    });
+    if (!resp.ok) throw new Error(`ESV API ${resp.status}`);
+    const data: any = await resp.json();
+    const html = Array.isArray(data?.passages) ? data.passages.join("\n") : "";
+    if (!html.trim()) return [];
+
+    // Replace structure we care about with private-use sentinels, then strip
+    // all remaining markup: headings -> \x01title\x02, verse numbers -> \x03N\x04.
+    let bodyText = html
+      .replace(/<h2[^>]*>[\s\S]*?<\/h2>/gi, " ") // drop the chapter title
+      .replace(
+        /<h[34][^>]*>([\s\S]*?)<\/h[34]>/gi,
+        (_m: string, t: string) => `\x01${t.replace(/<[^>]+>/g, "").trim()}\x02`,
+      )
+      .replace(
+        /<(?:b|span)[^>]*class="[^"]*(?:verse-num|chapter-num)[^"]*"[^>]*>\s*(\d+)[\s\S]*?<\/(?:b|span)>/gi,
+        (_m: string, n: string) => `\x03${n}\x04`,
+      )
+      .replace(/<[^>]+>/g, " ");
+    bodyText = decodeEsvEntities(bodyText);
+
+    const re = /\x01([^\x02]*)\x02|\x03(\d+)\x04/g;
+    const verses: { verse: number; text: string; title?: string }[] = [];
+    let pendingTitle: string | undefined;
+    let preface = "";
+    let current: { verse: number; text: string; title?: string } | null = null;
+    let cursor = 0;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(bodyText))) {
+      const between = bodyText.slice(cursor, m.index);
+      if (current) current.text += between;
+      else preface += between;
+      cursor = re.lastIndex;
+      if (m[1] !== undefined) {
+        pendingTitle = m[1].replace(/\s+/g, " ").trim() || undefined;
+      } else {
+        current = { verse: Number(m[2]), text: "", title: pendingTitle };
+        pendingTitle = undefined;
+        verses.push(current);
+      }
+    }
+    if (current) current.text += bodyText.slice(cursor);
+    // Psalm superscriptions and other text before verse 1 belong to verse 1.
+    if (verses[0] && preface.trim()) verses[0].text = `${preface} ${verses[0].text}`;
+    for (const v of verses) v.text = v.text.replace(/\s+/g, " ").trim();
+    return verses.filter((v) => v.text.length > 0);
+  };
+
   // Bible full-text keyword search proxy (Bolls Life v2 find API).
   // MUST be registered before /api/bible/:translation — otherwise Express
   // matches "search" as a translation name and this route is unreachable.
@@ -358,10 +443,27 @@ async function startServer() {
     if (!BIBLE_TRANSLATIONS.has(translation)) {
       return res.status(400).json({ error: `Unsupported translation '${translation}'` });
     }
-    const { bookId, chapter } = req.query;
+    const { bookId, chapter, book } = req.query;
     if (!bookId || !chapter) {
       return res.status(400).json({ error: "Missing 'bookId' or 'chapter'" });
     }
+
+    // Preferred path for English: Crossway's official ESV API, which serves
+    // the licensed ESV text WITH section headings. Returns the same
+    // [{ verse, text, title? }] shape the client expects. Falls through to
+    // Bolls if the key is absent, the call fails, or no verses come back.
+    if (translation === "ESV" && process.env.ESV_API_KEY && book) {
+      try {
+        const verses = await fetchEsvChapter(String(book), Number(chapter));
+        if (verses.length > 0) {
+          return res.json(verses);
+        }
+        console.warn("[ESV API] returned no verses; falling back to Bolls.");
+      } catch (error: any) {
+        console.warn("[ESV API] request failed; falling back to Bolls:", error.message || error);
+      }
+    }
+
     try {
       const url = `https://bolls.life/get-text/${translation}/${bookId}/${chapter}/`;
       const response = await fetch(url, { headers: { "Accept": "application/json" } });
