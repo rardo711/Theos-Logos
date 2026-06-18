@@ -65,19 +65,40 @@ export async function fetchBibleChapter(
 
         if (Array.isArray(data) && data.length > 0) {
           console.log(`[BibleService] ${meta.code} Success: ${bookName} ${chapter}`);
+          // Diagnostic: log the first verse's fields once so server logs reveal
+          // exactly what Bolls returns (especially whether 'title' is present).
+          if (data[0]) console.log(`[BibleService] first verse fields:`, Object.keys(data[0]));
 
           const verses: { book_id: string; book_name: string; chapter: number; verse: number; text: string; title?: string }[] = data.map((v: any) => {
-            // Bolls returns the ESV section heading ("The Lord Is My Shepherd",
-            // etc.) on the verse where it begins, in a `title` field that may
-            // carry markup. Strip the markup and pass it through so the reader
-            // can render the headings found in a physical ESV.
-            const rawTitle = typeof v.title === "string" ? v.title.replace(/<[^>]+>/g, '').trim() : "";
+            // Bolls may supply the section heading in different fields depending
+            // on the translation version served. Check in priority order:
+            //   1. v.title  — most common
+            //   2. v.heading — some Bolls builds use this name
+            //   3. An <h3>/<h4> tag embedded at the START of v.text
+            // All candidates have HTML stripped and are treated as empty when blank.
+            const extractTag = (html: string, tag: string) => {
+              const m = html.match(new RegExp(`<${tag}[^>]*>(.*?)<\\/${tag}>`, "i"));
+              return m ? m[1].replace(/<[^>]+>/g, "").trim() : "";
+            };
+            const rawTitle =
+              (typeof v.title === "string" ? v.title.replace(/<[^>]+>/g, "").trim() : "") ||
+              (typeof v.heading === "string" ? v.heading.replace(/<[^>]+>/g, "").trim() : "") ||
+              (typeof v.section === "string" ? v.section.replace(/<[^>]+>/g, "").trim() : "") ||
+              extractTag(typeof v.text === "string" ? v.text : "", "h3") ||
+              extractTag(typeof v.text === "string" ? v.text : "", "h4");
+
+            // Strip ALL HTML tags from the verse body after we've mined headings.
+            const cleanText = (typeof v.text === "string" ? v.text : "")
+              .replace(/<h[1-6][^>]*>.*?<\/h[1-6]>/gi, "") // remove embedded heading tags
+              .replace(/<[^>]+>/g, "")                      // strip remaining tags
+              .trim();
+
             return {
               book_id: book,
               book_name: bookName,
               chapter: chapter,
               verse: v.verse,
-              text: v.text.replace(/<[^>]+>/g, ''), // strip any crude HTML just in case
+              text: cleanText,
               title: rawTitle || undefined,
             };
           });
