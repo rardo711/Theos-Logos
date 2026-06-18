@@ -111,6 +111,8 @@ FORMATTING:
 - Original-language terms: **ἀγάπη** (*agapē*, G26).
 - Blockquotes for direct quotations only, with attribution on the same line as the closing \`>\`.
 - Begin directly with the first heading — no filler openers.
+- Output ONLY the finished answer. Never narrate your search process, never print tool or function calls (e.g. \`tool_code\`, \`print(google_search...)\`), and never expose planning or reasoning steps. Searching is internal; the reader sees only the result.
+- Produce the answer exactly ONCE. Do not draft it and then rewrite it, and never append a second copy of the full answer. The response contains each section a single time.
 
 Tone: Objective, academic, precise — define technical terms on first use.
 `;
@@ -128,6 +130,15 @@ function geminiConfigFor(lang: ResponseLang, opts: { grounded?: boolean } = {}) 
   const base = {
     systemInstruction:
       lang === "es" ? theologicalFraming + spanishDirective : theologicalFraming,
+    // Disable model "thinking". With gemini-2.5-flash + Google Search grounding,
+    // the chain-of-thought (search-query planning rendered as `tool_code
+    // print(google_search.search(...))`, a `thought` preamble, and frequently a
+    // full DRAFT of the answer) leaks into the visible text channel instead of
+    // being returned as flagged thought parts. That produced the duplicated,
+    // tool-code-polluted responses. Grounding is server-side and does not depend
+    // on thinking, so disabling it yields a single clean answer with no loss of
+    // search verification.
+    thinkingConfig: { thinkingBudget: 0, includeThoughts: false },
   };
   if (!grounded) return base;
   // Server-side Google Search grounding. We intentionally do NOT set
