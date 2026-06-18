@@ -138,7 +138,8 @@ const en = {
     enterLibraryBtn: "Enter Library",
     // Typography popover
     readingAppearance: "Reading Appearance",
-    fontSize: "Font Size",
+    fontSize: "Bible Text Size",
+    commentaryFontSize: "Commentary Size",
     typeface: "Typeface",
     theme: "Theme",
     themeNames: { auto: "Auto", light: "Light", dark: "Dark" } as Record<string, string>,
@@ -276,7 +277,8 @@ const es: Strings = {
     enterLibraryBtn: "Entrar en la Biblioteca",
     // Typography popover
     readingAppearance: "Apariencia de Lectura",
-    fontSize: "Tamaño de Letra",
+    fontSize: "Tamaño del Texto Bíblico",
+    commentaryFontSize: "Tamaño del Comentario",
     typeface: "Tipografía",
     theme: "Tema",
     themeNames: { auto: "Auto", light: "Claro", dark: "Oscuro" } as Record<string, string>,

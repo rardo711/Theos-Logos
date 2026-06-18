@@ -160,7 +160,7 @@
 
 .commentary-content {
   @apply prose prose-stone dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-serif;
-  font-size: var(--reading-font-size, 1rem);
+  font-size: var(--commentary-font-size, 1.125rem);
   max-width: 72ch;
   margin-left: auto;
   margin-right: auto;
@@ -178,10 +178,10 @@
   padding-bottom: 2rem;
 }
 
-/* 2b. ## headings — Playfair Display, 18 px, hairline rule above */
+/* 2b. ## headings — Playfair Display, scales with --commentary-font-size */
 .commentary-content :where(h2) {
   font-family: "Playfair Display", ui-serif, Georgia, serif !important;
-  font-size: 18px !important;
+  font-size: 1.1em !important;
   font-weight: 600 !important;
   margin-top: 1.75rem !important;
   margin-bottom: 0.5rem !important;
@@ -195,10 +195,10 @@
   border-top-color: rgba(255, 255, 255, 0.08);
 }
 
-/* 2b. ### headings — Inter, 16 px, muted */
+/* 2b. ### headings — Inter, muted, scales with --commentary-font-size */
 .commentary-content :where(h3) {
   font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
-  font-size: 16px !important;
+  font-size: 0.95em !important;
   font-weight: 600 !important;
   color: #a8a29e !important;
   margin-top: 1.25rem !important;
