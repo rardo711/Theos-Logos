@@ -298,6 +298,14 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
     };
   }, [selectionRect]);
 
+  // Hide the floating bottom-nav pill while the deep-research modal is open so
+  // it doesn't linger on top of (or behind) the sheet. Restored on close.
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("nav-visibility", { detail: { visible: !followUp.isOpen } }),
+    );
+  }, [followUp.isOpen]);
+
   const handleTraditions = async () => {
     if (!chapter) return;
     const cacheKey = `${chapter.reference}:${state.selectedVerse ?? "all"}`;
@@ -429,7 +437,7 @@ export const CommentaryPanel: React.FC<CommentaryPanelProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm p-0 md:p-6"
+            className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm p-0 md:p-6"
             style={{ paddingBottom: "var(--keyboard-height, 0px)" }}
           >
             <motion.div
