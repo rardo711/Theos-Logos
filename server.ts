@@ -118,6 +118,10 @@ Tone: Objective, academic, precise — define technical terms on first use.
 `;
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+// Grounded reasoning endpoints (commentary, follow-up, traditions) run on Pro;
+// word study stays on GEMINI_MODEL (Flash). See geminiConfigFor for why the
+// thinking config differs between the two.
+const GEMINI_MODEL_PRO = process.env.GEMINI_MODEL_PRO || "gemini-2.5-pro";
 
 type ResponseLang = "en" | "es";
 
@@ -127,26 +131,37 @@ MANDATE: Respond entirely in neutral Latin American Spanish (no voseo; formal re
 
 function geminiConfigFor(lang: ResponseLang, opts: { grounded?: boolean } = {}) {
   const { grounded = true } = opts;
-  const base = {
-    systemInstruction:
-      lang === "es" ? theologicalFraming + spanishDirective : theologicalFraming,
-    // Disable model "thinking". With gemini-2.5-flash + Google Search grounding,
-    // the chain-of-thought (search-query planning rendered as `tool_code
-    // print(google_search.search(...))`, a `thought` preamble, and frequently a
-    // full DRAFT of the answer) leaks into the visible text channel instead of
-    // being returned as flagged thought parts. That produced the duplicated,
-    // tool-code-polluted responses. Grounding is server-side and does not depend
-    // on thinking, so disabling it yields a single clean answer with no loss of
-    // search verification.
-    thinkingConfig: { thinkingBudget: 0, includeThoughts: false },
-  };
-  if (!grounded) return base;
-  // Server-side Google Search grounding. We intentionally do NOT set
-  // toolConfig.includeServerSideToolInvocations — that "context circulation"
-  // flag is a Gemini 3-only feature (rejected by gemini-2.5-flash) and is only
+  const systemInstruction =
+    lang === "es" ? theologicalFraming + spanishDirective : theologicalFraming;
+
+  if (!grounded) {
+    // Word study runs on Flash. Fully disable "thinking" (thinkingBudget: 0,
+    // valid on Flash) — static lexical data needs no reasoning, and this is the
+    // fastest/cheapest path. includeThoughts: false also keeps any thought
+    // parts out of the streamed text channel.
+    return {
+      systemInstruction,
+      thinkingConfig: { thinkingBudget: 0, includeThoughts: false },
+    };
+  }
+
+  // Grounded endpoints (commentary, follow-up, traditions) run on gemini-2.5-pro.
+  // Pro does NOT allow thinkingBudget: 0 — thinking cannot be disabled on Pro
+  // (valid range 128–32768), so sending 0 returns 400 INVALID_ARGUMENT. We let
+  // Pro manage its own thinking budget but keep includeThoughts: false so its
+  // chain-of-thought is never surfaced in the visible text channel — the same
+  // leak (e.g. `tool_code print(google_search.search(...))` and duplicated
+  // drafts) we suppressed on Flash. Grounding is server-side and unaffected.
+  //
+  // We intentionally do NOT set toolConfig.includeServerSideToolInvocations —
+  // that "context circulation" flag is a Gemini 3-only feature and is only
   // needed when piping tool results into custom function tools, which this app
-  // does not use. Plain googleSearch grounds fine on every current Flash model.
-  return { ...base, tools: [{ googleSearch: {} }] };
+  // does not use. Plain googleSearch grounds fine on current 2.5 models.
+  return {
+    systemInstruction,
+    thinkingConfig: { includeThoughts: false },
+    tools: [{ googleSearch: {} }],
+  };
 }
 
 // When a specific verse is selected, send only a ±5-verse window instead of
@@ -652,7 +667,7 @@ End with a \`## ${H.sourcesConsulted}\` section listing every Tier-1 source retr
     try {
       const stream = await withRetry(() =>
         ai.models.generateContentStream({
-          model: GEMINI_MODEL,
+          model: GEMINI_MODEL_PRO,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           config: geminiConfigFor(lang),
         })
@@ -728,7 +743,7 @@ Use Google Search to verify every quote and source.
     try {
       const stream = await withRetry(() =>
         ai.models.generateContentStream({
-          model: GEMINI_MODEL,
+          model: GEMINI_MODEL_PRO,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           config: geminiConfigFor(lang),
         })
@@ -932,7 +947,7 @@ Use Google Search to verify all quotations and source references.`;
     try {
       const stream = await withRetry(() =>
         ai.models.generateContentStream({
-          model: GEMINI_MODEL,
+          model: GEMINI_MODEL_PRO,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           config: geminiConfigFor(lang),
         })
