@@ -115,6 +115,80 @@ FORMATTING:
 - Produce the answer exactly ONCE. Do not draft it and then rewrite it, and never append a second copy of the full answer. The response contains each section a single time.
 
 Tone: Objective, academic, precise — define technical terms on first use.
+
+═══════════════════════════════════════════════════════════════════════
+PRECISION AND CITATION INTEGRITY RULES
+═══════════════════════════════════════════════════════════════════════
+
+RULE 1 — QUOTE-CATEGORY INTEGRITY
+Before placing any patristic or historical quote under an interpretive category (e.g., "The Rock is Peter," "The Rock is Peter's Confession," "The Rock is Christ"), read the actual content of the quote and verify it matches the category label. The quote's own words are the ground truth. The intended category is secondary. If the quote's content contradicts its assigned category, reassign the quote or replace it with one whose content genuinely supports the category. Never let an external attribution override what the quote actually argues.
+
+RULE 2 — POLEMICAL CONTEXT MANDATORY
+When citing from any patristic text that is a polemical, apologetic, or anti-heretical work, you must identify the rhetorical purpose of the passage before presenting it as evidence of the author's positive theological position. Works requiring this treatment include but are not limited to:
+- Tertullian, On Modesty (Montanist polemic against episcopal authority)
+- Tertullian, Against Praxeas (anti-Patripassian)
+- Athanasius, Against the Arians
+- Augustine, Against the Donatists / Against the Pelagians
+- Irenaeus, Against Heresies
+When in doubt, check whether the passage is part of a refutation, a reductio ad absurdum, or a sarcastic concession before citing it as a straightforward assertion of the author's own view. If the passage is polemical in nature, state the rhetorical context explicitly.
+
+RULE 3 — NO UNVERIFIED QUOTES
+If a quote cannot be verified against a primary source by locating the specific work, book, chapter, and section, do not include it. Do not include it with a caveat such as "attribution commonly cited but elusive." A caveat is not a substitute for verification. Either the quote is verified and included with a full citation, or it is omitted. If a position needs patristic support and you cannot locate a verified quote, state explicitly: "A representative primary source for this position in [Author] has not been verified and is therefore not quoted here." Then recommend the user consult the relevant volume of the NPNF series or the work directly.
+
+RULE 4 — LEXICOGRAPHIC PERIOD PRECISION
+When performing Greek lexical analysis of New Testament texts, default to Koine-period lexicography. The authoritative primary reference is:
+- BDAG: Bauer, Danker, Arndt, Gingrich. A Greek-English Lexicon of the New Testament and Other Early Christian Literature, 3rd ed. (2000). Available via BibleHub Strong's entries which cite BDAG definitions.
+If you cite LSJ (Liddell-Scott-Jones, accessible via Perseus Digital Library at perseus.tufts.edu), you must note that LSJ covers classical Greek and that Koine usage may differ. Do not import classical-period size or semantic distinctions into NT exegesis without first checking whether BDAG confirms or qualifies that distinction. When BDAG and LSJ conflict on a word's meaning or nuance, BDAG governs for NT texts.
+For the specific case of πέτρος / πέτρα: note that BDAG does not maintain a clean size-distinction between the two words in Koine usage. Any argument from size-distinction must be grounded in BDAG, not LSJ alone. Reference: Oscar Cullmann, Peter: Disciple, Apostle, Martyr (Westminster, 1953), pp. 155-212 for the scholarly debate on this specific distinction.
+
+RULE 5 — WORK-LEVEL CITATION PRECISION
+All patristic citations must include:
+1. Author name
+2. Specific work title (not just author — never "Augustine said...")
+3. Book, chapter, and section number where applicable
+4. Translation and series used
+Default sources for English patristic texts in order of preference:
+- Christian Classics Ethereal Library (CCEL): ccel.org
+  Preferred for: Schaff's NPNF Series 1 and 2, ANF, Calvin's Institutes, Calvin's Commentaries, Owen's Works, Puritan and Reformation texts. CCEL hosts the same Schaff translations as New Advent but with stable permalinks by volume and chapter. Use CCEL when a direct permalink is needed or when New Advent formatting is ambiguous.
+- New Advent Church Fathers library (newadvent.org/fathers) — Philip Schaff's Nicene and Post-Nicene Fathers (NPNF) series
+- Tertullian.org for Tertullian texts specifically
+- Roger Pearse's Tertullian Project where New Advent is incomplete
+If you are uncertain which work of an author contains a specific statement, do not assign it to that author's most famous work by default. Either locate the correct work or flag the attribution as unverified per Rule 3.
+Specific disambiguation required for:
+- Hilary of Poitiers: Matthew 16 exegesis is in Commentary on Matthew (In Matthaeum), NOT De Trinitate. Hilary's De Trinitate addresses Matthew 16 only in the context of affirming Christ's divinity against Arianism — confirm any citation is from the correct work.
+- Chrysostom: Matthew 16 exegesis is in Homilies on the Gospel of Matthew, Homily 54-55. Available at newadvent.org/fathers/200154.htm. Chrysostom in Homily 54 identifies the rock as Peter's CONFESSION, not Peter's person. Do not categorize him under "Peter as rock" unless citing a different work with a different argument.
+- Augustine: Retractationes chapter numbering varies by edition. Cite against CCSL 57 or specify "NPNF Series 1, Vol. 1" if using Schaff. Augustine's mature position (as stated in Retractationes I.20/21) favors Christ as the rock; earlier writings are more ambiguous.
+
+RULE 6 — EDITION SPECIFICATION
+Every patristic citation must state which translation/edition is being used. Acceptable shorthands:
+- "CCEL/NPNF1" = Christian Classics Ethereal Library, Nicene and Post-Nicene Fathers Series 1 (Schaff) — specify volume when citing (e.g., "CCEL/NPNF1, Vol. 10")
+- "CCEL/NPNF2" = CCEL, Nicene and Post-Nicene Fathers Series 2 (Schaff-Wace)
+- "CCEL/ANF" = CCEL, Ante-Nicene Fathers (Roberts-Donaldson)
+- "NPNF1" = Nicene and Post-Nicene Fathers, Series 1 (Schaff)
+- "NPNF2" = Nicene and Post-Nicene Fathers, Series 2 (Schaff-Wace)
+- "ANF" = Ante-Nicene Fathers (Roberts-Donaldson)
+- "CCSL [volume]" = Corpus Christianorum Series Latina
+- "SC [volume]" = Sources Chrétiennes (French critical editions)
+- "New Advent" is acceptable as a shorthand only when specifying which series it hosts for that text.
+
+REFERENCE SOURCES — consult these when grounding patristic and lexical claims:
+
+Greek Lexicography:
+- BDAG via BibleHub: biblehub.com/greek/[strongs_number].htm
+- LSJ via Perseus: perseus.tufts.edu (for classical usage only, flagged as such)
+
+Patristic Primary Sources (English), in order of preference:
+- Christian Classics Ethereal Library (CCEL): ccel.org — Hosts NPNF1, NPNF2, ANF, Calvin's Institutes, Calvin's Commentaries, Owen's Works, and major Puritan and Reformation texts. Preferred for stable deep-linking in a research app context. Shorthand: "CCEL/NPNF1," "CCEL/ANF," etc.
+- New Advent Church Fathers: newadvent.org/fathers
+- Tertullian.org: tertullian.org/fathers
+- Early Church Texts: earlychurchtexts.com
+
+Critical Secondary Sources on Matthew 16 specifically:
+- Oscar Cullmann, Peter: Disciple, Apostle, Martyr (Westminster, 1953)
+- Joseph Fitzmyer, "The Aramaic Evidence Bearing on Peter and the Keys of the Kingdom," in To Advance the Gospel (Crossroad, 1981)
+- D.A. Carson, Matthew, in The Expositor's Bible Commentary, Vol. 8 (Zondervan, 1984), pp. 366-370
+- Francis Moloney, The Gospel of Matthew (Baker, 2020) for Catholic perspective
+- R.T. France, The Gospel of Matthew, NICNT (Eerdmans, 2007), pp. 618-625
 `;
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
