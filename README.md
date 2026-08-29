@@ -26,21 +26,22 @@ Read **[SOURCES.md](SOURCES.md)** before citing a generated claim.
 
 ---
 
-## Deploy this branch (Vercel)
+## Deploy this branch (Render)
 
-`main` is a different stack. Point a Vercel project at **`scholar-desk`**.
+`main` is a different stack. Point the existing Render **web service** at **`scholar-desk`**.
 
-1. [Import the GitHub repo](https://vercel.com/new) (or add this repo to an existing project).
-2. Set **Production Branch** to `scholar-desk` *for this test project only* — or leave production on `main` and open a Preview deployment of `scholar-desk`.
-3. Framework: Vite / Other. Build command: `npm run build`. Output is Nitro’s `.vercel/output`.
-4. Environment (optional):
-   - `XAI_API_KEY` — Inquire / Compare only
+1. Branch: `scholar-desk`
+2. Build: `npm install && npm run build`
+3. Start: `npm start`
+4. Node 22 (from `.nvmrc`)
+5. Environment:
    - `VITE_AUTH_ENABLED=false`
-5. Node 22.
+   - `XAI_API_KEY` — optional; only for Inquire / Compare
+   - `NPM_CONFIG_PRODUCTION=false` if the install still skips Vite
 
-Without `XAI_API_KEY`, the reader and every curated desk note still work. Inquire will say reception is unavailable.
+Without `XAI_API_KEY`, the reader and every curated desk note still work.
 
-Do not use the `render.yaml` / `railway.toml` on `main` for this branch.
+Vercel also works (Nitro `vercel` preset). Do not use the Railway template on `main` for this branch.
 
 ---
 

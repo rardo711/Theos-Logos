@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: theos-logos
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NPM_CONFIG_PRODUCTION
+        value: "false"
+      - key: VITE_AUTH_ENABLED
+        value: "false"
+      - key: XAI_API_KEY
+        sync: false

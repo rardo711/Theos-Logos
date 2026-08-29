@@ -142,6 +142,12 @@ function authPopupPlugin(): Plugin {
   };
 }
 
+function nitroPreset() {
+  if (process.env.NITRO_PRESET) return process.env.NITRO_PRESET;
+  if (process.env.RENDER) return "render-com";
+  return "vercel";
+}
+
 // `0.0.0.0:8080` is the live-preview contract — don't change host/port.
 // The dev server starts once `src/router.tsx` and `src/routes/` exist — see
 // AGENTS.md § "First scaffold".
@@ -170,7 +176,9 @@ export default defineConfig(({ command, isPreview }) => ({
     ...(command === "build" || isPreview
       ? [
           nitro({
-            preset: "vercel",
+            // Grok / Vercel stay on the vercel preset. Render (and NITRO_PRESET)
+            // get a Node listener that honors PORT.
+            preset: nitroPreset(),
             // Auto-registers server/middleware/* (the PWA install page +
             // manifest + head-tag middleware). Nitro v3 defaults serverDir to
             // false, so removing this silently unwires /?install=1 on deploys.
