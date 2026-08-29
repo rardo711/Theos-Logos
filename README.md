@@ -35,7 +35,6 @@ Read **[SOURCES.md](SOURCES.md)** before trusting a generated claim.
 ```bash
 git clone https://github.com/rardo711/Theos-Logos.git
 cd Theos-Logos
-git checkout New-Main-Branch   # until default is switched to main
 npm install
 cp .env.example .env.local
 ```
