@@ -50,7 +50,6 @@ export async function fetchBibleChapter(
   const cacheKey = `${lang}_${normalizedBookId}_${chapter}`;
 
   if (cache.has(cacheKey)) {
-    // Mark as most-recently used so the eviction loop keeps it longest.
     const hit = cache.get(cacheKey)!;
     cache.delete(cacheKey);
     cache.set(cacheKey, hit);
@@ -68,7 +67,6 @@ export async function fetchBibleChapter(
 
   let result: BibleChapter | null = null;
 
-  // Primary: backend proxy (Bolls API), translation chosen by language
   if (bookIndex > 0) {
     try {
       const url = `/api/bible/${meta.code}?bookId=${bookIndex}&chapter=${chapter}&book=${encodeURIComponent(englishName)}`;
@@ -81,21 +79,13 @@ export async function fetchBibleChapter(
       });
 
       if (response.ok) {
-        const data = await response.json(); // Array of { verse: number, text: string }
+        const data = await response.json();
 
         if (Array.isArray(data) && data.length > 0) {
           console.log(`[BibleService] ${meta.code} Success: ${bookName} ${chapter}`);
-          // Diagnostic: log the first verse's fields once so server logs reveal
-          // exactly what Bolls returns (especially whether 'title' is present).
           if (data[0]) console.log(`[BibleService] first verse fields:`, Object.keys(data[0]));
 
           const verses: { book_id: string; book_name: string; chapter: number; verse: number; text: string; title?: string }[] = data.map((v: any) => {
-            // Bolls may supply the section heading in different fields depending
-            // on the translation version served. Check in priority order:
-            //   1. v.title  — most common
-            //   2. v.heading — some Bolls builds use this name
-            //   3. An <h3>/<h4> tag embedded at the START of v.text
-            // All candidates have HTML stripped and are treated as empty when blank.
             const extractTag = (html: string, tag: string) => {
               const m = html.match(new RegExp(`<${tag}[^>]*>(.*?)<\\/${tag}>`, "i"));
               return m ? m[1].replace(/<[^>]+>/g, "").trim() : "";
@@ -107,10 +97,9 @@ export async function fetchBibleChapter(
               extractTag(typeof v.text === "string" ? v.text : "", "h3") ||
               extractTag(typeof v.text === "string" ? v.text : "", "h4");
 
-            // Strip ALL HTML tags from the verse body after we've mined headings.
             const cleanText = (typeof v.text === "string" ? v.text : "")
-              .replace(/<h[1-6][^>]*>.*?<\/h[1-6]>/gi, "") // remove embedded heading tags
-              .replace(/<[^>]+>/g, "")                      // strip remaining tags
+              .replace(/<h[1-6][^>]*>.*?<\/h[1-6]>/gi, "")
+              .replace(/<[^>]+>/g, "")
               .trim();
 
             return {
@@ -143,7 +132,6 @@ export async function fetchBibleChapter(
     }
   }
 
-  // Fallback to bible-api.com (WEB, English only — uses English book names)
   if (!result) {
     try {
       const safeBookName = englishName.replace(/ /g, '+');
@@ -158,6 +146,10 @@ export async function fetchBibleChapter(
       const data = await response.json();
       console.log(`[BibleService] Fallback Success: ${data.reference}`);
       result = processFallbackResponse(data);
+      if (lang === "es") {
+        result.translation_note =
+          "Texto en inglés (World English Bible). No se pudo cargar Reina-Valera 1960.";
+      }
     } catch (error: any) {
       console.error("[BibleService] All Bible API attempts failed", error);
       throw new Error(
@@ -168,7 +160,9 @@ export async function fetchBibleChapter(
     }
   }
 
-  rememberChapter(cacheKey, result);
+  if (!(lang === "es" && result.translation_id === "web")) {
+    rememberChapter(cacheKey, result);
+  }
   return result;
 }
 
@@ -192,8 +186,6 @@ export async function searchBible(
   }
   const raw = await res.json();
   if (!Array.isArray(raw)) return [];
-  // Bolls returns a numeric book id (1=Genesis … 66=Revelation, the same
-  // ordinal used by fetchBibleChapter) and HTML-laden text — normalize both.
   return raw
     .map((r: any): BibleSearchResult | null => {
       const book = BIBLE_BOOKS[Number(r.book) - 1];
