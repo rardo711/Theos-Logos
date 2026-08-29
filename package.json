@@ -3,10 +3,10 @@
   "description": "A scholarly, open-source Bible study application with AI-powered commentary and theological research tools",
   "version": "0.1.0",
   "license": "MIT",
-  "homepage": "https://github.com/yfr4mjzfzh-boop/bible-study-app-or-theological-research-tool",
+  "homepage": "https://github.com/rardo711/Theos-Logos",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yfr4mjzfzh-boop/bible-study-app-or-theological-research-tool.git"
+    "url": "https://github.com/rardo711/Theos-Logos.git"
   },
   "private": false,
   "type": "module",

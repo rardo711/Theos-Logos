@@ -18,19 +18,23 @@ For significant changes, open an issue first to discuss the approach.
 ## Development Setup
 
 ```bash
-git clone https://github.com/yfr4mjzfzh-boop/bible-study-app-or-theological-research-tool.git
-cd bible-study-app-or-theological-research-tool
+git clone https://github.com/rardo711/Theos-Logos.git
+cd Theos-Logos
 npm install
 cp .env.example .env.local
 # Add your GEMINI_API_KEY to .env.local
 npm run dev
 ```
 
+Default branch is currently `New-Main-Branch`.
+
 Type-check before submitting:
 
 ```bash
 npm run lint
 ```
+
+Do not commit production hostnames, API keys, or `.env.local`.
 
 ---
 
@@ -109,7 +113,7 @@ Before submitting, verify:
 
 - [ ] `npm run lint` passes (no TypeScript errors)
 - [ ] If you changed commentary/AI behavior: all claims cite a primary source
-- [ ] No API keys, secrets, or `.env.local` files committed
+- [ ] No API keys, secrets, `.env.local` files, or production hostnames committed
 - [ ] PR description explains the change and its motivation
 
 ---
