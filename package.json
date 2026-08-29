@@ -17,9 +17,9 @@
   "private": false,
   "type": "module",
   "scripts": {
-    "dev": "tsx server.ts",
+    "dev": "tsx --import ./load-env.ts server.ts",
     "build": "vite build",
-    "start": "tsx server.ts",
+    "start": "tsx --import ./load-env.ts server.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
