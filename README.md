@@ -1,138 +1,80 @@
 # Theos Logos
 
-**An open-source, scholarly Bible study application.**
-
-Theos Logos is a mobile-first web application for deep biblical study. It combines a clean Bible text reader with AI-powered theological commentary grounded in verified primary sources — Church Fathers, Reformers, Reformed Confessions, and classical lexicons.
+Personal web app for careful Bible study. Scripture first. Commentary is AI-assisted and must cite primary sources. It is a study aid, not a substitute for the text or for published lexicons.
 
 > "The fear of the LORD is the beginning of wisdom." — Proverbs 9:10
 
-**Source:** [github.com/rardo711/Theos-Logos](https://github.com/rardo711/Theos-Logos)
+**Repo:** [github.com/rardo711/Theos-Logos](https://github.com/rardo711/Theos-Logos)  
+**Status:** v0.1.0, personal project  
+**License:** MIT
 
-There is no public demo URL in this repository. The live instance is hosted privately. GitHub Pages cannot run this app (it needs Express, Gemini, and an optional ESV key). Run it locally or deploy the Node server yourself.
-
----
-
-## Features
-
-- **Bible Text Viewer** — ESV (official API when configured; otherwise Bolls Life proxy) with World English Bible fallback (public domain)
-- **Spanish Mode (ES)** — one-tap language toggle: Reina-Valera 1960 scripture text and a fully localized scholarly UI
-- **AI Commentary Engine** — Powered by Google Gemini, grounded in Google Search and primary source citations
-- **Greek & Hebrew Notes** — Structured lexical entries in BDAG/HALOT methodology (approximated; see SOURCES.md)
-- **Historical Voices** — Quotes from Church Fathers, Calvin, Luther, and other Reformers
-- **Multi-tradition Perspective** — Reformed, Catholic, Orthodox, Lutheran, and Anabaptist views presented side-by-side
-- **Scholarly Source Citations** — All commentary cites CCEL, Reformers' works, or classical lexicons
-- **Dark / Light Mode** — Stone palette with Oxblood Red accent
-- **Mobile-First PWA** — Optimized for one-handed reading; installable to home screen
+There is no public demo URL in this repository. The running instance is hosted privately. GitHub Pages cannot run this app (Express + API keys). Run it locally or deploy a Node server yourself. Do not commit the production hostname.
 
 ---
 
-## Getting Started
+## What it does
 
-### Prerequisites
+- Bible reader — ESV when an official key is set; otherwise Bolls Life. WEB fallback. Spanish: Reina-Valera 1960 + localized UI
+- Commentary — Gemini, with citation rules aimed at Fathers, Reformers, and confessions
+- Word study — lexical notes in a BDAG/HALOT *style* (approximated; verify against the printed works)
+- Traditions panel — more than one confession, each from its own texts when possible
+- PWA — dark/light, history, installable on a phone
 
-- [Node.js](https://nodejs.org/) 18 or later
-- A [Google Gemini API key](https://aistudio.google.com/app/apikey) (free tier available)
-- Optional: [Crossway ESV API key](https://api.esv.org/) for licensed ESV text with section headings
+Read **[SOURCES.md](SOURCES.md)** before trusting a generated claim.
 
-### Installation
+---
+
+## Requirements
+
+- Node.js 18+ (20 recommended; see `.nvmrc`)
+- [Gemini API key](https://aistudio.google.com/app/apikey)
+- Optional: [Crossway ESV API key](https://api.esv.org/) for licensed ESV with section headings
+
+## Setup
 
 ```bash
 git clone https://github.com/rardo711/Theos-Logos.git
 cd Theos-Logos
+git checkout New-Main-Branch   # until default is switched to main
 npm install
-```
-
-Default branch is currently `New-Main-Branch`.
-
-### Configuration
-
-```bash
 cp .env.example .env.local
-# Edit .env.local and add:
-# GEMINI_API_KEY=your_key_here
-# ESV_API_KEY=your_key_here   # optional
 ```
 
-### Run Locally
+Put `GEMINI_API_KEY` in `.env.local`. Add `ESV_API_KEY` if you have one.
 
 ```bash
-npm run dev
-# Open http://localhost:3000
+npm run dev          # http://localhost:3000
+npm run lint         # TypeScript check
+npm run build && npm start
 ```
 
-`npm run dev` and `npm start` both run `tsx server.ts` (Express serves the API and the built/static frontend).
+`dev` and `start` both run `tsx server.ts`.
 
-### Build for Production
+## Deploy
 
-```bash
-npm run build
-npm start
-```
-
-### Deploy
-
-This is a Node app. Use a host that can run `npm run build` then `npm start` (see `render.yaml` and `railway.toml`). Set `GEMINI_API_KEY` and optionally `ESV_API_KEY` in that host's dashboard. Do not commit keys. Do not put the production hostname in this repo.
-
-GitHub Pages is static-only. Leave it off.
+Node host only. `render.yaml` and `railway.toml` are templates. Set keys in the host dashboard. Do not put the live hostname in git. Leave GitHub Pages off.
 
 ---
 
-## Scholarly Sources
+## Stack
 
-All AI-generated commentary is required to cite a verifiable primary or secondary source. See **[SOURCES.md](SOURCES.md)** for the full list of approved sources, including:
+React 19 · TypeScript · Vite · Tailwind CSS v4 · Express · Gemini (`@google/genai`)
 
-- **CCEL** (Christian Classics Ethereal Library) — Church Fathers and Reformers
-- **Lexicons** — BDAG, HALOT, Thayer's Greek Lexicon, LSJ, Strong's
-- **Confessions** — Westminster, Heidelberg, Belgic, Canons of Dort
-- **Digital Archives** — Perseus Digital Library, Internet Archive, OpenAlex
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19, TypeScript, Vite |
-| Styling | Tailwind CSS v4 |
-| Server | Express (Node.js) |
-| AI | Google Gemini (via `@google/genai`) |
-| Bible Text | ESV API / Bolls Life (ESV · RVR1960) / bible-api.com (WEB) |
-| Scholarly Archive | CCEL (ccel.org) |
-
----
-
-## Project Structure
+## Layout
 
 ```
-theos-logos/
-├── src/
-│   ├── components/       # React components (BibleViewer, CommentaryPanel, etc.)
-│   ├── services/         # API services (bibleService, geminiService)
-│   ├── types.ts          # TypeScript types and Bible book list
-│   ├── App.tsx           # Root application component
-│   └── main.tsx          # Entry point
-├── public/
-│   ├── data/             # Curated commentary JSON
-│   └── manifest.json     # PWA manifest
-├── resources/            # Research materials (not committed — see .gitignore)
-├── legacy/               # Previous vanilla JS version (archived)
-├── server.ts             # Express server with Bible API proxy
-├── SOURCES.md            # Verified scholarly sources
-├── CONTRIBUTING.md       # Contribution guidelines
-└── DESIGN.md             # Design system documentation
+src/            UI and client services
+server.ts       API proxy (Bible + Gemini). Keys stay here.
+public/         PWA manifest and static data
+legacy/         archived vanilla JS app
+SOURCES.md      approved sources
+DESIGN.md       visual system
+CONTRIBUTING.md how to change code and prompts
 ```
-
----
 
 ## Contributing
 
-Contributions are welcome! Please read **[CONTRIBUTING.md](CONTRIBUTING.md)** before submitting a pull request — especially the **Scholarly Source Compliance** section, which governs any changes to commentary or AI prompts.
-
----
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+See [CONTRIBUTING.md](CONTRIBUTING.md). Changes to commentary or prompts must not weaken citation rules.
 
 ---
 

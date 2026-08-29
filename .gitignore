@@ -4,9 +4,16 @@ dist/
 coverage/
 .DS_Store
 *.log
+npm-debug.log*
 .env
-.env.local
+.env.*
 !.env.example
+*.pem
+*.key
+.idea/
+.vscode/
+*.swp
 resources/*.pdf
 resources/*.doc
+resources/*.docx
 resources/*.webarchive
