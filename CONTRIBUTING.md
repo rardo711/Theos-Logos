@@ -7,14 +7,13 @@ Accuracy and source discipline matter more than new features.
 ```bash
 git clone https://github.com/rardo711/Theos-Logos.git
 cd Theos-Logos
-git checkout New-Main-Branch   # until default is main
 npm install
 cp .env.example .env.local
 npm run dev
 npm run lint
 ```
 
-Do not commit production hostnames, API keys, or `.env.local`.
+Default branch is `main`. Do not commit production hostnames, API keys, or `.env.local`.
 
 ## Code
 
