@@ -1,0 +1,65 @@
+import { createServerFn } from "@tanstack/react-start";
+import { getBook } from "./books";
+import { getSeed } from "./seed";
+import type { Chapter, Verse } from "./types";
+
+function stripHtml(s: string): string {
+  return s.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+}
+
+export const fetchChapter = createServerFn({ method: "POST" })
+  .validator((input: { bookId: string; chapter: number }) => input)
+  .handler(async ({ data }): Promise<Chapter> => {
+    const book = getBook(data.bookId);
+    const chapter = Math.min(Math.max(1, data.chapter), book.chapters);
+    const seeded = getSeed(book.id, chapter);
+
+    const query = `${book.name} ${chapter}`.replace(/ /g, "+");
+    try {
+      const res = await fetch(`https://bible-api.com/${query}?translation=web`, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!res.ok) {
+        if (seeded) return seeded;
+        throw new Error(`Could not load ${book.name} ${chapter}.`);
+      }
+      const body = (await res.json()) as {
+        reference?: string;
+        verses?: {
+          verse?: number;
+          text?: string;
+        }[];
+        translation_name?: string;
+        translation_note?: string;
+      };
+      if (!body.verses?.length) {
+        if (seeded) return seeded;
+        throw new Error(`No verses returned for ${book.name} ${chapter}.`);
+      }
+
+      const verses: Verse[] = body.verses.map((v) => ({
+        bookId: book.id,
+        bookName: book.name,
+        chapter,
+        verse: Number(v.verse) || 0,
+        text: stripHtml(v.text ?? ""),
+      }));
+
+      return {
+        reference: body.reference || `${book.name} ${chapter}`,
+        bookId: book.id,
+        bookName: book.name,
+        chapter,
+        verses,
+        translationName: body.translation_name || "World English Bible",
+        translationNote:
+          body.translation_note || "World English Bible. Public domain.",
+      };
+    } catch (err) {
+      if (seeded) return seeded;
+      throw err instanceof Error
+        ? err
+        : new Error(`Could not load ${book.name} ${chapter}.`);
+    }
+  });

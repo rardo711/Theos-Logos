@@ -1,0 +1,48 @@
+import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import { AuthProvider } from "@/lib/auth/provider";
+import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import appCss from "../styles.css?url";
+
+const APP_NAME = "Theos Logos";
+
+export const Route = createRootRoute({
+  head: () => ({
+    meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { title: APP_NAME },
+      { name: "theme-color", content: "#f6f1e8" },
+      { name: "color-scheme", content: "light dark" },
+      {
+        name: "description",
+        content:
+          "A scholarly Bible study desk. Scripture first. Reception from Fathers, Reformers, and confessions.",
+      },
+    ],
+    links: [
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/__grok/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
+    ],
+  }),
+  component: () => (
+    <html lang="en" className="antialiased" suppressHydrationWarning>
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=JSON.parse(localStorage.getItem("theos-logos-hybrid")||"{}").theme||"auto";var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",d?"#1c1814":"#f6f1e8");}catch(e){}})();`,
+          }}
+        />
+        <PreviewHostBridge />
+        <AuthProvider>
+          <Outlet />
+        </AuthProvider>
+        <Scripts />
+      </body>
+    </html>
+  ),
+});
