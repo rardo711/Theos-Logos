@@ -1,19 +1,30 @@
-export function Wordmark({ compact = false }: { compact?: boolean }) {
+import { cn } from "@/lib/utils";
+
+export function Wordmark({
+  compact = false,
+  active = false,
+}: {
+  compact?: boolean;
+  active?: boolean;
+}) {
   return (
-    <div className="flex min-w-0 items-center gap-2.5">
+    <span className="flex min-w-0 items-center gap-2.5">
       <span
         aria-hidden
-        className="flex size-8 shrink-0 items-center justify-center bg-oxblood text-oxblood-fg"
-        style={{
-          borderRadius: 4,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22)",
-        }}
+        className={cn(
+          "relative flex size-9 shrink-0 items-center justify-center overflow-hidden bg-oxblood text-oxblood-fg",
+          active && "ring-1 ring-oxblood/50",
+        )}
+        style={{ borderRadius: 5 }}
       >
-        <span className="font-display text-[13px] font-bold leading-none tracking-tight">
+        <span className="absolute inset-y-0 left-0 w-[5px] bg-black/30" />
+        <span className="absolute inset-y-0 left-[5px] w-px bg-white/20" />
+        <span className="absolute inset-y-1.5 right-0 w-[3px] rounded-l-sm bg-oxblood-fg/85" />
+        <span className="font-display relative ml-px text-xs font-bold leading-none tracking-tight">
           TL
         </span>
       </span>
-      <span className={compact ? "hidden min-w-0 sm:block" : "min-w-0"}>
+      <span className={compact ? "hidden min-w-0 text-left sm:block" : "min-w-0 text-left"}>
         <span className="font-display block text-sm font-semibold leading-none tracking-tight text-ink">
           Theos Logos
         </span>
@@ -21,6 +32,6 @@ export function Wordmark({ compact = false }: { compact?: boolean }) {
           Scripture first
         </span>
       </span>
-    </div>
+    </span>
   );
 }

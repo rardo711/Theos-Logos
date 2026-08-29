@@ -1,7 +1,6 @@
-import { BookOpen, ChevronDown, Type } from "lucide-react";
+import { BookOpen, ChevronDown } from "lucide-react";
 import { getBook } from "@/lib/bible/books";
 import { useStudy } from "@/lib/study-store";
-import { cn } from "@/lib/utils";
 import { TypeMenu } from "./type-menu";
 import { Wordmark } from "./wordmark";
 
@@ -20,7 +19,19 @@ export function TopBar() {
         className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-oxblood"
       />
       <div className="grid h-14 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 px-2 sm:px-4">
-        <Wordmark compact />
+        <div className="relative flex items-center justify-start">
+          <button
+            type="button"
+            onClick={() => setTypeOpen(!typeOpen)}
+            className="flex min-h-11 max-w-full items-center rounded-md px-1 hover:bg-paper sm:px-1.5"
+            aria-label="Theos Logos, appearance"
+            aria-expanded={typeOpen}
+            aria-haspopup="dialog"
+          >
+            <Wordmark compact active={typeOpen} />
+          </button>
+          <TypeMenu />
+        </div>
 
         <button
           type="button"
@@ -41,31 +52,15 @@ export function TopBar() {
           />
         </button>
 
-        <div className="relative flex items-center justify-end">
-          <div className="flex items-center rounded-md bg-paper p-0.5 shadow-border">
-            <button
-              type="button"
-              onClick={() => setTypeOpen(!typeOpen)}
-              className={cn(
-                "flex size-10 items-center justify-center rounded-xs text-ink hover:bg-surface",
-                typeOpen && "bg-surface",
-              )}
-              aria-label="Appearance"
-              aria-expanded={typeOpen}
-            >
-              <Type size={16} strokeWidth={1.75} />
-            </button>
-            <span aria-hidden className="h-4 w-px bg-rule" />
-            <button
-              type="button"
-              onClick={() => setLibraryOpen(true, "books")}
-              className="flex size-10 items-center justify-center rounded-xs text-ink hover:bg-surface"
-              aria-label="Books"
-            >
-              <BookOpen size={16} strokeWidth={1.75} />
-            </button>
-          </div>
-          <TypeMenu />
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => setLibraryOpen(true, "books")}
+            className="flex size-11 items-center justify-center rounded-md text-ink hover:bg-paper"
+            aria-label="Books"
+          >
+            <BookOpen size={18} strokeWidth={1.75} />
+          </button>
         </div>
       </div>
     </header>
