@@ -13,7 +13,10 @@ export declare function renderInstallPageHtml(
   template: string,
   context?: { host?: string | null; url?: string | null },
 ): string;
-export declare function renderWebManifest(hostHeader: string | null | undefined): string;
+export declare function renderWebManifest(
+  hostHeader: string | null | undefined,
+  site?: OgSite,
+): string;
 export declare function grokPwaHeadTags(appName?: string): Array<[string, string]>;
 export declare const GROK_EXTENSIONS_SCRIPT_SRC: string;
 export declare function readGrokProjectId(): string;
