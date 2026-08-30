@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { canInstallPwa, installPwa, subscribePwa } from "@/lib/pwa";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +16,13 @@ export function TypeMenu() {
   const setFontSize = useStudy((s) => s.setFontSize);
   const theme = useStudy((s) => s.theme);
   const setTheme = useStudy((s) => s.setTheme);
+  const [installable, setInstallable] = useState(false);
+
+  useEffect(() => {
+    const sync = () => setInstallable(canInstallPwa());
+    sync();
+    return subscribePwa(sync);
+  }, []);
 
   if (!open) return null;
 
@@ -94,6 +103,20 @@ export function TypeMenu() {
             </button>
           ))}
         </div>
+
+        {installable ? (
+          <button
+            type="button"
+            onClick={() => {
+              void installPwa().then((ok) => {
+                if (ok) setOpen(false);
+              });
+            }}
+            className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md bg-oxblood px-3 text-xs font-semibold tracking-[0.12em] text-oxblood-fg uppercase"
+          >
+            Install on this device
+          </button>
+        ) : null}
       </div>
     </>
   );

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchChapter } from "@/lib/bible/fetch-chapter";
 import { getSeed } from "@/lib/bible/seed";
 import type { Chapter } from "@/lib/bible/types";
+import { initPwa } from "@/lib/pwa";
 import { hasNotes } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
 import { LibraryDrawer } from "./library-drawer";
@@ -40,6 +41,7 @@ export function StudyWorkspace() {
   useEffect(() => {
     hydrate();
     setHydrated(true);
+    initPwa();
   }, [hydrate]);
 
   useEffect(() => {

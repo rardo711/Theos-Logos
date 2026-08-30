@@ -162,15 +162,15 @@ export function renderWebManifest(hostHeader, site = {}) {
   const branded = Boolean(String(site.title ?? "").trim());
   const icons = branded
     ? [
-        { src: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-        { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-        { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+        { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
         {
           src: "/icon-512-maskable.png",
           sizes: "512x512",
           type: "image/png",
           purpose: "maskable",
         },
+        { src: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
       ]
     : [
         {
@@ -183,11 +183,15 @@ export function renderWebManifest(hostHeader, site = {}) {
   return JSON.stringify(
     {
       name,
-      short_name: name,
-      id: "/",
+      short_name: branded ? "Theos Logos" : name,
+      id: branded ? "theos-logos" : "/",
       start_url: "/",
       scope: "/",
       display: "standalone",
+      display_override: ["standalone", "minimal-ui"],
+      lang: "en",
+      dir: "ltr",
+      prefer_related_applications: false,
       background_color: branded ? "#f6f1e8" : "#000000",
       theme_color: branded ? "#821111" : "#000000",
       icons,
