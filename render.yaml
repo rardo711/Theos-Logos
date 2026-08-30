@@ -12,5 +12,5 @@ services:
         value: "false"
       - key: VITE_AUTH_ENABLED
         value: "false"
-      - key: XAI_API_KEY
+      - key: GEMINI_API_KEY
         sync: false

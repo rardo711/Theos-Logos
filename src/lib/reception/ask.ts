@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { geminiApiKey, generateGeminiJson } from "@/lib/ai/gemini";
 import { getCurated } from "./curated";
 import type { ReceptionResult, SourceCard, Tradition } from "@/lib/bible/types";
 
@@ -75,8 +76,7 @@ export const askReception = createServerFn({ method: "POST" })
       if (ready && !data.question?.trim()) return ready;
     }
 
-    const apiKey = process.env.XAI_API_KEY;
-    if (!apiKey) {
+    if (!geminiApiKey()) {
       const ready = getCurated(data.bookId, data.chapter, data.verse);
       if (ready) return ready;
       return {
@@ -101,38 +101,27 @@ export const askReception = createServerFn({ method: "POST" })
       `Reference: ${ref}`,
       data.verseText ? `Verse: ${data.verseText}` : "",
       data.passage ? `Context:\n${data.passage.slice(0, 1800)}` : "",
-      data.question?.trim() ? `Reader's question (do not preach; let it aim the sources): ${data.question.trim()}` : "",
+      data.question?.trim()
+        ? `Reader's question (do not preach; let it aim the sources): ${data.question.trim()}`
+        : "",
     ]
       .filter(Boolean)
       .join("\n\n");
 
-    const res = await fetch("https://api.x.ai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "grok-4.5",
+    let text: string;
+    try {
+      text = await generateGeminiJson({
+        system: SYSTEM,
+        user,
         temperature: 0.2,
-        max_tokens: 1100,
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: user },
-        ],
-      }),
-    });
-
-    if (!res.ok) {
+        maxOutputTokens: 1100,
+      });
+    } catch (err) {
       const ready = getCurated(data.bookId, data.chapter, data.verse);
       if (ready) return ready;
-      throw new Error(`Reception request failed (${res.status}).`);
+      throw err instanceof Error ? err : new Error("Reception request failed.");
     }
 
-    const body = (await res.json()) as {
-      choices?: { message?: { content?: string } }[];
-    };
-    const text = body.choices?.[0]?.message?.content ?? "";
     const cards = parseCards(text);
     if (!cards.length) {
       const ready = getCurated(data.bookId, data.chapter, data.verse);
