@@ -32,16 +32,25 @@ export function Reader({
 
   useEffect(() => {
     if (selected == null) return;
-    verseRefs.current.get(selected)?.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
+    const verse = verseRefs.current.get(selected);
+    const scroller = scrollRef.current;
+    if (!verse || !scroller) return;
+    const vBox = verse.getBoundingClientRect();
+    const sBox = scroller.getBoundingClientRect();
+    const pad = 48;
+    if (vBox.top >= sBox.top + pad && vBox.bottom <= sBox.bottom - pad) return;
+    const next =
+      scroller.scrollTop +
+      (vBox.top - sBox.top) -
+      sBox.height / 2 +
+      vBox.height / 2;
+    scroller.scrollTo({ top: Math.max(0, next), behavior: "smooth" });
   }, [selected, chapter?.reference]);
 
   return (
     <div
       ref={scrollRef}
-      className="tl-scroll relative h-full overflow-y-auto"
+      className="tl-scroll absolute inset-0 overflow-y-auto"
       onTouchStart={(e) => {
         touch.current = {
           x: e.targetTouches[0].clientX,
@@ -123,14 +132,13 @@ export function Reader({
                       setVerse(v.verse);
                       if (
                         noted &&
-                        typeof window !== "undefined" &&
-                        !window.matchMedia("(min-width: 1024px)").matches
+                        !useStudy.getState().receptionPinned
                       ) {
                         setReceptionOpen(true);
                       }
                     }}
                     className={cn(
-                      "cursor-pointer rounded-sm px-0.5 box-decoration-clone transition-colors duration-200",
+                      "cursor-pointer transition-colors duration-200",
                       on
                         ? "bg-oxblood-soft"
                         : "hover:bg-oxblood-soft/55",

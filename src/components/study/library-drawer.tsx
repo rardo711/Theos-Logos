@@ -95,7 +95,7 @@ export function LibraryDrawer() {
   return (
     <div className="fixed inset-0 z-50 flex">
       <button
-        className="absolute inset-0 bg-ink/45"
+        className="tl-dim absolute inset-0"
         aria-label="Close library"
         onClick={() => setOpen(false)}
       />

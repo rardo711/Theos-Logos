@@ -12,6 +12,7 @@ interface Persisted {
   theme: Theme;
   fontSize: number;
   disclaimerSeen: boolean;
+  receptionPinned: boolean;
 }
 
 function load(): Persisted {
@@ -31,6 +32,7 @@ function load(): Persisted {
             : "auto",
         fontSize: Math.min(28, Math.max(16, Number(p.fontSize) || 20)),
         disclaimerSeen: Boolean(p.disclaimerSeen),
+        receptionPinned: Boolean(p.receptionPinned),
       };
     }
   } catch {
@@ -42,6 +44,7 @@ function load(): Persisted {
     theme: "auto",
     fontSize: 20,
     disclaimerSeen: false,
+    receptionPinned: false,
   };
 }
 
@@ -83,6 +86,7 @@ interface StudyState extends Persisted {
   setLibraryOpen: (open: boolean, tab?: LibraryTab) => void;
   setTypeOpen: (open: boolean) => void;
   setReceptionOpen: (open: boolean) => void;
+  setReceptionPinned: (pinned: boolean) => void;
   touchNotes: () => void;
   dismissDisclaimer: () => void;
   hydrate: () => void;
@@ -95,6 +99,7 @@ function persist(s: StudyState) {
     theme: s.theme,
     fontSize: s.fontSize,
     disclaimerSeen: s.disclaimerSeen,
+    receptionPinned: s.receptionPinned,
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(data));
@@ -114,6 +119,7 @@ export const useStudy = create<StudyState>((set, get) => ({
   libraryTab: "chapters",
   typeOpen: false,
   receptionOpen: false,
+  receptionPinned: false,
   notesRev: 0,
   hydrate: () => {
     const p = load();
@@ -127,6 +133,7 @@ export const useStudy = create<StudyState>((set, get) => ({
       bookId: book.id,
       chapter: Math.min(Math.max(1, chapter), book.chapters),
       selectedVerse: null,
+      receptionOpen: get().receptionPinned ? get().receptionOpen : false,
     });
     persist(get());
   },
@@ -135,6 +142,7 @@ export const useStudy = create<StudyState>((set, get) => ({
     set({
       chapter: Math.min(Math.max(1, chapter), book.chapters),
       selectedVerse: null,
+      receptionOpen: get().receptionPinned ? get().receptionOpen : false,
     });
     persist(get());
   },
@@ -183,6 +191,13 @@ export const useStudy = create<StudyState>((set, get) => ({
       libraryOpen: typeOpen ? false : get().libraryOpen,
     }),
   setReceptionOpen: (receptionOpen) => set({ receptionOpen }),
+  setReceptionPinned: (receptionPinned) => {
+    set({
+      receptionPinned,
+      receptionOpen: receptionPinned ? true : get().receptionOpen,
+    });
+    persist(get());
+  },
   touchNotes: () => set({ notesRev: get().notesRev + 1 }),
   dismissDisclaimer: () => {
     set({ disclaimerSeen: true });

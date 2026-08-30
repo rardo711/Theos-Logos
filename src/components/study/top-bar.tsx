@@ -13,7 +13,7 @@ export function TopBar() {
   const book = getBook(bookId);
 
   return (
-    <header className="relative z-30 shrink-0 border-b border-rule bg-surface">
+    <header className="relative z-30 shrink-0 border-b border-rule bg-surface pt-[env(safe-area-inset-top)]">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-oxblood"

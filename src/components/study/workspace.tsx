@@ -9,6 +9,11 @@ import { Reader } from "./reader";
 import { ReceptionPanel, VerseHint } from "./reception-panel";
 import { TopBar } from "./top-bar";
 
+function lockAppHeight() {
+  const h = window.visualViewport?.height ?? window.innerHeight;
+  document.documentElement.style.setProperty("--app-h", `${Math.round(h)}px`);
+}
+
 export function StudyWorkspace() {
   const hydrate = useStudy((s) => s.hydrate);
   const bookId = useStudy((s) => s.bookId);
@@ -18,6 +23,8 @@ export function StudyWorkspace() {
   const setTypeOpen = useStudy((s) => s.setTypeOpen);
   const receptionOpen = useStudy((s) => s.receptionOpen);
   const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
+  const receptionPinned = useStudy((s) => s.receptionPinned);
+  const setReceptionPinned = useStudy((s) => s.setReceptionPinned);
   const setVerse = useStudy((s) => s.setVerse);
   const selectedVerse = useStudy((s) => s.selectedVerse);
   const notesRev = useStudy((s) => s.notesRev);
@@ -28,11 +35,35 @@ export function StudyWorkspace() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [wideDesk, setWideDesk] = useState(false);
 
   useEffect(() => {
     hydrate();
     setHydrated(true);
   }, [hydrate]);
+
+  useEffect(() => {
+    lockAppHeight();
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", lockAppHeight);
+    vv?.addEventListener("scroll", lockAppHeight);
+    window.addEventListener("resize", lockAppHeight);
+    window.addEventListener("orientationchange", lockAppHeight);
+    return () => {
+      vv?.removeEventListener("resize", lockAppHeight);
+      vv?.removeEventListener("scroll", lockAppHeight);
+      window.removeEventListener("resize", lockAppHeight);
+      window.removeEventListener("orientationchange", lockAppHeight);
+    };
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1280px)");
+    const sync = () => setWideDesk(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -88,13 +119,20 @@ export function StudyWorkspace() {
       if (e.key === "Escape") {
         setLibraryOpen(false);
         setTypeOpen(false);
+        setReceptionPinned(false);
         setReceptionOpen(false);
         setVerse(null);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setLibraryOpen, setTypeOpen, setReceptionOpen, setVerse]);
+  }, [
+    setLibraryOpen,
+    setTypeOpen,
+    setReceptionOpen,
+    setReceptionPinned,
+    setVerse,
+  ]);
 
   const verseHasNotes =
     notesRev >= 0 &&
@@ -102,12 +140,19 @@ export function StudyWorkspace() {
     selectedVerse != null &&
     hasNotes(chapter.bookId, chapter.chapter, selectedVerse);
 
+  function closeReception() {
+    setReceptionPinned(false);
+    setReceptionOpen(false);
+  }
+
+  const docked = receptionPinned && wideDesk && receptionOpen;
+
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-paper text-ink">
+    <div className="tl-shell flex flex-col overflow-hidden bg-paper text-ink">
       <TopBar />
 
       <div className="relative flex min-h-0 flex-1">
-        <section className="relative min-w-0 flex-1">
+        <section className="relative min-h-0 min-w-0 flex-1">
           <Reader chapter={chapter} loading={loading} error={error} />
           <VerseHint
             noted={verseHasNotes}
@@ -117,22 +162,35 @@ export function StudyWorkspace() {
           />
         </section>
 
-        <aside className="hidden min-w-0 border-l border-rule lg:block lg:w-96 xl:w-lg">
-          <ReceptionPanel chapter={chapter} />
-        </aside>
+        {docked ? (
+          <aside className="flex min-h-0 w-96 min-w-0 shrink-0 border-l border-rule xl:w-[26rem]">
+            <ReceptionPanel chapter={chapter} onClose={closeReception} />
+          </aside>
+        ) : null}
 
-        {receptionOpen ? (
-          <div className="absolute inset-0 z-20 flex flex-col lg:hidden">
-            <div className="h-[34%] min-h-32 overflow-hidden border-b border-rule bg-paper">
-              <Reader chapter={chapter} loading={false} error={null} />
+        {receptionOpen && !docked ? (
+          <>
+            <div className="absolute inset-0 z-20 flex flex-col md:hidden">
+              <div className="relative h-[34%] min-h-32 overflow-hidden border-b border-rule bg-paper">
+                <Reader chapter={chapter} loading={false} error={null} />
+              </div>
+              <div className="relative min-h-0 flex-1 bg-paper">
+                <ReceptionPanel chapter={chapter} onClose={closeReception} />
+              </div>
             </div>
-            <div className="min-h-0 flex-1 bg-paper">
-              <ReceptionPanel
-                chapter={chapter}
-                onClose={() => setReceptionOpen(false)}
+
+            <div className="absolute inset-0 z-20 hidden md:flex">
+              <button
+                type="button"
+                className="tl-dim min-w-0 flex-1"
+                aria-label="Close reception"
+                onClick={closeReception}
               />
+              <aside className="tl-sheet flex h-full w-full max-w-md flex-col border-l border-rule bg-paper shadow-soft">
+                <ReceptionPanel chapter={chapter} onClose={closeReception} />
+              </aside>
             </div>
-          </div>
+          </>
         ) : null}
       </div>
 

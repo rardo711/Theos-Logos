@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Loader2, X } from "lucide-react";
+import { ChevronDown, Loader2, PanelRight, PanelRightClose, X } from "lucide-react";
 import { askReception } from "@/lib/reception/ask";
 import { getDeskNotes, markedVerses, rememberReception } from "@/lib/reception/notes";
 import { askLexicon } from "@/lib/lexicon/ask";
@@ -47,6 +47,8 @@ export function ReceptionPanel({
   const dismissDisclaimer = useStudy((s) => s.dismissDisclaimer);
   const touchNotes = useStudy((s) => s.touchNotes);
   const notesRev = useStudy((s) => s.notesRev);
+  const receptionPinned = useStudy((s) => s.receptionPinned);
+  const setReceptionPinned = useStudy((s) => s.setReceptionPinned);
   const [question, setQuestion] = useState("");
   const [aimOpen, setAimOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -142,28 +144,54 @@ export function ReceptionPanel({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-paper">
-      <header className="flex items-start justify-between gap-3 border-b border-rule px-5 py-4">
-        <div>
+      <header className="relative z-10 flex items-start justify-between gap-3 border-b border-rule px-5 py-3">
+        <div className="min-w-0 pt-1">
           <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
             Reception
           </p>
-          <h2 className="font-display text-lg font-semibold text-ink">
+          <h2 className="font-display truncate text-lg font-semibold text-ink">
             {selectedVerse != null ? reference : "Historic voices"}
           </h2>
         </div>
-        {onClose ? (
+        <div className="flex shrink-0 items-center">
           <button
             type="button"
-            onClick={onClose}
-            className="rounded-md p-2.5 text-muted hover:bg-surface lg:hidden"
-            aria-label="Close reception"
+            onClick={() => setReceptionPinned(!receptionPinned)}
+            className="hidden size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink xl:flex"
+            aria-label={
+              receptionPinned
+                ? "Collapse sources"
+                : "Keep sources beside scripture"
+            }
+            title={
+              receptionPinned
+                ? "Collapse sources"
+                : "Keep sources beside scripture"
+            }
           >
-            <X size={18} />
+            {receptionPinned ? (
+              <PanelRightClose size={18} />
+            ) : (
+              <PanelRight size={18} />
+            )}
           </button>
-        ) : null}
+          {onClose ? (
+            <button
+              type="button"
+              onClick={() => {
+                setReceptionPinned(false);
+                onClose();
+              }}
+              className="flex size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink"
+              aria-label="Close reception"
+            >
+              <X size={18} />
+            </button>
+          ) : null}
+        </div>
       </header>
 
-      <div className="tl-scroll min-h-0 flex-1 overflow-y-auto px-5 py-4">
+      <div className="tl-scroll min-h-0 flex-1 overflow-y-auto px-5 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         {!disclaimerSeen ? (
           <div className="mb-4 rounded-lg border border-rule bg-surface p-3 shadow-soft">
             <p className="text-sm leading-relaxed text-muted">
@@ -390,9 +418,11 @@ export function VerseHint({
   noted?: boolean;
 }) {
   const selected = useStudy((s) => s.selectedVerse);
-  if (selected == null) return null;
+  const receptionOpen = useStudy((s) => s.receptionOpen);
+  const receptionPinned = useStudy((s) => s.receptionPinned);
+  if (selected == null || receptionOpen || receptionPinned) return null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div className="pointer-events-auto flex items-center gap-1 rounded-md border border-rule bg-surface px-1.5 py-1 shadow-soft">
         <span className="px-2.5 font-serif text-sm font-medium text-oxblood tabular-nums">
           {selected}
