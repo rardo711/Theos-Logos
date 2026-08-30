@@ -26,22 +26,38 @@ Read **[SOURCES.md](SOURCES.md)** before citing a generated claim.
 
 ---
 
-## Deploy this branch (Render)
+## Deploy (free, no sleep screen)
 
-`main` is a different stack. Point the existing Render **web service** at **`scholar-desk`**.
+Render’s free web service **spins down after 15 minutes** idle, then shows the “Application loading / Welcome to Render” page for about a minute. That cannot be turned off on the free plan.
+
+**Use Vercel Hobby instead.** This branch already builds with Nitro’s `vercel` preset. Hobby is free for personal projects and does not sleep — the first tap after a quiet stretch may take a second, but there is no interstitial.
+
+1. Open [vercel.com](https://vercel.com) and sign in with GitHub.
+2. **Add New → Project** → `rardo711/Theos-Logos`.
+3. Root settings:
+   - **Branch:** `scholar-desk` (not `main`)
+   - **Framework Preset:** Other
+   - **Build Command:** `npm run build`
+   - **Install Command:** `npm install`
+4. Environment variables:
+   - `VITE_AUTH_ENABLED` = `false`
+   - `XAI_API_KEY` — optional; only for Inquire / Compare
+5. Deploy. You’ll get a `*.vercel.app` URL. Add your own domain under the project’s Domains tab if you want.
+
+Without `XAI_API_KEY`, the reader and every curated desk note still work.
+
+You can leave the Render service paused or deleted after Vercel is live. Do not use the Railway template on `main` for this branch.
+
+### Render (not recommended on free)
+
+If you stay on Render, expect that wake-up page. A paid **Starter** instance (~$7/mo) stays up. Point the existing web service at `scholar-desk` only if you accept sleep on free:
 
 1. Branch: `scholar-desk`
 2. Build: `npm install && npm run build`
 3. Start: `npm start`
-4. Node 22 (from `.nvmrc`)
-5. Environment:
-   - `VITE_AUTH_ENABLED=false`
-   - `XAI_API_KEY` — optional; only for Inquire / Compare
-   - `NPM_CONFIG_PRODUCTION=false` if the install still skips Vite
+4. Node 22
+5. `VITE_AUTH_ENABLED=false`, optional `XAI_API_KEY`, `NPM_CONFIG_PRODUCTION=false`
 
-Without `XAI_API_KEY`, the reader and every curated desk note still work.
-
-Vercel also works (Nitro `vercel` preset). Do not use the Railway template on `main` for this branch.
 
 ---
 
