@@ -14,7 +14,7 @@ A scholarly Bible study **desk**. Scripture stays on the page. Historic receptio
 
 ## What it does
 
-- **Reader** — World English Bible (public domain). Mark a verse; the text never leaves the screen.
+- **Reader** — ESV when `ESV_API_KEY` is set (Crossway, free); otherwise World English Bible (public domain). Mark a verse; the text never leaves the screen.
 - **Desk notes** — curated historic cards on marked verses (red dots). No search required.
 - **Aim the sources** — optional, user-initiated inquire / compare via Gemini (same free Google AI Studio key as `main`). Generated cards are cached on the verse.
 - **Lexicon** — local student notes first; confirm lemmas in BDAG / BDB / HALOT.
@@ -42,9 +42,11 @@ Render’s free web service **spins down after 15 minutes** idle, then shows the
 4. Environment variables:
    - `VITE_AUTH_ENABLED` = `false`
    - `GEMINI_API_KEY` — the same Google AI Studio key already used on `main` (Render dashboard → Environment). Paste it here; do not commit it.
+   - `ESV_API_KEY` — Crossway ESV API key. Without it the reader uses the public-domain WEB.
 5. Deploy. You’ll get a `*.vercel.app` URL. Add your own domain under the project’s Domains tab if you want.
 
 Without `GEMINI_API_KEY`, the reader and every curated desk note still work. Inquire / Compare need the key.
+Without `ESV_API_KEY`, the reader uses the World English Bible.
 
 You can leave the Render service paused or deleted after Vercel is live. Do not use the Railway template on `main` for this branch.
 
@@ -73,7 +75,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Optional: put `GEMINI_API_KEY` in `.env.local`.
+Optional: put `GEMINI_API_KEY` and `ESV_API_KEY` in `.env.local`.
 
 ```bash
 npm run typecheck
@@ -86,7 +88,7 @@ npm run build
 
 React 19 · TypeScript · TanStack Start · Tailwind CSS v4 · Zustand · Gemini (`gemini-2.5-flash`, user-initiated only)
 
-Bible text: [bible-api.com](https://bible-api.com/) World English Bible. Instant seed for John 1, Genesis 1, Romans 8, Psalm 119.
+Bible text: [ESV API](https://api.esv.org/) when `ESV_API_KEY` is set; otherwise [bible-api.com](https://bible-api.com/) World English Bible. Instant seed for John 1, Genesis 1, Romans 8, Psalm 119 (replaced by ESV once the chapter loads).
 
 ---
 

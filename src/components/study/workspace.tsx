@@ -82,10 +82,10 @@ export function StudyWorkspace() {
       setChapter(seed);
       setError(null);
       setLoading(false);
-      return;
+    } else {
+      setLoading(true);
+      setError(null);
     }
-    setLoading(true);
-    setError(null);
     fetchChapter({ data: { bookId, chapter: chapterNum } })
       .then((data) => {
         if (!cancelled) {
@@ -94,7 +94,7 @@ export function StudyWorkspace() {
         }
       })
       .catch((err: unknown) => {
-        if (!cancelled) {
+        if (!cancelled && !seed) {
           setChapter(null);
           setError(
             err instanceof Error ? err.message : "Could not load this chapter.",
