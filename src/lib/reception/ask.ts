@@ -55,7 +55,7 @@ Rules:
 - 3 to 4 cards, different voices. Short quotes (1–3 sentences).
 - Include a real citation (work + locus). If unsure of a page/section, say so in citation.
 - No homily. No "application for your life." No modern celebrity pastors.
-- If the user question is present, let it focus the cards without becoming a Q&A.`;
+- If a reader question is present, gather ADDITIONAL historic voices that address that question. Do not repeat a generic Augustine / Chrysostom / Calvin / Westminster stack unless a quote uniquely answers the question.`;
 
 export const askReception = createServerFn({ method: "POST" })
   .validator(
@@ -71,14 +71,19 @@ export const askReception = createServerFn({ method: "POST" })
     }) => input,
   )
   .handler(async ({ data }): Promise<ReceptionResult> => {
-    const asked = Boolean(data.question?.trim()) || data.mode === "traditions";
+    const question = data.question?.trim() ?? "";
+    const emptyReception = data.mode === "reception" && !question;
 
-    if (data.mode === "reception" && !asked) {
+    if (emptyReception) {
       const ready = getCurated(data.bookId, data.chapter, data.verse);
       if (ready) return ready;
     }
 
+    const focused = !emptyReception;
     if (!geminiApiKey()) {
+      if (focused) {
+        throw new Error("Reception is unavailable in this environment.");
+      }
       return {
         source: "generated",
         cards: [],
@@ -94,15 +99,17 @@ export const askReception = createServerFn({ method: "POST" })
     const focus =
       data.mode === "traditions"
         ? "Compare how distinct historic traditions received this text. Include at least one patristic, one Reformation (reformed or lutheran), and one catholic or orthodox voice. Fair, sourced, not polemical."
-        : "Gather the historic reception of this verse.";
+        : question
+          ? "Gather ADDITIONAL historic voices that address the reader's question. Do not repeat a generic Augustine / Chrysostom / Calvin / Westminster stack unless a quote uniquely answers the question."
+          : "Gather the historic reception of this verse.";
 
     const user = [
       focus,
       `Reference: ${ref}`,
       data.verseText ? `Verse: ${data.verseText}` : "",
       data.passage ? `Context:\n${data.passage.slice(0, 1800)}` : "",
-      data.question?.trim()
-        ? `Reader's question (do not preach; let it aim the sources): ${data.question.trim()}`
+      question
+        ? `Reader's question (do not preach; let it aim the sources): ${question}`
         : "",
     ]
       .filter(Boolean)

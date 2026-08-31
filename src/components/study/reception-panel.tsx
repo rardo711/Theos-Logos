@@ -86,6 +86,11 @@ export function ReceptionPanel({
 
   async function run(mode: "reception" | "traditions") {
     if (!chapter) return;
+    const emptyReception = mode === "reception" && !question.trim();
+    if (emptyReception && result?.cards.length) {
+      setError(null);
+      return;
+    }
     setLoading(true);
     setError(null);
     setLexicon(null);
@@ -113,9 +118,28 @@ export function ReceptionPanel({
           ),
         ),
       ]);
-      setResult(data);
-      if (selectedVerse != null && data.cards.length) {
-        rememberReception(chapter.bookId, chapter.chapter, selectedVerse, data);
+      const existing = result?.cards ?? [];
+      const focused = mode === "traditions" || Boolean(question.trim());
+      let next = data;
+      if (focused && existing.length) {
+        const seen = new Set(
+          existing.map((c) => `${c.voice}\0${c.citation}`),
+        );
+        const added = data.cards.filter(
+          (c) => !seen.has(`${c.voice}\0${c.citation}`),
+        );
+        if (!added.length) {
+          throw new Error("No additional sources for that focus.");
+        }
+        next = {
+          source: "generated",
+          cards: [...existing, ...added],
+          caution: data.caution ?? result?.caution,
+        };
+      }
+      setResult(next);
+      if (selectedVerse != null && next.cards.length) {
+        rememberReception(chapter.bookId, chapter.chapter, selectedVerse, next);
         touchNotes();
       }
     } catch (err) {
@@ -282,7 +306,7 @@ export function ReceptionPanel({
               </article>
             ) : null}
 
-            {loading && !result ? (
+            {loading ? (
               <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
                 <Loader2 size={14} className="animate-spin text-oxblood" />
                 Consulting the sources…

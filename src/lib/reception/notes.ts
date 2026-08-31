@@ -18,7 +18,7 @@ export function getDeskNotes(
   verse: number | null,
 ): ReceptionResult | null {
   if (verse == null) return null;
-  return getCurated(bookId, chapter, verse) ?? getCached(bookId, chapter, verse);
+  return getCached(bookId, chapter, verse) ?? getCurated(bookId, chapter, verse);
 }
 
 export function hasNotes(
@@ -51,6 +51,5 @@ export function rememberReception(
   verse: number,
   result: ReceptionResult,
 ) {
-  if (getCurated(bookId, chapter, verse)) return;
   saveCached(bookId, chapter, verse, result);
 }
