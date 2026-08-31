@@ -12,19 +12,49 @@ export type StepEntry = {
   lsj?: string;
 };
 
+type Compact = {
+  s: string;
+  l: "h" | "g";
+  m: string;
+  g: string;
+  d: string;
+  src: string;
+};
+
 type Index = {
-  attribution: string;
   byStrongs: Record<string, StepEntry>;
   byGloss: Record<string, string[]>;
 };
 
 let cached: Index | null | undefined;
 
+function expand(c: Compact): StepEntry {
+  return {
+    strongs: c.s,
+    language: c.l === "h" ? "hebrew" : "greek",
+    source: c.src === "BDB" ? "TBESH (abridged BDB)" : "TBESG (Abbott-Smith)",
+    lemma: c.m,
+    gloss: c.g,
+    definition: c.d,
+  };
+}
+
 async function loadIndex(): Promise<Index | null> {
   if (cached !== undefined) return cached;
   try {
-    const mod = await import("./data/stepbible.json");
-    cached = (mod.default ?? mod) as Index;
+    const [heb, grk, meta] = await Promise.all([
+      import("./data/hebrew.json"),
+      import("./data/greek.json"),
+      import("./data/glosses.json"),
+    ]);
+    const byStrongs: Record<string, StepEntry> = {};
+    for (const pack of [heb.default ?? heb, grk.default ?? grk]) {
+      for (const [k, v] of Object.entries(pack as Record<string, Compact>)) {
+        byStrongs[k] = expand(v);
+      }
+    }
+    const glossFile = (meta.default ?? meta) as { byGloss?: Record<string, string[]> };
+    cached = { byStrongs, byGloss: glossFile.byGloss ?? {} };
   } catch {
     cached = null;
   }
@@ -39,11 +69,7 @@ export async function lookupByStrongs(strongs: string): Promise<StepEntry | null
   const index = await loadIndex();
   if (!index) return null;
   const key = strongs.toUpperCase().replace(/\s+/g, "");
-  return (
-    index.byStrongs[key] ??
-    index.byStrongs[key.replace(/^([HG])0+/, "$1")] ??
-    null
-  );
+  return index.byStrongs[key] ?? index.byStrongs[key.replace(/^([HG])0+/, "$1")] ?? null;
 }
 
 export async function lookupByEnglish(word: string): Promise<StepEntry[]> {
