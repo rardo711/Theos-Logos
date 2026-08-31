@@ -44,6 +44,7 @@ export interface LexiconResult {
   word: string;
   lemma?: string;
   language?: "hebrew" | "greek" | "aramaic";
+  strongs?: string;
   gloss: string;
   range: string;
   citation: string;
