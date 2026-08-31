@@ -1,6 +1,8 @@
 /**
  * Server-only Gemini generateContent. Uses GEMINI_API_KEY (same name as main).
- * Default model is Flash so the Google AI Studio free tier stays usable.
+ * Default model is Gemini 3.7 Flash (introductory rate $0.75/1M input,
+ * $3.75/1M output through Dec 31, 2026; covered by the $10/month Google
+ * Cloud credits included with Google AI Pro).
  */
 
 export function geminiApiKey(): string | undefined {
@@ -9,7 +11,7 @@ export function geminiApiKey(): string | undefined {
 }
 
 export function geminiModel(): string {
-  return process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
+  return process.env.GEMINI_MODEL?.trim() || "gemini-3.7-flash";
 }
 
 function extractText(payload: unknown): string {
