@@ -24,3 +24,4 @@ attachments/
 .node_modules.lock
 .grok/*
 !.grok/app-env.json
+scripts/.cache/
