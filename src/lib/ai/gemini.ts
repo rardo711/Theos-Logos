@@ -5,6 +5,9 @@
  * Cloud credits included with Google AI Pro).
  */
 
+/** Abort before Vercel’s 300s platform kill so Inquire can fall back. */
+export const GEMINI_TIMEOUT_MS = 12_000;
+
 export function geminiApiKey(): string | undefined {
   const key = process.env.GEMINI_API_KEY?.trim();
   return key || undefined;
@@ -24,6 +27,13 @@ function extractText(payload: unknown): string {
   if (body.error?.message) throw new Error(body.error.message);
   const parts = body.candidates?.[0]?.content?.parts ?? [];
   return parts.map((p) => p.text ?? "").join("").trim();
+}
+
+function isAbort(err: unknown): boolean {
+  return (
+    err instanceof Error &&
+    (err.name === "AbortError" || err.name === "TimeoutError")
+  );
 }
 
 export async function generateGeminiJson(opts: {
@@ -51,15 +61,24 @@ export async function generateGeminiJson(opts: {
   };
 
   let lastError = "Gemini request failed.";
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-      },
-      body: JSON.stringify(body),
-    });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
+      });
+    } catch (err) {
+      if (isAbort(err)) {
+        throw new Error("Gemini timed out.");
+      }
+      throw err instanceof Error ? err : new Error("Gemini request failed.");
+    }
 
     const raw = await res.text();
     let parsed: unknown = null;
@@ -74,8 +93,11 @@ export async function generateGeminiJson(opts: {
         res.status === 429
           ? "Gemini quota reached. Wait a moment and try again."
           : "Gemini is busy. Try again in a moment.";
-      await new Promise((r) => setTimeout(r, 800 * 2 ** attempt));
-      continue;
+      if (attempt === 0) {
+        await new Promise((r) => setTimeout(r, 400));
+        continue;
+      }
+      throw new Error(lastError);
     }
 
     if (!res.ok) {
