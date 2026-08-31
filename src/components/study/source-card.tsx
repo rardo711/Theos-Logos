@@ -38,6 +38,16 @@ export function SourceCard({ card }: { card: Card }) {
         {card.citation}
         {card.paraphrased ? " · paraphrased" : ""}
       </p>
+      {card.url ? (
+        <a
+          href={card.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1 inline-block text-2xs font-semibold tracking-wide text-oxblood uppercase"
+        >
+          Open source
+        </a>
+      ) : null}
     </article>
   );
 }

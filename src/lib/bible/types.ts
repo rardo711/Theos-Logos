@@ -32,6 +32,7 @@ export interface SourceCard {
   note?: string;
   citation: string;
   paraphrased?: boolean;
+  url?: string;
 }
 
 export interface ReceptionResult {
