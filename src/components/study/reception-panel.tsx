@@ -3,7 +3,6 @@ import { ChevronDown, Loader2, PanelRight, PanelRightClose, X } from "lucide-rea
 import { askReception } from "@/lib/reception/ask";
 import { getDeskNotes, markedVerses, rememberReception } from "@/lib/reception/notes";
 import { askLexicon } from "@/lib/lexicon/ask";
-import { getLocalLexicon } from "@/lib/lexicon/local";
 import type { Chapter, LexiconResult, ReceptionResult } from "@/lib/bible/types";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
@@ -14,6 +13,8 @@ const STOP = new Set([
   "with", "as", "his", "on", "be", "at", "by", "this", "from", "or", "an", "are",
   "not", "but", "they", "you", "we", "him", "her", "them", "i", "my", "me",
   "their", "unto", "shall", "hath", "had", "have", "been", "were", "who", "whom",
+  "then", "would", "could", "should", "therefore", "answered", "said",
+  "now", "here", "there", "when", "what", "which",
 ]);
 
 function wordChips(text: string): string[] {
@@ -118,21 +119,11 @@ export function ReceptionPanel({
 
   async function runLexicon(word: string) {
     if (!chapter || !verse) return;
-    const local = getLocalLexicon(word, reference);
-    if (local) {
-      setLexicon(local);
-      setError(null);
-      return;
-    }
     setLexLoading(true);
     setError(null);
     try {
       const data = await askLexicon({
-        data: {
-          word,
-          reference,
-          verseText: verse.text,
-        },
+        data: { word, reference, verseText: verse.text },
       });
       setLexicon(data);
     } catch (err) {
@@ -158,22 +149,9 @@ export function ReceptionPanel({
             type="button"
             onClick={() => setReceptionPinned(!receptionPinned)}
             className="hidden size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink xl:flex"
-            aria-label={
-              receptionPinned
-                ? "Collapse sources"
-                : "Keep sources beside scripture"
-            }
-            title={
-              receptionPinned
-                ? "Collapse sources"
-                : "Keep sources beside scripture"
-            }
+            aria-label={receptionPinned ? "Collapse sources" : "Keep sources beside scripture"}
           >
-            {receptionPinned ? (
-              <PanelRightClose size={18} />
-            ) : (
-              <PanelRight size={18} />
-            )}
+            {receptionPinned ? <PanelRightClose size={18} /> : <PanelRight size={18} />}
           </button>
           {onClose ? (
             <button
@@ -195,14 +173,9 @@ export function ReceptionPanel({
         {!disclaimerSeen ? (
           <div className="mb-4 rounded-lg border border-rule bg-surface p-3 shadow-soft">
             <p className="text-sm leading-relaxed text-muted">
-              A research desk, not a teacher. Scripture first. Sources must be
-              named. Take what you find to your church.
+              A research desk, not a teacher. Scripture first. Sources must be named. Take what you find to your church.
             </p>
-            <button
-              type="button"
-              onClick={dismissDisclaimer}
-              className="mt-2 min-h-11 text-xs font-semibold tracking-wide text-oxblood uppercase"
-            >
+            <button type="button" onClick={dismissDisclaimer} className="mt-2 min-h-11 text-xs font-semibold tracking-wide text-oxblood uppercase">
               Understood
             </button>
           </div>
@@ -212,36 +185,21 @@ export function ReceptionPanel({
           <div className="flex flex-col items-start gap-4 py-6">
             <p className="font-display text-xl text-ink">Mark a verse.</p>
             <p className="max-w-xs text-sm leading-relaxed text-muted">
-              Reception is a stack of named cards — Fathers, Reformers,
-              confessions — not a generated sermon.
+              Reception is a stack of named cards — Fathers, Reformers, confessions — not a generated sermon.
             </p>
             {marked.length > 0 ? (
               <div>
-                <p className="mb-2 text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  Notes on this chapter
-                </p>
-                <p className="mb-2 text-sm text-muted">
-                  Marked verses open a stack of named sources — no search
-                  required.
-                </p>
+                <p className="mb-2 text-2xs font-semibold tracking-[0.14em] text-faint uppercase">Notes on this chapter</p>
                 <div className="flex flex-wrap gap-1.5">
                   {marked.map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setVerse(n)}
-                      className="min-h-11 rounded-md border border-rule bg-surface px-3 text-sm font-semibold text-ink hover:border-oxblood hover:text-oxblood"
-                    >
+                    <button key={n} type="button" onClick={() => setVerse(n)} className="min-h-11 rounded-md border border-rule bg-surface px-3 text-sm font-semibold text-ink hover:border-oxblood hover:text-oxblood">
                       v. {n}
                     </button>
                   ))}
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-muted italic">
-                This chapter has no desk notes yet. You may still inquire of the
-                sources after marking a verse.
-              </p>
+              <p className="text-sm text-muted italic">This chapter has no desk notes yet.</p>
             )}
           </div>
         ) : (
@@ -254,9 +212,7 @@ export function ReceptionPanel({
 
             {chips.length > 0 ? (
               <div className="mb-4">
-                <p className="mb-2 text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  Lexicon
-                </p>
+                <p className="mb-2 text-2xs font-semibold tracking-[0.14em] text-faint uppercase">Word study</p>
                 <div className="flex flex-wrap gap-1.5">
                   {chips.map((w) => (
                     <button
@@ -279,63 +235,55 @@ export function ReceptionPanel({
 
             {lexLoading ? (
               <p className="mb-4 flex items-center gap-2 text-sm text-muted italic">
-                <Loader2 size={14} className="animate-spin" /> Parsing the lemma…
+                <Loader2 size={14} className="animate-spin" /> Looking up the word…
               </p>
             ) : null}
 
-            {lexicon ? (
-              <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
-                <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  {lexicon.language ?? "Lexical note"}
-                </p>
-                <h3 className="font-display mt-1 text-lg font-semibold text-ink">
-                  {lexicon.word}
-                  {lexicon.lemma ? (
-                    <span className="ml-2 font-serif text-base font-normal text-muted italic">
-                      {lexicon.lemma}
-                    </span>
-                  ) : null}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink">
-                  {lexicon.gloss}
-                </p>
-                {lexicon.range ? (
-                  <p className="mt-2 text-sm text-muted">{lexicon.range}</p>
-                ) : null}
-                <p className="mt-3 text-2xs text-faint">
-                  {[lexicon.citation, lexicon.caution].filter(Boolean).join(" · ")}
-                </p>
-              </article>
+            {lexicon && !lexLoading ? (
+              lexicon.empty ? (
+                <article className="mb-5 rounded-lg border border-dashed border-rule bg-transparent p-4">
+                  <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">No entry</p>
+                  <h3 className="font-display mt-1 text-lg font-semibold text-ink">{lexicon.word}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{lexicon.gloss}</p>
+                  <p className="mt-2 text-2xs leading-relaxed text-faint">{lexicon.caution}</p>
+                </article>
+              ) : (
+                <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
+                  <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
+                    {[lexicon.language, lexicon.strongs].filter(Boolean).join(" · ") || "Lexical note"}
+                  </p>
+                  <h3 className="font-display mt-1 text-lg font-semibold text-ink">
+                    {lexicon.word}
+                    {lexicon.lemma ? (
+                      <span className="ml-2 font-serif text-base font-normal text-muted italic">{lexicon.lemma}</span>
+                    ) : null}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink">{lexicon.gloss}</p>
+                  {lexicon.range ? <p className="mt-2 text-sm text-muted">{lexicon.range}</p> : null}
+                  <p className="mt-3 text-2xs text-faint">{[lexicon.citation, lexicon.caution].filter(Boolean).join(" · ")}</p>
+                </article>
+              )
             ) : null}
 
             {loading && !result ? (
               <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
-                <Loader2 size={14} className="animate-spin text-oxblood" />
-                Consulting the sources…
+                <Loader2 size={14} className="animate-spin text-oxblood" /> Consulting the sources…
               </p>
             ) : null}
 
             {error ? (
-              <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
-                {error}
-              </p>
+              <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">{error}</p>
             ) : null}
 
             {result?.cards.length ? (
               <div className="mb-6 space-y-3">
                 <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  {result.source === "curated"
-                    ? "Desk notes"
-                    : "Gathered sources"}
+                  {result.source === "curated" ? "Desk notes" : "Gathered sources"}
                 </p>
                 {result.cards.map((card, i) => (
                   <SourceCard key={`${card.voice}-${i}`} card={card} />
                 ))}
-                {result.caution ? (
-                  <p className="pt-1 text-2xs leading-relaxed text-faint italic">
-                    {result.caution}
-                  </p>
-                ) : null}
+                {result.caution ? <p className="pt-1 text-2xs leading-relaxed text-faint italic">{result.caution}</p> : null}
               </div>
             ) : null}
 
@@ -345,58 +293,24 @@ export function ReceptionPanel({
 
             {!result?.cards.length && !loading ? (
               <p className="mb-4 text-sm leading-relaxed text-muted">
-                No desk notes for this verse yet. Inquire only if you want the
-                librarian to gather named sources — not a homily.
+                No desk notes for this verse yet. Inquire only if you want named sources — not a homily.
               </p>
             ) : null}
 
             <div className="border-t border-rule pt-3">
-              <button
-                type="button"
-                onClick={() => setAimOpen((v) => !v)}
-                className="flex min-h-11 w-full items-center justify-between text-left text-2xs font-semibold tracking-[0.14em] text-faint uppercase"
-              >
+              <button type="button" onClick={() => setAimOpen((v) => !v)} className="flex min-h-11 w-full items-center justify-between text-left text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
                 Aim the sources
-                <ChevronDown
-                  size={14}
-                  className={cn(
-                    "transition-transform duration-200",
-                    aimOpen && "rotate-180",
-                  )}
-                />
+                <ChevronDown size={14} className={cn("transition-transform duration-200", aimOpen && "rotate-180")} />
               </button>
               {aimOpen ? (
-                <form
-                  className="pt-2 pb-4"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void run("reception");
-                  }}
-                >
-                  <label className="sr-only" htmlFor="ask-verse">
-                    Aim the sources
-                  </label>
-                  <input
-                    id="ask-verse"
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="Optional focus: eternity, incarnation…"
-                    className="w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-oxblood"
-                  />
+                <form className="pt-2 pb-4" onSubmit={(e) => { e.preventDefault(); void run("reception"); }}>
+                  <label className="sr-only" htmlFor="ask-verse">Aim the sources</label>
+                  <input id="ask-verse" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Optional focus: eternity, incarnation…" className="w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-oxblood" />
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="min-h-11 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
-                    >
+                    <button type="submit" disabled={loading} className="min-h-11 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60">
                       {loading ? "Consulting…" : "Inquire"}
                     </button>
-                    <button
-                      type="button"
-                      disabled={loading}
-                      onClick={() => void run("traditions")}
-                      className="min-h-11 rounded-md border border-rule px-4 text-xs font-semibold tracking-wide text-ink uppercase hover:border-ink/30 disabled:opacity-60"
-                    >
+                    <button type="button" disabled={loading} onClick={() => void run("traditions")} className="min-h-11 rounded-md border border-rule px-4 text-xs font-semibold tracking-wide text-ink uppercase hover:border-ink/30 disabled:opacity-60">
                       Compare
                     </button>
                   </div>
@@ -424,14 +338,8 @@ export function VerseHint({
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div className="pointer-events-auto flex items-center gap-1 rounded-md border border-rule bg-surface px-1.5 py-1 shadow-soft">
-        <span className="px-2.5 font-serif text-sm font-medium text-oxblood tabular-nums">
-          {selected}
-        </span>
-        <button
-          type="button"
-          onClick={onInquire}
-          className="rounded-sm bg-oxblood px-4 py-2.5 text-xs font-semibold tracking-[0.12em] text-oxblood-fg uppercase"
-        >
+        <span className="px-2.5 font-serif text-sm font-medium text-oxblood tabular-nums">{selected}</span>
+        <button type="button" onClick={onInquire} className="rounded-sm bg-oxblood px-4 py-2.5 text-xs font-semibold tracking-[0.12em] text-oxblood-fg uppercase">
           {noted ? "Desk notes" : "Sources"}
         </button>
       </div>
