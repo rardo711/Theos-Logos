@@ -1,5 +1,10 @@
 import type { LexiconResult } from "@/lib/bible/types";
-import { byGloss as deskGloss, byStrongs as deskStrongs, deskAttribution } from "./data/desk";
+import {
+  byGloss as deskGloss,
+  byStrongs as deskStrongs,
+  deskAttribution,
+  type Compact,
+} from "./data/desk";
 
 export type StepEntry = {
   strongs: string;
@@ -9,22 +14,6 @@ export type StepEntry = {
   gloss: string;
   definition: string;
 };
-
-type Compact = {
-  s: string;
-  l: "h" | "g";
-  m: string;
-  g: string;
-  d: string;
-  src: string;
-};
-
-type Index = {
-  byStrongs: Record<string, StepEntry>;
-  byGloss: Record<string, string[]>;
-};
-
-let cached: Index | null | undefined;
 
 function expand(c: Compact): StepEntry {
   return {
@@ -37,37 +26,9 @@ function expand(c: Compact): StepEntry {
   };
 }
 
-function fromDesk(): Index {
-  const byStrongs: Record<string, StepEntry> = {};
-  for (const [k, v] of Object.entries(deskStrongs)) byStrongs[k] = expand(v);
-  return { byStrongs, byGloss: deskGloss };
-}
-
-async function loadIndex(): Promise<Index | null> {
-  if (cached !== undefined) return cached;
-  const desk = fromDesk();
-  try {
-    const [heb, grk, meta] = await Promise.all([
-      import("./data/hebrew.json"),
-      import("./data/greek.json"),
-      import("./data/glosses.json"),
-    ]);
-    const byStrongs: Record<string, StepEntry> = { ...desk.byStrongs };
-    for (const pack of [heb.default ?? heb, grk.default ?? grk]) {
-      for (const [k, v] of Object.entries(pack as Record<string, Compact>)) {
-        byStrongs[k] = expand(v);
-      }
-    }
-    const glossFile = (meta.default ?? meta) as { byGloss?: Record<string, string[]> };
-    cached = {
-      byStrongs,
-      byGloss: { ...desk.byGloss, ...(glossFile.byGloss ?? {}) },
-    };
-  } catch {
-    cached = desk;
-  }
-  return cached;
-}
+const byStrongs: Record<string, StepEntry> = Object.fromEntries(
+  Object.entries(deskStrongs).map(([k, v]) => [k, expand(v)]),
+);
 
 function glossKey(word: string): string {
   return word.toLowerCase().replace(/[^a-z]+/g, " ").trim();
@@ -82,23 +43,27 @@ function variants(word: string): string[] {
   return [...out];
 }
 
-export async function lookupByStrongs(strongs: string): Promise<StepEntry | null> {
-  const index = await loadIndex();
-  if (!index) return null;
+export function lookupByStrongsSync(strongs: string): StepEntry | null {
   const key = strongs.toUpperCase().replace(/\s+/g, "");
-  return index.byStrongs[key] ?? index.byStrongs[key.replace(/^([HG])0+/, "$1")] ?? null;
+  return byStrongs[key] ?? byStrongs[key.replace(/^([HG])0+/, "$1")] ?? null;
 }
 
-export async function lookupByEnglish(word: string): Promise<StepEntry[]> {
-  const index = await loadIndex();
-  if (!index) return [];
+export function lookupByEnglishSync(word: string): StepEntry[] {
   const ids: string[] = [];
   for (const key of variants(word)) {
-    for (const id of index.byGloss[key] ?? []) {
+    for (const id of deskGloss[key] ?? []) {
       if (!ids.includes(id)) ids.push(id);
     }
   }
-  return ids.map((id) => index.byStrongs[id]).filter(Boolean) as StepEntry[];
+  return ids.map((id) => byStrongs[id]).filter(Boolean);
+}
+
+export async function lookupByStrongs(strongs: string): Promise<StepEntry | null> {
+  return lookupByStrongsSync(strongs);
+}
+
+export async function lookupByEnglish(word: string): Promise<StepEntry[]> {
+  return lookupByEnglishSync(word);
 }
 
 export function emptyResult(word: string): LexiconResult {
@@ -129,4 +94,17 @@ export function entryToResult(
     caution: "Retrieved entry. Confirm in BDAG or HALOT for formal citation.",
     empty: false,
   };
+}
+
+export function lookupWordNow(word: string, reference?: string): LexiconResult {
+  const hits = lookupByEnglishSync(word);
+  const ot = reference
+    ? /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Ruth|Samuel|Kings|Chronicles|Ezra|Nehemiah|Esther|Job|Psalm|Proverbs|Ecclesiastes|Song|Isaiah|Jeremiah|Lamentations|Ezekiel|Daniel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi)/i.test(
+        reference,
+      )
+    : false;
+  const chosen =
+    hits.find((e) => (ot ? e.language === "hebrew" : e.language === "greek")) ||
+    hits[0];
+  return chosen ? entryToResult(word, chosen) : emptyResult(word);
 }
