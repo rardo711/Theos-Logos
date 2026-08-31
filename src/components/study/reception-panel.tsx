@@ -86,11 +86,14 @@ export function ReceptionPanel({
 
   async function run(mode: "reception" | "traditions") {
     if (!chapter) return;
-    const emptyReception = mode === "reception" && !question.trim();
-    if (emptyReception && result?.cards.length) {
+    const focus = question.trim();
+    const emptyInquire = mode === "reception" && !focus;
+
+    if (emptyInquire && result?.cards.length) {
       setError(null);
       return;
     }
+
     setLoading(true);
     setError(null);
     setLexicon(null);
@@ -107,7 +110,7 @@ export function ReceptionPanel({
               .slice(0, 12)
               .map((v) => `${v.verse} ${v.text}`)
               .join("\n"),
-            question: question.trim() || undefined,
+            question: focus || undefined,
             mode,
           },
         }),
@@ -118,28 +121,36 @@ export function ReceptionPanel({
           ),
         ),
       ]);
-      const existing = result?.cards ?? [];
-      const focused = mode === "traditions" || Boolean(question.trim());
+
       let next = data;
-      if (focused && existing.length) {
+      if (result?.cards.length && (mode === "traditions" || focus)) {
         const seen = new Set(
-          existing.map((c) => `${c.voice}\0${c.citation}`),
+          result.cards.map((c) => `${c.voice}\0${c.citation}`),
         );
-        const added = data.cards.filter(
-          (c) => !seen.has(`${c.voice}\0${c.citation}`),
-        );
+        const added = data.cards.filter((c) => {
+          const key = `${c.voice}\0${c.citation}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
         if (!added.length) {
           throw new Error("No additional sources for that focus.");
         }
         next = {
           source: "generated",
-          cards: [...existing, ...added],
-          caution: data.caution ?? result?.caution,
+          cards: [...result.cards, ...added],
+          caution: data.caution ?? result.caution,
         };
       }
+
       setResult(next);
       if (selectedVerse != null && next.cards.length) {
-        rememberReception(chapter.bookId, chapter.chapter, selectedVerse, next);
+        rememberReception(
+          chapter.bookId,
+          chapter.chapter,
+          selectedVerse,
+          next,
+        );
         touchNotes();
       }
     } catch (err) {

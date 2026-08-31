@@ -55,7 +55,7 @@ Rules:
 - 3 to 4 cards, different voices. Short quotes (1–3 sentences).
 - Include a real citation (work + locus). If unsure of a page/section, say so in citation.
 - No homily. No "application for your life." No modern celebrity pastors.
-- If a reader question is present, gather ADDITIONAL historic voices that address that question. Do not repeat a generic Augustine / Chrysostom / Calvin / Westminster stack unless a quote uniquely answers the question.`;
+- If a reader question is present, gather ADDITIONAL historic voices aimed at that question. Do not repeat a generic Augustine/Chrysostom/Calvin/Westminster stack unless a quote uniquely answers the question.`;
 
 export const askReception = createServerFn({ method: "POST" })
   .validator(
@@ -72,23 +72,14 @@ export const askReception = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }): Promise<ReceptionResult> => {
     const question = data.question?.trim() ?? "";
-    const emptyReception = data.mode === "reception" && !question;
 
-    if (emptyReception) {
+    if (data.mode === "reception" && !question) {
       const ready = getCurated(data.bookId, data.chapter, data.verse);
       if (ready) return ready;
     }
 
-    const focused = !emptyReception;
     if (!geminiApiKey()) {
-      if (focused) {
-        throw new Error("Reception is unavailable in this environment.");
-      }
-      return {
-        source: "generated",
-        cards: [],
-        caution: "Reception is unavailable in this environment.",
-      };
+      throw new Error("Reception is unavailable in this environment.");
     }
 
     const ref =
@@ -100,7 +91,7 @@ export const askReception = createServerFn({ method: "POST" })
       data.mode === "traditions"
         ? "Compare how distinct historic traditions received this text. Include at least one patristic, one Reformation (reformed or lutheran), and one catholic or orthodox voice. Fair, sourced, not polemical."
         : question
-          ? "Gather ADDITIONAL historic voices that address the reader's question. Do not repeat a generic Augustine / Chrysostom / Calvin / Westminster stack unless a quote uniquely answers the question."
+          ? "Gather ADDITIONAL historic voices aimed at the reader's question. Do not repeat a generic Augustine/Chrysostom/Calvin/Westminster stack unless a quote uniquely answers the question."
           : "Gather the historic reception of this verse.";
 
     const user = [
