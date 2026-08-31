@@ -86,7 +86,7 @@ npm run build
 
 ## Stack
 
-React 19 · TypeScript · TanStack Start · Tailwind CSS v4 · Zustand · Gemini (`gemini-2.5-flash`, user-initiated only)
+React 19 · TypeScript · TanStack Start · Tailwind CSS v4 · Zustand · Gemini (`gemini-3.6-flash`, low thinking, user-initiated only)
 
 Bible text: [ESV API](https://api.esv.org/) when `ESV_API_KEY` is set; otherwise [bible-api.com](https://bible-api.com/) World English Bible. Instant seed for John 1, Genesis 1, Romans 8, Psalm 119 (replaced by ESV once the chapter loads).
 
