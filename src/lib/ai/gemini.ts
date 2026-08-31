@@ -8,6 +8,8 @@
 /** Abort before Vercel’s 300s platform kill so Inquire can fall back. */
 export const GEMINI_TIMEOUT_MS = 12_000;
 
+const GEMINI_503_FALLBACK_MODEL = "gemini-3.6-flash";
+
 export function geminiApiKey(): string | undefined {
   const key = process.env.GEMINI_API_KEY?.trim();
   return key || undefined;
@@ -36,6 +38,12 @@ function isAbort(err: unknown): boolean {
   );
 }
 
+function busyOrQuotaMessage(status: number): string {
+  return status === 429
+    ? "Gemini quota reached. Wait a moment and try again."
+    : "Gemini is busy. Try again in a moment.";
+}
+
 export async function generateGeminiJson(opts: {
   system: string;
   user: string;
@@ -45,24 +53,27 @@ export async function generateGeminiJson(opts: {
   const apiKey = geminiApiKey();
   if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
 
-  const model = geminiModel();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-  const flash = model.toLowerCase().includes("flash");
+  const primaryModel = geminiModel();
 
-  const body = {
-    systemInstruction: { parts: [{ text: opts.system }] },
-    contents: [{ role: "user", parts: [{ text: opts.user }] }],
-    generationConfig: {
-      temperature: opts.temperature ?? 0.2,
-      maxOutputTokens: opts.maxOutputTokens ?? 1100,
-      responseMimeType: "application/json",
-      // 3.7 Flash ignores thinkingBudget:0 (2.5-era). LOW is the fastest level it accepts.
-      ...(flash ? { thinkingConfig: { thinkingLevel: "LOW" } } : {}),
-    },
-  };
+  async function callModel(model: string): Promise<{
+    ok: boolean;
+    status: number;
+    parsed: unknown;
+  }> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    const flash = model.toLowerCase().includes("flash");
+    const body = {
+      systemInstruction: { parts: [{ text: opts.system }] },
+      contents: [{ role: "user", parts: [{ text: opts.user }] }],
+      generationConfig: {
+        temperature: opts.temperature ?? 0.2,
+        maxOutputTokens: opts.maxOutputTokens ?? 1100,
+        responseMimeType: "application/json",
+        // 3.7 Flash ignores thinkingBudget:0 (2.5-era). LOW is the fastest level it accepts.
+        ...(flash ? { thinkingConfig: { thinkingLevel: "LOW" } } : {}),
+      },
+    };
 
-  let lastError = "Gemini request failed.";
-  for (let attempt = 0; attempt < 2; attempt++) {
     let res: Response;
     try {
       res = await fetch(url, {
@@ -88,31 +99,43 @@ export async function generateGeminiJson(opts: {
     } catch {
       parsed = null;
     }
+    return { ok: res.ok, status: res.status, parsed };
+  }
 
-    if (res.status === 429 || res.status === 503) {
-      lastError =
-        res.status === 429
-          ? "Gemini quota reached. Wait a moment and try again."
-          : "Gemini is busy. Try again in a moment.";
-      if (attempt === 0) {
-        await new Promise((r) => setTimeout(r, 400));
-        continue;
+  function finish(result: {
+    ok: boolean;
+    status: number;
+    parsed: unknown;
+  }): string {
+    if (!result.ok) {
+      if (result.status === 429 || result.status === 503) {
+        throw new Error(busyOrQuotaMessage(result.status));
       }
-      throw new Error(lastError);
-    }
-
-    if (!res.ok) {
       const msg =
-        parsed && typeof parsed === "object" && parsed !== null
-          ? extractText(parsed)
+        result.parsed && typeof result.parsed === "object" && result.parsed !== null
+          ? extractText(result.parsed)
           : "";
-      throw new Error(msg || `Gemini request failed (${res.status}).`);
+      throw new Error(msg || `Gemini request failed (${result.status}).`);
     }
-
-    const text = parsed ? extractText(parsed) : "";
+    const text = result.parsed ? extractText(result.parsed) : "";
     if (!text) throw new Error("Gemini returned an empty response.");
     return text;
   }
 
-  throw new Error(lastError);
+  // Call 1: primary (gemini-3.7-flash). No retry loop.
+  let primary = await callModel(primaryModel);
+
+  // HTTP 429: one short wait, one retry on 3.7 only. Do not fall back to 3.6 on 429.
+  if (primary.status === 429) {
+    await new Promise((r) => setTimeout(r, 400));
+    primary = await callModel(primaryModel);
+  }
+
+  // HTTP 503 UNAVAILABLE: do not retry 3.7. One shot at 3.6 Flash (LOW).
+  if (primary.status === 503) {
+    const fallback = await callModel(GEMINI_503_FALLBACK_MODEL);
+    return finish(fallback);
+  }
+
+  return finish(primary);
 }
