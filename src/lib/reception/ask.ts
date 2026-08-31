@@ -71,14 +71,14 @@ export const askReception = createServerFn({ method: "POST" })
     }) => input,
   )
   .handler(async ({ data }): Promise<ReceptionResult> => {
-    if (data.mode === "reception") {
+    const asked = Boolean(data.question?.trim()) || data.mode === "traditions";
+
+    if (data.mode === "reception" && !asked) {
       const ready = getCurated(data.bookId, data.chapter, data.verse);
-      if (ready && !data.question?.trim()) return ready;
+      if (ready) return ready;
     }
 
     if (!geminiApiKey()) {
-      const ready = getCurated(data.bookId, data.chapter, data.verse);
-      if (ready) return ready;
       return {
         source: "generated",
         cards: [],
@@ -117,15 +117,11 @@ export const askReception = createServerFn({ method: "POST" })
         maxOutputTokens: 1100,
       });
     } catch (err) {
-      const ready = getCurated(data.bookId, data.chapter, data.verse);
-      if (ready) return ready;
       throw err instanceof Error ? err : new Error("Reception request failed.");
     }
 
     const cards = parseCards(text);
     if (!cards.length) {
-      const ready = getCurated(data.bookId, data.chapter, data.verse);
-      if (ready) return ready;
       throw new Error("No sourced cards could be assembled.");
     }
 
