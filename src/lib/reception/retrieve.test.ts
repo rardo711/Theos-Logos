@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { mapCatalog } from "./catalog.ts";
+import { CATALOG, mapCatalog } from "./catalog.ts";
 import {
   htmlToText,
   paragraphsFromHtml,
@@ -9,6 +9,12 @@ import {
 } from "./retrieve.ts";
 
 describe("primary-source mapping", () => {
+  it("indexes a broad primary-source set with unique ids", () => {
+    assert.ok(CATALOG.length >= 60, `catalog is ${CATALOG.length}`);
+    const ids = CATALOG.map((e) => e.id);
+    assert.equal(new Set(ids).size, ids.length);
+  });
+
   it("maps Aquinas + predestination to ST I q.23", () => {
     const hits = mapCatalog({
       question: "what did Aquinas say about predestination",

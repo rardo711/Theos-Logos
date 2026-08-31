@@ -121,7 +121,7 @@ export async function retrieveExtracts(opts: {
   mode?: "reception" | "traditions";
 }): Promise<FetchedExtract[]> {
   const query = [opts.question, opts.verseText].filter(Boolean).join(" ");
-  const mapped = mapCatalog({ ...opts, limit: 4 });
+  const mapped = mapCatalog({ ...opts, limit: 5 });
   const found = await Promise.all(mapped.map((e) => fetchEntry(e, query)));
   return found.filter((x): x is FetchedExtract => x != null);
 }
