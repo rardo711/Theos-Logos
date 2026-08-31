@@ -72,14 +72,18 @@ export const askReception = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }): Promise<ReceptionResult> => {
     const question = data.question?.trim() ?? "";
+    const ready = getCurated(data.bookId, data.chapter, data.verse);
 
-    if (data.mode === "reception" && !question) {
-      const ready = getCurated(data.bookId, data.chapter, data.verse);
-      if (ready) return ready;
-    }
+    if (data.mode === "reception" && !question && ready) return ready;
 
     if (!geminiApiKey()) {
-      throw new Error("Reception is unavailable in this environment.");
+      if (ready) return ready;
+      return {
+        source: "generated",
+        cards: [],
+        caution:
+          "Inquire needs GEMINI_API_KEY on the host. Desk notes still work without it.",
+      };
     }
 
     const ref =
@@ -111,15 +115,16 @@ export const askReception = createServerFn({ method: "POST" })
       text = await generateGeminiJson({
         system: SYSTEM,
         user,
-        temperature: 0.2,
-        maxOutputTokens: 1100,
+        maxOutputTokens: 1600,
       });
     } catch (err) {
+      if (ready && !question) return ready;
       throw err instanceof Error ? err : new Error("Reception request failed.");
     }
 
     const cards = parseCards(text);
     if (!cards.length) {
+      if (ready && !question) return ready;
       throw new Error("No sourced cards could be assembled.");
     }
 

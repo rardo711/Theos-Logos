@@ -17,7 +17,7 @@ const STOP = new Set([
 
 function wordChips(text: string, reference: string): string[] {
   const words = text
-    .replace(/[\u201c\u201d\u2018\u2019]/g, "")
+    .replace(/[“”‘’]/g, "")
     .split(/[^A-Za-z-]+/)
     .map((w) => w.trim())
     .filter((w) => w.length > 2 && !STOP.has(w.toLowerCase()));
@@ -98,29 +98,21 @@ export function ReceptionPanel({
     setError(null);
     setLexicon(null);
     try {
-      const data = await Promise.race([
-        askReception({
-          data: {
-            bookId: chapter.bookId,
-            bookName: chapter.bookName,
-            chapter: chapter.chapter,
-            verse: selectedVerse,
-            verseText: verse?.text ?? "",
-            passage: chapter.verses
-              .slice(0, 12)
-              .map((v) => `${v.verse} ${v.text}`)
-              .join("\n"),
-            question: focus || undefined,
-            mode,
-          },
-        }),
-        new Promise<never>((_, reject) =>
-          setTimeout(
-            () => reject(new Error("Reception timed out. Try again.")),
-            20_000,
-          ),
-        ),
-      ]);
+      const data = await askReception({
+        data: {
+          bookId: chapter.bookId,
+          bookName: chapter.bookName,
+          chapter: chapter.chapter,
+          verse: selectedVerse,
+          verseText: verse?.text ?? "",
+          passage: chapter.verses
+            .slice(0, 12)
+            .map((v) => `${v.verse} ${v.text}`)
+            .join("\n"),
+          question: focus || undefined,
+          mode,
+        },
+      });
 
       let next = data;
       if (result?.cards.length && (mode === "traditions" || focus)) {
@@ -302,11 +294,21 @@ export function ReceptionPanel({
 
             {lexicon ? (
               <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
-                <p className="text-sm leading-relaxed text-ink">{lexicon.gloss}</p>
-                <p className="mt-2 text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  {[lexicon.lemma, lexicon.strongs]
+                <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
+                  {[lexicon.language, lexicon.strongs, lexicon.source]
                     .filter(Boolean)
                     .join(" · ") || "Lexical note"}
+                </p>
+                <h3 className="font-display mt-1 text-lg font-semibold text-ink">
+                  {lexicon.word}
+                  {lexicon.lemma ? (
+                    <span className="ml-2 font-serif text-base font-normal text-muted italic">
+                      {lexicon.lemma}
+                    </span>
+                  ) : null}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink">
+                  {lexicon.gloss}
                 </p>
                 {lexicon.range ? (
                   <p className="mt-2 text-sm text-muted">{lexicon.range}</p>
@@ -317,7 +319,7 @@ export function ReceptionPanel({
               </article>
             ) : null}
 
-            {loading ? (
+            {loading && !result ? (
               <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
                 <Loader2 size={14} className="animate-spin text-oxblood" />
                 Consulting the sources…
