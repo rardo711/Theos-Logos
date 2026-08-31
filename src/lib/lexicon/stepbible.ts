@@ -6,6 +6,9 @@ import {
   deskAttribution,
   type Compact,
 } from "./data/desk.ts";
+import hebrewJson from "./data/hebrew.json";
+import greekJson from "./data/greek.json";
+import glossesJson from "./data/glosses.json";
 
 export type StepEntry = {
   strongs: string;
@@ -19,20 +22,30 @@ export type StepEntry = {
 const CAUTION =
   "Confirm the lemma and senses in BDAG, BDB, or HALOT before citing.";
 
-function expand(c: Compact): StepEntry {
+type JsonCompact = {
+  s: string;
+  l: "h" | "g";
+  m: string;
+  g: string;
+  d: string;
+  src: string;
+};
+
+const hebrew = hebrewJson as Record<string, JsonCompact>;
+const greek = greekJson as Record<string, JsonCompact>;
+const fullGloss =
+  (glossesJson as { byGloss?: Record<string, string[]> }).byGloss ?? {};
+
+function expand(c: Compact | JsonCompact): StepEntry {
   return {
     strongs: c.s,
     language: c.l === "h" ? "hebrew" : "greek",
-    source: c.src,
+    source: c.src === "BDB" ? "BDB" : "AS",
     lemma: c.m,
     gloss: c.g,
     definition: c.d,
   };
 }
-
-const byStrongs: Record<string, StepEntry> = Object.fromEntries(
-  Object.entries(deskStrongs).map(([k, v]) => [k, expand(v)]),
-);
 
 function glossKey(word: string): string {
   return word.toLowerCase().replace(/[^a-z]+/g, " ").trim();
@@ -56,17 +69,23 @@ export function isOtReference(reference?: string): boolean {
 
 export function lookupByStrongsSync(strongs: string): StepEntry | null {
   const key = strongs.toUpperCase().replace(/\s+/g, "");
-  return byStrongs[key] ?? byStrongs[key.replace(/^([HG])0+/, "$1")] ?? null;
+  const alt = key.replace(/^([HG])0+/, "$1");
+  const desk = deskStrongs[key] ?? deskStrongs[alt];
+  if (desk) return expand(desk);
+  const raw = hebrew[key] ?? hebrew[alt] ?? greek[key] ?? greek[alt] ?? null;
+  return raw ? expand(raw) : null;
 }
 
 export function lookupByEnglishSync(word: string): StepEntry[] {
   const ids: string[] = [];
   for (const key of variants(word)) {
-    for (const id of deskGloss[key] ?? []) {
+    for (const id of [...(deskGloss[key] ?? []), ...(fullGloss[key] ?? [])]) {
       if (!ids.includes(id)) ids.push(id);
     }
   }
-  return ids.map((id) => byStrongs[id]).filter(Boolean);
+  return ids
+    .map((id) => lookupByStrongsSync(id))
+    .filter((e): e is StepEntry => e != null);
 }
 
 export function entryToResult(word: string, entry: StepEntry): LexiconResult {
@@ -83,7 +102,7 @@ export function entryToResult(word: string, entry: StepEntry): LexiconResult {
   };
 }
 
-/** Local desk note first; STEPBible compact index on a miss. Never Gemini. */
+/** Local note, then desk pocket, then committed STEPBible JSON. Never Gemini. */
 export function lookupWordNow(
   word: string,
   reference?: string,
