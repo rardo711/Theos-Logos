@@ -30,10 +30,8 @@ export function StudyWorkspace() {
   const selectedVerse = useStudy((s) => s.selectedVerse);
   const notesRev = useStudy((s) => s.notesRev);
 
-  const [chapter, setChapter] = useState<Chapter | null>(() =>
-    getSeed("JHN", 1),
-  );
-  const [loading, setLoading] = useState(false);
+  const [chapter, setChapter] = useState<Chapter | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [wideDesk, setWideDesk] = useState(false);
@@ -77,15 +75,8 @@ export function StudyWorkspace() {
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
-    const seed = getSeed(bookId, chapterNum);
-    if (seed) {
-      setChapter(seed);
-      setError(null);
-      setLoading(false);
-    } else {
-      setLoading(true);
-      setError(null);
-    }
+    setLoading(true);
+    setError(null);
     fetchChapter({ data: { bookId, chapter: chapterNum } })
       .then((data) => {
         if (!cancelled) {
@@ -94,12 +85,17 @@ export function StudyWorkspace() {
         }
       })
       .catch((err: unknown) => {
-        if (!cancelled && !seed) {
-          setChapter(null);
-          setError(
-            err instanceof Error ? err.message : "Could not load this chapter.",
-          );
+        if (cancelled) return;
+        const fallback = getSeed(bookId, chapterNum);
+        if (fallback) {
+          setChapter(fallback);
+          setError(null);
+          return;
         }
+        setChapter(null);
+        setError(
+          err instanceof Error ? err.message : "Could not load this chapter.",
+        );
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -148,6 +144,11 @@ export function StudyWorkspace() {
   }
 
   const docked = receptionPinned && wideDesk && receptionOpen;
+  const waitingOnFetch =
+    loading &&
+    (chapter == null ||
+      chapter.bookId !== bookId ||
+      chapter.chapter !== chapterNum);
 
   return (
     <div className="tl-shell flex flex-col overflow-hidden bg-paper text-ink">
@@ -155,7 +156,11 @@ export function StudyWorkspace() {
 
       <div className="relative flex min-h-0 flex-1">
         <section className="relative min-h-0 min-w-0 flex-1">
-          <Reader chapter={chapter} loading={loading} error={error} />
+          <Reader
+            chapter={waitingOnFetch ? null : chapter}
+            loading={loading}
+            error={error}
+          />
           <VerseHint
             noted={verseHasNotes}
             onInquire={() => {
