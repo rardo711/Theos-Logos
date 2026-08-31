@@ -65,6 +65,17 @@ function glossKey(word: string): string {
   return word.toLowerCase().replace(/[^a-z]+/g, " ").trim();
 }
 
+function variants(word: string): string[] {
+  const key = glossKey(word);
+  const out = new Set<string>([key]);
+  if (key.endsWith("ies") && key.length > 4) out.add(key.slice(0, -3) + "y");
+  if (key.endsWith("es") && key.length > 4) out.add(key.slice(0, -2));
+  if (key.endsWith("s") && key.length > 3) out.add(key.slice(0, -1));
+  if (key.endsWith("ed") && key.length > 4) out.add(key.slice(0, -2));
+  if (key.endsWith("ing") && key.length > 5) out.add(key.slice(0, -3));
+  return [...out];
+}
+
 export async function lookupByStrongs(strongs: string): Promise<StepEntry | null> {
   const index = await loadIndex();
   if (!index) return null;
@@ -75,14 +86,29 @@ export async function lookupByStrongs(strongs: string): Promise<StepEntry | null
 export async function lookupByEnglish(word: string): Promise<StepEntry[]> {
   const index = await loadIndex();
   if (!index) return [];
-  const key = glossKey(word);
-  const ids = index.byGloss[key] ?? [];
+  const ids: string[] = [];
+  for (const key of variants(word)) {
+    for (const id of index.byGloss[key] ?? []) {
+      if (!ids.includes(id)) ids.push(id);
+    }
+  }
   const out: StepEntry[] = [];
   for (const id of ids) {
     const e = index.byStrongs[id];
     if (e) out.push(e);
   }
   return out;
+}
+
+export function emptyResult(word: string): LexiconResult {
+  return {
+    word,
+    gloss: `No original-language entry is indexed for “${word}”.`,
+    range: "",
+    citation: "",
+    caution: "This English rendering may cover more than one lemma. Try another word in the verse, or confirm in BDB or BDAG.",
+    empty: true,
+  };
 }
 
 export function entryToResult(
@@ -98,7 +124,7 @@ export function entryToResult(
     gloss: sense?.slice(0, 500) || entry.definition.slice(0, 500) || entry.gloss,
     range: entry.gloss.slice(0, 400),
     citation: `${entry.source}; ${entry.strongs}. Lexicon data from STEPBible.org (CC BY 4.0).`,
-    caution:
-      "Retrieved entry, not a generated definition. Confirm in BDAG or HALOT for formal citation.",
+    caution: "Retrieved entry. Confirm in BDAG or HALOT for formal citation.",
+    empty: false,
   };
 }

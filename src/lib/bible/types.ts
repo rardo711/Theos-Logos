@@ -49,4 +49,5 @@ export interface LexiconResult {
   range: string;
   citation: string;
   caution: string;
+  empty?: boolean;
 }
