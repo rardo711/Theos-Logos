@@ -56,7 +56,8 @@ export async function generateGeminiJson(opts: {
       temperature: opts.temperature ?? 0.2,
       maxOutputTokens: opts.maxOutputTokens ?? 1100,
       responseMimeType: "application/json",
-      ...(flash ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+      // 3.7 Flash ignores thinkingBudget:0 (2.5-era). LOW is the fastest level it accepts.
+      ...(flash ? { thinkingConfig: { thinkingLevel: "LOW" } } : {}),
     },
   };
 

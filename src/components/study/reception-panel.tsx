@@ -90,21 +90,29 @@ export function ReceptionPanel({
     setError(null);
     setLexicon(null);
     try {
-      const data = await askReception({
-        data: {
-          bookId: chapter.bookId,
-          bookName: chapter.bookName,
-          chapter: chapter.chapter,
-          verse: selectedVerse,
-          verseText: verse?.text ?? "",
-          passage: chapter.verses
-            .slice(0, 12)
-            .map((v) => `${v.verse} ${v.text}`)
-            .join("\n"),
-          question: question.trim() || undefined,
-          mode,
-        },
-      });
+      const data = await Promise.race([
+        askReception({
+          data: {
+            bookId: chapter.bookId,
+            bookName: chapter.bookName,
+            chapter: chapter.chapter,
+            verse: selectedVerse,
+            verseText: verse?.text ?? "",
+            passage: chapter.verses
+              .slice(0, 12)
+              .map((v) => `${v.verse} ${v.text}`)
+              .join("\n"),
+            question: question.trim() || undefined,
+            mode,
+          },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Reception timed out. Try again.")),
+            20_000,
+          ),
+        ),
+      ]);
       setResult(data);
       if (selectedVerse != null && data.cards.length) {
         rememberReception(chapter.bookId, chapter.chapter, selectedVerse, data);
