@@ -144,7 +144,24 @@ export function Reader({
                         : "hover:bg-oxblood-soft/55",
                     )}
                   >
-                    <sup className="verse-num mr-1 select-none">
+                    <sup
+                      className="verse-num mr-1 select-none"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Open sources for verse ${v.verse}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setVerse(v.verse);
+                        setReceptionOpen(true);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter" && e.key !== " ") return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setVerse(v.verse);
+                        setReceptionOpen(true);
+                      }}
+                    >
                       {v.verse}
                       {noted ? (
                         <span

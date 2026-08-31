@@ -17,7 +17,7 @@ const STOP = new Set([
 
 function wordChips(text: string, reference: string): string[] {
   const words = text
-    .replace(/[“”‘’]/g, "")
+    .replace(/[\u201c\u201d\u2018\u2019]/g, "")
     .split(/[^A-Za-z-]+/)
     .map((w) => w.trim())
     .filter((w) => w.length > 2 && !STOP.has(w.toLowerCase()));
@@ -260,9 +260,9 @@ export function ReceptionPanel({
             {lexicon ? (
               <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
                 <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  {[lexicon.language, lexicon.strongs, lexicon.source]
+                  {[lexicon.language, lexicon.strongs]
                     .filter(Boolean)
-                    .join(" · ") || "Lexical note"}
+                    .join(" \u00b7 ") || "Lexical note"}
                 </p>
                 <h3 className="font-display mt-1 text-lg font-semibold text-ink">
                   {lexicon.word}
@@ -279,7 +279,7 @@ export function ReceptionPanel({
                   <p className="mt-2 text-sm text-muted">{lexicon.range}</p>
                 ) : null}
                 <p className="mt-3 text-2xs text-faint">
-                  {[lexicon.citation, lexicon.caution].filter(Boolean).join(" · ")}
+                  {[lexicon.citation, lexicon.caution].filter(Boolean).join(" \u00b7 ")}
                 </p>
               </article>
             ) : null}
