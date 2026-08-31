@@ -43,7 +43,6 @@ export function ReceptionPanel({
   onClose?: () => void;
 }) {
   const selectedVerse = useStudy((s) => s.selectedVerse);
-  const setVerse = useStudy((s) => s.setVerse);
   const disclaimerSeen = useStudy((s) => s.disclaimerSeen);
   const dismissDisclaimer = useStudy((s) => s.dismissDisclaimer);
   const touchNotes = useStudy((s) => s.touchNotes);
@@ -58,11 +57,21 @@ export function ReceptionPanel({
   const [lexicon, setLexicon] = useState<LexiconResult | null>(null);
 
   const verse = chapter?.verses.find((v) => v.verse === selectedVerse) ?? null;
-  const chips = useMemo(() => (verse ? wordChips(verse.text) : []), [verse]);
+  const reference =
+    chapter == null
+      ? ""
+      : selectedVerse != null
+        ? `${chapter.bookName} ${chapter.chapter}:${selectedVerse}`
+        : `${chapter.bookName} ${chapter.chapter}`;
+  const chips = useMemo(() => {
+    if (!verse) return [];
+    return wordChips(verse.text).filter((w) => !lookupWordNow(w, reference).empty);
+  }, [verse, reference]);
   const marked = useMemo(
     () => (chapter ? markedVerses(chapter.bookId, chapter.chapter) : []),
     [chapter, notesRev],
   );
+  void marked;
 
   useEffect(() => {
     setLexicon(null);
@@ -75,13 +84,6 @@ export function ReceptionPanel({
       setResult(null);
     }
   }, [chapter, selectedVerse]);
-
-  const reference =
-    chapter == null
-      ? ""
-      : selectedVerse != null
-        ? `${chapter.bookName} ${chapter.chapter}:${selectedVerse}`
-        : `${chapter.bookName} ${chapter.chapter}`;
 
   async function run(mode: "reception" | "traditions") {
     if (!chapter) return;
@@ -149,6 +151,13 @@ export function ReceptionPanel({
           </div>
         ) : (
           <>
+            {!disclaimerSeen ? (
+              <div className="mb-5 rounded-lg border border-rule bg-surface p-4">
+                <p className="text-sm leading-relaxed text-ink">A research desk, not a teacher. Scripture first. Sources must be named. Take what you find to your church.</p>
+                <button type="button" onClick={dismissDisclaimer} className="mt-3 min-h-11 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase">Understood</button>
+              </div>
+            ) : null}
+
             {verse ? (
               <p className="mb-5 border-l-[3px] border-oxblood pl-3 font-serif text-base leading-relaxed text-ink italic">{verse.text}</p>
             ) : null}
@@ -166,26 +175,17 @@ export function ReceptionPanel({
               </div>
             ) : null}
 
-            {lexicon ? (
-              lexicon.empty ? (
-                <article className="mb-5 rounded-lg border border-dashed border-rule p-4">
-                  <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">No entry</p>
-                  <h3 className="font-display mt-1 text-lg font-semibold text-ink">{lexicon.word}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted">{lexicon.gloss}</p>
-                  <p className="mt-2 text-2xs leading-relaxed text-faint">{lexicon.caution}</p>
-                </article>
-              ) : (
-                <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
-                  <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">{[lexicon.language, lexicon.strongs].filter(Boolean).join(" \u00b7 ") || "Lexical note"}</p>
-                  <h3 className="font-display mt-1 text-lg font-semibold text-ink">
-                    {lexicon.word}
-                    {lexicon.lemma ? <span className="ml-2 font-serif text-base font-normal text-muted italic">{lexicon.lemma}</span> : null}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ink">{lexicon.gloss}</p>
-                  {lexicon.range ? <p className="mt-2 text-sm text-muted">{lexicon.range}</p> : null}
-                  <p className="mt-3 text-2xs text-faint">{[lexicon.citation, lexicon.caution].filter(Boolean).join(" \u00b7 ")}</p>
-                </article>
-              )
+            {lexicon && !lexicon.empty ? (
+              <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
+                <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">{[lexicon.language, lexicon.strongs].filter(Boolean).join(" \u00b7 ") || "Lexical note"}</p>
+                <h3 className="font-display mt-1 text-lg font-semibold text-ink">
+                  {lexicon.word}
+                  {lexicon.lemma ? <span className="ml-2 font-serif text-base font-normal text-muted italic">{lexicon.lemma}</span> : null}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink">{lexicon.gloss}</p>
+                {lexicon.range ? <p className="mt-2 text-sm text-muted">{lexicon.range}</p> : null}
+                <p className="mt-3 text-2xs text-faint">{[lexicon.citation, lexicon.caution].filter(Boolean).join(" \u00b7 ")}</p>
+              </article>
             ) : null}
 
             {loading && !result ? (
@@ -200,6 +200,7 @@ export function ReceptionPanel({
               <div className="mb-6 space-y-3">
                 <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">{result.source === "curated" ? "Desk notes" : "Gathered sources"}</p>
                 {result.cards.map((card, i) => <SourceCard key={`${card.voice}-${i}`} card={card} />)}
+                {result.caution ? <p className="text-2xs leading-relaxed text-faint italic">{result.caution}</p> : null}
               </div>
             ) : null}
 

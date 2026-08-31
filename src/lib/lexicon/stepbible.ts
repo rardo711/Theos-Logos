@@ -1,4 +1,5 @@
 import type { LexiconResult } from "@/lib/bible/types";
+import { getLocalLexicon } from "./local";
 import {
   byGloss as deskGloss,
   byStrongs as deskStrongs,
@@ -96,7 +97,10 @@ export function entryToResult(
   };
 }
 
+/** Instant chip lookup: student notes first, then the committed compact index. Never calls Gemini. */
 export function lookupWordNow(word: string, reference?: string): LexiconResult {
+  const local = getLocalLexicon(word, reference);
+  if (local) return { ...local, empty: false };
   const hits = lookupByEnglishSync(word);
   const ot = reference
     ? /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Ruth|Samuel|Kings|Chronicles|Ezra|Nehemiah|Esther|Job|Psalm|Proverbs|Ecclesiastes|Song|Isaiah|Jeremiah|Lamentations|Ezekiel|Daniel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi)/i.test(
