@@ -259,27 +259,17 @@ export function ReceptionPanel({
 
             {lexicon ? (
               <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
-                <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  {[lexicon.language, lexicon.strongs]
+                <p className="text-sm leading-relaxed text-ink">{lexicon.gloss}</p>
+                <p className="mt-2 text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
+                  {[lexicon.lemma, lexicon.strongs]
                     .filter(Boolean)
-                    .join(" \u00b7 ") || "Lexical note"}
-                </p>
-                <h3 className="font-display mt-1 text-lg font-semibold text-ink">
-                  {lexicon.word}
-                  {lexicon.lemma ? (
-                    <span className="ml-2 font-serif text-base font-normal text-muted italic">
-                      {lexicon.lemma}
-                    </span>
-                  ) : null}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink">
-                  {lexicon.gloss}
+                    .join(" · ") || "Lexical note"}
                 </p>
                 {lexicon.range ? (
                   <p className="mt-2 text-sm text-muted">{lexicon.range}</p>
                 ) : null}
                 <p className="mt-3 text-2xs text-faint">
-                  {[lexicon.citation, lexicon.caution].filter(Boolean).join(" \u00b7 ")}
+                  {[lexicon.citation, lexicon.caution].filter(Boolean).join(" · ")}
                 </p>
               </article>
             ) : null}

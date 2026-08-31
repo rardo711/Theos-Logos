@@ -71,6 +71,14 @@ describe("lexicon chips", () => {
     assert.match(now?.caution ?? "", /BDAG/);
   });
 
+  it("STEPBible cards lead with the brief gloss, not raw __ markers", () => {
+    const now = lookupWordNow("faith", "John 1:12");
+    assert.equal(now?.strongs, "G4102");
+    assert.equal(now?.gloss.includes("__"), false);
+    assert.match(now?.gloss ?? "", /faith/i);
+    assert.equal((now?.range ?? "").includes("__"), false);
+  });
+
   it("misses through the committed STEPBible JSON for pocket misses", () => {
     assert.equal(getLocalLexicon("faith", "John 1:12"), null);
     const now = lookupWordNow("faith", "John 1:12");

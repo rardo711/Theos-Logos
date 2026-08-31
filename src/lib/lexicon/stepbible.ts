@@ -88,15 +88,51 @@ export function lookupByEnglishSync(word: string): StepEntry[] {
     .filter((e): e is StepEntry => e != null);
 }
 
+/** Strip markup junk only. Do not paraphrase or invent senses. */
+export function cleanLexiconText(s: string): string {
+  let t = String(s ?? "");
+  t = t.replace(/<[^>]+>/g, " ");
+  t = t.replace(/&nbsp;/gi, " ").replace(/&amp;/g, "&");
+  t = t.replace(/__+\(?/g, " ");
+  t = t.replace(/Also means:.*$/i, "");
+  t = t.replace(/\[[^\]]*\]/g, " ");
+  t = t.replace(/\s+/g, " ").trim();
+  t = t.replace(/^[,;:\s]+/, "");
+  return t;
+}
+
+export function cleanLexiconExcerpt(
+  definition: string,
+  gloss: string,
+  lemma: string,
+): string {
+  let t = cleanLexiconText(definition);
+  if (lemma) {
+    const esc = lemma.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    t = t.replace(new RegExp("^" + esc + "\\s*,?\\s*", "u"), "");
+  }
+  t = t.replace(/^,\s*/, "");
+  t = t.replace(/^-[^,]+,\s*[^,(]{1,16}\s*(?:\([^)]{0,48}\))?\s*,?\s*/, "");
+  t = t.replace(/^\([^)]{0,48}\)\s*,?\s*/, "");
+  const g = gloss.trim();
+  if (g && t.toLowerCase().startsWith(g.toLowerCase())) {
+    t = t.slice(g.length).replace(/^[,;:\s]+/, "");
+  }
+  return t.slice(0, 420).trim();
+}
+
 export function entryToResult(word: string, entry: StepEntry): LexiconResult {
+  const meaning = cleanLexiconText(entry.gloss) || entry.gloss;
+  const excerpt = cleanLexiconExcerpt(entry.definition, meaning, entry.lemma);
   return {
     word,
     lemma: entry.lemma,
     language: entry.language,
     strongs: entry.strongs,
     source: entry.source,
-    gloss: entry.definition.slice(0, 500) || entry.gloss,
-    range: entry.gloss.slice(0, 400),
+    gloss: meaning,
+    range:
+      excerpt && excerpt.toLowerCase() !== meaning.toLowerCase() ? excerpt : "",
     citation: `${entry.source}; ${entry.strongs}. ${deskAttribution}`,
     caution: CAUTION,
   };
