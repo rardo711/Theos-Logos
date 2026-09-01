@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Chapter } from "@/lib/bible/types";
+import { t } from "@/lib/i18n";
 import { hasNotes } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
@@ -101,9 +102,7 @@ export function Reader({
                 {chapter.bookName}
               </h1>
               <p className="mt-1.5 text-xs tracking-[0.18em] text-faint uppercase">
-                {locale === "es"
-                  ? `Capítulo ${chapter.chapter}`
-                  : `Chapter ${chapter.chapter}`}
+                {t(locale, "chapter", { n: chapter.chapter })}
               </p>
               <div className="mt-5 flex items-center justify-center gap-2">
                 <span className="h-px w-10 bg-rule" />
@@ -152,7 +151,7 @@ export function Reader({
                       {noted ? (
                         <span
                           className="verse-mark"
-                          title="Historic notes on this desk"
+                          title={t(locale, "verseNotes")}
                         />
                       ) : null}
                     </sup>
@@ -169,14 +168,14 @@ export function Reader({
                 className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 py-2 text-sm text-muted hover:text-ink"
               >
                 <ChevronLeft size={16} />
-                Previous
+                {t(locale, "previous")}
               </button>
               <button
                 type="button"
                 onClick={nextChapter}
                 className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 py-2 text-sm text-muted hover:text-ink"
               >
-                Next
+                {t(locale, "next")}
                 <ChevronRight size={16} />
               </button>
             </footer>
@@ -186,7 +185,7 @@ export function Reader({
               chapter.verses.some((v) =>
                 hasNotes(chapter.bookId, chapter.chapter, v.verse),
               )
-                ? " Red marks note verses with historic reception on this desk."
+                ? t(locale, "redMarks")
                 : ""}
             </p>
           </>

@@ -10,6 +10,7 @@ import {
   parseReference,
 } from "@/lib/bible/books";
 import { markedVerses, bookHasNotes } from "@/lib/reception/notes";
+import { corpusLabel, t } from "@/lib/i18n";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 
@@ -98,7 +99,7 @@ export function LibraryDrawer() {
     <div className="fixed inset-0 z-50 flex">
       <button
         className="tl-dim absolute inset-0"
-        aria-label="Close library"
+        aria-label={t(locale, "closeLibrary")}
         onClick={() => setOpen(false)}
       />
       <aside className="tl-drawer relative z-10 flex h-full w-full max-w-md flex-col overflow-hidden bg-paper shadow-soft sm:border-r sm:border-rule">
@@ -106,7 +107,7 @@ export function LibraryDrawer() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-2xs font-semibold tracking-[0.18em] text-faint uppercase">
-                Contents
+                {t(locale, "contents")}
               </p>
               <p className="font-display mt-1 text-xl leading-none font-semibold text-ink">
                 {bookName(current, locale)}{" "}
@@ -117,7 +118,7 @@ export function LibraryDrawer() {
               type="button"
               onClick={() => setOpen(false)}
               className="flex size-11 items-center justify-center rounded-md text-muted hover:bg-paper hover:text-ink"
-              aria-label="Close"
+              aria-label={t(locale, "close")}
             >
               <X size={18} />
             </button>
@@ -136,15 +137,16 @@ export function LibraryDrawer() {
                 if (e.target.value.trim()) setPicking("books");
               }}
               onKeyDown={onSearchKey}
-              placeholder={
-                locale === "es" ? "Juan, Romanos, Sal 119…" : "John, Romans, Ps 119…"
-              }
+              placeholder={t(locale, "searchBooks")}
               className="w-full rounded-md border border-rule bg-paper py-2.5 pr-3 pl-9 text-base text-ink outline-none placeholder:text-faint focus:border-oxblood"
             />
           </label>
           {parsed?.chapter != null ? (
             <p className="mt-2 text-2xs text-muted">
-              Press return for {bookName(parsed.book, locale)} {parsed.chapter}
+              {t(locale, "pressReturn", {
+                book: bookName(parsed.book, locale),
+                n: parsed.chapter,
+              })}
             </p>
           ) : null}
         </header>
@@ -152,8 +154,8 @@ export function LibraryDrawer() {
         <div className="flex border-b border-rule px-4">
           {(
             [
-              ["chapters", "This book"],
-              ["books", "The canon"],
+              ["chapters", t(locale, "thisBook")],
+              ["books", t(locale, "theCanon")],
             ] as const
           ).map(([id, label]) => {
             const on = view === id;
@@ -183,10 +185,17 @@ export function LibraryDrawer() {
           <div className="tl-scroll min-h-0 flex-1 overflow-y-auto p-4">
             <div className="mb-4 flex items-baseline justify-between gap-3">
               <p className="text-sm text-muted">
-                {current.chapters} chapters
-                {corpus ? ` · ${corpus.name}` : ""}
+                {corpus
+                  ? t(locale, "chapterMetaCorpus", {
+                      n: current.chapters,
+                      corpus: corpusLabel(locale, corpus.key, "name"),
+                    })
+                  : t(locale, "chapterMeta", { n: current.chapters })}
                 {notes.length
-                  ? ` · ${notes.length} with notes in ch. ${chapter}`
+                  ? t(locale, "chapterMetaNotes", {
+                      count: notes.length,
+                      chapter,
+                    })
                   : ""}
               </p>
               <button
@@ -194,7 +203,7 @@ export function LibraryDrawer() {
                 onClick={() => setPicking("books")}
                 className="text-sm text-oxblood hover:underline"
               >
-                Another book
+                {t(locale, "anotherBook")}
               </button>
             </div>
             <div
@@ -251,7 +260,7 @@ export function LibraryDrawer() {
                             : "text-muted hover:text-oxblood",
                         )}
                       >
-                        {c.short}
+                        {corpusLabel(locale, c.key, "short")}
                       </button>
                     );
                   })}
@@ -265,7 +274,7 @@ export function LibraryDrawer() {
             >
               {sections.length === 0 ? (
                 <p className="px-3 py-10 text-center font-serif text-muted italic">
-                  No book matches “{q}”.
+                  {t(locale, "noBook", { q })}
                 </p>
               ) : (
                 sections.map((section) => (
@@ -275,7 +284,7 @@ export function LibraryDrawer() {
                     className="scroll-mt-2 px-2 pt-4"
                   >
                     <h3 className="mb-1 flex items-baseline justify-between border-b border-rule px-1 pb-1 text-2xs font-semibold tracking-[0.16em] text-oxblood uppercase">
-                      <span>{section.name}</span>
+                      <span>{corpusLabel(locale, section.key, "name")}</span>
                       <span className="font-serif font-normal text-faint tracking-normal normal-case">
                         {section.books.length}
                       </span>
@@ -311,7 +320,7 @@ export function LibraryDrawer() {
                                 {noted ? (
                                   <span
                                     className="size-1.5 shrink-0 rounded-full bg-oxblood"
-                                    title="Desk notes in this book"
+                                    title={t(locale, "notesInBook")}
                                   />
                                 ) : null}
                               </span>

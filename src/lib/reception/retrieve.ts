@@ -1,4 +1,6 @@
 import type { SourceCard, Tradition } from "../bible/types.ts";
+import type { Locale } from "../bible/books.ts";
+import { t } from "../i18n.ts";
 import { geminiApiKey, generateGeminiJson } from "../ai/gemini.ts";
 import { type CatalogEntry, mapCatalog, tokenize } from "./catalog.ts";
 
@@ -226,9 +228,12 @@ export async function assembleFromSources(opts: {
   verseText?: string;
   mode?: "reception" | "traditions";
   focus: string;
+  locale?: Locale;
 }): Promise<{ cards: SourceCard[]; caution: string } | null> {
   const extracts = await retrieveExtracts(opts);
   if (!extracts.length) return null;
+  const locale: Locale = opts.locale === "es" ? "es" : "en";
+  const caution = t(locale, "cautionRetrieved");
 
   if (geminiApiKey()) {
     try {
@@ -238,7 +243,7 @@ export async function assembleFromSources(opts: {
         maxOutputTokens: 1600,
       });
       const cards = parseRetrieved(text);
-      if (cards.length) return { cards, caution: RETRIEVAL_CAUTION };
+      if (cards.length) return { cards, caution };
     } catch {
       // Fall through to verbatim extracts — never invent from model memory.
     }
@@ -246,5 +251,5 @@ export async function assembleFromSources(opts: {
 
   const cards = cardsFromExtracts(extracts);
   if (!cards.length) return null;
-  return { cards, caution: RETRIEVAL_CAUTION };
+  return { cards, caution };
 }

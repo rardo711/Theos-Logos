@@ -3,6 +3,7 @@ import { ChevronDown, Loader2, PanelRight, PanelRightClose, X } from "lucide-rea
 import { askReception } from "@/lib/reception/ask";
 import { getDeskNotes, markedVerses, rememberReception } from "@/lib/reception/notes";
 import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
+import { t } from "@/lib/i18n";
 import type { Chapter, LexiconResult, ReceptionResult } from "@/lib/bible/types";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
@@ -13,12 +14,17 @@ const STOP = new Set([
   "with", "as", "his", "on", "be", "at", "by", "this", "from", "or", "an", "are",
   "not", "but", "they", "you", "we", "him", "her", "them", "i", "my", "me",
   "their", "unto", "shall", "hath", "had", "have", "been", "were", "who", "whom",
+  "el", "la", "los", "las", "un", "una", "unos", "unas", "de", "del", "al", "y",
+  "o", "que", "en", "es", "se", "no", "por", "con", "para", "como", "mas", "más",
+  "su", "sus", "lo", "le", "les", "ya", "si", "sí", "pero", "porque", "cuando",
+  "este", "esta", "estos", "estas", "eso", "esa", "hay", "ser", "son", "fue",
+  "era", "muy", "sin", "sobre", "entre", "hasta", "desde",
 ]);
 
 function wordChips(text: string, reference: string): string[] {
   const words = text
     .replace(/[“”‘’]/g, "")
-    .split(/[^A-Za-z-]+/)
+    .split(/[^\p{L}-]+/u)
     .map((w) => w.trim())
     .filter((w) => w.length > 2 && !STOP.has(w.toLowerCase()));
   const seen = new Set<string>();
@@ -49,6 +55,7 @@ export function ReceptionPanel({
   const notesRev = useStudy((s) => s.notesRev);
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const setReceptionPinned = useStudy((s) => s.setReceptionPinned);
+  const locale = useStudy((s) => s.locale);
   const [question, setQuestion] = useState("");
   const [aimOpen, setAimOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -111,6 +118,7 @@ export function ReceptionPanel({
             .join("\n"),
           question: focus || undefined,
           mode,
+          locale,
         },
       });
 
@@ -126,7 +134,7 @@ export function ReceptionPanel({
           return true;
         });
         if (!added.length) {
-          throw new Error("No additional sources for that focus.");
+          throw new Error("NO_MORE");
         }
         next = {
           source: "generated",
@@ -146,7 +154,11 @@ export function ReceptionPanel({
         touchNotes();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Reception failed.");
+      setError(
+        err instanceof Error && err.message === "NO_MORE"
+          ? t(locale, "noMore")
+          : t(locale, "receptionFailed"),
+      );
     } finally {
       setLoading(false);
     }
@@ -162,10 +174,10 @@ export function ReceptionPanel({
       <header className="relative z-10 flex items-start justify-between gap-3 border-b border-rule px-5 py-3">
         <div className="min-w-0 pt-1">
           <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-            Reception
+            {t(locale, "reception")}
           </p>
           <h2 className="font-display truncate text-lg font-semibold text-ink">
-            {selectedVerse != null ? reference : "Historic voices"}
+            {selectedVerse != null ? reference : t(locale, "historicVoices")}
           </h2>
         </div>
         <div className="flex shrink-0 items-center">
@@ -175,13 +187,13 @@ export function ReceptionPanel({
             className="hidden size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink xl:flex"
             aria-label={
               receptionPinned
-                ? "Collapse sources"
-                : "Keep sources beside scripture"
+                ? t(locale, "collapseSources")
+                : t(locale, "keepSources")
             }
             title={
               receptionPinned
-                ? "Collapse sources"
-                : "Keep sources beside scripture"
+                ? t(locale, "collapseSources")
+                : t(locale, "keepSources")
             }
           >
             {receptionPinned ? (
@@ -198,7 +210,7 @@ export function ReceptionPanel({
                 onClose();
               }}
               className="flex size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink"
-              aria-label="Close reception"
+              aria-label={t(locale, "closeReception")}
             >
               <X size={18} />
             </button>
@@ -210,34 +222,31 @@ export function ReceptionPanel({
         {!disclaimerSeen ? (
           <div className="mb-4 rounded-lg border border-rule bg-surface p-3 shadow-soft">
             <p className="text-sm leading-relaxed text-muted">
-              A research desk, not a teacher. Scripture first. Sources must be
-              named. Take what you find to your church.
+              {t(locale, "disclaimer")}
             </p>
             <button
               type="button"
               onClick={dismissDisclaimer}
               className="mt-2 min-h-11 text-xs font-semibold tracking-wide text-oxblood uppercase"
             >
-              Understood
+              {t(locale, "understood")}
             </button>
           </div>
         ) : null}
 
         {selectedVerse == null ? (
           <div className="flex flex-col items-start gap-4 py-6">
-            <p className="font-display text-xl text-ink">Mark a verse.</p>
+            <p className="font-display text-xl text-ink">{t(locale, "markVerse")}</p>
             <p className="max-w-xs text-sm leading-relaxed text-muted">
-              Reception is a stack of named cards — Fathers, Reformers,
-              confessions — not a generated sermon.
+              {t(locale, "receptionHint")}
             </p>
             {marked.length > 0 ? (
               <div>
                 <p className="mb-2 text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  Notes on this chapter
+                  {t(locale, "notesOnChapter")}
                 </p>
                 <p className="mb-2 text-sm text-muted">
-                  Marked verses open a stack of named sources — no search
-                  required.
+                  {t(locale, "markedOpen")}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {marked.map((n) => (
@@ -254,8 +263,7 @@ export function ReceptionPanel({
               </div>
             ) : (
               <p className="text-sm text-muted italic">
-                This chapter has no desk notes yet. You may still inquire of the
-                sources after marking a verse.
+                {t(locale, "noNotesYet")}
               </p>
             )}
           </div>
@@ -270,7 +278,7 @@ export function ReceptionPanel({
             {chips.length > 0 ? (
               <div className="mb-4">
                 <p className="mb-2 text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  Lexicon
+                  {t(locale, "lexicon")}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {chips.map((w) => (
@@ -297,7 +305,7 @@ export function ReceptionPanel({
                 <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
                   {[lexicon.language, lexicon.strongs, lexicon.source]
                     .filter(Boolean)
-                    .join(" · ") || "Lexical note"}
+                    .join(" · ") || t(locale, "lexicalNote")}
                 </p>
                 <h3 className="font-display mt-1 text-lg font-semibold text-ink">
                   {lexicon.word}
@@ -322,7 +330,7 @@ export function ReceptionPanel({
             {loading && !result ? (
               <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
                 <Loader2 size={14} className="animate-spin text-oxblood" />
-                Consulting the sources…
+                {t(locale, "consulting")}
               </p>
             ) : null}
 
@@ -336,8 +344,8 @@ export function ReceptionPanel({
               <div className="mb-6 space-y-3">
                 <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
                   {result.source === "curated"
-                    ? "Desk notes"
-                    : "Gathered sources"}
+                    ? t(locale, "deskNotes")
+                    : t(locale, "gathered")}
                 </p>
                 {result.cards.map((card, i) => (
                   <SourceCard key={`${card.voice}-${i}`} card={card} />
@@ -356,8 +364,7 @@ export function ReceptionPanel({
 
             {!result?.cards.length && !loading ? (
               <p className="mb-4 text-sm leading-relaxed text-muted">
-                No desk notes for this verse yet. Inquire only if you want the
-                librarian to gather named sources — not a homily.
+                {t(locale, "noNotesInquire")}
               </p>
             ) : null}
 
@@ -367,7 +374,7 @@ export function ReceptionPanel({
                 onClick={() => setAimOpen((v) => !v)}
                 className="flex min-h-11 w-full items-center justify-between text-left text-2xs font-semibold tracking-[0.14em] text-faint uppercase"
               >
-                Aim the sources
+                {t(locale, "aim")}
                 <ChevronDown
                   size={14}
                   className={cn(
@@ -385,13 +392,13 @@ export function ReceptionPanel({
                   }}
                 >
                   <label className="sr-only" htmlFor="ask-verse">
-                    Aim the sources
+                    {t(locale, "aim")}
                   </label>
                   <input
                     id="ask-verse"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="Optional focus: eternity, incarnation…"
+                    placeholder={t(locale, "aimPlaceholder")}
                     className="w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-oxblood"
                   />
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -400,7 +407,7 @@ export function ReceptionPanel({
                       disabled={loading}
                       className="min-h-11 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
                     >
-                      {loading ? "Consulting…" : "Inquire"}
+                      {loading ? t(locale, "consultingShort") : t(locale, "inquire")}
                     </button>
                     <button
                       type="button"
@@ -408,7 +415,7 @@ export function ReceptionPanel({
                       onClick={() => void run("traditions")}
                       className="min-h-11 rounded-md border border-rule px-4 text-xs font-semibold tracking-wide text-ink uppercase hover:border-ink/30 disabled:opacity-60"
                     >
-                      Compare
+                      {t(locale, "compare")}
                     </button>
                   </div>
                 </form>
@@ -431,6 +438,7 @@ export function VerseHint({
   const selected = useStudy((s) => s.selectedVerse);
   const receptionOpen = useStudy((s) => s.receptionOpen);
   const receptionPinned = useStudy((s) => s.receptionPinned);
+  const locale = useStudy((s) => s.locale);
   if (selected == null || receptionOpen || receptionPinned) return null;
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
@@ -443,7 +451,7 @@ export function VerseHint({
           onClick={onInquire}
           className="rounded-sm bg-oxblood px-4 py-2.5 text-xs font-semibold tracking-[0.12em] text-oxblood-fg uppercase"
         >
-          {noted ? "Desk notes" : "Sources"}
+          {noted ? t(locale, "deskNotes") : t(locale, "sources")}
         </button>
       </div>
     </div>

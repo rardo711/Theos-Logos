@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { geminiApiKey } from "@/lib/ai/gemini";
+import type { Locale } from "@/lib/bible/books";
+import { t } from "@/lib/i18n";
 import { getCurated } from "./curated";
 import { assembleFromSources } from "./retrieve";
 import type { ReceptionResult } from "@/lib/bible/types";
@@ -15,9 +17,11 @@ export const askReception = createServerFn({ method: "POST" })
       passage: string;
       question?: string;
       mode: "reception" | "traditions";
+      locale?: Locale;
     }) => input,
   )
   .handler(async ({ data }): Promise<ReceptionResult> => {
+    const locale: Locale = data.locale === "es" ? "es" : "en";
     const question = data.question?.trim() ?? "";
     const ready = getCurated(data.bookId, data.chapter, data.verse);
 
@@ -27,6 +31,11 @@ export const askReception = createServerFn({ method: "POST" })
       data.verse != null
         ? `${data.bookName} ${data.chapter}:${data.verse}`
         : `${data.bookName} ${data.chapter}`;
+
+    const langLine =
+      locale === "es"
+        ? "Write notes and caution in Spanish. Keep quotations in the source language of the extract."
+        : "";
 
     const focus =
       data.mode === "traditions"
@@ -41,10 +50,12 @@ export const askReception = createServerFn({ method: "POST" })
       chapter: data.chapter,
       verseText: data.verseText,
       mode: data.mode,
+      locale,
       focus: [
         focus,
         data.verseText ? `Verse: ${data.verseText}` : "",
         "Quote only from the extracts. Skip passing mentions.",
+        langLine,
       ]
         .filter(Boolean)
         .join("\n"),
@@ -64,15 +75,13 @@ export const askReception = createServerFn({ method: "POST" })
       return {
         source: "generated",
         cards: [],
-        caution:
-          "No fetched page matched this focus, and Inquire has no Gemini key. Desk notes still work.",
+        caution: t(locale, "cautionNoKey"),
       };
     }
 
     return {
       source: "generated",
       cards: [],
-      caution:
-        "No public page in the committed index treated this as its subject. The librarian does not quote from memory.",
+      caution: t(locale, "cautionNoPage"),
     };
   });

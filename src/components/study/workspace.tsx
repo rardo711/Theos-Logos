@@ -3,6 +3,7 @@ import { fetchChapter } from "@/lib/bible/fetch-chapter";
 import { getSeed } from "@/lib/bible/seed";
 import type { Chapter } from "@/lib/bible/types";
 import { initPwa } from "@/lib/pwa";
+import { t } from "@/lib/i18n";
 import { hasNotes } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
 import { LibraryDrawer } from "./library-drawer";
@@ -98,7 +99,7 @@ export function StudyWorkspace() {
         if (!cancelled && !seed) {
           setChapter(null);
           setError(
-            err instanceof Error ? err.message : "Could not load this chapter.",
+            err instanceof Error ? err.message : t(locale, "loadFailed"),
           );
         }
       })
@@ -186,7 +187,7 @@ export function StudyWorkspace() {
               <button
                 type="button"
                 className="tl-dim min-w-0 flex-1"
-                aria-label="Close reception"
+                aria-label={t(locale, "closeReception")}
                 onClick={closeReception}
               />
               <aside className="tl-sheet flex h-full w-full max-w-md flex-col border-l border-rule bg-paper shadow-soft">

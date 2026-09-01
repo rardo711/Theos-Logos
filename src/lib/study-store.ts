@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { BIBLE_BOOKS, getBook, type Locale } from "@/lib/bible/books";
+import { applyDocumentLocale } from "@/lib/i18n";
 
 const KEY = "theos-logos-hybrid";
 
@@ -131,6 +132,7 @@ export const useStudy = create<StudyState>((set, get) => ({
     const p = load();
     set(p);
     applyTheme(p.theme);
+    applyDocumentLocale(p.locale);
     bindThemeListener();
   },
   setBook: (bookId, chapter = 1) => {
@@ -187,6 +189,7 @@ export const useStudy = create<StudyState>((set, get) => ({
   },
   setLocale: (locale) => {
     set({ locale });
+    applyDocumentLocale(locale);
     persist(get());
   },
   setLibraryOpen: (libraryOpen, tab) =>
