@@ -2,13 +2,10 @@ import { bollsBookId, bookName, type Locale } from "./books.ts";
 import type { Book } from "./books.ts";
 import type { Chapter, Verse } from "./types.ts";
 
-export const NBLA_NAME = "Nueva Biblia de las Américas";
-export const LBLA_NAME = "La Biblia de las Américas";
+export const RV1960_NAME = "Reina-Valera 1960";
 
-const NBLA_NOTE =
-  "Nueva Biblia de las Américas (NBLA). © The Lockman Foundation. Used for study on this desk.";
-const LBLA_NOTE =
-  "La Biblia de las Américas (LBLA). © The Lockman Foundation. The public index does not yet serve NBLA; LBLA is Lockman’s earlier formal Spanish. Used for study on this desk.";
+const RV1960_NOTE =
+  "Reina-Valera 1960. © Sociedades Bíblicas en América Latina, 1960; © Sociedades Bíblicas Unidas, 1988. Used for study on this desk.";
 
 const cache = new Map<string, Chapter>();
 
@@ -69,40 +66,33 @@ function toChapter(
   };
 }
 
-/** Spanish reader: prefer NBLA, fall back to LBLA (same Lockman house). */
+/** Spanish reader: Reina-Valera 1960. */
 export async function fetchSpanishChapter(
   book: Book,
   chapter: number,
 ): Promise<Chapter | null> {
-  const cacheKey = `${book.id}-${chapter}`;
+  const cacheKey = `RV1960-${book.id}-${chapter}`;
   const hit = cache.get(cacheKey);
   if (hit) return hit;
 
   const num = bollsBookId(book.id);
-  const attempts: { slug: string; name: string; note: string }[] = [
-    { slug: "NBLA", name: NBLA_NAME, note: NBLA_NOTE },
-    { slug: "LBLA", name: LBLA_NAME, note: LBLA_NOTE },
-  ];
-
-  for (const attempt of attempts) {
-    try {
-      const verses = await getText(attempt.slug, num, chapter);
-      if (!verses) continue;
-      const ch = toChapter(
-        book,
-        chapter,
-        verses,
-        "es",
-        attempt.name,
-        attempt.note,
-      );
-      if (ch) {
-        cache.set(cacheKey, ch);
-        return ch;
-      }
-    } catch {
-      continue;
+  try {
+    const verses = await getText("RV1960", num, chapter);
+    if (!verses) return null;
+    const ch = toChapter(
+      book,
+      chapter,
+      verses,
+      "es",
+      RV1960_NAME,
+      RV1960_NOTE,
+    );
+    if (ch) {
+      cache.set(cacheKey, ch);
+      return ch;
     }
+  } catch {
+    return null;
   }
   return null;
 }

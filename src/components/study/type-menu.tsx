@@ -78,7 +78,7 @@ export function TypeMenu() {
           style={{ fontSize: Math.min(fontSize, 22) }}
         >
           {locale === "es"
-            ? "En el principio existía el Verbo."
+            ? "En el principio era el Verbo."
             : "In the beginning was the Word."}
         </p>
         {fontSize !== 20 ? (
@@ -96,7 +96,7 @@ export function TypeMenu() {
           {(
             [
               ["en", "English"],
-              ["es", "NBLA"],
+              ["es", "RVR1960"],
             ] as const
           ).map(([id, label]) => (
             <button
