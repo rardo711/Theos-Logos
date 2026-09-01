@@ -8,6 +8,8 @@ describe("i18n", () => {
     assert.equal(t("es", "inquire"), "Consultar");
     assert.equal(t("es", "chapter", { n: 1 }), "Capítulo 1");
     assert.equal(corpusLabel("es", "gospels", "name"), "Los Evangelios");
+    assert.equal(t("es", "inThisChapter"), "En este capítulo");
+    assert.equal(t("es", "verseHits"), "Escritura");
     assert.equal(traditionLabel("es", "patristic"), "Patrística");
   });
 });

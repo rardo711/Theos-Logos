@@ -3,6 +3,7 @@ import { getBook, type Locale } from "./books";
 import { fetchSpanishChapter } from "./bolls";
 import { fetchEsvChapter } from "./esv";
 import { getSeed } from "./seed";
+import { attachNtHeadings } from "./nt-headings";
 import type { Chapter, Verse } from "./types";
 
 function stripHtml(s: string): string {
@@ -58,7 +59,7 @@ export const fetchChapter = createServerFn({ method: "POST" })
     if (locale === "es") {
       try {
         const es = await fetchSpanishChapter(book, chapter);
-        if (es) return es;
+        if (es) return attachNtHeadings(es, locale);
       } catch {
         // fall through
       }
@@ -67,21 +68,21 @@ export const fetchChapter = createServerFn({ method: "POST" })
 
     try {
       const esv = await fetchEsvChapter(book, chapter);
-      if (esv) return esv;
+      if (esv) return attachNtHeadings(esv, locale);
     } catch {
       // ESV is optional; fall through to WEB / seed.
     }
 
     try {
       const web = await fetchWebChapter(book, chapter);
-      if (web) return web;
+      if (web) return attachNtHeadings(web, locale);
     } catch (err) {
-      if (seeded) return seeded;
+      if (seeded) return attachNtHeadings(seeded, locale);
       throw err instanceof Error
         ? err
         : new Error(`Could not load ${book.name} ${chapter}.`);
     }
 
-    if (seeded) return seeded;
+    if (seeded) return attachNtHeadings(seeded, locale);
     throw new Error(`Could not load ${book.name} ${chapter}.`);
   });

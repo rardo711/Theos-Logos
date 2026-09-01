@@ -82,6 +82,7 @@ interface StudyState extends Persisted {
   notesRev: number;
   setBook: (bookId: string, chapter?: number) => void;
   setChapter: (chapter: number) => void;
+  jumpTo: (bookId: string, chapter: number, verse?: number) => void;
   nextChapter: () => void;
   prevChapter: () => void;
   setVerse: (verse: number | null) => void;
@@ -150,6 +151,16 @@ export const useStudy = create<StudyState>((set, get) => ({
     set({
       chapter: Math.min(Math.max(1, chapter), book.chapters),
       selectedVerse: null,
+      receptionOpen: get().receptionPinned ? get().receptionOpen : false,
+    });
+    persist(get());
+  },
+  jumpTo: (bookId, chapter, verse) => {
+    const book = getBook(bookId);
+    set({
+      bookId: book.id,
+      chapter: Math.min(Math.max(1, chapter), book.chapters),
+      selectedVerse: verse ?? null,
       receptionOpen: get().receptionPinned ? get().receptionOpen : false,
     });
     persist(get());

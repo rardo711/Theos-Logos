@@ -1,10 +1,32 @@
-import { useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useRef, useState, Fragment } from "react";
+import { ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { BIBLE_BOOKS, bookName, getBook } from "@/lib/bible/books";
 import type { Chapter } from "@/lib/bible/types";
 import { t } from "@/lib/i18n";
 import { hasNotes } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
+
+function neighbor(
+  bookId: string,
+  chapterNum: number,
+  dir: -1 | 1,
+): { bookId: string; chapter: number } | null {
+  const book = getBook(bookId);
+  const i = BIBLE_BOOKS.findIndex((b) => b.id === bookId);
+  if (dir === 1) {
+    if (chapterNum < book.chapters) return { bookId, chapter: chapterNum + 1 };
+    if (i >= 0 && i < BIBLE_BOOKS.length - 1)
+      return { bookId: BIBLE_BOOKS[i + 1].id, chapter: 1 };
+    return null;
+  }
+  if (chapterNum > 1) return { bookId, chapter: chapterNum - 1 };
+  if (i > 0) {
+    const prev = BIBLE_BOOKS[i - 1];
+    return { bookId: prev.id, chapter: prev.chapters };
+  }
+  return null;
+}
 
 export function Reader({
   chapter,
@@ -22,22 +44,41 @@ export function Reader({
   const notesRev = useStudy((s) => s.notesRev);
   const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
   const locale = useStudy((s) => s.locale);
+  const bookId = useStudy((s) => s.bookId);
+  const chapterNum = useStudy((s) => s.chapter);
   const scrollRef = useRef<HTMLDivElement>(null);
   const verseRefs = useRef<Map<number, HTMLElement>>(new Map());
   const touch = useRef<{ x: number; y: number } | null>(null);
+  const [showTop, setShowTop] = useState(false);
+
+  const book = getBook(bookId);
+  const bookIndex = BIBLE_BOOKS.findIndex((b) => b.id === bookId);
+  const canPrev = bookIndex > 0 || chapterNum > 1;
+  const canNext =
+    bookIndex < BIBLE_BOOKS.length - 1 || chapterNum < book.chapters;
+  const isEsv = (chapter?.translationName ?? "").includes("English Standard");
+  const prevDest = neighbor(bookId, chapterNum, -1);
+  const nextDest = neighbor(bookId, chapterNum, 1);
+  const sections = chapter?.verses.filter((v) => v.title) ?? [];
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     el.scrollTop = 0;
-  }, [chapter?.reference]);
+    setShowTop(false);
+  }, [chapter?.reference, chapter?.bookId, chapter?.chapter]);
 
   useEffect(() => {
     if (selected == null) return;
-    const verse = verseRefs.current.get(selected);
     const scroller = scrollRef.current;
-    if (!verse || !scroller) return;
-    const vBox = verse.getBoundingClientRect();
+    if (!scroller) return;
+    const head = scroller.querySelector(
+      `#s-${selected}`,
+    ) as HTMLElement | null;
+    const verse = verseRefs.current.get(selected);
+    const target = head ?? verse;
+    if (!target) return;
+    const vBox = target.getBoundingClientRect();
     const sBox = scroller.getBoundingClientRect();
     const pad = 48;
     if (vBox.top >= sBox.top + pad && vBox.bottom <= sBox.bottom - pad) return;
@@ -53,6 +94,10 @@ export function Reader({
     <div
       ref={scrollRef}
       className="tl-scroll absolute inset-0 overflow-y-auto"
+      onScroll={(e) => {
+        const top = e.currentTarget.scrollTop > 360;
+        setShowTop((prev) => (prev === top ? prev : top));
+      }}
       onTouchStart={(e) => {
         touch.current = {
           x: e.targetTouches[0].clientX,
@@ -65,10 +110,18 @@ export function Reader({
         const dy = touch.current.y - e.changedTouches[0].clientY;
         touch.current = null;
         if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
-        if (dx > 0) nextChapter();
-        else prevChapter();
+        if (dx > 0 && canNext) nextChapter();
+        else if (dx < 0 && canPrev) prevChapter();
       }}
     >
+      {loading ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.5 overflow-hidden bg-rule"
+        >
+          <span className="tl-progress block h-full bg-oxblood" />
+        </div>
+      ) : null}
       <div
         aria-hidden
         className="pointer-events-none absolute top-0 bottom-0 left-0 w-px bg-oxblood/30"
@@ -93,7 +146,10 @@ export function Reader({
             {error}
           </p>
         ) : chapter ? (
-          <>
+          <div
+            key={`${chapter.bookId}-${chapter.chapter}`}
+            className="tl-chapter"
+          >
             <header className="mb-8 text-center sm:mb-10">
               <p className="text-2xs font-medium tracking-[0.22em] text-muted uppercase">
                 {chapter.translationName}
@@ -111,8 +167,42 @@ export function Reader({
               </div>
             </header>
 
+            {sections.length > 1 ? (
+              <nav
+                aria-label={t(locale, "inThisChapter")}
+                className="mb-8 rounded-md border border-rule bg-surface/80 px-4 py-3"
+              >
+                <p className="mb-2 text-2xs font-semibold tracking-[0.16em] text-faint uppercase">
+                  {t(locale, "inThisChapter")}
+                </p>
+                <ul className="space-y-0.5">
+                  {sections.map((s) => (
+                    <li key={s.verse}>
+                      <button
+                        type="button"
+                        onClick={() => setVerse(s.verse)}
+                        className={cn(
+                          "flex min-h-10 w-full items-baseline gap-2 rounded-xs px-1 text-left text-sm",
+                          selected === s.verse
+                            ? "font-medium text-oxblood"
+                            : "text-ink hover:text-oxblood",
+                        )}
+                      >
+                        <span className="w-6 shrink-0 font-serif text-xs text-faint tabular-nums">
+                          {s.verse}
+                        </span>
+                        <span className="font-display tracking-tight">
+                          {s.title}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ) : null}
+
             <div className="bible-prose font-serif text-[length:var(--reading-size,20px)] leading-[1.8] text-ink">
-              {chapter.verses.map((v) => {
+              {chapter.verses.map((v, i) => {
                 const on = selected === v.verse;
                 const noted = hasNotes(
                   chapter.bookId,
@@ -120,63 +210,92 @@ export function Reader({
                   v.verse,
                 );
                 return (
-                  <span
-                    key={v.verse}
-                    ref={(el) => {
-                      if (el) verseRefs.current.set(v.verse, el);
-                    }}
-                    onClick={() => {
-                      if (on) {
-                        setVerse(null);
-                        setReceptionOpen(false);
-                        return;
-                      }
-                      setVerse(v.verse);
-                      if (
-                        noted &&
-                        !useStudy.getState().receptionPinned
-                      ) {
-                        setReceptionOpen(true);
-                      }
-                    }}
-                    className={cn(
-                      "cursor-pointer transition-colors duration-200",
-                      on
-                        ? "bg-oxblood-soft"
-                        : "hover:bg-oxblood-soft/55",
-                    )}
-                  >
-                    <sup className="verse-num mr-1 select-none">
-                      {v.verse}
-                      {noted ? (
-                        <span
-                          className="verse-mark"
-                          title={t(locale, "verseNotes")}
-                        />
-                      ) : null}
-                    </sup>
-                    {v.text}{" "}
-                  </span>
+                  <Fragment key={v.verse}>
+                    {v.title ? (
+                      <h3
+                        id={`s-${v.verse}`}
+                        className="bible-heading"
+                        data-first={i === 0 ? "true" : undefined}
+                      >
+                        {v.title}
+                      </h3>
+                    ) : null}
+                    <span
+                      ref={(el) => {
+                        if (el) verseRefs.current.set(v.verse, el);
+                      }}
+                      id={`v-${v.verse}`}
+                      role="button"
+                      tabIndex={0}
+                      aria-current={on ? "true" : undefined}
+                      onClick={() => {
+                        if (on) {
+                          setVerse(null);
+                          setReceptionOpen(false);
+                          return;
+                        }
+                        setVerse(v.verse);
+                        if (
+                          noted &&
+                          !useStudy.getState().receptionPinned
+                        ) {
+                          setReceptionOpen(true);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter" && e.key !== " ") return;
+                        e.preventDefault();
+                        e.currentTarget.click();
+                      }}
+                      className={cn(
+                        "cursor-pointer rounded-xs transition-colors duration-200",
+                        on
+                          ? "bg-oxblood-soft shadow-[inset_3px_0_0_0_var(--color-oxblood)]"
+                          : "hover:bg-oxblood-soft/55",
+                      )}
+                    >
+                      <sup className="verse-num mr-1 select-none">
+                        {v.verse}
+                        {noted ? (
+                          <span
+                            className="verse-mark"
+                            title={t(locale, "verseNotes")}
+                          />
+                        ) : null}
+                      </sup>
+                      {v.text}{" "}
+                    </span>
+                  </Fragment>
                 );
               })}
             </div>
 
-            <footer className="mt-16 flex items-center justify-between border-t border-rule pt-6">
+            <footer className="mt-16 flex items-center justify-between gap-3 border-t border-rule pt-6">
               <button
                 type="button"
                 onClick={prevChapter}
-                className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 py-2 text-sm text-muted hover:text-ink"
+                disabled={!canPrev}
+                className="inline-flex min-h-11 min-w-0 items-center gap-1 rounded-md px-2 py-2 text-sm text-muted transition-transform duration-150 ease-out hover:text-ink active:not-disabled:scale-[0.96] disabled:pointer-events-none disabled:opacity-30"
               >
-                <ChevronLeft size={16} />
-                {t(locale, "previous")}
+                <ChevronLeft size={16} className="shrink-0" />
+                <span className="truncate">
+                  {prevDest
+                    ? `${bookName(getBook(prevDest.bookId), locale)} ${prevDest.chapter}`
+                    : t(locale, "previous")}
+                </span>
               </button>
               <button
                 type="button"
                 onClick={nextChapter}
-                className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 py-2 text-sm text-muted hover:text-ink"
+                disabled={!canNext}
+                className="inline-flex min-h-11 min-w-0 items-center gap-1 rounded-md px-2 py-2 text-sm text-muted transition-transform duration-150 ease-out hover:text-ink active:not-disabled:scale-[0.96] disabled:pointer-events-none disabled:opacity-30"
               >
-                {t(locale, "next")}
-                <ChevronRight size={16} />
+                <span className="truncate">
+                  {nextDest
+                    ? `${bookName(getBook(nextDest.bookId), locale)} ${nextDest.chapter}`
+                    : t(locale, "next")}
+                </span>
+                <ChevronRight size={16} className="shrink-0" />
               </button>
             </footer>
             <p className="mt-8 text-2xs leading-relaxed text-faint italic">
@@ -188,9 +307,34 @@ export function Reader({
                 ? t(locale, "redMarks")
                 : ""}
             </p>
-          </>
+            {isEsv ? (
+              <p className="mt-2">
+                <a
+                  href="https://www.esv.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-2xs font-semibold tracking-wide text-oxblood uppercase hover:underline"
+                >
+                  {t(locale, "esvSite")}
+                </a>
+              </p>
+            ) : null}
+          </div>
         ) : null}
       </div>
+
+      {showTop ? (
+        <button
+          type="button"
+          onClick={() =>
+            scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+          }
+          className="absolute right-3 bottom-[max(5.5rem,env(safe-area-inset-bottom))] z-10 flex size-11 items-center justify-center rounded-md border border-rule bg-surface text-ink shadow-soft transition-transform duration-150 ease-out active:scale-[0.96]"
+          aria-label={t(locale, "backToTop")}
+        >
+          <ArrowUp size={16} />
+        </button>
+      ) : null}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchChapter } from "@/lib/bible/fetch-chapter";
 import { getSeed } from "@/lib/bible/seed";
+import { attachNtHeadings } from "@/lib/bible/nt-headings";
 import type { Chapter } from "@/lib/bible/types";
 import { initPwa } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
@@ -81,7 +82,7 @@ export function StudyWorkspace() {
     let cancelled = false;
     const seed = locale === "en" ? getSeed(bookId, chapterNum) : undefined;
     if (seed) {
-      setChapter(seed);
+      setChapter(attachNtHeadings(seed, locale));
       setError(null);
       setLoading(false);
     } else {
@@ -118,8 +119,45 @@ export function StudyWorkspace() {
         e.target instanceof HTMLTextAreaElement
       )
         return;
+      if (e.key === "/" && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setLibraryOpen(true, "books");
+        return;
+      }
       if (e.key === "ArrowRight") useStudy.getState().nextChapter();
       if (e.key === "ArrowLeft") useStudy.getState().prevChapter();
+      if (e.key === "j" || e.key === "ArrowDown") {
+        const ch = chapter;
+        if (!ch?.verses.length) return;
+        e.preventDefault();
+        const cur = selectedVerse;
+        const idx =
+          cur == null
+            ? 0
+            : Math.min(
+                ch.verses.length - 1,
+                ch.verses.findIndex((v) => v.verse === cur) + 1,
+              );
+        setVerse(ch.verses[Math.max(0, idx)]?.verse ?? null);
+        return;
+      }
+      if (e.key === "k" || e.key === "ArrowUp") {
+        const ch = chapter;
+        if (!ch?.verses.length) return;
+        e.preventDefault();
+        const cur = selectedVerse;
+        if (cur == null) {
+          setVerse(ch.verses[0]?.verse ?? null);
+          return;
+        }
+        const idx = ch.verses.findIndex((v) => v.verse === cur);
+        if (idx <= 0) {
+          setVerse(null);
+          return;
+        }
+        setVerse(ch.verses[idx - 1]?.verse ?? null);
+        return;
+      }
       if (e.key === "Escape") {
         setLibraryOpen(false);
         setTypeOpen(false);
@@ -131,6 +169,8 @@ export function StudyWorkspace() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [
+    chapter,
+    selectedVerse,
     setLibraryOpen,
     setTypeOpen,
     setReceptionOpen,

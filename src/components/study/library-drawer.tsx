@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { Search, X } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import {
   BIBLE_BOOKS,
   CORPUS,
@@ -9,10 +9,29 @@ import {
   getBook,
   parseReference,
 } from "@/lib/bible/books";
+import { searchScripture } from "@/lib/bible/find";
+import type { ScriptureHit } from "@/lib/bible/search";
 import { markedVerses, bookHasNotes } from "@/lib/reception/notes";
 import { corpusLabel, t } from "@/lib/i18n";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
+
+function highlightMatch(text: string, query: string) {
+  const q = query.trim();
+  if (!q) return text;
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${escaped})`, "gi");
+  const parts = text.split(regex);
+  return parts.map((part, i) =>
+    part.toLowerCase() === q.toLowerCase() ? (
+      <mark key={i} className="tl-search-mark">
+        {part}
+      </mark>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  );
+}
 
 export function LibraryDrawer() {
   const open = useStudy((s) => s.libraryOpen);
@@ -22,17 +41,23 @@ export function LibraryDrawer() {
   const chapter = useStudy((s) => s.chapter);
   const setBook = useStudy((s) => s.setBook);
   const setChapter = useStudy((s) => s.setChapter);
+  const jumpTo = useStudy((s) => s.jumpTo);
   const notesRev = useStudy((s) => s.notesRev);
   const locale = useStudy((s) => s.locale);
   const [query, setQuery] = useState("");
   const [picking, setPicking] = useState<"chapters" | "books">(tab);
+  const [hits, setHits] = useState<ScriptureHit[]>([]);
+  const [searchingText, setSearchingText] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const chapterScrollRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
     setPicking(tab);
     setQuery("");
+    setHits([]);
+    setSearchingText(false);
   }, [open, tab]);
 
   useEffect(() => {
@@ -64,17 +89,66 @@ export function LibraryDrawer() {
     })).filter((c) => c.books.length > 0);
   }, [q, parsed]);
 
+  useEffect(() => {
+    if (!open || view !== "chapters") return;
+    const id = requestAnimationFrame(() => {
+      chapterScrollRef.current
+        ?.querySelector('[data-active-chapter="true"]')
+        ?.scrollIntoView({ block: "center", behavior: "auto" });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [open, view, chapter, bookId]);
+
+  useEffect(() => {
+    if (!open || view !== "books" || searching) return;
+    const id = requestAnimationFrame(() => {
+      listRef.current
+        ?.querySelector('[data-active-book="true"]')
+        ?.scrollIntoView({ block: "center", behavior: "auto" });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [open, view, bookId, searching]);
+
+  useEffect(() => {
+    if (!open) return;
+    const term = q;
+    if (term.length < 3 || parsed?.chapter != null) {
+      setHits([]);
+      setSearchingText(false);
+      return;
+    }
+    let cancelled = false;
+    setSearchingText(true);
+    const timer = window.setTimeout(() => {
+      void searchScripture({ data: { q: term, locale } })
+        .then((rows) => {
+          if (!cancelled) setHits(rows);
+        })
+        .catch(() => {
+          if (!cancelled) setHits([]);
+        })
+        .finally(() => {
+          if (!cancelled) setSearchingText(false);
+        });
+    }, 400);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [open, q, locale, parsed?.chapter]);
+
   if (!open) return null;
 
-  function goTo(id: string, ch?: number) {
-    setBook(id, ch ?? (id === bookId ? chapter : 1));
+  function goTo(id: string, ch?: number, verse?: number) {
     if (ch != null) {
-      setChapter(ch);
+      jumpTo(id, ch, verse);
       setOpen(false);
       return;
     }
+    setBook(id, id === bookId ? chapter : 1);
     setPicking("chapters");
     setQuery("");
+    setHits([]);
   }
 
   function onSearchKey(e: KeyboardEvent<HTMLInputElement>) {
@@ -82,7 +156,7 @@ export function LibraryDrawer() {
     const hit = parseReference(query);
     if (!hit) return;
     e.preventDefault();
-    goTo(hit.book.id, hit.chapter);
+    goTo(hit.book.id, hit.chapter, hit.verse);
   }
 
   function jumpCorpus(key: string) {
@@ -145,7 +219,9 @@ export function LibraryDrawer() {
             <p className="mt-2 text-2xs text-muted">
               {t(locale, "pressReturn", {
                 book: bookName(parsed.book, locale),
-                n: parsed.chapter,
+                n: parsed.verse
+                  ? `${parsed.chapter}:${parsed.verse}`
+                  : parsed.chapter,
               })}
             </p>
           ) : null}
@@ -165,6 +241,7 @@ export function LibraryDrawer() {
                 type="button"
                 onClick={() => {
                   setQuery("");
+                  setHits([]);
                   setPicking(id);
                 }}
                 className={cn(
@@ -182,7 +259,10 @@ export function LibraryDrawer() {
         </div>
 
         {view === "chapters" ? (
-          <div className="tl-scroll min-h-0 flex-1 overflow-y-auto p-4">
+          <div
+            ref={chapterScrollRef}
+            className="tl-scroll min-h-0 flex-1 overflow-y-auto p-4"
+          >
             <div className="mb-4 flex items-baseline justify-between gap-3">
               <p className="text-sm text-muted">
                 {corpus
@@ -220,6 +300,7 @@ export function LibraryDrawer() {
                     <button
                       key={n}
                       type="button"
+                      data-active-chapter={active ? "true" : undefined}
                       onClick={() => {
                         setChapter(n);
                         setOpen(false);
@@ -272,9 +353,54 @@ export function LibraryDrawer() {
               ref={listRef}
               className="tl-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 pb-[max(2.5rem,env(safe-area-inset-bottom))]"
             >
-              {sections.length === 0 ? (
+              {hits.length > 0 || searchingText ? (
+                <section className="scroll-mt-2 px-2 pt-4">
+                  <h3 className="mb-1 flex items-baseline justify-between border-b border-rule px-1 pb-1 text-2xs font-semibold tracking-[0.16em] text-oxblood uppercase">
+                    <span>{t(locale, "verseHits")}</span>
+                    <span className="font-serif font-normal tracking-normal text-faint normal-case">
+                      {searchingText ? (
+                        <Loader2 size={12} className="inline animate-spin" />
+                      ) : (
+                        hits.length
+                      )}
+                    </span>
+                  </h3>
+                  {searchingText && hits.length === 0 ? (
+                    <p className="px-1 py-3 text-sm text-muted italic">
+                      {t(locale, "searchingText")}
+                    </p>
+                  ) : (
+                    <ul>
+                      {hits.map((hit) => (
+                        <li
+                          key={`${hit.bookId}-${hit.chapter}-${hit.verse}-${hit.text.slice(0, 12)}`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              goTo(hit.bookId, hit.chapter, hit.verse)
+                            }
+                            className="flex min-h-11 w-full flex-col items-start gap-0.5 rounded-sm px-2 py-2 text-left hover:bg-surface"
+                          >
+                            <span className="text-2xs font-semibold tracking-wide text-oxblood uppercase">
+                              {hit.bookName} {hit.chapter}:{hit.verse}
+                            </span>
+                            <span className="font-serif text-sm leading-snug text-ink">
+                              {highlightMatch(hit.text, q)}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              ) : null}
+
+              {sections.length === 0 && !searchingText && hits.length === 0 ? (
                 <p className="px-3 py-10 text-center font-serif text-muted italic">
-                  {t(locale, "noBook", { q })}
+                  {q.length >= 3
+                    ? t(locale, "noVerseHits", { q })
+                    : t(locale, "noBook", { q })}
                 </p>
               ) : (
                 sections.map((section) => (
@@ -285,7 +411,7 @@ export function LibraryDrawer() {
                   >
                     <h3 className="mb-1 flex items-baseline justify-between border-b border-rule px-1 pb-1 text-2xs font-semibold tracking-[0.16em] text-oxblood uppercase">
                       <span>{corpusLabel(locale, section.key, "name")}</span>
-                      <span className="font-serif font-normal text-faint tracking-normal normal-case">
+                      <span className="font-serif font-normal tracking-normal text-faint normal-case">
                         {section.books.length}
                       </span>
                     </h3>
@@ -298,8 +424,13 @@ export function LibraryDrawer() {
                           <li key={b.id}>
                             <button
                               type="button"
+                              data-active-book={active ? "true" : undefined}
                               onClick={() =>
-                                goTo(b.id, hinted ? parsed?.chapter : undefined)
+                                goTo(
+                                  b.id,
+                                  hinted ? parsed?.chapter : undefined,
+                                  hinted ? parsed?.verse : undefined,
+                                )
                               }
                               className={cn(
                                 "flex min-h-11 w-full items-baseline justify-between gap-3 rounded-sm px-2 text-left",
@@ -316,7 +447,9 @@ export function LibraryDrawer() {
                                     : "text-ink",
                                 )}
                               >
-                                <span className="truncate">{bookName(b, locale)}</span>
+                                <span className="truncate">
+                                  {bookName(b, locale)}
+                                </span>
                                 {noted ? (
                                   <span
                                     className="size-1.5 shrink-0 rounded-full bg-oxblood"
@@ -326,7 +459,9 @@ export function LibraryDrawer() {
                               </span>
                               <span className="shrink-0 font-serif text-xs text-faint tabular-nums">
                                 {hinted && parsed?.chapter
-                                  ? parsed.chapter
+                                  ? parsed.verse
+                                    ? `${parsed.chapter}:${parsed.verse}`
+                                    : parsed.chapter
                                   : b.chapters}
                               </span>
                             </button>

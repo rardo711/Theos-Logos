@@ -292,9 +292,20 @@ export function findBook(query: string): Book | undefined {
 
 export function parseReference(
   raw: string,
-): { book: Book; chapter?: number } | null {
+): { book: Book; chapter?: number; verse?: number } | null {
   const q = raw.trim();
   if (!q) return null;
+  const withVerse = q.match(/^(.*?)\s+(\d+)\s*[:.]\s*(\d+)$/);
+  if (withVerse) {
+    const book = findBook(withVerse[1]);
+    if (book) {
+      const chapter = Math.min(
+        Math.max(1, Number(withVerse[2])),
+        book.chapters,
+      );
+      return { book, chapter, verse: Math.max(1, Number(withVerse[3])) };
+    }
+  }
   const withChapter = q.match(/^(.*?)\s+(\d+)$/);
   if (withChapter) {
     const book = findBook(withChapter[1]);
