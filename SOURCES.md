@@ -15,9 +15,7 @@ This document lists all verified primary and secondary sources used by Theos Log
 - **Provider**: Bolls Life (`bolls.life/get-text/RV1960/`)
 - **Copyright**: © Sociedades Bíblicas en América Latina, 1960; © Sociedades Bíblicas Unidas, 1988. NOT public domain. Displayed for study on this desk.
 - **Note**: The Spanish option on the desk. Formal-equivalence Protestant standard in Latin America.
-- **Alternatives considered**:
-  - *La Biblia de las Américas (LBLA)* — the most rigorously literal Spanish translation (NASB equivalent, © The Lockman Foundation); also available on Bolls Life if a more formal text is preferred.
-  - *Reina-Valera 1909* — fully public domain; archaic in places but unencumbered for redistribution.
+- **Alternative considered**: *Reina-Valera 1909* — fully public domain; archaic in places but unencumbered for redistribution.
 
 ### World English Bible (WEB)
 - **Provider**: bible-api.com (fallback)
