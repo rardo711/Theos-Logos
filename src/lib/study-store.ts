@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { BIBLE_BOOKS, getBook } from "@/lib/bible/books";
+import { BIBLE_BOOKS, getBook, type Locale } from "@/lib/bible/books";
 
 const KEY = "theos-logos-hybrid";
 
@@ -13,6 +13,7 @@ interface Persisted {
   fontSize: number;
   disclaimerSeen: boolean;
   receptionPinned: boolean;
+  locale: Locale;
 }
 
 function load(): Persisted {
@@ -33,6 +34,7 @@ function load(): Persisted {
         fontSize: Math.min(28, Math.max(16, Number(p.fontSize) || 20)),
         disclaimerSeen: Boolean(p.disclaimerSeen),
         receptionPinned: Boolean(p.receptionPinned),
+        locale: p.locale === "es" ? "es" : "en",
       };
     }
   } catch {
@@ -45,6 +47,7 @@ function load(): Persisted {
     fontSize: 20,
     disclaimerSeen: false,
     receptionPinned: false,
+    locale: "en",
   };
 }
 
@@ -83,6 +86,7 @@ interface StudyState extends Persisted {
   setVerse: (verse: number | null) => void;
   setTheme: (theme: Theme) => void;
   setFontSize: (n: number) => void;
+  setLocale: (locale: Locale) => void;
   setLibraryOpen: (open: boolean, tab?: LibraryTab) => void;
   setTypeOpen: (open: boolean) => void;
   setReceptionOpen: (open: boolean) => void;
@@ -100,6 +104,7 @@ function persist(s: StudyState) {
     fontSize: s.fontSize,
     disclaimerSeen: s.disclaimerSeen,
     receptionPinned: s.receptionPinned,
+    locale: s.locale,
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(data));
@@ -114,6 +119,7 @@ export const useStudy = create<StudyState>((set, get) => ({
   theme: "auto",
   fontSize: 20,
   disclaimerSeen: false,
+  locale: "en",
   selectedVerse: null,
   libraryOpen: false,
   libraryTab: "chapters",
@@ -177,6 +183,10 @@ export const useStudy = create<StudyState>((set, get) => ({
   },
   setFontSize: (n) => {
     set({ fontSize: Math.min(28, Math.max(16, n)) });
+    persist(get());
+  },
+  setLocale: (locale) => {
+    set({ locale });
     persist(get());
   },
   setLibraryOpen: (libraryOpen, tab) =>

@@ -20,6 +20,7 @@ export function Reader({
   const prevChapter = useStudy((s) => s.prevChapter);
   const notesRev = useStudy((s) => s.notesRev);
   const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
+  const locale = useStudy((s) => s.locale);
   const scrollRef = useRef<HTMLDivElement>(null);
   const verseRefs = useRef<Map<number, HTMLElement>>(new Map());
   const touch = useRef<{ x: number; y: number } | null>(null);
@@ -100,7 +101,9 @@ export function Reader({
                 {chapter.bookName}
               </h1>
               <p className="mt-1.5 text-xs tracking-[0.18em] text-faint uppercase">
-                Chapter {chapter.chapter}
+                {locale === "es"
+                  ? `Capítulo ${chapter.chapter}`
+                  : `Chapter ${chapter.chapter}`}
               </p>
               <div className="mt-5 flex items-center justify-center gap-2">
                 <span className="h-px w-10 bg-rule" />
@@ -144,24 +147,7 @@ export function Reader({
                         : "hover:bg-oxblood-soft/55",
                     )}
                   >
-                    <sup
-                      className="verse-num mr-1 select-none"
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Open sources for verse ${v.verse}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setVerse(v.verse);
-                        setReceptionOpen(true);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key !== "Enter" && e.key !== " ") return;
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setVerse(v.verse);
-                        setReceptionOpen(true);
-                      }}
-                    >
+                    <sup className="verse-num mr-1 select-none">
                       {v.verse}
                       {noted ? (
                         <span

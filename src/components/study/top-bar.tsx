@@ -1,5 +1,5 @@
 import { BookOpen, ChevronDown } from "lucide-react";
-import { getBook } from "@/lib/bible/books";
+import { bookName, getBook } from "@/lib/bible/books";
 import { useStudy } from "@/lib/study-store";
 import { TypeMenu } from "./type-menu";
 import { Wordmark } from "./wordmark";
@@ -10,7 +10,9 @@ export function TopBar() {
   const setLibraryOpen = useStudy((s) => s.setLibraryOpen);
   const typeOpen = useStudy((s) => s.typeOpen);
   const setTypeOpen = useStudy((s) => s.setTypeOpen);
+  const locale = useStudy((s) => s.locale);
   const book = getBook(bookId);
+  const title = bookName(book, locale);
 
   return (
     <header className="relative z-30 shrink-0 border-b border-rule bg-surface pt-[env(safe-area-inset-top)]">
@@ -37,10 +39,10 @@ export function TopBar() {
           type="button"
           onClick={() => setLibraryOpen(true, "chapters")}
           className="flex min-h-11 max-w-[48vw] items-center gap-1 rounded-md px-2 hover:bg-paper sm:px-3"
-          aria-label={`Open library, ${book.name} ${chapterNum}`}
+          aria-label={`Open library, ${title} ${chapterNum}`}
         >
           <span className="font-display truncate text-[15px] font-semibold tracking-tight text-ink sm:text-base">
-            {book.name}
+            {title}
           </span>
           <span className="font-serif text-[15px] font-medium text-oxblood tabular-nums sm:text-base">
             {chapterNum}

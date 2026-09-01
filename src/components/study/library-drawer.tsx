@@ -4,6 +4,7 @@ import {
   BIBLE_BOOKS,
   CORPUS,
   bookMatches,
+  bookName,
   corpusOf,
   getBook,
   parseReference,
@@ -21,6 +22,7 @@ export function LibraryDrawer() {
   const setBook = useStudy((s) => s.setBook);
   const setChapter = useStudy((s) => s.setChapter);
   const notesRev = useStudy((s) => s.notesRev);
+  const locale = useStudy((s) => s.locale);
   const [query, setQuery] = useState("");
   const [picking, setPicking] = useState<"chapters" | "books">(tab);
   const listRef = useRef<HTMLDivElement>(null);
@@ -107,7 +109,7 @@ export function LibraryDrawer() {
                 Contents
               </p>
               <p className="font-display mt-1 text-xl leading-none font-semibold text-ink">
-                {current.name}{" "}
+                {bookName(current, locale)}{" "}
                 <span className="text-oxblood tabular-nums">{chapter}</span>
               </p>
             </div>
@@ -134,13 +136,15 @@ export function LibraryDrawer() {
                 if (e.target.value.trim()) setPicking("books");
               }}
               onKeyDown={onSearchKey}
-              placeholder="John, Romans, Ps 119…"
+              placeholder={
+                locale === "es" ? "Juan, Romanos, Sal 119…" : "John, Romans, Ps 119…"
+              }
               className="w-full rounded-md border border-rule bg-paper py-2.5 pr-3 pl-9 text-base text-ink outline-none placeholder:text-faint focus:border-oxblood"
             />
           </label>
           {parsed?.chapter != null ? (
             <p className="mt-2 text-2xs text-muted">
-              Press return for {parsed.book.name} {parsed.chapter}
+              Press return for {bookName(parsed.book, locale)} {parsed.chapter}
             </p>
           ) : null}
         </header>
@@ -303,7 +307,7 @@ export function LibraryDrawer() {
                                     : "text-ink",
                                 )}
                               >
-                                <span className="truncate">{b.name}</span>
+                                <span className="truncate">{bookName(b, locale)}</span>
                                 {noted ? (
                                   <span
                                     className="size-1.5 shrink-0 rounded-full bg-oxblood"

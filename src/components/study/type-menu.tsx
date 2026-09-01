@@ -16,6 +16,8 @@ export function TypeMenu() {
   const setFontSize = useStudy((s) => s.setFontSize);
   const theme = useStudy((s) => s.theme);
   const setTheme = useStudy((s) => s.setTheme);
+  const locale = useStudy((s) => s.locale);
+  const setLocale = useStudy((s) => s.setLocale);
   const [installable, setInstallable] = useState(false);
 
   useEffect(() => {
@@ -75,7 +77,9 @@ export function TypeMenu() {
           className="mb-4 border-l-[3px] border-oxblood py-1 pl-3 font-serif text-ink italic"
           style={{ fontSize: Math.min(fontSize, 22) }}
         >
-          In the beginning was the Word.
+          {locale === "es"
+            ? "En el principio existía el Verbo."
+            : "In the beginning was the Word."}
         </p>
         {fontSize !== 20 ? (
           <button
@@ -86,6 +90,30 @@ export function TypeMenu() {
             Default size
           </button>
         ) : null}
+
+        <p className="mb-2 mt-4 text-xs font-medium text-muted">Scripture</p>
+        <div className="mb-4 flex rounded-md border border-rule p-0.5">
+          {(
+            [
+              ["en", "English"],
+              ["es", "NBLA"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setLocale(id)}
+              className={cn(
+                "min-h-11 flex-1 rounded-xs text-xs font-semibold",
+                locale === id
+                  ? "bg-oxblood text-oxblood-fg"
+                  : "text-muted hover:text-ink",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         <p className="mb-2 text-xs font-medium text-muted">Lamp</p>
         <div className="flex rounded-md border border-rule p-0.5">

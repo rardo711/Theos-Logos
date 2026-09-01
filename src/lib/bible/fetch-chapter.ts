@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getBook } from "./books";
+import { getBook, type Locale } from "./books";
+import { fetchSpanishChapter } from "./bolls";
 import { fetchEsvChapter } from "./esv";
 import { getSeed } from "./seed";
 import type { Chapter, Verse } from "./types";
@@ -45,11 +46,24 @@ async function fetchWebChapter(
 }
 
 export const fetchChapter = createServerFn({ method: "POST" })
-  .validator((input: { bookId: string; chapter: number }) => input)
+  .validator(
+    (input: { bookId: string; chapter: number; locale?: Locale }) => input,
+  )
   .handler(async ({ data }): Promise<Chapter> => {
     const book = getBook(data.bookId);
     const chapter = Math.min(Math.max(1, data.chapter), book.chapters);
-    const seeded = getSeed(book.id, chapter);
+    const locale: Locale = data.locale === "es" ? "es" : "en";
+    const seeded = locale === "en" ? getSeed(book.id, chapter) : undefined;
+
+    if (locale === "es") {
+      try {
+        const es = await fetchSpanishChapter(book, chapter);
+        if (es) return es;
+      } catch {
+        // fall through
+      }
+      throw new Error(`No se pudo cargar ${book.name} ${chapter} en español.`);
+    }
 
     try {
       const esv = await fetchEsvChapter(book, chapter);

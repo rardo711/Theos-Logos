@@ -20,6 +20,7 @@ export function StudyWorkspace() {
   const bookId = useStudy((s) => s.bookId);
   const chapterNum = useStudy((s) => s.chapter);
   const fontSize = useStudy((s) => s.fontSize);
+  const locale = useStudy((s) => s.locale);
   const setLibraryOpen = useStudy((s) => s.setLibraryOpen);
   const setTypeOpen = useStudy((s) => s.setTypeOpen);
   const receptionOpen = useStudy((s) => s.receptionOpen);
@@ -30,8 +31,10 @@ export function StudyWorkspace() {
   const selectedVerse = useStudy((s) => s.selectedVerse);
   const notesRev = useStudy((s) => s.notesRev);
 
-  const [chapter, setChapter] = useState<Chapter | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [chapter, setChapter] = useState<Chapter | null>(() =>
+    getSeed("JHN", 1),
+  );
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [wideDesk, setWideDesk] = useState(false);
@@ -75,9 +78,16 @@ export function StudyWorkspace() {
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
-    setLoading(true);
-    setError(null);
-    fetchChapter({ data: { bookId, chapter: chapterNum } })
+    const seed = locale === "en" ? getSeed(bookId, chapterNum) : undefined;
+    if (seed) {
+      setChapter(seed);
+      setError(null);
+      setLoading(false);
+    } else {
+      setLoading(true);
+      setError(null);
+    }
+    fetchChapter({ data: { bookId, chapter: chapterNum, locale } })
       .then((data) => {
         if (!cancelled) {
           setChapter(data);
@@ -85,17 +95,12 @@ export function StudyWorkspace() {
         }
       })
       .catch((err: unknown) => {
-        if (cancelled) return;
-        const fallback = getSeed(bookId, chapterNum);
-        if (fallback) {
-          setChapter(fallback);
-          setError(null);
-          return;
+        if (!cancelled && !seed) {
+          setChapter(null);
+          setError(
+            err instanceof Error ? err.message : "Could not load this chapter.",
+          );
         }
-        setChapter(null);
-        setError(
-          err instanceof Error ? err.message : "Could not load this chapter.",
-        );
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -103,7 +108,7 @@ export function StudyWorkspace() {
     return () => {
       cancelled = true;
     };
-  }, [hydrated, bookId, chapterNum]);
+  }, [hydrated, bookId, chapterNum, locale]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -144,11 +149,6 @@ export function StudyWorkspace() {
   }
 
   const docked = receptionPinned && wideDesk && receptionOpen;
-  const waitingOnFetch =
-    loading &&
-    (chapter == null ||
-      chapter.bookId !== bookId ||
-      chapter.chapter !== chapterNum);
 
   return (
     <div className="tl-shell flex flex-col overflow-hidden bg-paper text-ink">
@@ -156,11 +156,7 @@ export function StudyWorkspace() {
 
       <div className="relative flex min-h-0 flex-1">
         <section className="relative min-h-0 min-w-0 flex-1">
-          <Reader
-            chapter={waitingOnFetch ? null : chapter}
-            loading={loading}
-            error={error}
-          />
+          <Reader chapter={chapter} loading={loading} error={error} />
           <VerseHint
             noted={verseHasNotes}
             onInquire={() => {

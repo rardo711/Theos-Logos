@@ -160,10 +160,98 @@ const ALIAS_TO_ID: Record<string, string> = {
   "3jn": "3JN",
   jud: "JUD",
   rev: "REV", apoc: "REV",
+  // Spanish
+  genesis: "GEN",
+  exodo: "EXO",
+  levitico: "LEV",
+  numeros: "NUM",
+  deuteronomio: "DEU",
+  josue: "JOS",
+  jueces: "JDG",
+  reyes: "1KI",
+  cronicas: "1CH",
+  esdras: "EZR",
+  nehemias: "NEH",
+  ester: "EST",
+  salmo: "PSA",
+  salmos: "PSA",
+  proverbios: "PRO",
+  eclesiastes: "ECC",
+  cantares: "SNG",
+  isaias: "ISA",
+  jeremias: "JER",
+  lamentaciones: "LAM",
+  ezequiel: "EZE",
+  oseas: "HOS",
+  amos: "AMO",
+  abdias: "OBA",
+  jonas: "JON",
+  miqueas: "MIC",
+  nahum: "NAM",
+  habacuc: "HAB",
+  sofonias: "ZEP",
+  hageo: "HAG",
+  zacarias: "ZEC",
+  malaquias: "MAL",
+  mateo: "MAT",
+  marcos: "MRK",
+  lucas: "LUK",
+  juan: "JHN",
+  hechos: "ACT",
+  romanos: "ROM",
+  corintios: "1CO",
+  galatas: "GAL",
+  efesios: "EPH",
+  filipenses: "PHP",
+  colosenses: "COL",
+  tesalonicenses: "1TH",
+  timoteo: "1TI",
+  filemon: "PHM",
+  hebreos: "HEB",
+  santiago: "JAS",
+  pedro: "1PE",
+  judas: "JUD",
+  apocalipsis: "REV",
 };
 
 function norm(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "");
+  return s
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+const BOOK_NAME_ES: Record<string, string> = {
+  GEN: "Génesis", EXO: "Éxodo", LEV: "Levítico", NUM: "Números", DEU: "Deuteronomio",
+  JOS: "Josué", JDG: "Jueces", RUT: "Rut", "1SA": "1 Samuel", "2SA": "2 Samuel",
+  "1KI": "1 Reyes", "2KI": "2 Reyes", "1CH": "1 Crónicas", "2CH": "2 Crónicas",
+  EZR: "Esdras", NEH: "Nehemías", EST: "Ester", JOB: "Job", PSA: "Salmos",
+  PRO: "Proverbios", ECC: "Eclesiastés", SNG: "Cantares", ISA: "Isaías",
+  JER: "Jeremías", LAM: "Lamentaciones", EZE: "Ezequiel", DAN: "Daniel",
+  HOS: "Oseas", JOL: "Joel", AMO: "Amós", OBA: "Abdías", JON: "Jonás",
+  MIC: "Miqueas", NAM: "Nahúm", HAB: "Habacuc", ZEP: "Sofonías", HAG: "Hageo",
+  ZEC: "Zacarías", MAL: "Malaquías", MAT: "Mateo", MRK: "Marcos", LUK: "Lucas",
+  JHN: "Juan", ACT: "Hechos", ROM: "Romanos", "1CO": "1 Corintios",
+  "2CO": "2 Corintios", GAL: "Gálatas", EPH: "Efesios", PHP: "Filipenses",
+  COL: "Colosenses", "1TH": "1 Tesalonicenses", "2TH": "2 Tesalonicenses",
+  "1TI": "1 Timoteo", "2TI": "2 Timoteo", TIT: "Tito", PHM: "Filemón",
+  HEB: "Hebreos", JAS: "Santiago", "1PE": "1 Pedro", "2PE": "2 Pedro",
+  "1JN": "1 Juan", "2JN": "2 Juan", "3JN": "3 Juan", JUD: "Judas",
+  REV: "Apocalipsis",
+};
+
+export type Locale = "en" | "es";
+
+export function bookName(book: Book, locale: Locale = "en"): string {
+  if (locale === "es") return BOOK_NAME_ES[book.id] ?? book.name;
+  return book.name;
+}
+
+/** Protestant canonical number used by bolls.life (Genesis = 1). */
+export function bollsBookId(bookId: string): number {
+  const i = bookIndex(bookId);
+  return i >= 0 ? i + 1 : 1;
 }
 
 export function getBook(id: string): Book {
@@ -182,6 +270,8 @@ export function bookMatches(book: Book, query: string): boolean {
   const q = norm(query);
   if (!q) return true;
   if (norm(book.name).includes(q)) return true;
+  const es = BOOK_NAME_ES[book.id];
+  if (es && norm(es).includes(q)) return true;
   if (book.id.toLowerCase() === q) return true;
   if (ALIAS_TO_ID[q] === book.id) return true;
   return false;
@@ -192,6 +282,8 @@ export function findBook(query: string): Book | undefined {
   if (!q) return undefined;
   const exact = BIBLE_BOOKS.find((b) => norm(b.name) === norm(q));
   if (exact) return exact;
+  const exactEs = BIBLE_BOOKS.find((b) => norm(BOOK_NAME_ES[b.id] ?? "") === norm(q));
+  if (exactEs) return exactEs;
   const aliased = ALIAS_TO_ID[norm(q)];
   if (aliased) return getBook(aliased);
   const hits = BIBLE_BOOKS.filter((b) => bookMatches(b, q));
