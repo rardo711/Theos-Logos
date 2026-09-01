@@ -4,6 +4,7 @@ import { askReception } from "@/lib/reception/ask";
 import { getDeskNotes, markedVerses, rememberReception } from "@/lib/reception/notes";
 import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
 import { t } from "@/lib/i18n";
+import { localizeCaution } from "@/lib/i18n-sources";
 import type { Chapter, LexiconResult, ReceptionResult } from "@/lib/bible/types";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
@@ -352,14 +353,14 @@ export function ReceptionPanel({
                 ))}
                 {result.caution ? (
                   <p className="pt-1 text-2xs leading-relaxed text-faint italic">
-                    {result.caution}
+                    {localizeCaution(result.caution, locale)}
                   </p>
                 ) : null}
               </div>
             ) : null}
 
             {result && result.cards.length === 0 && result.caution ? (
-              <p className="mb-4 text-sm text-muted italic">{result.caution}</p>
+              <p className="mb-4 text-sm text-muted italic">{localizeCaution(result.caution, locale)}</p>
             ) : null}
 
             {!result?.cards.length && !loading ? (
