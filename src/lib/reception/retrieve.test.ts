@@ -72,6 +72,62 @@ describe("primary-source mapping", () => {
     assert.equal(/Eph\.i\.html$/.test(henry.url), false);
   });
 
+  it("maps mid-book NT verses to Henry/Calvin CHAPTER urls, not only Argument", () => {
+    const cases = [
+      {
+        bookId: "ROM",
+        chapter: 8,
+        verseText:
+          "There is therefore now no condemnation to them which are in Christ Jesus",
+      },
+      {
+        bookId: "JHN",
+        chapter: 3,
+        verseText: "For God so loved the world, that he gave his only begotten Son",
+      },
+      {
+        bookId: "JAS",
+        chapter: 1,
+        verseText: "Count it all joy when ye fall into divers temptations",
+      },
+      {
+        bookId: "REV",
+        chapter: 1,
+        verseText: "The Revelation of Jesus Christ, which God gave unto him",
+      },
+    ];
+    for (const c of cases) {
+      const hits = mapCatalog({
+        question: "",
+        bookId: c.bookId,
+        chapter: c.chapter,
+        verseText: c.verseText,
+      });
+      const ids = hits.map((h) => h.id);
+      const chapterHits = hits.filter(
+        (h) =>
+          (h.voice === "John Calvin" || h.voice === "Matthew Henry") &&
+          (h.books?.includes(c.bookId) ?? false) &&
+          (h.chapters?.includes(c.chapter) ?? false),
+      );
+      assert.ok(
+        chapterHits.length >= 1,
+        `expected Henry/Calvin chapter page for ${c.bookId} ${c.chapter}, got ${ids.join(",")}`,
+      );
+      for (const h of chapterHits) {
+        assert.equal(/argument/i.test(h.locus), false, h.id);
+        assert.equal(/\bintro\b/i.test(h.locus), false, h.id);
+        if (h.voice === "Matthew Henry") {
+          assert.equal(
+            /mhc[56]\.[A-Za-z]+\.i\.html$/.test(h.url),
+            false,
+            h.url,
+          );
+        }
+      }
+    }
+  });
+
   it("diversifies traditions mode", () => {
     const hits = mapCatalog({
       question: "predestination election",
