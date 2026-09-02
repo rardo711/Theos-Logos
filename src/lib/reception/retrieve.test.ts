@@ -51,6 +51,27 @@ describe("primary-source mapping", () => {
     assert.ok(ids.includes("calvin-colossians-1"), `expected calvin-colossians-1, got ${ids.join(",")}`);
   });
 
+  it("maps Ephesians 1:3 to Calvin and Henry chapter pages, not only Argument", () => {
+    const hits = mapCatalog({
+      question: "",
+      bookId: "EPH",
+      chapter: 1,
+      verseText:
+        "Blessed be the God and Father of our Lord Jesus Christ, who has blessed us in Christ with every spiritual blessing in the heavenly places",
+    });
+    const ids = hits.map((h) => h.id);
+    const calvin = hits.find((h) => h.id === "calvin-ephesians-1");
+    const henry = hits.find((h) => h.id === "henry-ephesians-1");
+    assert.ok(calvin, `expected calvin-ephesians-1, got ${ids.join(",")}`);
+    assert.ok(henry, `expected henry-ephesians-1, got ${ids.join(",")}`);
+    assert.ok(calvin.chapters?.includes(1), "Calvin hit must be a chapter page");
+    assert.ok(henry.chapters?.includes(1), "Henry hit must be a chapter page");
+    assert.match(calvin.url, /calcom41\.iv\.ii/);
+    assert.equal(calvin.url.includes("calcom41.iv.i.html"), false);
+    assert.match(henry.url, /Eph\.ii/);
+    assert.equal(/Eph\.i\.html$/.test(henry.url), false);
+  });
+
   it("diversifies traditions mode", () => {
     const hits = mapCatalog({
       question: "predestination election",

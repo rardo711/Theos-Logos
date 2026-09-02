@@ -121,18 +121,31 @@ export async function retrieveExtracts(opts: {
   chapter?: number;
   verseText?: string;
   mode?: "reception" | "traditions";
+  excludeUrls?: string[];
 }): Promise<FetchedExtract[]> {
   const query = [opts.question, opts.verseText].filter(Boolean).join(" ");
-  const mapped = mapCatalog({ ...opts, limit: 5 });
-  const found = await Promise.all(mapped.map((e) => fetchEntry(e, query)));
+  const focused = Boolean(opts.question.trim());
+  const limit = focused ? 8 : 5;
+  const exclude = new Set((opts.excludeUrls ?? []).filter(Boolean));
+  const mapped = mapCatalog({
+    ...opts,
+    limit: exclude.size ? limit + 6 : limit,
+  }).filter(
+    (e) => !exclude.has(e.url) && !(e.altUrl && exclude.has(e.altUrl)),
+  );
+  const take = mapped.slice(0, limit);
+  const found = await Promise.all(take.map((e) => fetchEntry(e, query)));
   return found.filter((x): x is FetchedExtract => x != null);
 }
 
-function librarianSystem(locale: Locale): string {
+function librarianSystem(locale: Locale, focused = false): string {
   const notes =
     locale === "es"
       ? "Locale is es. Write note fields in Spanish. Quotes stay in the source language of the extract."
       : "Locale is en. Write note fields in English. Quotes stay in the source language of the extract.";
+  const countRule = focused
+    ? "- Return 1 to 4 ADDITIONAL cards that uniquely answer the focus/question, different voices from a generic verse stack. Do not restate Augustine/Chrysostom/Calvin/Henry unless a quote uniquely answers. If the extracts only repeat that stack, return {\"cards\":[],\"caution\":\"No additional sources for that focus.\"}."
+    : "- 3 to 4 cards, different voices. Short quotes (1–3 sentences).";
   return `You are a research librarian for Theos Logos. You fetch, verify, and organize. You do not own the theology.
 
 Rules:
@@ -142,7 +155,7 @@ Rules:
 - Never invent a citation or a URL. Use the extract's locus and url.
 - ADD cards aimed at the focus/question. Do not restate a generic Augustine/Chrysostom/Calvin/Westminster stack unless a quote uniquely answers the question.
 - paraphrased=false when the quote is taken verbatim (shortened only by ellipsis). paraphrased=true if you compress a sentence from the extract.
-- 3 to 4 cards, different voices. Short quotes (1–3 sentences).
+- ${countRule}
 - Separate an author's own words from later interpretation. Label interpretation in note.
 - No homily. No application. No celebrity pastors.
 - ${notes}
@@ -245,18 +258,20 @@ export async function assembleFromSources(opts: {
   mode?: "reception" | "traditions";
   focus: string;
   locale?: Locale;
+  excludeUrls?: string[];
 }): Promise<{ cards: SourceCard[]; caution: string } | null> {
   const extracts = await retrieveExtracts(opts);
   if (!extracts.length) return null;
   const locale: Locale = opts.locale === "es" ? "es" : "en";
   const caution = t(locale, "cautionRetrieved");
+  const focused = Boolean(opts.question.trim());
 
   if (!geminiApiKey()) {
     throw new Error("Reception is unavailable in this environment.");
   }
 
   const text = await generateGeminiJson({
-    system: librarianSystem(locale),
+    system: librarianSystem(locale, focused),
     user: extractsPrompt(extracts, opts.focus, locale),
     maxOutputTokens: 1600,
   });

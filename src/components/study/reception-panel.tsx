@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Loader2, PanelRight, PanelRightClose, X } from "lucide-react";
 import { askReception } from "@/lib/reception/ask";
-import { getDeskNotes, markedVerses, rememberReception } from "@/lib/reception/notes";
+import { additionalSourceCards, getDeskNotes, markedVerses, rememberReception } from "@/lib/reception/notes";
 import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
 import { t } from "@/lib/i18n";
 import { localizeCaution } from "@/lib/i18n-sources";
@@ -62,6 +62,8 @@ export function ReceptionPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ReceptionResult | null>(null);
+  const resultRef = useRef<ReceptionResult | null>(null);
+  resultRef.current = result;
   const [lexicon, setLexicon] = useState<LexiconResult | null>(null);
 
   const verse = chapter?.verses.find((v) => v.verse === selectedVerse) ?? null;
@@ -96,8 +98,9 @@ export function ReceptionPanel({
     if (!chapter) return;
     const focus = question.trim();
     const emptyInquire = mode === "reception" && !focus;
+    const prior = resultRef.current;
 
-    if (emptyInquire && result?.cards.length) {
+    if (emptyInquire && prior?.cards.length) {
       setError(null);
       return;
     }
@@ -120,27 +123,32 @@ export function ReceptionPanel({
           question: focus || undefined,
           mode,
           locale,
+          haveCards:
+            (focus || mode === "traditions") && prior?.cards.length
+              ? prior.cards.map((c) => ({
+                  voice: c.voice,
+                  citation: c.citation,
+                  quote: c.quote,
+                  url: c.url,
+                }))
+              : undefined,
         },
       });
 
+      const shouldAppend =
+        Boolean(prior?.cards.length) &&
+        (mode === "traditions" || Boolean(focus));
       let next = data;
-      if (result?.cards.length && (mode === "traditions" || focus)) {
-        const seen = new Set(
-          result.cards.map((c) => `${c.voice}\0${c.citation}`),
-        );
-        const added = data.cards.filter((c) => {
-          const key = `${c.voice}\0${c.citation}`;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
+      if (shouldAppend && prior) {
+        const added = additionalSourceCards(prior.cards, data.cards);
         if (!added.length) {
-          throw new Error("NO_MORE");
+          setError(t(locale, "noMore"));
+          return;
         }
         next = {
           source: "generated",
-          cards: [...result.cards, ...added],
-          caution: data.caution ?? result.caution,
+          cards: [...prior.cards, ...added],
+          caution: data.caution ?? prior.caution,
         };
       }
 

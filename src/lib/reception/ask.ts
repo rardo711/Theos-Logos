@@ -18,6 +18,12 @@ export const askReception = createServerFn({ method: "POST" })
       question?: string;
       mode: "reception" | "traditions";
       locale?: Locale;
+      haveCards?: Array<{
+        voice: string;
+        citation: string;
+        quote?: string;
+        url?: string;
+      }>;
     }) => input,
   )
   .handler(async ({ data }): Promise<ReceptionResult> => {
@@ -37,6 +43,16 @@ export const askReception = createServerFn({ method: "POST" })
         ? "Write notes and caution in Spanish. Keep quotations in the source language of the extract."
         : "";
 
+    const have = data.haveCards ?? [];
+    const excludeUrls = have
+      .map((c) => c.url)
+      .filter((u): u is string => Boolean(u));
+    const already = [...new Set(have.map((c) => c.voice).filter(Boolean))];
+    const alreadyLine =
+      question && already.length
+        ? `Desk already has: ${already.join("; ")}. Return only additional extracts, not a restatement of those cards.`
+        : "";
+
     const focus =
       data.mode === "traditions"
         ? `Compare how distinct historic traditions received ${ref}. Include at least one patristic, one Reformation (reformed or lutheran), and one catholic or orthodox voice. Fair, sourced, not polemical.`
@@ -51,8 +67,10 @@ export const askReception = createServerFn({ method: "POST" })
       verseText: data.verseText,
       mode: data.mode,
       locale,
+      excludeUrls,
       focus: [
         focus,
+        alreadyLine,
         data.verseText ? `Verse: ${data.verseText}` : "",
         "Quote only from the extracts. Skip passing mentions.",
         langLine,

@@ -1,4 +1,4 @@
-import type { ReceptionResult } from "@/lib/bible/types";
+import type { ReceptionResult, SourceCard } from "@/lib/bible/types";
 import {
   cachedBookIds,
   cachedVerses,
@@ -11,6 +11,28 @@ import {
   hasCurated,
   markedVerses as curatedMarked,
 } from "./curated";
+
+
+/** Cards from a focused Inquire that are not already on the desk. */
+export function additionalSourceCards(
+  prior: SourceCard[],
+  incoming: SourceCard[],
+): SourceCard[] {
+  const seenCite = new Set(prior.map((c) => `${c.voice}\0${c.citation}`));
+  const seenQuote = new Set(
+    prior.map((c) => c.quote.replace(/\s+/g, " ").trim().toLowerCase()),
+  );
+  const added: SourceCard[] = [];
+  for (const c of incoming) {
+    const cite = `${c.voice}\0${c.citation}`;
+    const quote = c.quote.replace(/\s+/g, " ").trim().toLowerCase();
+    if (seenCite.has(cite) || seenQuote.has(quote)) continue;
+    seenCite.add(cite);
+    seenQuote.add(quote);
+    added.push(c);
+  }
+  return added;
+}
 
 export function getDeskNotes(
   bookId: string,
