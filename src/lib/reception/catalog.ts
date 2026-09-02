@@ -125,7 +125,110 @@ export const CATALOG: CatalogEntry[] = [
   e("large-catechism", "Martin Luther", "Large Catechism", "lutheran", "LC", "https://bookofconcord.org/large-catechism/", ["commandments", "creed", "prayer", "luther", "catechism"]),
   e("small-catechism", "Martin Luther", "Small Catechism", "lutheran", "SC", "https://bookofconcord.org/small-catechism/", ["commandments", "creed", "baptism", "luther", "catechism"]),
   e("formula-concord", "Formula of Concord", "Formula of Concord, Epitome", "lutheran", "FC Epitome", "https://bookofconcord.org/formula-of-concord-epitome/", ["justification", "law", "gospel", "will", "concord", "luther"]),
+
+  // NT book floor — Calvin + Henry (no chapters: mapCatalog book fallback matches any chapter)
+  e("calvin-matthew", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom31/calcom31.viii.html", ["matthew", "gospel", "calvin"], ["MAT"]),
+  e("henry-matthew", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Matthew intro", "https://ccel.org/ccel/henry/mhc5/mhc5.Matt.i.html", ["matthew", "gospel", "henry"], ["MAT"]),
+  e("chrysostom-matthew", "John Chrysostom", "Homilies on Matthew 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/200101.htm", ["matthew", "gospel", "chrysostom"], ["MAT"]),
+
+  e("calvin-mark", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Mark 1:1–6", "https://ccel.org/ccel/calvin/calcom31/calcom31.ix.xxvii.html", ["mark", "gospel", "calvin"], ["MRK"]),
+  e("henry-mark", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Mark intro", "https://ccel.org/ccel/henry/mhc5/mhc5.Mark.i.html", ["mark", "gospel", "henry"], ["MRK"]),
+
+  e("calvin-luke", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Luke 1:1–4", "https://ccel.org/ccel/calvin/calcom31/calcom31.ix.i.html", ["luke", "gospel", "calvin"], ["LUK"]),
+  e("henry-luke", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Luke intro", "https://ccel.org/ccel/henry/mhc5/mhc5.Luke.i.html", ["luke", "gospel", "henry"], ["LUK"]),
+
+  e("calvin-john", "John Calvin", "Commentary on John", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom34/calcom34.vi.html", ["john", "gospel", "calvin"], ["JHN"]),
+  e("henry-john", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "John intro", "https://ccel.org/ccel/henry/mhc5/mhc5.John.i.html", ["john", "gospel", "henry"], ["JHN"]),
+  e("chrysostom-john", "John Chrysostom", "Homilies on John 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/240101.htm", ["john", "gospel", "chrysostom"], ["JHN"]),
+
+  e("calvin-acts", "John Calvin", "Commentary on Acts", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom36/calcom36.vii.html", ["acts", "apostles", "calvin"], ["ACT"]),
+  e("henry-acts", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Acts intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Acts.i.html", ["acts", "apostles", "henry"], ["ACT"]),
+  e("chrysostom-acts", "John Chrysostom", "Homilies on Acts 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/210101.htm", ["acts", "apostles", "chrysostom"], ["ACT"]),
+
+  e("calvin-romans", "John Calvin", "Commentary on Romans", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom38/calcom38.iv.html", ["romans", "paul", "calvin"], ["ROM"]),
+  e("henry-romans", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Romans intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Rom.i.html", ["romans", "paul", "henry"], ["ROM"]),
+  e("chrysostom-romans", "John Chrysostom", "Homilies on Romans 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/210201.htm", ["romans", "paul", "chrysostom"], ["ROM"]),
+
+  e("calvin-1corinthians", "John Calvin", "Commentary on 1 Corinthians", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom39/calcom39.vii.html", ["corinthians", "paul", "calvin"], ["1CO"]),
+  e("henry-1corinthians", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "1 Corinthians intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iCor.i.html", ["corinthians", "paul", "henry"], ["1CO"]),
+  e("chrysostom-1corinthians", "John Chrysostom", "Homilies on First Corinthians 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/220101.htm", ["corinthians", "paul", "chrysostom"], ["1CO"]),
+
+  e("calvin-2corinthians", "John Calvin", "Commentary on 2 Corinthians", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom40/calcom40.vi.html", ["corinthians", "paul", "calvin"], ["2CO"]),
+  e("henry-2corinthians", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "2 Corinthians intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iiCor.i.html", ["corinthians", "paul", "henry"], ["2CO"]),
+  e("chrysostom-2corinthians", "John Chrysostom", "Homilies on Second Corinthians 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/220201.htm", ["corinthians", "paul", "chrysostom"], ["2CO"]),
+
+  e("calvin-galatians", "John Calvin", "Commentary on Galatians", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom41/calcom41.iii.ii.html", ["galatians", "paul", "calvin"], ["GAL"]),
+  e("henry-galatians", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Galatians intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Gal.i.html", ["galatians", "paul", "henry"], ["GAL"]),
+  e("chrysostom-galatians", "John Chrysostom", "Homilies on Galatians 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/23101.htm", ["galatians", "paul", "chrysostom"], ["GAL"]),
+
+  e("calvin-ephesians", "John Calvin", "Commentary on Ephesians", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom41/calcom41.iv.i.html", ["ephesians", "paul", "calvin"], ["EPH"]),
+  e("henry-ephesians", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Ephesians intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Eph.i.html", ["ephesians", "paul", "henry"], ["EPH"]),
+  e("chrysostom-ephesians", "John Chrysostom", "Homilies on Ephesians 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/230101.htm", ["ephesians", "paul", "chrysostom"], ["EPH"]),
+
+  e("calvin-philippians", "John Calvin", "Commentary on Philippians", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom42/calcom42.iv.i.html", ["philippians", "paul", "calvin"], ["PHP"]),
+  e("henry-philippians", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Philippians intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Phi.i.html", ["philippians", "paul", "henry"], ["PHP"]),
+  e("chrysostom-philippians", "John Chrysostom", "Homilies on Philippians 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/230201.htm", ["philippians", "paul", "chrysostom"], ["PHP"]),
+
+  e("calvin-colossians", "John Calvin", "Commentary on Colossians", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom42/calcom42.v.i.html", ["colossians", "col", "paul", "calvin"], ["COL"]),
+  e("henry-colossians", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Colossians intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Col.i.html", ["colossians", "col", "paul", "henry"], ["COL"]),
+  e("chrysostom-colossians", "John Chrysostom", "Homilies on Colossians 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/230301.htm", ["colossians", "col", "paul", "chrysostom"], ["COL"]),
+
+  e("calvin-1thessalonians", "John Calvin", "Commentary on 1 Thessalonians", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom42/calcom42.vi.ii.html", ["thessalonians", "paul", "calvin"], ["1TH"]),
+  e("henry-1thessalonians", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "1 Thessalonians intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iTh.i.html", ["thessalonians", "paul", "henry"], ["1TH"]),
+  e("chrysostom-1thessalonians", "John Chrysostom", "Homilies on First Thessalonians 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/230401.htm", ["thessalonians", "paul", "chrysostom"], ["1TH"]),
+
+  e("calvin-2thessalonians", "John Calvin", "Commentary on 2 Thessalonians", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom42/calcom42.vii.ii.html", ["thessalonians", "paul", "calvin"], ["2TH"]),
+  e("henry-2thessalonians", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "2 Thessalonians intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iiTh.i.html", ["thessalonians", "paul", "henry"], ["2TH"]),
+  e("chrysostom-2thessalonians", "John Chrysostom", "Homilies on Second Thessalonians 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/23051.htm", ["thessalonians", "paul", "chrysostom"], ["2TH"]),
+
+  e("calvin-1timothy", "John Calvin", "Commentary on 1 Timothy", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom43/calcom43.iii.ii.html", ["timothy", "paul", "calvin"], ["1TI"]),
+  e("henry-1timothy", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "1 Timothy intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iTim.i.html", ["timothy", "paul", "henry"], ["1TI"]),
+  e("chrysostom-1timothy", "John Chrysostom", "Homilies on First Timothy 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/230601.htm", ["timothy", "paul", "chrysostom"], ["1TI"]),
+
+  e("calvin-2timothy", "John Calvin", "Commentary on 2 Timothy", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom43/calcom43.iv.i.html", ["timothy", "paul", "calvin"], ["2TI"]),
+  e("henry-2timothy", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "2 Timothy intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iiTim.i.html", ["timothy", "paul", "henry"], ["2TI"]),
+  e("chrysostom-2timothy", "John Chrysostom", "Homilies on Second Timothy 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/230701.htm", ["timothy", "paul", "chrysostom"], ["2TI"]),
+
+  e("calvin-titus", "John Calvin", "Commentary on Titus", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom43/calcom43.v.ii.html", ["titus", "paul", "calvin"], ["TIT"]),
+  e("henry-titus", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Titus intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Tit.i.html", ["titus", "paul", "henry"], ["TIT"]),
+  e("chrysostom-titus", "John Chrysostom", "Homilies on Titus 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/23081.htm", ["titus", "paul", "chrysostom"], ["TIT"]),
+
+  e("calvin-philemon", "John Calvin", "Commentary on Philemon", "reformed", "Philemon 1–7", "https://ccel.org/ccel/calvin/calcom43/calcom43.vi.i.html", ["philemon", "paul", "calvin"], ["PHM"]),
+  e("henry-philemon", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Philemon intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Phm.i.html", ["philemon", "paul", "henry"], ["PHM"]),
+  e("chrysostom-philemon", "John Chrysostom", "Homilies on Philemon 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/23091.htm", ["philemon", "paul", "chrysostom"], ["PHM"]),
+
+  e("calvin-hebrews", "John Calvin", "Commentary on Hebrews", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom44/calcom44.vi.html", ["hebrews", "calvin"], ["HEB"]),
+  e("henry-hebrews", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Hebrews intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Heb.i.html", ["hebrews", "henry"], ["HEB"]),
+  e("chrysostom-hebrews", "John Chrysostom", "Homilies on Hebrews 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/240201.htm", ["hebrews", "chrysostom"], ["HEB"]),
+
+  e("calvin-james", "John Calvin", "Commentary on James", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom45/calcom45.vi.i.html", ["james", "calvin"], ["JAS"]),
+  e("henry-james", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "James intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Jam.i.html", ["james", "henry"], ["JAS"]),
+
+  e("calvin-1peter", "John Calvin", "Commentary on 1 Peter", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom45/calcom45.iv.i.html", ["peter", "calvin"], ["1PE"]),
+  e("henry-1peter", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "1 Peter intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iPet.i.html", ["peter", "henry"], ["1PE"]),
+
+  e("calvin-2peter", "John Calvin", "Commentary on 2 Peter", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom45/calcom45.vii.i.html", ["peter", "calvin"], ["2PE"]),
+  e("henry-2peter", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "2 Peter intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iiPet.i.html", ["peter", "henry"], ["2PE"]),
+
+  e("calvin-1john", "John Calvin", "Commentary on 1 John", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom45/calcom45.v.i.html", ["john", "calvin"], ["1JN"]),
+  e("henry-1john", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "1 John intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iJo.i.html", ["john", "henry"], ["1JN"]),
+  e("augustine-1john", "Augustine", "Homilies on the First Epistle of John 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/170201.htm", ["john", "love", "augustine"], ["1JN"]),
+
+  e("henry-2john", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "2 John intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iiJo.i.html", ["john", "henry"], ["2JN"]),
+  e("henry-3john", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "3 John intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iiiJo.i.html", ["john", "henry"], ["3JN"]),
+
+  e("calvin-jude", "John Calvin", "Commentary on Jude", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom45/calcom45.viii.i.html", ["jude", "calvin"], ["JUD"]),
+  e("henry-jude", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Jude intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Ju.i.html", ["jude", "henry"], ["JUD"]),
+
+  e("henry-revelation", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Revelation intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Rev.i.html", ["revelation", "henry"], ["REV"]),
+  e("victorinus-revelation", "Victorinus", "Commentary on the Apocalypse", "patristic", "In Apocalypsin", "https://www.newadvent.org/fathers/0712.htm", ["revelation", "apocalypse", "victorinus"], ["REV"]),
+
+  // Colossians 1 chapter pages so Col 1:24 scores (Calvin / Henry / Chrysostom)
+  e("calvin-colossians-1", "John Calvin", "Commentary on Colossians", "reformed", "Colossians 1:24–29", "https://ccel.org/ccel/calvin/calcom42/calcom42.v.ii.vi.html", ["colossians", "col", "calvin", "sufferings", "afflictions", "church", "flesh"], ["COL"], [1]),
+  e("henry-colossians-1", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Colossians 1", "https://ccel.org/ccel/henry/mhc6/mhc6.Col.ii.html", ["colossians", "col", "henry", "sufferings", "afflictions", "church"], ["COL"], [1]),
+  e("chrysostom-colossians-h4", "John Chrysostom", "Homilies on Colossians 4", "patristic", "Homily 4", "https://www.newadvent.org/fathers/230304.htm", ["colossians", "col", "chrysostom", "sufferings", "afflictions", "church", "flesh"], ["COL"], [1]),
 ];
+
 
 const STOP = new Set([
   "the", "and", "of", "to", "a", "in", "that", "is", "was", "he", "for", "it",

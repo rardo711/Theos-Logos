@@ -35,6 +35,22 @@ describe("primary-source mapping", () => {
     assert.ok(ids.includes("calvin-john-1"));
   });
 
+  it("maps Colossians 1:24 to Calvin commentary", () => {
+    const hits = mapCatalog({
+      question: "sufferings of Christ",
+      bookId: "COL",
+      chapter: 1,
+      verseText:
+        "Now I rejoice in my sufferings for you, and fill up that which is behind of the afflictions of Christ in my flesh for his body's sake, which is the church",
+    });
+    const ids = hits.map((h) => h.id);
+    assert.ok(
+      hits.some((h) => h.voice === "John Calvin" && (h.books?.includes("COL") ?? false)),
+      `expected Calvin on COL, got ${ids.join(",")}`,
+    );
+    assert.ok(ids.includes("calvin-colossians-1"), `expected calvin-colossians-1, got ${ids.join(",")}`);
+  });
+
   it("diversifies traditions mode", () => {
     const hits = mapCatalog({
       question: "predestination election",
