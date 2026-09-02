@@ -142,8 +142,7 @@ export function ReceptionPanel({
       if (shouldAppend && prior) {
         const added = additionalSourceCards(prior.cards, data.cards);
         if (!added.length) {
-          setError(t(locale, "noMore"));
-          return;
+          throw new Error("NO_MORE");
         }
         next = {
           source: "generated",
@@ -336,7 +335,7 @@ export function ReceptionPanel({
               </article>
             ) : null}
 
-            {loading && !result ? (
+            {loading ? (
               <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
                 <Loader2 size={14} className="animate-spin text-oxblood" />
                 {t(locale, "consulting")}
