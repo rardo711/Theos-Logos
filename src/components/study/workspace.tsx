@@ -17,6 +17,13 @@ function lockAppHeight() {
   document.documentElement.style.setProperty("--app-h", `${Math.round(h)}px`);
 }
 
+function chapterFitsLocale(ch: Chapter, locale: string): boolean {
+  const name = ch.translationName ?? "";
+  const english =
+    name.includes("English Standard") || name.includes("World English");
+  return locale === "es" ? !english : english;
+}
+
 export function StudyWorkspace() {
   const hydrate = useStudy((s) => s.hydrate);
   const bookId = useStudy((s) => s.bookId);
@@ -33,10 +40,8 @@ export function StudyWorkspace() {
   const selectedVerse = useStudy((s) => s.selectedVerse);
   const notesRev = useStudy((s) => s.notesRev);
 
-  const [chapter, setChapter] = useState<Chapter | null>(() =>
-    getSeed("JHN", 1),
-  );
-  const [loading, setLoading] = useState(false);
+  const [chapter, setChapter] = useState<Chapter | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [wideDesk, setWideDesk] = useState(false);
@@ -80,15 +85,19 @@ export function StudyWorkspace() {
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
-    const seed = locale === "en" ? getSeed(bookId, chapterNum) : undefined;
-    if (seed) {
-      setChapter(attachNtHeadings(seed, locale));
-      setError(null);
-      setLoading(false);
-    } else {
-      setLoading(true);
-      setError(null);
-    }
+    setLoading(true);
+    setError(null);
+    setChapter((prev) => {
+      if (
+        prev == null ||
+        prev.bookId !== bookId ||
+        prev.chapter !== chapterNum ||
+        !chapterFitsLocale(prev, locale)
+      ) {
+        return null;
+      }
+      return prev;
+    });
     fetchChapter({ data: { bookId, chapter: chapterNum, locale } })
       .then((data) => {
         if (!cancelled) {
@@ -97,12 +106,18 @@ export function StudyWorkspace() {
         }
       })
       .catch((err: unknown) => {
-        if (!cancelled && !seed) {
-          setChapter(null);
-          setError(
-            err instanceof Error ? err.message : t(locale, "loadFailed"),
-          );
+        if (cancelled) return;
+        const fallback =
+          locale === "en" ? getSeed(bookId, chapterNum) : undefined;
+        if (fallback) {
+          setChapter(attachNtHeadings(fallback, locale));
+          setError(null);
+          return;
         }
+        setChapter(null);
+        setError(
+          err instanceof Error ? err.message : t(locale, "loadFailed"),
+        );
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -190,6 +205,13 @@ export function StudyWorkspace() {
   }
 
   const docked = receptionPinned && wideDesk && receptionOpen;
+  const staleChapter =
+    chapter != null &&
+    (chapter.bookId !== bookId ||
+      chapter.chapter !== chapterNum ||
+      !chapterFitsLocale(chapter, locale));
+  const waitingOnFetch = staleChapter || (loading && chapter == null);
+  const shownChapter = waitingOnFetch ? null : chapter;
 
   return (
     <div className="tl-shell flex flex-col overflow-hidden bg-paper text-ink">
@@ -197,7 +219,11 @@ export function StudyWorkspace() {
 
       <div className="relative flex min-h-0 flex-1">
         <section className="relative min-h-0 min-w-0 flex-1">
-          <Reader chapter={chapter} loading={loading} error={error} />
+          <Reader
+            chapter={shownChapter}
+            loading={waitingOnFetch || loading}
+            error={error}
+          />
           <VerseHint
             noted={verseHasNotes}
             onInquire={() => {
@@ -208,7 +234,7 @@ export function StudyWorkspace() {
 
         {docked ? (
           <aside className="flex min-h-0 w-96 min-w-0 shrink-0 border-l border-rule xl:w-[26rem]">
-            <ReceptionPanel chapter={chapter} onClose={closeReception} />
+            <ReceptionPanel chapter={shownChapter} onClose={closeReception} />
           </aside>
         ) : null}
 
@@ -216,10 +242,14 @@ export function StudyWorkspace() {
           <>
             <div className="absolute inset-0 z-20 flex flex-col md:hidden">
               <div className="relative h-[34%] min-h-32 overflow-hidden border-b border-rule bg-paper">
-                <Reader chapter={chapter} loading={false} error={null} />
+                <Reader
+                  chapter={shownChapter}
+                  loading={waitingOnFetch}
+                  error={null}
+                />
               </div>
               <div className="relative min-h-0 flex-1 bg-paper">
-                <ReceptionPanel chapter={chapter} onClose={closeReception} />
+                <ReceptionPanel chapter={shownChapter} onClose={closeReception} />
               </div>
             </div>
 
@@ -231,7 +261,7 @@ export function StudyWorkspace() {
                 onClick={closeReception}
               />
               <aside className="tl-sheet flex h-full w-full max-w-md flex-col border-l border-rule bg-paper shadow-soft">
-                <ReceptionPanel chapter={chapter} onClose={closeReception} />
+                <ReceptionPanel chapter={shownChapter} onClose={closeReception} />
               </aside>
             </div>
           </>

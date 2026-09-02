@@ -304,7 +304,7 @@ export function ReceptionPanel({
             {lexicon ? (
               <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
                 <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  {[lexicon.language, lexicon.strongs, lexicon.source]
+                  {[lexicon.language, lexicon.strongs]
                     .filter(Boolean)
                     .join(" · ") || t(locale, "lexicalNote")}
                 </p>
