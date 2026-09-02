@@ -128,20 +128,32 @@ export async function retrieveExtracts(opts: {
   return found.filter((x): x is FetchedExtract => x != null);
 }
 
-const SYSTEM = `You are a research librarian for Theos Logos. You fetch, verify, and organize. You do not own the theology.
+function librarianSystem(locale: Locale): string {
+  const notes =
+    locale === "es"
+      ? "Locale is es. Write note fields in Spanish. Quotes stay in the source language of the extract."
+      : "Locale is en. Write note fields in English. Quotes stay in the source language of the extract.";
+  return `You are a research librarian for Theos Logos. You fetch, verify, and organize. You do not own the theology.
 
 Rules:
 - Return JSON only: {"cards":[{voice,work,tradition,quote,note,citation,paraphrased,url}],"caution":string}
 - tradition must be one of: patristic, reformed, lutheran, catholic, orthodox, confession
 - Quote ONLY from the FETCHED EXTRACTS. If a wording is not in an extract, omit that card.
 - Never invent a citation or a URL. Use the extract's locus and url.
+- ADD cards aimed at the focus/question. Do not restate a generic Augustine/Chrysostom/Calvin/Westminster stack unless a quote uniquely answers the question.
 - paraphrased=false when the quote is taken verbatim (shortened only by ellipsis). paraphrased=true if you compress a sentence from the extract.
 - 3 to 4 cards, different voices. Short quotes (1–3 sentences).
 - Separate an author's own words from later interpretation. Label interpretation in note.
 - No homily. No application. No celebrity pastors.
+- ${notes}
 - If the extracts do not treat the term as subject, return {"cards":[],"caution":"..."}.`;
+}
 
-export function extractsPrompt(extracts: FetchedExtract[], focus: string): string {
+export function extractsPrompt(
+  extracts: FetchedExtract[],
+  focus: string,
+  locale: Locale = "en",
+): string {
   const blocks = extracts.map((ex, i) => {
     const body = ex.paragraphs.map((p, n) => `(${n + 1}) ${p}`).join("\n");
     return [
@@ -154,7 +166,11 @@ export function extractsPrompt(extracts: FetchedExtract[], focus: string): strin
       body,
     ].join("\n");
   });
-  return [focus, "", ...blocks].join("\n\n");
+  const localeLine =
+    locale === "es"
+      ? "Locale: es. Write note fields in Spanish. Quotes stay in the source language of the extract."
+      : "Locale: en.";
+  return [focus, localeLine, "", ...blocks].join("\n\n");
 }
 
 function cardsFromExtracts(extracts: FetchedExtract[]): SourceCard[] {
@@ -235,21 +251,15 @@ export async function assembleFromSources(opts: {
   const locale: Locale = opts.locale === "es" ? "es" : "en";
   const caution = t(locale, "cautionRetrieved");
 
-  if (geminiApiKey()) {
-    try {
-      const text = await generateGeminiJson({
-        system: SYSTEM,
-        user: extractsPrompt(extracts, opts.focus),
-        maxOutputTokens: 1600,
-      });
-      const cards = parseRetrieved(text);
-      if (cards.length) return { cards, caution };
-    } catch {
-      // Fall through to verbatim extracts — never invent from model memory.
-    }
+  if (!geminiApiKey()) {
+    throw new Error("Reception is unavailable in this environment.");
   }
 
-  const cards = cardsFromExtracts(extracts);
-  if (!cards.length) return null;
+  const text = await generateGeminiJson({
+    system: librarianSystem(locale),
+    user: extractsPrompt(extracts, opts.focus, locale),
+    maxOutputTokens: 1600,
+  });
+  const cards = parseRetrieved(text);
   return { cards, caution };
 }

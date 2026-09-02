@@ -1,11 +1,11 @@
 /**
  * Server-only Gemini generateContent. Uses GEMINI_API_KEY (same name as main).
- * Default is 3.6 Flash with low thinking. Gemini 3 rejects temperature and
- * thinkingBudget — those 400s used to eat the Inquire timeout.
+ * Default is 3.7 Flash with low thinking. Gemini 3 rejects temperature and
+ * thinkingBudget. HTTP 503: one shot at 3.6 Flash. Timeouts are not 503.
  */
 
-const FALLBACK_MODEL = "gemini-2.5-flash";
 export const GEMINI_TIMEOUT_MS = 15_000;
+const MODEL_503 = "gemini-3.6-flash";
 
 export function geminiApiKey(): string | undefined {
   const key = process.env.GEMINI_API_KEY?.trim();
@@ -13,7 +13,7 @@ export function geminiApiKey(): string | undefined {
 }
 
 export function geminiModel(): string {
-  return process.env.GEMINI_MODEL?.trim() || "gemini-3.6-flash";
+  return process.env.GEMINI_MODEL?.trim() || "gemini-3.7-flash";
 }
 
 export function isGemini3(model: string): boolean {
@@ -28,7 +28,7 @@ export function generationConfigFor(
   temperature?: number;
   maxOutputTokens: number;
   responseMimeType: "application/json";
-  thinkingConfig?: { thinkingLevel: "low" } | { thinkingBudget: 0 };
+  thinkingConfig?: { thinkingLevel: "low" };
 } {
   const maxOutputTokens = opts.maxOutputTokens ?? 1600;
   if (isGemini3(model)) {
@@ -42,9 +42,6 @@ export function generationConfigFor(
     temperature: opts.temperature ?? 0.2,
     maxOutputTokens,
     responseMimeType: "application/json" as const,
-    ...(model.toLowerCase().includes("flash")
-      ? { thinkingConfig: { thinkingBudget: 0 } }
-      : {}),
   };
 }
 
@@ -155,24 +152,15 @@ export async function generateGeminiJson(opts: {
   const primary = geminiModel();
   let result = await callModel(apiKey, primary, opts);
 
-  if (
-    !result.ok &&
-    (result.status === 429 || result.status === 503) &&
-    primary !== FALLBACK_MODEL
-  ) {
+  // HTTP 429: one short wait, one retry on the primary (3.7) only. Do not 3.6 on 429.
+  if (!result.ok && result.status === 429) {
     await new Promise((r) => setTimeout(r, 400));
     result = await callModel(apiKey, primary, opts);
   }
 
-  if (
-    !result.ok &&
-    primary !== FALLBACK_MODEL &&
-    (result.status === 400 ||
-      result.status === 404 ||
-      result.status === 408 ||
-      result.status === 503)
-  ) {
-    result = await callModel(apiKey, FALLBACK_MODEL, opts);
+  // HTTP 503 UNAVAILABLE only: do not retry 3.7. Exactly one shot at 3.6 Flash.
+  if (!result.ok && result.status === 503 && primary !== MODEL_503) {
+    result = await callModel(apiKey, MODEL_503, opts);
   }
 
   if (!result.ok) {
