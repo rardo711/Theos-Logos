@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { CATALOG, mapCatalog } from "./catalog.ts";
+import { CATALOG, mapCatalog, scoreEntry, tokenize } from "./catalog.ts";
 import {
   htmlToText,
   paragraphsFromHtml,
@@ -239,6 +239,145 @@ describe("primary-source mapping", () => {
     });
     const traditions = new Set(hits.map((h) => h.tradition));
     assert.ok(traditions.size >= 2);
+  });
+});
+
+
+const NT_BOOKS = [
+  "MAT", "MRK", "LUK", "JHN", "ACT", "ROM", "1CO", "2CO", "GAL", "EPH", "PHP",
+  "COL", "1TH", "2TH", "1TI", "2TI", "TIT", "PHM", "HEB", "JAS", "1PE", "2PE",
+  "1JN", "2JN", "3JN", "JUD", "REV",
+] as const;
+
+const CALVIN_SKIP = new Set(["2JN", "3JN", "REV"]);
+
+/** First-clause verse-1 snippets (seed only has JHN-1). */
+const NT_V1: Record<(typeof NT_BOOKS)[number], string> = {
+  MAT: "The book of the generation of Jesus Christ",
+  MRK: "The beginning of the gospel of Jesus Christ",
+  LUK: "Forasmuch as many have taken in hand to set forth",
+  JHN: "In the beginning was the Word",
+  ACT: "The former treatise have I made, O Theophilus",
+  ROM: "Paul, a servant of Jesus Christ, called to be an apostle",
+  "1CO": "Paul, called to be an apostle of Jesus Christ",
+  "2CO": "Paul, an apostle of Jesus Christ by the will of God",
+  GAL: "Paul, an apostle, not of men, neither by man",
+  EPH: "Paul, an apostle of Jesus Christ by the will of God",
+  PHP: "Paul and Timotheus, the servants of Jesus Christ",
+  COL: "Paul, an apostle of Jesus Christ by the will of God",
+  "1TH": "Paul, and Silvanus, and Timotheus, unto the church",
+  "2TH": "Paul, and Silvanus, and Timotheus, unto the church of the Thessalonians",
+  "1TI": "Paul, an apostle of Jesus Christ by the commandment of God",
+  "2TI": "Paul, an apostle of Jesus Christ by the will of God",
+  TIT: "Paul, a servant of God, and an apostle of Jesus Christ",
+  PHM: "Paul, a prisoner of Jesus Christ, and Timothy our brother",
+  HEB: "God, who at sundry times and in divers manners",
+  JAS: "James, a servant of God and of the Lord Jesus Christ",
+  "1PE": "Peter, an apostle of Jesus Christ, to the strangers",
+  "2PE": "Simon Peter, a servant and an apostle of Jesus Christ",
+  "1JN": "That which was from the beginning, which we have heard",
+  "2JN": "The elder unto the elect lady and her children",
+  "3JN": "The elder unto the wellbeloved Gaius",
+  JUD: "Jude, the servant of Jesus Christ, and brother of James",
+  REV: "The Revelation of Jesus Christ, which God gave unto him, to shew unto his servants things which must shortly come to pass; and he sent and signified it by his angel unto his servant John",
+};
+
+const GOSPEL_JOHN_IDS = ["calvin-john-1", "augustine-john-tr1", "chrysostom-john-h1"];
+
+describe("NT chapter-1 mapping", () => {
+  it("picks same-book Henry ch.1 for every NT book, and Calvin except 2JN/3JN/REV", () => {
+    assert.equal(NT_BOOKS.length, 27);
+    const missingHenry: string[] = [];
+    const missingCalvin: string[] = [];
+    for (const bookId of NT_BOOKS) {
+      const hits = mapCatalog({
+        question: "",
+        bookId,
+        chapter: 1,
+        verseText: NT_V1[bookId],
+      });
+      const ids = hits.map((h) => h.id);
+      const henry = hits.find(
+        (h) =>
+          h.voice === "Matthew Henry" &&
+          (h.books?.includes(bookId) ?? false) &&
+          (h.chapters?.includes(1) ?? false),
+      );
+      if (!henry) missingHenry.push(`${bookId}:${ids.join(",") || "(none)"}`);
+      if (!CALVIN_SKIP.has(bookId)) {
+        const calvin = hits.find(
+          (h) =>
+            h.voice === "John Calvin" &&
+            (h.books?.includes(bookId) ?? false) &&
+            (h.chapters?.includes(1) ?? false),
+        );
+        if (!calvin) missingCalvin.push(`${bookId}:${ids.join(",") || "(none)"}`);
+      }
+    }
+    assert.equal(
+      missingHenry.length,
+      0,
+      `Henry ch.1 missing for ${missingHenry.length}/27: ${missingHenry.join("; ")}`,
+    );
+    assert.equal(
+      missingCalvin.length,
+      0,
+      `Calvin ch.1 missing for ${missingCalvin.length} (except 2JN/3JN/REV): ${missingCalvin.join("; ")}`,
+    );
+  });
+
+  it("maps Rev 1:1 servant-John verse to henry-revelation-1, never a JHN-only stack", () => {
+    const verseText = NT_V1.REV;
+    assert.match(verseText, /John/);
+    const hits = mapCatalog({
+      question: "",
+      bookId: "REV",
+      chapter: 1,
+      verseText,
+    });
+    const ids = hits.map((h) => h.id);
+    assert.ok(
+      hits.some((h) => h.id === "henry-revelation-1" || (h.voice === "Matthew Henry" && h.books?.includes("REV") && h.chapters?.includes(1))),
+      `expected henry-revelation-1 (Rev ch.1 Henry), got ${ids.join(",")}`,
+    );
+    const onlyGospelJohn =
+      hits.length > 0 &&
+      hits.every((h) => (h.books ?? []).includes("JHN") && !(h.books ?? []).includes("REV"));
+    assert.equal(onlyGospelJohn, false, `Rev 1:1 must not be a JHN-only stack, got ${ids.join(",")}`);
+  });
+
+  it("does not let Gospel of John pages steal 1JN / 2JN / 3JN", () => {
+    const cases = [
+      { bookId: "1JN" as const, henryId: "henry-1john-1" },
+      { bookId: "2JN" as const, henryId: "henry-2john-1" },
+      { bookId: "3JN" as const, henryId: "henry-3john-1" },
+    ];
+    for (const c of cases) {
+      const hits = mapCatalog({
+        question: "",
+        bookId: c.bookId,
+        chapter: 1,
+        verseText: NT_V1[c.bookId],
+      });
+      const ids = hits.map((h) => h.id);
+      assert.ok(ids.includes(c.henryId), `expected ${c.henryId}, got ${ids.join(",")}`);
+      for (const drown of GOSPEL_JOHN_IDS) {
+        assert.equal(
+          ids.includes(drown),
+          false,
+          `${drown} must not appear for ${c.bookId} (wrong-book score 0), got ${ids.join(",")}`,
+        );
+      }
+    }
+  });
+
+  it("scores wrong-book chapter pages at 0", () => {
+    const calvinJohn = CATALOG.find((e) => e.id === "calvin-john-1");
+    assert.ok(calvinJohn);
+    const tokens = tokenize("john word beginning servant revelation life");
+    assert.equal(scoreEntry(calvinJohn, tokens, "REV", 1), 0);
+    assert.equal(scoreEntry(calvinJohn, tokens, "1JN", 1), 0);
+    assert.ok(scoreEntry(calvinJohn, tokens, "JHN", 1) > 0);
   });
 });
 
