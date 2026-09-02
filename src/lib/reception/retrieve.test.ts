@@ -93,7 +93,8 @@ describe("primary-source mapping", () => {
       {
         bookId: "REV",
         chapter: 1,
-        verseText: "The Revelation of Jesus Christ, which God gave unto him",
+        verseText:
+          "The Revelation of Jesus Christ, which God gave unto him, to shew unto his servants things which must shortly come to pass; and he sent and signified it by his angel unto his servant John",
       },
     ];
     for (const c of cases) {
@@ -124,6 +125,109 @@ describe("primary-source mapping", () => {
             h.url,
           );
         }
+      }
+    }
+  });
+
+  it("maps Revelation 1:1 full verse to henry-revelation-1 chapter page, not Argument", () => {
+    const hits = mapCatalog({
+      question: "",
+      bookId: "REV",
+      chapter: 1,
+      verseText:
+        "The Revelation of Jesus Christ, which God gave unto him, to shew unto his servants things which must shortly come to pass; and he sent and signified it by his angel unto his servant John",
+    });
+    const ids = hits.map((h) => h.id);
+    const henry = hits.find((h) => h.id === "henry-revelation-1");
+    assert.ok(henry, `expected henry-revelation-1 in mapCatalog, got ${ids.join(",")}`);
+    assert.match(henry.url, /Rev\.ii/);
+    assert.equal(/Rev\.i\.html$/.test(henry.url), false);
+    assert.ok(henry.chapters?.includes(1), "must be a chapter page, not only Argument");
+    assert.equal(/argument/i.test(henry.locus), false);
+  });
+
+  it("maps 1 John 1:1 full verse to henry-1john-1, not Gospel of John pages", () => {
+    const hits = mapCatalog({
+      question: "",
+      bookId: "1JN",
+      chapter: 1,
+      verseText:
+        "That which was from the beginning, which we have heard, which we have seen with our eyes, which we have looked upon, and our hands have handled, of the Word of life",
+    });
+    const ids = hits.map((h) => h.id);
+    const henryIdx = ids.indexOf("henry-1john-1");
+    assert.ok(henryIdx >= 0, `expected henry-1john-1, got ${ids.join(",")}`);
+    for (const drown of ["augustine-john-tr1", "calvin-john-1", "chrysostom-john-h1"]) {
+      const di = ids.indexOf(drown);
+      assert.ok(
+        di < 0 || henryIdx < di,
+        `${drown} must not top henry-1john-1, got ${ids.join(",")}`,
+      );
+    }
+  });
+
+  it("maps empty Inquire on 2 John and 3 John to Henry chapter-1 over Gospel John", () => {
+    for (const c of [
+      { bookId: "2JN", id: "henry-2john-1" },
+      { bookId: "3JN", id: "henry-3john-1" },
+    ]) {
+      const hits = mapCatalog({
+        question: "",
+        bookId: c.bookId,
+        chapter: 1,
+      });
+      const ids = hits.map((h) => h.id);
+      const idx = ids.indexOf(c.id);
+      assert.ok(idx >= 0, `expected ${c.id} for empty Inquire, got ${ids.join(",")}`);
+      for (const drown of ["augustine-john-tr1", "calvin-john-1", "chrysostom-john-h1", "henry-john-1"]) {
+        const di = ids.indexOf(drown);
+        assert.ok(
+          di < 0 || idx < di,
+          `${drown} must not top ${c.id}, got ${ids.join(",")}`,
+        );
+      }
+    }
+  });
+
+  it("prefers the inquired book's chapter page for Word/logos outside the Gospel of John", () => {
+    const cases = [
+      {
+        bookId: "HEB",
+        chapter: 4,
+        verseText:
+          "For the word of God is quick, and powerful, and sharper than any twoedged sword",
+        ids: ["henry-hebrews-4", "calvin-hebrews-4"],
+      },
+      {
+        bookId: "REV",
+        chapter: 19,
+        verseText:
+          "And he was clothed with a vesture dipped in blood: and his name is called The Word of God",
+        ids: ["henry-revelation-19"],
+      },
+    ];
+    for (const c of cases) {
+      const hits = mapCatalog({
+        question: "word logos",
+        bookId: c.bookId,
+        chapter: c.chapter,
+        verseText: c.verseText,
+      });
+      const ids = hits.map((h) => h.id);
+      const bookHit = c.ids
+        .map((id) => ids.indexOf(id))
+        .filter((i) => i >= 0)
+        .sort((a, b) => a - b)[0];
+      assert.ok(
+        bookHit != null,
+        `expected one of ${c.ids.join(",")} for ${c.bookId} ${c.chapter}, got ${ids.join(",")}`,
+      );
+      for (const drown of ["augustine-john-tr1", "calvin-john-1", "chrysostom-john-h1"]) {
+        const di = ids.indexOf(drown);
+        assert.ok(
+          di < 0 || bookHit < di,
+          `${drown} must not top ${c.bookId} chapter page, got ${ids.join(",")}`,
+        );
       }
     }
   });

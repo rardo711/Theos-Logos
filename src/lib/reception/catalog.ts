@@ -39,7 +39,6 @@ export const CATALOG: CatalogEntry[] = [
   e("chrysostom-john-h2", "John Chrysostom", "Homilies on John 2", "patristic", "Homily 2", "https://www.newadvent.org/fathers/240102.htm", ["word", "was", "eternity", "john"], ["JHN"], [1]),
   e("calvin-john-1", "John Calvin", "Commentary on John", "reformed", "John 1:1–5", "https://ccel.org/ccel/calvin/calcom34/calcom34.vii.i.html", ["word", "logos", "beginning", "john", "calvin"], ["JHN"], [1]),
   e("calvin-john-3", "John Calvin", "Commentary on John", "reformed", "John 3", "https://ccel.org/ccel/calvin/calcom34/calcom34.ix.i.html", ["born", "spirit", "love", "world", "john", "calvin"], ["JHN"], [3]),
-  e("aquinas-catena-john-1", "Thomas Aquinas", "Catena Aurea on John", "catholic", "John 1", "https://www.ccel.org/ccel/aquinas/catena2.ii.i.html", ["word", "logos", "john", "aquinas", "thomas"], ["JHN"], [1]),
   e("henry-john-1", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "John 1", "https://ccel.org/ccel/henry/mhc5/mhc5.John.ii.html", ["word", "beginning", "john", "henry"], ["JHN"], [1]),
   e("athanasius-incarnation", "Athanasius", "On the Incarnation", "patristic", "De Incarnatione", "https://www.newadvent.org/fathers/2802.htm", ["word", "flesh", "incarnation", "made", "athanasius"], ["JHN"], [1]),
   e("origen-john-1", "Origen", "Commentary on John, Book 1", "patristic", "In Joannem 1", "https://www.newadvent.org/fathers/101501.htm", ["word", "logos", "beginning", "origen", "john"], ["JHN"], [1]),
@@ -776,6 +775,12 @@ export const CATALOG: CatalogEntry[] = [
   e("luther-2peter-3", "Martin Luther", "Epistles of St. Peter and St. Jude Preached and Explained", "lutheran", "2 Peter 3", "https://ccel.org/ccel/luther/stpeter_stjude/stpeter_stjude.iv.iv.html", ["peter", "luther", "epistle"], ["2PE"], [3]),
   e("luther-jude-1", "Martin Luther", "Epistles of St. Peter and St. Jude Preached and Explained", "lutheran", "Jude", "https://ccel.org/ccel/luther/stpeter_stjude/stpeter_stjude.v.ii.html", ["jude", "luther", "epistle"], ["JUD"], [1]),
   e("luther-sermon-tares", "Martin Luther", "Assorted Sermons", "lutheran", "The Wheat and the Tares", "https://ccel.org/ccel/luther/sermons/sermons.i.html", ["matthew", "tares", "wheat", "kingdom", "luther"], ["MAT"], [13]),
+  e("luther-sermon-sower", "Martin Luther", "Assorted Sermons", "lutheran", "Luke 8:4–15", "https://ccel.org/ccel/luther/sermons/sermons.ii.html", ["luke", "sower", "word", "luther"], ["LUK"], [8]),
+  e("luther-sermon-high-priest", "Martin Luther", "Assorted Sermons", "lutheran", "Hebrews 9:11–15", "https://ccel.org/ccel/luther/sermons/sermons.iii.html", ["hebrews", "priest", "blood", "luther"], ["HEB"], [9]),
+  e("luther-sermon-law-gospel", "Martin Luther", "Assorted Sermons", "lutheran", "2 Corinthians 3:4–11", "https://ccel.org/ccel/luther/sermons/sermons.v.html", ["corinthians", "law", "gospel", "spirit", "luther"], ["2CO"], [3]),
+  e("luther-sermon-enemies-cross", "Martin Luther", "Assorted Sermons", "lutheran", "Philippians 3:17–21", "https://ccel.org/ccel/luther/sermons/sermons.vi.html", ["philippians", "cross", "luther"], ["PHP"], [3]),
+  e("luther-sermon-john-6", "Martin Luther", "Assorted Sermons", "lutheran", "John 6:44–55", "https://ccel.org/ccel/luther/sermons/sermons.vii.html", ["john", "bread", "faith", "luther"], ["JHN"], [6]),
+  e("luther-sermon-john-10", "Martin Luther", "Assorted Sermons", "lutheran", "John 10:1–11", "https://ccel.org/ccel/luther/sermons/sermons.viii.html", ["john", "shepherd", "door", "preaching", "luther"], ["JHN"], [10]),
   e("owen-hebrews-6", "John Owen", "Nature and Causes of Apostasy from the Gospel", "reformed", "Hebrews 6:4–6", "https://ccel.org/ccel/owen/apostasy/apostasy.i.v.html", ["hebrews", "apostasy", "owen", "gospel"], ["HEB"], [6]),
   e("augustine-john-tr8", "Augustine", "Tractates on the Gospel of John 8", "patristic", "Tractate 8", "https://www.newadvent.org/fathers/1701008.htm", ["john", "gospel", "augustine"], ["JHN"], [2]),
   e("augustine-john-tr15", "Augustine", "Tractates on the Gospel of John 15", "patristic", "Tractate 15", "https://www.newadvent.org/fathers/1701015.htm", ["john", "gospel", "augustine"], ["JHN"], [4]),
@@ -798,6 +803,13 @@ export const CATALOG: CatalogEntry[] = [
   e("augustine-1john-h5", "Augustine", "Homilies on the First Epistle of John 5", "patristic", "1 John 3:9–18", "https://www.newadvent.org/fathers/170205.htm", ["john", "love", "augustine"], ["1JN"], [3]),
   e("augustine-1john-h7", "Augustine", "Homilies on the First Epistle of John 7", "patristic", "1 John 4:4–12", "https://www.newadvent.org/fathers/170207.htm", ["john", "love", "augustine"], ["1JN"], [4]),
   e("augustine-1john-h10", "Augustine", "Homilies on the First Epistle of John 10", "patristic", "1 John 5:1–3", "https://www.newadvent.org/fathers/170210.htm", ["john", "love", "augustine"], ["1JN"], [5]),
+  e("augustine-sotm-1", "Augustine", "On the Sermon on the Mount, Book 1", "patristic", "Matthew 5", "https://www.newadvent.org/fathers/16011.htm", ["matthew", "beatitudes", "sermon", "mount", "augustine"], ["MAT"], [5]),
+  e("augustine-sotm-2", "Augustine", "On the Sermon on the Mount, Book 2", "patristic", "Matthew 6–7", "https://www.newadvent.org/fathers/16012.htm", ["matthew", "prayer", "sermon", "mount", "augustine"], ["MAT"], [6, 7]),
+  e("augustine-1john-h3", "Augustine", "Homilies on the First Epistle of John 3", "patristic", "1 John 2:18–27", "https://www.newadvent.org/fathers/170203.htm", ["john", "love", "antichrist", "augustine"], ["1JN"], [2]),
+  e("augustine-1john-h4", "Augustine", "Homilies on the First Epistle of John 4", "patristic", "1 John 2:27–3:8", "https://www.newadvent.org/fathers/170204.htm", ["john", "love", "augustine"], ["1JN"], [2, 3]),
+  e("augustine-1john-h6", "Augustine", "Homilies on the First Epistle of John 6", "patristic", "1 John 3:19–4:3", "https://www.newadvent.org/fathers/170206.htm", ["john", "love", "augustine"], ["1JN"], [3, 4]),
+  e("augustine-1john-h8", "Augustine", "Homilies on the First Epistle of John 8", "patristic", "1 John 4:12–16", "https://www.newadvent.org/fathers/170208.htm", ["john", "love", "augustine"], ["1JN"], [4]),
+  e("augustine-1john-h9", "Augustine", "Homilies on the First Epistle of John 9", "patristic", "1 John 4:17–21", "https://www.newadvent.org/fathers/170209.htm", ["john", "love", "augustine"], ["1JN"], [4]),
   e("chrysostom-john-h22", "John Chrysostom", "Homilies on John 22", "patristic", "Homily 22", "https://www.newadvent.org/fathers/240122.htm", ["john", "gospel", "chrysostom"], ["JHN"], [2]),
   e("chrysostom-john-h25", "John Chrysostom", "Homilies on John 25", "patristic", "Homily 25", "https://www.newadvent.org/fathers/240125.htm", ["john", "gospel", "chrysostom"], ["JHN"], [3]),
   e("chrysostom-john-h32", "John Chrysostom", "Homilies on John 32", "patristic", "Homily 32", "https://www.newadvent.org/fathers/240132.htm", ["john", "gospel", "chrysostom"], ["JHN"], [4]),
@@ -930,6 +942,10 @@ export function scoreEntry(
   bookId?: string,
   chapter?: number,
 ): number {
+  // Declared books that are not the inquired book cannot drown REV / 1JN / 2JN / 3JN / HEB.
+  if (bookId && entry.books?.length && !entry.books.includes(bookId)) {
+    return 0;
+  }
   let score = 0;
   const tags = new Set(entry.tags);
   const voice = entry.voice.toLowerCase();
@@ -946,7 +962,7 @@ export function scoreEntry(
     entry.books?.includes(bookId) &&
     entry.chapters?.includes(chapter)
   ) {
-    score += 3;
+    score += 20;
   }
   return score;
 }
@@ -975,12 +991,31 @@ export function mapCatalog(opts: {
   const picked: CatalogEntry[] = [];
   const voices = new Set<string>();
   const needDiverse = opts.mode === "traditions";
+  const chapterMatch = (entry: CatalogEntry) =>
+    Boolean(
+      opts.bookId &&
+        opts.chapter != null &&
+        entry.books?.includes(opts.bookId) &&
+        entry.chapters?.includes(opts.chapter),
+    );
+  const hasChapterPage = ranked.some((r) => chapterMatch(r.entry));
 
-  for (const r of ranked) {
-    if (picked.length >= limit) break;
-    if (needDiverse && voices.has(r.entry.voice)) continue;
+  const consider = (r: { entry: CatalogEntry; score: number }) => {
+    if (picked.length >= limit) return;
+    if (needDiverse && voices.has(r.entry.voice)) return;
     voices.add(r.entry.voice);
     picked.push(r.entry);
+  };
+
+  // Chapter pages first so Argument/intro rows are not the only hit.
+  if (hasChapterPage) {
+    for (const r of ranked) {
+      if (chapterMatch(r.entry)) consider(r);
+    }
+  }
+  for (const r of ranked) {
+    if (picked.some((e) => e.id === r.entry.id)) continue;
+    consider(r);
   }
 
   if (!picked.length && opts.bookId) {
