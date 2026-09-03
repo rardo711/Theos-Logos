@@ -1,0 +1,8 @@
+{
+  "name": "Theos Logos",
+  "description": "A scholarly Bible study desk. Scripture first. Reception from Fathers, Reformers, and confessions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -39,8 +39,10 @@ export function getDeskNotes(
   chapter: number,
   verse: number | null,
 ): ReceptionResult | null {
-  if (verse == null) return null;
-  return getCached(bookId, chapter, verse) ?? getCurated(bookId, chapter, verse);
+  if (verse != null) {
+    return getCached(bookId, chapter, verse) ?? getCurated(bookId, chapter, verse);
+  }
+  return getCurated(bookId, chapter, null);
 }
 
 export function hasNotes(

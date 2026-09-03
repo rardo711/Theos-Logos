@@ -43,16 +43,26 @@ Key authors and works available on CCEL:
 | Augustine of Hippo | 354–430 | *City of God*, *Confessions*, *On the Spirit and the Letter* |
 | Jerome | c. 342–420 | *Vulgate*, *Commentary on Galatians* |
 | Cyril of Alexandria | c. 376–444 | *Commentary on John* |
+| Gregory of Nyssa | c. 335–395 | *Homilies on the Beatitudes*, *Life of Moses* |
 
-### Reformers
+### Medieval Scholastics
+Key works reverenced in Reformed scholastic retrieval:
+
+| Author | Dates | Notable Works | Access |
+|--------|-------|--------------|--------|
+| Thomas Aquinas | 1225–1274 | *Catena Aurea on Matthew* (1263), *Summa Theologiae* | [ccel.org/ccel/aquinas/catena1](https://ccel.org/ccel/aquinas/catena1) |
+| Anselm of Canterbury | 1033–1109 | *Cur Deus Homo*, *Proslogion* | [ccel.org](https://ccel.org) |
+
+### Reformers & Puritans
 All are public domain. Primary digital archive: CCEL and Internet Archive.
 
 | Author | Key Works | CCEL Link |
 |--------|----------|-----------|
-| John Calvin | *Institutes of the Christian Religion* (1559), *Commentaries on the Bible* (1540–1564) | [ccel.org/ccel/calvin](https://ccel.org/ccel/calvin) |
-| Martin Luther | *Bondage of the Will* (1525), *Large Catechism* (1529), *Commentary on Galatians* (1535) | [ccel.org/ccel/luther](https://ccel.org/ccel/luther) |
+| John Calvin | *Institutes of the Christian Religion* (1559), *Harmony of the Evangelists / Matthew* (1555), *Commentaries on the Bible* (1540–1564) | [ccel.org/ccel/calvin](https://ccel.org/ccel/calvin) |
+| Martin Luther | *Bondage of the Will* (1525), *Commentary on the Sermon on the Mount* (1532), *Large Catechism* (1529), *Commentary on Galatians* (1535) | [ccel.org/ccel/luther](https://ccel.org/ccel/luther) |
 | Ulrich Zwingli | *Commentary on True and False Religion* (1525) | [ccel.org](https://ccel.org) |
 | Heinrich Bullinger | *Decades* (1549–1552) | [ccel.org](https://ccel.org) |
+| Matthew Poole | *Annotations upon the Holy Bible* (1683–1685; Matthew volume) | [ccel.org/ccel/poole](https://ccel.org/ccel/poole) |
 | John Owen | *The Death of Death in the Death of Christ* (1647), *Communion with God* (1657) | [ccel.org/ccel/owen](https://ccel.org/ccel/owen) |
 | Francis Turretin | *Institutes of Elenctic Theology* (1679–1685) | [archive.org](https://archive.org) |
 | Herman Witsius | *The Economy of the Covenants* (1677) | [archive.org](https://archive.org) |

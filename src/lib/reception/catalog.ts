@@ -1,5 +1,126 @@
 import type { Tradition } from "../bible/types.ts";
 
+export interface ReceptionSource {
+  id: string;
+  author: string;
+  shortName: string;
+  title: string;
+  year: number;
+  era: "patristic" | "medieval" | "reformation" | "puritan";
+  tradition:
+    | "eastern-patristic"
+    | "western-patristic"
+    | "scholastic"
+    | "reformed"
+    | "lutheran";
+  coverage: {
+    book: string;
+    chapters: number[];
+    verseByVerse: boolean;
+  };
+  license: "public-domain";
+  sourceUrl: string;
+}
+
+export const RECEPTION_SOURCES: ReceptionSource[] = [
+  {
+    id: "chrysostom-matthew",
+    author: "John Chrysostom",
+    shortName: "Chrysostom",
+    title: "Homilies on the Gospel of Saint Matthew",
+    year: 390,
+    era: "patristic",
+    tradition: "eastern-patristic",
+    coverage: {
+      book: "MAT",
+      chapters: Array.from({ length: 28 }, (_, i) => i + 1),
+      verseByVerse: true,
+    },
+    license: "public-domain",
+    sourceUrl: "https://www.ccel.org/ccel/schaff/npnf110.html",
+  },
+  {
+    id: "augustine-sermon-mount",
+    author: "Augustine of Hippo",
+    shortName: "Augustine",
+    title: "Our Lord's Sermon on the Mount",
+    year: 393,
+    era: "patristic",
+    tradition: "western-patristic",
+    coverage: {
+      book: "MAT",
+      chapters: [5, 6, 7],
+      verseByVerse: true,
+    },
+    license: "public-domain",
+    sourceUrl: "https://www.ccel.org/ccel/schaff/npnf106.html",
+  },
+  {
+    id: "aquinas-catena-matthew",
+    author: "Thomas Aquinas",
+    shortName: "Aquinas",
+    title: "Catena Aurea on the Gospel of Matthew",
+    year: 1263,
+    era: "medieval",
+    tradition: "scholastic",
+    coverage: {
+      book: "MAT",
+      chapters: Array.from({ length: 28 }, (_, i) => i + 1),
+      verseByVerse: true,
+    },
+    license: "public-domain",
+    sourceUrl: "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+  },
+  {
+    id: "calvin-harmony-matthew",
+    author: "John Calvin",
+    shortName: "Calvin",
+    title: "Commentary on a Harmony of the Evangelists (Matthew)",
+    year: 1555,
+    era: "reformation",
+    tradition: "reformed",
+    coverage: {
+      book: "MAT",
+      chapters: Array.from({ length: 28 }, (_, i) => i + 1),
+      verseByVerse: true,
+    },
+    license: "public-domain",
+    sourceUrl: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  {
+    id: "luther-sermon-mount",
+    author: "Martin Luther",
+    shortName: "Luther",
+    title: "Commentary on the Sermon on the Mount",
+    year: 1532,
+    era: "reformation",
+    tradition: "lutheran",
+    coverage: {
+      book: "MAT",
+      chapters: [5, 6, 7],
+      verseByVerse: true,
+    },
+    license: "public-domain",
+    sourceUrl: "https://ccel.org/ccel/luther/good_works/good_works.ii.html",
+  },
+  {
+    id: "poole-annotations-matthew",
+    author: "Matthew Poole",
+    shortName: "Poole",
+    title: "Annotations upon the Holy Bible: Matthew",
+    year: 1685,
+    era: "puritan",
+    tradition: "reformed",
+    coverage: {
+      book: "MAT",
+      chapters: Array.from({ length: 28 }, (_, i) => i + 1),
+      verseByVerse: true,
+    },
+    license: "public-domain",
+    sourceUrl: "https://www.ccel.org/ccel/poole/annotations.html",
+  },
+];
+
 /** Committed public-page index. Nothing is downloaded at build time. */
 export type CatalogEntry = {
   id: string;
@@ -48,6 +169,23 @@ const HAND: CatalogEntry[] = [
 
   // Synoptics / Hebrews / Genesis / Romans
   e("chrysostom-matt-h1", "John Chrysostom", "Homilies on Matthew 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/200101.htm", ["matthew", "son", "david", "gospel"], ["MAT"], [1]),
+  e("chrysostom-matt-h4", "John Chrysostom", "Homilies on Matthew (Homily 4)", "eastern-patristic", "Homily 4", "https://www.ccel.org/ccel/schaff/npnf110.html", ["jesus", "save", "sins", "virgin", "immanuel", "matthew"], ["MAT"], [1]),
+  e("chrysostom-matt-h15", "John Chrysostom", "Homilies on Matthew (Homily 15)", "eastern-patristic", "Homily 15", "https://www.ccel.org/ccel/schaff/npnf110.html", ["beatitudes", "poor", "spirit", "humility", "matthew"], ["MAT"], [5]),
+  e("chrysostom-matt-h54", "John Chrysostom", "Homilies on Matthew (Homily 54)", "eastern-patristic", "Homily 54", "https://www.ccel.org/ccel/schaff/npnf110.html", ["rock", "peter", "church", "confession", "matthew"], ["MAT"], [16]),
+  e("chrysostom-matt-h90", "John Chrysostom", "Homilies on Matthew (Homily 90)", "eastern-patristic", "Homily 90", "https://www.ccel.org/ccel/schaff/npnf110.html", ["commission", "disciples", "baptize", "authority", "omnipresence", "matthew"], ["MAT"], [28]),
+  e("augustine-sermon-mount-1", "Augustine of Hippo", "Our Lord's Sermon on the Mount", "western-patristic", "De Sermone Domini 1", "https://www.ccel.org/ccel/schaff/npnf106.html", ["beatitudes", "poor", "spirit", "law", "fulfill", "grace", "matthew"], ["MAT"], [5, 6, 7]),
+  e("aquinas-catena-matt-1", "Thomas Aquinas", "Catena Aurea on Matthew 1", "scholastic", "Catena Aurea Matt 1", "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html", ["virgin", "immanuel", "jerome", "augustine", "matthew"], ["MAT"], [1]),
+  e("aquinas-catena-matt-5", "Thomas Aquinas", "Catena Aurea on Matthew 5", "scholastic", "Catena Aurea Matt 5", "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html", ["beatitudes", "poor", "spirit", "law", "fulfill", "matthew"], ["MAT"], [5]),
+  e("aquinas-catena-matt-16", "Thomas Aquinas", "Catena Aurea on Matthew 16", "scholastic", "Catena Aurea Matt 16", "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html", ["rock", "peter", "church", "confession", "matthew"], ["MAT"], [16]),
+  e("aquinas-catena-matt-28", "Thomas Aquinas", "Catena Aurea on Matthew 28", "scholastic", "Catena Aurea Matt 28", "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html", ["commission", "nations", "trinity", "authority", "matthew"], ["MAT"], [28]),
+  e("calvin-matt-5", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Matthew 5", "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html", ["beatitudes", "poor", "spirit", "law", "gospel", "matthew"], ["MAT"], [5]),
+  e("calvin-matt-16", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Matthew 16", "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html", ["rock", "peter", "confession", "foundation", "matthew"], ["MAT"], [16]),
+  e("calvin-matt-28", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Matthew 28", "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html", ["commission", "dominion", "baptize", "sacrament", "matthew"], ["MAT"], [28]),
+  e("luther-sermon-mount-5", "Martin Luther", "Commentary on the Sermon on the Mount", "lutheran", "Sermon on Mount Matt 5", "https://ccel.org/ccel/luther/good_works/good_works.ii.html", ["poor", "spirit", "faith", "law", "fulfill", "matthew"], ["MAT"], [5, 6, 7]),
+  e("poole-annotations-matt-1", "Matthew Poole", "Annotations upon the Holy Bible", "puritan", "Annotations Matt 1", "https://www.ccel.org/ccel/poole/annotations.html", ["jesus", "savior", "immanuel", "matthew"], ["MAT"], [1]),
+  e("poole-annotations-matt-5", "Matthew Poole", "Annotations upon the Holy Bible", "puritan", "Annotations Matt 5", "https://www.ccel.org/ccel/poole/annotations.html", ["beatitudes", "poor", "law", "fulfill", "matthew"], ["MAT"], [5]),
+  e("poole-annotations-matt-16", "Matthew Poole", "Annotations upon the Holy Bible", "puritan", "Annotations Matt 16", "https://www.ccel.org/ccel/poole/annotations.html", ["rock", "peter", "church", "confession", "matthew"], ["MAT"], [16]),
+  e("poole-annotations-matt-28", "Matthew Poole", "Annotations upon the Holy Bible", "puritan", "Annotations Matt 28", "https://www.ccel.org/ccel/poole/annotations.html", ["commission", "nations", "presence", "matthew"], ["MAT"], [28]),
   e("chrysostom-rom-h1", "John Chrysostom", "Homilies on Romans 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/210201.htm", ["romans", "gospel", "paul", "faith"], ["ROM"], [1]),
   e("chrysostom-rom-h2", "John Chrysostom", "Homilies on Romans 2", "patristic", "Homily 2", "https://www.newadvent.org/fathers/210202.htm", ["romans", "wrath", "sin", "gentile"], ["ROM"], [1, 2]),
   e("chrysostom-heb-h1", "John Chrysostom", "Homilies on Hebrews 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/240201.htm", ["hebrews", "son", "angels", "word"], ["HEB"], [1]),

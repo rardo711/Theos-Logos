@@ -153,7 +153,7 @@ function librarianSystem(locale: Locale, focused = false): string {
 
 Rules:
 - Return JSON only: {"cards":[{voice,work,tradition,quote,note,citation,paraphrased,url}],"caution":string}
-- tradition must be one of: patristic, reformed, lutheran, catholic, orthodox, confession
+- tradition must be one of: patristic, reformed, lutheran, catholic, orthodox, confession, eastern-patristic, western-patristic, scholastic, puritan
 - Quote ONLY from the FETCHED EXTRACTS. If a wording is not in an extract, omit that card.
 - Never invent a citation or a URL. Use the extract's locus and url.
 - ADD cards aimed at the focus/question. Do not restate a generic Augustine/Chrysostom/Calvin/Westminster stack unless a quote uniquely answers the question.
@@ -215,6 +215,10 @@ const TRADITIONS = new Set<Tradition>([
   "catholic",
   "orthodox",
   "confession",
+  "eastern-patristic",
+  "western-patristic",
+  "scholastic",
+  "puritan",
 ]);
 
 export function parseRetrieved(raw: string): SourceCard[] {

@@ -89,6 +89,8 @@ export function ReceptionPanel({
     setAimOpen(false);
     if (chapter && selectedVerse != null) {
       setResult(getDeskNotes(chapter.bookId, chapter.chapter, selectedVerse));
+    } else if (chapter) {
+      setResult(getDeskNotes(chapter.bookId, chapter.chapter, null));
     } else {
       setResult(null);
     }

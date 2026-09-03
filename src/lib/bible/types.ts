@@ -24,7 +24,11 @@ export type Tradition =
   | "lutheran"
   | "catholic"
   | "orthodox"
-  | "confession";
+  | "confession"
+  | "eastern-patristic"
+  | "western-patristic"
+  | "scholastic"
+  | "puritan";
 
 export interface SourceCard {
   voice: string;

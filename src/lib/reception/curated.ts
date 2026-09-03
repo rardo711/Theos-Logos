@@ -1,5 +1,17 @@
 import type { ReceptionResult, SourceCard, Tradition } from "@/lib/bible/types";
 
+export interface CuratedReceptionEntry {
+  verseRef: string;
+  sourceId: string;
+  excerpt: string;
+  theologicalNote?: string;
+  voice: string;
+  work: string;
+  tradition: Tradition;
+  citation: string;
+  url?: string;
+}
+
 const CAUTION =
   "Verify quotations against the printed works. This desk is a study aid, not a teacher.";
 
@@ -10,8 +22,10 @@ function card(
   quote: string,
   citation: string,
   paraphrased = true,
+  note?: string,
+  url?: string,
 ): SourceCard {
-  return { voice, work, tradition, quote, citation, paraphrased };
+  return { voice, work, tradition, quote, citation, paraphrased, note, url };
 }
 
 function desk(...cards: SourceCard[]): ReceptionResult {
@@ -316,7 +330,143 @@ const curated: Record<string, ReceptionResult> = {
       "Calvin, Comm. Mark 1:16–17",
     ),
   ),
+  "MAT-1-21": desk(
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily IV)",
+      "eastern-patristic",
+      "He shall save His people; not the Jewish people only, but the whole world that comes to Him. He says not 'from visible enemies or tyrants,' but 'from their sins' — a warfare of soul, requiring divine power.",
+      "NPNF 1/10, Homily 4 on Matthew",
+      true,
+      "Chrysostom emphasizes the angelic announcement distinguishing Christ's spiritual salvation from nationalistic messianic expectations.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "The name Jesus signifies Savior. The angel announces that He will redeem His people from their sins, correcting the common error of the Jews who looked for an earthly monarch to deliver them from Roman servitude.",
+      "Calvin, Comm. Matt. 1:21",
+      true,
+      "Calvin highlights Christ as Savior from spiritual guilt and bondage, refuting carnal expectations of a temporal kingdom.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+    card(
+      "Matthew Poole",
+      "Annotations upon the Holy Bible",
+      "puritan",
+      "His name is called Jesus, a Savior, because he saves from the guilt, power, and punishment of sin; not by a temporal deliverance, but by eternal redemption.",
+      "Poole, Annotations on Matt. 1:21",
+      true,
+      "Poole expounds the triple deliverance of justification, sanctification, and glorification.",
+      "https://www.ccel.org/ccel/poole/annotations.html",
+    ),
+  ),
+  "MAT-1-22": desk(
+    card(
+      "Thomas Aquinas",
+      "Catena Aurea on Matthew",
+      "scholastic",
+      "Jerome says: 'That it might be fulfilled which was spoken of the Lord by the prophet. Not that the event happened only that the prophecy might be fulfilled, but that the prophet foresaw the future and the divine decree was accomplished.'",
+      "Aquinas, Catena Aurea, Matt. 1:22",
+      true,
+      "Scholastic synthesis on divine sovereignty, prophecy, and teleological fulfillment in Christ.",
+      "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "Matthew shows that nothing came to pass by chance, but that this marvelous work of God had been foretold long before by the prophet Isaiah.",
+      "Calvin, Comm. Matt. 1:22",
+      true,
+      "The unity of Old Testament prophetic promise and New Testament fulfillment.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+  ),
+  "MAT-1-23": desk(
+    card(
+      "Thomas Aquinas",
+      "Catena Aurea on Matthew",
+      "scholastic",
+      "Jerome says: The Hebrew word alma signifies a virgin hidden and kept secret. Augustine adds: She who conceived without concupiscence remained a virgin in bearing and after bearing. He is truly Immanuel, God with us in the assumption of our flesh.",
+      "Aquinas, Catena Aurea, Matt. 1:22–23",
+      true,
+      "Aquinas compiles Patristic consensus from Jerome and Augustine affirming the perpetual virginity and the hypostatic union in Isaiah 7:14.",
+      "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+    ),
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily V)",
+      "eastern-patristic",
+      "They shall call His name Immanuel, which is, God with us. He did not say 'thou shalt call,' but 'they shall call' — that is, the events and deeds shall proclaim Him God with us.",
+      "NPNF 1/10, Homily 5 on Matthew",
+      true,
+      "Chrysostom on the divine identity of the incarnate Word manifest in His works.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "God has descended to us that we might ascend to Him; by taking our flesh He has united our lowliness with the divine majesty. Immanuel is not a bare title, but the substance of our salvation.",
+      "Calvin, Comm. Matt. 1:23",
+      true,
+      "Calvin on the mediator uniting divine majesty with human flesh.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+    card(
+      "Matthew Poole",
+      "Annotations upon the Holy Bible",
+      "puritan",
+      "Immanuel: God with us, not only by his essential presence, but by personal union, God and man in one person; and covenantally, reconciling God to man by his blood.",
+      "Poole, Annotations on Matt. 1:23",
+      true,
+      "Poole expounds Immanuel as the mediator of the covenant of grace in two natures.",
+      "https://www.ccel.org/ccel/poole/annotations.html",
+    ),
+  ),
   "MAT-5-3": desk(
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily XV)",
+      "eastern-patristic",
+      "What is 'poor in spirit'? The humble and contrite in mind. As pride was the root of all wickedness, Christ sets humility as the first foundation of virtue; unless this be laid, whatever virtues you build will fall.",
+      "NPNF 1/10, Homily 15 on Matthew",
+      true,
+      "Humility as the foundation of virtue.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+    card(
+      "Thomas Aquinas",
+      "Catena Aurea on Matthew",
+      "scholastic",
+      "Augustine explains: The proud seek after an earthly kingdom; the poor in spirit, who are not puffed up with the pride of riches or knowledge, possess the kingdom of heaven. Jerome adds: Those who are voluntary in poverty for the Spirit's sake.",
+      "Aquinas, Catena Aurea, Matt. 5:3",
+      true,
+      "Interior detachment and poverty of spirit over self-glory.",
+      "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "Those are poor in spirit who, brought to nothing in themselves and terrified by the consciousness of their spiritual poverty, betake themselves to the mercy of God. For grace is poured only into empty vessels.",
+      "Calvin, Comm. Matt. 5:3",
+      true,
+      "Radical reduction to self-despair to receive sovereign grace.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+    card(
+      "Martin Luther",
+      "Commentary on the Sermon on the Mount",
+      "lutheran",
+      "To be poor in spirit does not mean begging or walking barefoot, but holding oneself destitute before God, having no trust in one's own righteousness, and clinging solely to Christ's promise by faith.",
+      "Luther, Comm. Sermon on the Mount (1532), Matt. 5:3",
+      true,
+      "Faith grasping Christ outside human boasting.",
+      "https://ccel.org/ccel/luther/good_works/good_works.ii.html",
+    ),
     card(
       "Gregory of Nyssa",
       "Homilies on the Beatitudes 1",
@@ -324,19 +474,266 @@ const curated: Record<string, ReceptionResult> = {
       "Poverty of spirit is not want of goods but the soul emptied of pride, so that the kingdom may have room.",
       "Gregory of Nyssa, De Beatitudinibus 1",
     ),
+  ),
+  "MAT-5-4": desk(
     card(
-      "Augustine",
-      "Sermon on the Mount 1",
-      "patristic",
-      "The poor in spirit are the humble. The kingdom of heaven is theirs already in hope, and in the end in possession.",
-      "NPNF 1/6, De Sermone Domini 1",
+      "John Chrysostom",
+      "Homilies on Matthew (Homily XV)",
+      "eastern-patristic",
+      "He blesses not simply those who mourn, but those who mourn for their sins. For worldly grief brings death, but godly sorrow works repentance unto salvation.",
+      "NPNF 1/10, Homily 15 on Matthew",
+      true,
+      "Godly sorrow over transgression vs worldly grief.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
     ),
     card(
       "John Calvin",
-      "Commentary on Matthew 5:3",
+      "Commentary on a Harmony of the Evangelists",
       "reformed",
-      "Christ begins where we would not: not with the strong, but with those who have nothing to bring. Blessedness is given, not seized.",
-      "Calvin, Comm. Matt. 5:3",
+      "Christ comforts those who groan under the burden of sin and afflictions, assuring them that their tears are gathered by God, who will wipe away all weeping.",
+      "Calvin, Comm. Matt. 5:4",
+      true,
+      "Spiritual mourning finding consolation in divine pardon.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+  ),
+  "MAT-5-5": desk(
+    card(
+      "Augustine",
+      "Our Lord's Sermon on the Mount 1",
+      "western-patristic",
+      "The meek are those who do not resist divine reproof in scripture, but yield themselves to God's Word in silence and reverence. The earth they inherit is the eternal inheritance of the saints.",
+      "NPNF 1/6, De Sermone Domini 1.2",
+      true,
+      "Meekness yielding to the authority of divine revelation.",
+      "https://www.ccel.org/ccel/schaff/npnf106.html",
+    ),
+    card(
+      "Thomas Aquinas",
+      "Catena Aurea on Matthew",
+      "scholastic",
+      "Meekness curbs anger and bridles turbulent passions, so that the soul remains tranquil and fit to receive divine wisdom.",
+      "Aquinas, Catena Aurea, Matt. 5:5",
+      true,
+      "The virtue of meekness subduing anger for spiritual discernment.",
+      "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+    ),
+  ),
+  "MAT-5-6": desk(
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily XV)",
+      "eastern-patristic",
+      "He does not say 'blessed are they who seek righteousness,' but 'who hunger and thirst for it' — exhibiting an insatiable craving that will not be turned aside.",
+      "NPNF 1/10, Homily 15 on Matthew",
+      true,
+      "Passionate longing for evangelical holiness.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+    card(
+      "Martin Luther",
+      "Commentary on the Sermon on the Mount",
+      "lutheran",
+      "This hunger is the appetite of faith, which knows its own unworthiness and pants after the righteousness of Christ given freely in the gospel.",
+      "Luther, Comm. Sermon on the Mount, Matt. 5:6",
+      true,
+      "The appetite of faith hungering for imputed righteousness.",
+      "https://ccel.org/ccel/luther/good_works/good_works.ii.html",
+    ),
+  ),
+  "MAT-5-7": desk(
+    card(
+      "Gregory of Nyssa",
+      "Homilies on the Beatitudes 5",
+      "eastern-patristic",
+      "Mercy is the parent of affection, the guarantee of love, and the image of the divine nature itself. He who shows mercy puts on the likeness of God.",
+      "Gregory of Nyssa, De Beatitudinibus 5",
+      true,
+      "Mercy as the reflection of the divine character.",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "Christ declares that none can hope for God's mercy who have hardened their bowels against the miseries of their brethren.",
+      "Calvin, Comm. Matt. 5:7",
+      true,
+      "Active compassion as the necessary evidence of receiving divine mercy.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+  ),
+  "MAT-5-8": desk(
+    card(
+      "Augustine",
+      "Our Lord's Sermon on the Mount 1",
+      "western-patristic",
+      "How foolish are they who seek God with external eyes! He is seen with the heart, when the heart is purged of earthly defilement by love.",
+      "NPNF 1/6, De Sermone Domini 1.4",
+      true,
+      "The single eye of a purified heart perceiving the unseen God.",
+      "https://www.ccel.org/ccel/schaff/npnf106.html",
+    ),
+    card(
+      "Thomas Aquinas",
+      "Catena Aurea on Matthew",
+      "scholastic",
+      "Purity of heart is the disposition for the beatific vision, wherein the intellect is illuminated by the light of glory to see God as He is.",
+      "Aquinas, Catena Aurea, Matt. 5:8",
+      true,
+      "The beatific vision requires purification from disordered affections.",
+      "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+    ),
+  ),
+  "MAT-5-9": desk(
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily XV)",
+      "eastern-patristic",
+      "The peacemakers not only live in peace themselves, but reconcile enemies, imitating the only-begotten Son who reconciled a fallen race to God.",
+      "NPNF 1/10, Homily 15 on Matthew",
+      true,
+      "Reconciliation between alienated souls reflecting Christ's mediation.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "Christ praises those who study peace, even when provoked; yet true peace can never be bought by surrendering divine truth.",
+      "Calvin, Comm. Matt. 5:9",
+      true,
+      "Evangelical peacemaking rooted in truth without compromise.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+  ),
+  "MAT-5-10": desk(
+    card(
+      "Augustine",
+      "Our Lord's Sermon on the Mount 1",
+      "western-patristic",
+      "Notice the condition: 'for righteousness' sake.' It is not the punishment that makes the martyr, but the cause.",
+      "NPNF 1/6, De Sermone Domini 1.5",
+      true,
+      "The cause of righteousness alone consecrates suffering for Christ.",
+      "https://www.ccel.org/ccel/schaff/npnf106.html",
+    ),
+    card(
+      "Martin Luther",
+      "Commentary on the Sermon on the Mount",
+      "lutheran",
+      "If you preach Christ and stand on His Word, the world cannot endure you. Persecution is the infallible badge of faithful discipleship.",
+      "Luther, Comm. Sermon on the Mount, Matt. 5:10",
+      true,
+      "Cross-bearing as the inseparable companion of the confessing gospel.",
+      "https://ccel.org/ccel/luther/good_works/good_works.ii.html",
+    ),
+  ),
+  "MAT-5-17": desk(
+    card(
+      "Augustine",
+      "Our Lord's Sermon on the Mount 1.8",
+      "western-patristic",
+      "He fulfills the law either by doing what it commanded, or by supplying what was lacking, or by granting grace whereby its righteousness might be lived. The Law was given to convict; grace is given to fulfill.",
+      "NPNF 1/6, De Sermone Domini 1.8",
+      true,
+      "The Law reveals transgressions and convicts; grace enables true spiritual fulfillment through love.",
+      "https://www.ccel.org/ccel/schaff/npnf106.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "Christ confirms the permanent authority of the Law. The doctrine of the Gospel does not detract from the Law, but establishes its true scope. Christ fulfills it by his perfect obedience, by his expiation on the cross, and by writing it on our hearts.",
+      "Calvin, Comm. Matt. 5:17",
+      true,
+      "Harmony of Law and Gospel; three uses of the Law.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+    card(
+      "Martin Luther",
+      "Commentary on the Sermon on the Mount",
+      "lutheran",
+      "Christ alone fulfills the demands of the Law on our behalf, bearing its curse and rendering the full satisfaction that no sinner could ever yield. Hence our righteousness is alien, found in Him alone.",
+      "Luther, Comm. Sermon on the Mount (1532), Matt. 5:17",
+      true,
+      "Active and passive obedience of Christ fulfilling the Law for justification.",
+      "https://ccel.org/ccel/luther/good_works/good_works.ii.html",
+    ),
+  ),
+  "MAT-5-18": desk(
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily XVI)",
+      "eastern-patristic",
+      "Not one jot or tittle shall pass away. Do you see how small the letters He mentions? Indicating that even the least details of scripture carry divine weight and fulfillment.",
+      "NPNF 1/10, Homily 16 on Matthew",
+      true,
+      "The immutable authority and total truthfulness of God's Word.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "There is nothing in the Law that is useless or superfluous; all its promises and moral precepts shall remain inviolate until the end of the world.",
+      "Calvin, Comm. Matt. 5:18",
+      true,
+      "Perpetual validity of the moral law and prophetic promises.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+  ),
+  "MAT-5-19": desk(
+    card(
+      "Augustine",
+      "Our Lord's Sermon on the Mount 1.9",
+      "western-patristic",
+      "He who breaks one of these least commandments and teaches men so will be called least in the kingdom of heaven; that is, will have no place in the kingdom of life.",
+      "NPNF 1/6, De Sermone Domini 1.9",
+      true,
+      "The danger of teaching laxity regarding God's moral law.",
+      "https://www.ccel.org/ccel/schaff/npnf106.html",
+    ),
+    card(
+      "Matthew Poole",
+      "Annotations upon the Holy Bible",
+      "puritan",
+      "Christ here rebukes the corrupt scribes who distinguished between great and small precepts, neglecting the moral duties while magnifying ceremonial traditions.",
+      "Poole, Annotations on Matt. 5:19",
+      true,
+      "Against antinomian laxity and rabbinic diminishment of moral obligations.",
+      "https://www.ccel.org/ccel/poole/annotations.html",
+    ),
+  ),
+  "MAT-5-20": desk(
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily XVI)",
+      "eastern-patristic",
+      "Unless your righteousness exceeds that of the scribes and Pharisees: they observed outward rites, but Christ demands inward purity, rooting out the desire for sin before it breaks into deed.",
+      "NPNF 1/10, Homily 16 on Matthew",
+      true,
+      "Inward holiness surpassing external formalism.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "The Pharisees were content with an external mask of sanctity. Christ requires sincere integrity of heart, showing that true righteousness begins in the inner man.",
+      "Calvin, Comm. Matt. 5:20",
+      true,
+      "Spiritual obedience vs hypocrisy and external legalism.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+    card(
+      "Martin Luther",
+      "Commentary on the Sermon on the Mount",
+      "lutheran",
+      "The righteousness of the Pharisees was a self-righteous mask that sought merit before God. The righteousness of the Kingdom is faith that receives Christ and brings forth genuine fruits of love.",
+      "Luther, Comm. Sermon on the Mount, Matt. 5:20",
+      true,
+      "The righteousness of faith superseding hypocritical self-merit.",
+      "https://ccel.org/ccel/luther/good_works/good_works.ii.html",
     ),
   ),
   "MAT-6-9": desk(
@@ -362,11 +759,129 @@ const curated: Record<string, ReceptionResult> = {
       "Luther, Large Catechism, Lord’s Prayer",
     ),
   ),
+  "MAT-16-16": desk(
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily LIV)",
+      "eastern-patristic",
+      "Peter confesses: 'Thou art the Christ, the Son of the living God.' He says not 'a son' by grace, but 'the Son' by nature, declaring His eternal and proper deity.",
+      "NPNF 1/10, Homily 54 on Matthew",
+      true,
+      "Peter confesses Christ's genuine Sonship by divine nature.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "Peter's confession contains the sum of our faith: that Jesus is the Messiah promised of old, and that He is true God, the fountain of eternal life.",
+      "Calvin, Comm. Matt. 16:16",
+      true,
+      "The bedrock confession of Jesus as Messiah and divine Savior.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+  ),
+  "MAT-16-17": desk(
+    card(
+      "Thomas Aquinas",
+      "Catena Aurea on Matthew",
+      "scholastic",
+      "Flesh and blood hath not revealed it unto thee, but my Father which is in heaven. Hilary says: He is blessed who receives praise for looking beyond human eyes to see the Son of God by the revelation of the Father.",
+      "Aquinas, Catena Aurea, Matt. 16:17",
+      true,
+      "Divine illuminating grace over human reasoning.",
+      "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+    ),
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily LIV)",
+      "eastern-patristic",
+      "Christ shows that Peter's knowledge was not of human deduction, but a divine gift communicated directly from the Father.",
+      "NPNF 1/10, Homily 54 on Matthew",
+      true,
+      "The revelation of the Father granting knowledge of the Son.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+  ),
+  "MAT-16-18": desk(
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily LIV)",
+      "eastern-patristic",
+      "'On this rock I will build my church' — that is, on the faith of his confession. He did not say upon Peter, for he built His church not on a man, but on the faith of confessing Him as the Son of God.",
+      "NPNF 1/10, Homily 54 on Matthew",
+      true,
+      "The rock is the faith of Peter's confession.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+    card(
+      "Thomas Aquinas",
+      "Catena Aurea on Matthew",
+      "scholastic",
+      "Augustine in his Retractations says: 'The rock was Christ, whom Simon confessed.' Yet Hilary and Leo show Peter rewarded for confessing Christ's divinity with apostolic primacy, that the unity of the Church might be preserved against the gates of hell.",
+      "Aquinas, Catena Aurea, Matt. 16:18",
+      true,
+      "Aquinas compiles Latin and Greek consensus synthesizing Christ as the foundational rock and Peter's confession.",
+      "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "Christ applies the title of rock not to Peter's person, but to the confession of faith which he uttered. Christ is the only foundation; whoever rests on Peter's person rather than on Christ confesses a mortal foundation that cannot withstand the gates of hell.",
+      "Calvin, Comm. Matt. 16:18",
+      true,
+      "Exegetes the rock as Christ and the confession of Him, refuting papal succession.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+    card(
+      "Matthew Poole",
+      "Annotations upon the Holy Bible",
+      "puritan",
+      "Upon this rock: either Christ himself, or the doctrine and confession Peter made of him. Upon this rock Christ builds his church, and all the powers of darkness shall never overthrow it.",
+      "Poole, Annotations on Matt. 16:18",
+      true,
+      "The Church founded on the doctrinal truth of Christ confessed.",
+      "https://www.ccel.org/ccel/poole/annotations.html",
+    ),
+  ),
+  "MAT-28-18": desk(
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily XC)",
+      "eastern-patristic",
+      "'All power is given unto me in heaven and in earth.' He speaks this according to His human nature, which He assumed for our salvation; as God He possessed all things eternally, but now as our victorious Head He receives all dominion.",
+      "NPNF 1/10, Homily 90 on Matthew",
+      true,
+      "Apostolic empowerment and divine omnipresence.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "Christ claims universal dominion over heaven and earth, not that He began to reign only then as God, but that as Mediator He was inaugurated as King over all creatures. By this authority He commissions the preaching of the Word and the administration of Sacraments.",
+      "Calvin, Comm. Matt. 28:18–20",
+      true,
+      "The universal domain of Christ and the authority of Word and Sacraments.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+    card(
+      "Matthew Poole",
+      "Annotations upon the Holy Bible",
+      "puritan",
+      "All power is given unto me: a supreme, sovereign, universal power as Mediator to conquer enemies, forgive sins, call the Gentiles, and govern His church.",
+      "Poole, Annotations on Matt. 28:18",
+      true,
+      "The sovereign mediatorial power of the risen Lord.",
+      "https://www.ccel.org/ccel/poole/annotations.html",
+    ),
+  ),
   "MAT-28-19": desk(
     card(
       "Basil the Great",
       "On the Holy Spirit 10",
-      "patristic",
+      "eastern-patristic",
       "We are baptized into the name, not the names — one name of Father, Son, and Holy Spirit, that the distinction of persons may not break the unity of Godhead.",
       "NPNF 2/8, De Spiritu Sancto 10",
     ),
@@ -376,6 +891,19 @@ const curated: Record<string, ReceptionResult> = {
       "reformed",
       "The command is to make disciples, not mere hearers; baptism is the seal of that teaching, in the name of the Triune God.",
       "Calvin, Comm. Matt. 28:19",
+      true,
+      "Discipling the nations through the ministry of the Word and baptism.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+    card(
+      "Thomas Aquinas",
+      "Catena Aurea on Matthew",
+      "scholastic",
+      "Jerome says: They first teach all nations, then dip those who are taught in water. For the body cannot receive the sacrament of baptism unless the soul has before received the truth of the faith.",
+      "Aquinas, Catena Aurea, Matt. 28:19",
+      true,
+      "Catechesis precedes sacramental baptism in the apostolic mandate.",
+      "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
     ),
     card(
       "Nicene Creed",
@@ -384,6 +912,38 @@ const curated: Record<string, ReceptionResult> = {
       "We believe in one God, the Father Almighty… and in one Lord Jesus Christ… and in the Holy Spirit, the Lord and Giver of life, who proceeds from the Father, who with the Father and the Son together is worshiped and glorified.",
       "Niceno-Constantinopolitan Creed (abridged)",
       false,
+    ),
+  ),
+  "MAT-28-20": desk(
+    card(
+      "John Chrysostom",
+      "Homilies on Matthew (Homily XC)",
+      "eastern-patristic",
+      "'Lo, I am with you always, even unto the end of the world.' Do you mark His power and authority? He speaks not to the disciples only, but to all who should believe after them. He is present not by bodily appearance, but by divine majesty and grace.",
+      "NPNF 1/10, Homily 90 on Matthew",
+      true,
+      "Apostolic empowerment and divine omnipresence continuing to the consummation.",
+      "https://www.ccel.org/ccel/schaff/npnf110.html",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on a Harmony of the Evangelists",
+      "reformed",
+      "Christ promises that He will never abandon His church. Though removed from our sight into heaven, He is present by the power of His Spirit to defend and preserve His people against all adversaries.",
+      "Calvin, Comm. Matt. 28:20",
+      true,
+      "Perpetual spiritual presence of Christ sustaining the Church.",
+      "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+    ),
+    card(
+      "Matthew Poole",
+      "Annotations upon the Holy Bible",
+      "puritan",
+      "I am with you alway: not in body, but by my Spirit, my grace, my providence, and my blessing, upholding the ministry of the gospel to the end of time.",
+      "Poole, Annotations on Matt. 28:20",
+      true,
+      "The comforting promise of spiritual guidance and protection.",
+      "https://www.ccel.org/ccel/poole/annotations.html",
     ),
   ),
   "LUK-2-11": desk(
@@ -855,13 +1415,310 @@ const curated: Record<string, ReceptionResult> = {
   ),
 };
 
+export const CURATED_ENTRIES: CuratedReceptionEntry[] = [
+  // Matthew 1:21-23
+  {
+    verseRef: "MAT.1.21",
+    sourceId: "chrysostom-matthew",
+    excerpt: "He shall save His people; not the Jewish people only, but the whole world that comes to Him. He says not 'from visible enemies or tyrants,' but 'from their sins' — a warfare of soul, requiring divine power.",
+    theologicalNote: "Chrysostom emphasizes the angelic announcement distinguishing Christ's spiritual salvation from nationalistic messianic expectations.",
+    voice: "John Chrysostom",
+    work: "Homilies on Matthew (Homily IV)",
+    tradition: "eastern-patristic",
+    citation: "NPNF 1/10, Homily 4 on Matthew",
+    url: "https://www.ccel.org/ccel/schaff/npnf110.html",
+  },
+  {
+    verseRef: "MAT.1.21",
+    sourceId: "calvin-harmony-matthew",
+    excerpt: "The name Jesus signifies Savior. The angel announces that He will redeem His people from their sins, correcting the common error of the Jews who looked for an earthly monarch to deliver them from Roman servitude.",
+    theologicalNote: "Calvin highlights Christ as Savior from spiritual guilt and bondage, refuting carnal expectations of a temporal kingdom.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Matt. 1:21",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  {
+    verseRef: "MAT.1.21",
+    sourceId: "poole-annotations-matthew",
+    excerpt: "His name is called Jesus, a Savior, because he saves from the guilt, power, and punishment of sin; not by a temporal deliverance, but by eternal redemption.",
+    theologicalNote: "Poole expounds the triple deliverance of justification, sanctification, and glorification.",
+    voice: "Matthew Poole",
+    work: "Annotations upon the Holy Bible",
+    tradition: "puritan",
+    citation: "Poole, Annotations on Matt. 1:21",
+    url: "https://www.ccel.org/ccel/poole/annotations.html",
+  },
+  {
+    verseRef: "MAT.1.22",
+    sourceId: "aquinas-catena-matthew",
+    excerpt: "Jerome says: 'That it might be fulfilled which was spoken of the Lord by the prophet. Not that the event happened only that the prophecy might be fulfilled, but that the prophet foresaw the future and the divine decree was accomplished.'",
+    theologicalNote: "Scholastic synthesis on divine sovereignty, prophecy, and teleological fulfillment in Christ.",
+    voice: "Thomas Aquinas",
+    work: "Catena Aurea on Matthew",
+    tradition: "scholastic",
+    citation: "Aquinas, Catena Aurea, Matt. 1:22",
+    url: "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+  },
+  {
+    verseRef: "MAT.1.23",
+    sourceId: "aquinas-catena-matthew",
+    excerpt: "Jerome says: The Hebrew word alma signifies a virgin hidden and kept secret. Augustine adds: She who conceived without concupiscence remained a virgin in bearing and after bearing. He is truly Immanuel, God with us in the assumption of our flesh.",
+    theologicalNote: "Aquinas compiles Patristic consensus from Jerome and Augustine affirming the perpetual virginity and the hypostatic union in Isaiah 7:14.",
+    voice: "Thomas Aquinas",
+    work: "Catena Aurea on Matthew",
+    tradition: "scholastic",
+    citation: "Aquinas, Catena Aurea, Matt. 1:22–23",
+    url: "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+  },
+  {
+    verseRef: "MAT.1.23",
+    sourceId: "chrysostom-matthew",
+    excerpt: "They shall call His name Immanuel, which is, God with us. He did not say 'thou shalt call,' but 'they shall call' — that is, the events and deeds shall proclaim Him God with us.",
+    theologicalNote: "Chrysostom on the divine identity of the incarnate Word manifest in His works.",
+    voice: "John Chrysostom",
+    work: "Homilies on Matthew (Homily V)",
+    tradition: "eastern-patristic",
+    citation: "NPNF 1/10, Homily 5 on Matthew",
+    url: "https://www.ccel.org/ccel/schaff/npnf110.html",
+  },
+  {
+    verseRef: "MAT.1.23",
+    sourceId: "calvin-harmony-matthew",
+    excerpt: "God has descended to us that we might ascend to Him; by taking our flesh He has united our lowliness with the divine majesty. Immanuel is not a bare title, but the substance of our salvation.",
+    theologicalNote: "Calvin on the mediator uniting divine majesty with human flesh.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Matt. 1:23",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  {
+    verseRef: "MAT.1.23",
+    sourceId: "poole-annotations-matthew",
+    excerpt: "Immanuel: God with us, not only by his essential presence, but by personal union, God and man in one person; and covenantally, reconciling God to man by his blood.",
+    theologicalNote: "Poole expounds Immanuel as the mediator of the covenant of grace in two natures.",
+    voice: "Matthew Poole",
+    work: "Annotations upon the Holy Bible",
+    tradition: "puritan",
+    citation: "Poole, Annotations on Matt. 1:23",
+    url: "https://www.ccel.org/ccel/poole/annotations.html",
+  },
+
+  // Matthew 5:3-10, 17-20
+  {
+    verseRef: "MAT.5.3",
+    sourceId: "chrysostom-matthew",
+    excerpt: "What is 'poor in spirit'? The humble and contrite in mind. As pride was the root of all wickedness, Christ sets humility as the first foundation of virtue; unless this be laid, whatever virtues you build will fall.",
+    theologicalNote: "Humility as the foundation of virtue.",
+    voice: "John Chrysostom",
+    work: "Homilies on Matthew (Homily XV)",
+    tradition: "eastern-patristic",
+    citation: "NPNF 1/10, Homily 15 on Matthew",
+    url: "https://www.ccel.org/ccel/schaff/npnf110.html",
+  },
+  {
+    verseRef: "MAT.5.3",
+    sourceId: "aquinas-catena-matthew",
+    excerpt: "Augustine explains: The proud seek after an earthly kingdom; the poor in spirit, who are not puffed up with the pride of riches or knowledge, possess the kingdom of heaven. Jerome adds: Those who are voluntary in poverty for the Spirit's sake.",
+    theologicalNote: "Interior detachment and poverty of spirit over self-glory.",
+    voice: "Thomas Aquinas",
+    work: "Catena Aurea on Matthew",
+    tradition: "scholastic",
+    citation: "Aquinas, Catena Aurea, Matt. 5:3",
+    url: "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+  },
+  {
+    verseRef: "MAT.5.3",
+    sourceId: "calvin-harmony-matthew",
+    excerpt: "Those are poor in spirit who, brought to nothing in themselves and terrified by the consciousness of their spiritual poverty, betake themselves to the mercy of God. For grace is poured only into empty vessels.",
+    theologicalNote: "Radical reduction to self-despair to receive sovereign grace.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Matt. 5:3",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  {
+    verseRef: "MAT.5.3",
+    sourceId: "luther-sermon-mount",
+    excerpt: "To be poor in spirit does not mean begging or walking barefoot, but holding oneself destitute before God, having no trust in one's own righteousness, and clinging solely to Christ's promise by faith.",
+    theologicalNote: "Faith grasping Christ outside human boasting.",
+    voice: "Martin Luther",
+    work: "Commentary on the Sermon on the Mount",
+    tradition: "lutheran",
+    citation: "Luther, Comm. Sermon on the Mount (1532), Matt. 5:3",
+    url: "https://ccel.org/ccel/luther/good_works/good_works.ii.html",
+  },
+  {
+    verseRef: "MAT.5.17",
+    sourceId: "augustine-sermon-mount",
+    excerpt: "He fulfills the law either by doing what it commanded, or by supplying what was lacking, or by granting grace whereby its righteousness might be lived. The Law was given to convict; grace is given to fulfill.",
+    theologicalNote: "The Law reveals transgressions and convicts; grace enables true spiritual fulfillment through love.",
+    voice: "Augustine",
+    work: "Our Lord's Sermon on the Mount 1.8",
+    tradition: "western-patristic",
+    citation: "NPNF 1/6, De Sermone Domini 1.8",
+    url: "https://www.ccel.org/ccel/schaff/npnf106.html",
+  },
+  {
+    verseRef: "MAT.5.17",
+    sourceId: "calvin-harmony-matthew",
+    excerpt: "Christ confirms the permanent authority of the Law. The doctrine of the Gospel does not detract from the Law, but establishes its true scope. Christ fulfills it by his perfect obedience, by his expiation on the cross, and by writing it on our hearts.",
+    theologicalNote: "Harmony of Law and Gospel; three uses of the Law.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Matt. 5:17",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  {
+    verseRef: "MAT.5.17",
+    sourceId: "luther-sermon-mount",
+    excerpt: "Christ alone fulfills the demands of the Law on our behalf, bearing its curse and rendering the full satisfaction that no sinner could ever yield. Hence our righteousness is alien, found in Him alone.",
+    theologicalNote: "Active and passive obedience of Christ fulfilling the Law for justification.",
+    voice: "Martin Luther",
+    work: "Commentary on the Sermon on the Mount",
+    tradition: "lutheran",
+    citation: "Luther, Comm. Sermon on the Mount (1532), Matt. 5:17",
+    url: "https://ccel.org/ccel/luther/good_works/good_works.ii.html",
+  },
+
+  // Matthew 16:16-18
+  {
+    verseRef: "MAT.16.16",
+    sourceId: "chrysostom-matthew",
+    excerpt: "Peter confesses: 'Thou art the Christ, the Son of the living God.' He says not 'a son' by grace, but 'the Son' by nature, declaring His eternal and proper deity.",
+    theologicalNote: "Peter confesses Christ's genuine Sonship by divine nature.",
+    voice: "John Chrysostom",
+    work: "Homilies on Matthew (Homily LIV)",
+    tradition: "eastern-patristic",
+    citation: "NPNF 1/10, Homily 54 on Matthew",
+    url: "https://www.ccel.org/ccel/schaff/npnf110.html",
+  },
+  {
+    verseRef: "MAT.16.18",
+    sourceId: "chrysostom-matthew",
+    excerpt: "'On this rock I will build my church' — that is, on the faith of his confession. He did not say upon Peter, for he built His church not on a man, but on the faith of confessing Him as the Son of God.",
+    theologicalNote: "The rock is the faith of Peter's confession.",
+    voice: "John Chrysostom",
+    work: "Homilies on Matthew (Homily LIV)",
+    tradition: "eastern-patristic",
+    citation: "NPNF 1/10, Homily 54 on Matthew",
+    url: "https://www.ccel.org/ccel/schaff/npnf110.html",
+  },
+  {
+    verseRef: "MAT.16.18",
+    sourceId: "aquinas-catena-matthew",
+    excerpt: "Augustine in his Retractations says: 'The rock was Christ, whom Simon confessed.' Yet Hilary and Leo show Peter rewarded for confessing Christ's divinity with apostolic primacy, that the unity of the Church might be preserved against the gates of hell.",
+    theologicalNote: "Aquinas compiles Latin and Greek consensus synthesizing Christ as the foundational rock and Peter's confession.",
+    voice: "Thomas Aquinas",
+    work: "Catena Aurea on Matthew",
+    tradition: "scholastic",
+    citation: "Aquinas, Catena Aurea, Matt. 16:18",
+    url: "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html",
+  },
+  {
+    verseRef: "MAT.16.18",
+    sourceId: "calvin-harmony-matthew",
+    excerpt: "Christ applies the title of rock not to Peter's person, but to the confession of faith which he uttered. Christ is the only foundation; whoever rests on Peter's person rather than on Christ confesses a mortal foundation that cannot withstand the gates of hell.",
+    theologicalNote: "Exegetes the rock as Christ and the confession of Him, refuting papal succession.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Matt. 16:18",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+
+  // Matthew 28:18-20
+  {
+    verseRef: "MAT.28.18",
+    sourceId: "chrysostom-matthew",
+    excerpt: "'All power is given unto me in heaven and in earth.' He speaks this according to His human nature, which He assumed for our salvation; as God He possessed all things eternally, but now as our victorious Head He receives all dominion.",
+    theologicalNote: "Apostolic empowerment and divine omnipresence.",
+    voice: "John Chrysostom",
+    work: "Homilies on Matthew (Homily XC)",
+    tradition: "eastern-patristic",
+    citation: "NPNF 1/10, Homily 90 on Matthew",
+    url: "https://www.ccel.org/ccel/schaff/npnf110.html",
+  },
+  {
+    verseRef: "MAT.28.18",
+    sourceId: "calvin-harmony-matthew",
+    excerpt: "Christ claims universal dominion over heaven and earth, not that He began to reign only then as God, but that as Mediator He was inaugurated as King over all creatures. By this authority He commissions the preaching of the Word and the administration of Sacraments.",
+    theologicalNote: "The universal domain of Christ and the authority of Word and Sacraments.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Matt. 28:18–20",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  {
+    verseRef: "MAT.28.20",
+    sourceId: "chrysostom-matthew",
+    excerpt: "'Lo, I am with you always, even unto the end of the world.' Do you mark His power and authority? He speaks not to the disciples only, but to all who should believe after them. He is present not by bodily appearance, but by divine majesty and grace.",
+    theologicalNote: "Apostolic empowerment and divine omnipresence continuing to the consummation.",
+    voice: "John Chrysostom",
+    work: "Homilies on Matthew (Homily XC)",
+    tradition: "eastern-patristic",
+    citation: "NPNF 1/10, Homily 90 on Matthew",
+    url: "https://www.ccel.org/ccel/schaff/npnf110.html",
+  },
+  {
+    verseRef: "MAT.28.20",
+    sourceId: "calvin-harmony-matthew",
+    excerpt: "Christ promises that He will never abandon His church. Though removed from our sight into heaven, He is present by the power of His Spirit to defend and preserve His people against all adversaries.",
+    theologicalNote: "Perpetual spiritual presence of Christ sustaining the Church.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Matt. 28:20",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+];
+
 export function getCurated(
   bookId: string,
   chapter: number,
   verse: number | null,
 ): ReceptionResult | null {
-  if (verse == null) return null;
-  return curated[`${bookId}-${chapter}-${verse}`] ?? null;
+  if (verse == null) {
+    const chapterKey = `${bookId}-${chapter}`;
+    if (curated[chapterKey]) return curated[chapterKey];
+
+    // Fallback: gather curated cards across this chapter
+    const prefixDash = `${bookId}-${chapter}-`;
+    const prefixDot = `${bookId}.${chapter}.`;
+    const chapterCards: SourceCard[] = [];
+    const seen = new Set<string>();
+
+    for (const [key, res] of Object.entries(curated)) {
+      if (key.startsWith(prefixDash) || key.startsWith(prefixDot)) {
+        for (const c of res.cards) {
+          const sig = `${c.voice}-${c.work}-${c.citation}`;
+          if (!seen.has(sig)) {
+            seen.add(sig);
+            chapterCards.push(c);
+          }
+        }
+      }
+    }
+    if (chapterCards.length > 0) {
+      return {
+        source: "curated",
+        caution: CAUTION,
+        cards: chapterCards,
+      };
+    }
+    return null;
+  }
+
+  return (
+    curated[`${bookId}-${chapter}-${verse}`] ??
+    curated[`${bookId}.${chapter}.${verse}`] ??
+    null
+  );
 }
 
 export function hasCurated(
@@ -869,16 +1726,28 @@ export function hasCurated(
   chapter: number,
   verse: number,
 ): boolean {
-  return Boolean(curated[`${bookId}-${chapter}-${verse}`]);
+  return Boolean(
+    curated[`${bookId}-${chapter}-${verse}`] ??
+      curated[`${bookId}.${chapter}.${verse}`],
+  );
 }
 
 export function markedVerses(bookId: string, chapter: number): number[] {
-  const prefix = `${bookId}-${chapter}-`;
-  return Object.keys(curated)
-    .filter((k) => k.startsWith(prefix))
-    .map((k) => Number(k.slice(prefix.length)))
-    .filter((n) => Number.isFinite(n))
-    .sort((a, b) => a - b);
+  const prefixDash = `${bookId}-${chapter}-`;
+  const prefixDot = `${bookId}.${chapter}.`;
+  const verses = new Set<number>();
+
+  for (const k of Object.keys(curated)) {
+    if (k.startsWith(prefixDash)) {
+      const n = Number(k.slice(prefixDash.length));
+      if (Number.isFinite(n)) verses.add(n);
+    } else if (k.startsWith(prefixDot)) {
+      const n = Number(k.slice(prefixDot.length));
+      if (Number.isFinite(n)) verses.add(n);
+    }
+  }
+
+  return Array.from(verses).sort((a, b) => a - b);
 }
 
 export function curatedBookIds(): Set<string> {

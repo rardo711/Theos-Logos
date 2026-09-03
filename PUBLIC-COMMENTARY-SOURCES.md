@@ -8,7 +8,22 @@ All sources listed here are in the **public domain** (primarily pre-1928 works i
 
 ---
 
-## 🔷 Reformed Tradition
+## 🔷 Medieval Scholastic Tradition
+
+### Thomas Aquinas — Catena Aurea (Golden Chain) on the Gospels (1263)
+**Coverage:** Matthew, Mark, Luke, John (verse-by-verse Patristic synthesis)
+**Tradition:** Medieval Scholastic / Patristic Retrieval
+**Access:** Free, public domain
+
+**Where to find:**
+- CCEL: https://ccel.org/ccel/aquinas/catena1 (Volume 1: Matthew)
+- Internet Archive: "Catena Aurea Thomas Aquinas"
+
+**Characteristics:** Exhaustive line-by-line synthesis of Greek and Latin Church Fathers (Chrysostom, Jerome, Augustine, Hilary, Cyril) compiled for Pope Urban IV. Widely respected in Reformed scholastic retrieval.
+
+---
+
+## 🔷 Reformed & Puritan Tradition
 
 ### Matthew Henry's Commentary (1706-1721)
 **Coverage:** Complete Bible
@@ -49,6 +64,17 @@ All sources listed here are in the **public domain** (primarily pre-1928 works i
 - Commentary on John
 - Commentary on Genesis
 - Institutes (theological, not commentary but invaluable)
+
+### Matthew Poole's Annotations upon the Holy Bible (1683–1685)
+**Coverage:** Complete Bible (Matthew completed by Poole)
+**Tradition:** Puritan / English Reformed
+**Access:** Free, public domain
+
+**Where to find:**
+- CCEL: https://www.ccel.org/ccel/poole/annotations.html
+- Bible Hub: https://biblehub.com/commentaries/poole/
+
+**Characteristics:** Scholarly, lucid, rigorous Puritan exposition reconciling difficult texts and refuting Socinian, Arminian, and Roman errors while drawing upon Hebrew and Greek idioms.
 
 ### Charles Spurgeon's Works (1850s-1890s)
 **Coverage:** Selective passages

@@ -502,3 +502,44 @@ describe("retrieved JSON", () => {
     assert.equal(cards[0].url, "https://www.newadvent.org/fathers/1701001.htm");
   });
 });
+
+describe("matthew reception desk", () => {
+  it("provides Patristic, Scholastic, and Reformed sources for Matthew", async () => {
+    const { RECEPTION_SOURCES } = await import("./catalog.ts");
+    const matSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "MAT");
+    assert.ok(matSources.length >= 4, `found ${matSources.length} Matthew sources`);
+
+    const eras = new Set(matSources.map((s) => s.era));
+    assert.ok(eras.has("patristic"));
+    assert.ok(eras.has("medieval"));
+    assert.ok(eras.has("reformation"));
+    assert.ok(eras.has("puritan"));
+  });
+
+  it("serves curated cards for Matthew pericopes with distinct traditions", async () => {
+    const { getCurated, CURATED_ENTRIES } = await import("./curated.ts");
+    assert.ok(CURATED_ENTRIES.length > 0);
+
+    const mat1 = getCurated("MAT", 1, 21);
+    assert.ok(mat1 && mat1.cards.length >= 3);
+    const mat1Traditions = new Set(mat1.cards.map((c) => c.tradition));
+    assert.ok(mat1Traditions.has("eastern-patristic"));
+    assert.ok(mat1Traditions.has("reformed"));
+    assert.ok(mat1Traditions.has("puritan"));
+
+    const mat5 = getCurated("MAT", 5, 3);
+    assert.ok(mat5 && mat5.cards.length >= 4);
+
+    const mat16 = getCurated("MAT", 16, 18);
+    assert.ok(mat16 && mat16.cards.length >= 4);
+    const mat16Voices = mat16.cards.map((c) => c.voice);
+    assert.ok(mat16Voices.includes("John Chrysostom"));
+    assert.ok(mat16Voices.includes("Thomas Aquinas"));
+    assert.ok(mat16Voices.includes("John Calvin"));
+    assert.ok(mat16Voices.includes("Matthew Poole"));
+
+    const mat28 = getCurated("MAT", 28, 19);
+    assert.ok(mat28 && mat28.cards.length >= 3);
+  });
+});
+

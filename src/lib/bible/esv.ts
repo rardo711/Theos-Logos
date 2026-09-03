@@ -153,6 +153,7 @@ export function parseEsvHtml(html: string): ParsedVerse[] {
     .replace(/<[^>]+>/g, " ");
   bodyText = decodeEsvEntities(bodyText);
 
+  // eslint-disable-next-line no-control-regex
   const re = /\x01([^\x02]*)\x02|\x03(\d+)\x04/g;
   const verses: ParsedVerse[] = [];
   let pendingTitle: string | undefined;
