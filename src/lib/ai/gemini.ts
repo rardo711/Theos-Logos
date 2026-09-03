@@ -1,11 +1,14 @@
 /**
  * Server-only Gemini generateContent. Uses GEMINI_API_KEY (same name as main).
- * Default is gemini-3.5-flash for fast and reliable extraction without latency timeouts.
+ * Primary: gemini-3.8-flash (latest stable, best for extraction).
+ * Fallback: gemini-3.7-flash (previous gen, same price tier).
+ * Override either with GEMINI_MODEL / GEMINI_FALLBACK in .env.
  * Gemini 3 rejects temperature and thinkingBudget; earlier models support temperature.
  */
 
 export const GEMINI_TIMEOUT_MS = 25_000;
-const FALLBACK_MODEL = "gemini-3.6-flash";
+export const GEMINI_PRIMARY = "gemini-3.8-flash";
+export const GEMINI_FALLBACK = "gemini-3.7-flash";
 
 export function geminiApiKey(): string | undefined {
   const key = process.env.GEMINI_API_KEY?.trim();
@@ -13,7 +16,11 @@ export function geminiApiKey(): string | undefined {
 }
 
 export function geminiModel(): string {
-  return process.env.GEMINI_MODEL?.trim() || "gemini-3.8-flash";
+  return process.env.GEMINI_MODEL?.trim() || GEMINI_PRIMARY;
+}
+
+export function geminiFallbackModel(): string {
+  return process.env.GEMINI_FALLBACK?.trim() || GEMINI_FALLBACK;
 }
 
 export function isGemini3(model: string): boolean {
@@ -157,15 +164,16 @@ export async function generateGeminiJson(opts: {
   const primary = geminiModel();
   let result = await callModel(apiKey, primary, opts);
 
-  // HTTP 429: one short wait, one retry on the primary (3.7) only. Do not 3.6 on 429.
+  // HTTP 429: one short wait, one retry on the primary only. Do not fall back on 429.
   if (!result.ok && result.status === 429) {
     await new Promise((r) => setTimeout(r, 400));
     result = await callModel(apiKey, primary, opts);
   }
 
   // HTTP 503 UNAVAILABLE only: retry with fallback model.
-  if (!result.ok && result.status === 503 && primary !== FALLBACK_MODEL) {
-    result = await callModel(apiKey, FALLBACK_MODEL, opts);
+  const fallback = geminiFallbackModel();
+  if (!result.ok && result.status === 503 && primary !== fallback) {
+    result = await callModel(apiKey, fallback, opts);
   }
 
   if (!result.ok) {
