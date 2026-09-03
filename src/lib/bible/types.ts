@@ -44,10 +44,17 @@ export interface SourceCard {
   grounded?: boolean;
 }
 
+export interface DeskSynthesis {
+  question: string;
+  answer: string;
+  cited: string[];
+}
+
 export interface ReceptionResult {
   cards: SourceCard[];
   caution?: string;
   source: "curated" | "generated";
+  synthesis?: DeskSynthesis;
 }
 
 export interface LexiconResult {
