@@ -529,7 +529,16 @@ export function ReceptionPanel({
                 onClick={() => setAimOpen((v) => !v)}
                 className="flex min-h-11 w-full items-center justify-between text-left text-2xs font-semibold tracking-[0.14em] text-faint uppercase"
               >
-                {t(locale, "aim")}
+                <span className="inline-flex items-center gap-2">
+                  <span>{t(locale, "aim")}</span>
+                  {loading ? (
+                    <Loader2
+                      size={13}
+                      className="animate-spin text-oxblood"
+                      aria-label={t(locale, "consultingShort")}
+                    />
+                  ) : null}
+                </span>
                 <ChevronDown
                   size={14}
                   className={cn(
