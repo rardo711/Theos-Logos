@@ -454,13 +454,16 @@ const HAND: CatalogEntry[] = [
   e("poole-luke-23", "Matthew Poole", "Annotations: Luke", "puritan", "Annotations Luke 23:42–43", "https://www.ccel.org/ccel/poole/annotations.html", ["thief", "paradise", "repentance", "mercy", "luke"], ["LUK"], [23]),
 
   // John additions
-  e("calvin-john-6", "John Calvin", "Commentary on John 6", "reformed", "John 6:44", "https://www.ccel.org/ccel/calvin/calcom34.html", ["draw", "father", "faith", "regeneration", "john"], ["JHN"], [6]),
+  e("calvin-john-6", "John Calvin", "Commentary on John 6", "reformed", "John 6:44", "https://ccel.org/ccel/calvin/calcom34/calcom34.xii.vii.html", ["draw", "father", "faith", "regeneration", "john"], ["JHN"], [6]),
   e("aquinas-catena-john-6", "Thomas Aquinas", "Catena Aurea on John 6", "scholastic", "Catena Aurea John 6:44", "https://www.ccel.org/ccel/aquinas/catena4.html", ["draw", "father", "resurrection", "chrysostom", "john"], ["JHN"], [6]),
-  e("calvin-john-14", "John Calvin", "Commentary on John 14", "reformed", "John 14:6", "https://www.ccel.org/ccel/calvin/calcom34.html", ["way", "truth", "life", "father", "mediator", "john"], ["JHN"], [14]),
+  e("calvin-john-10", "John Calvin", "Commentary on John 10", "reformed", "John 10:11–15", "https://ccel.org/ccel/calvin/calcom34/calcom34.xvi.iii.html", ["shepherd", "sheep", "hireling", "life", "wolf", "john"], ["JHN"], [10]),
+  e("augustine-john-tr46", "Augustine of Hippo", "Tractates on the Gospel of John 46", "patristic", "Tractate 46", "https://www.newadvent.org/fathers/1701046.htm", ["shepherd", "door", "sheep", "life", "wolf", "hireling", "john"], ["JHN"], [10]),
+  e("chrysostom-john-h59", "John Chrysostom", "Homilies on the Gospel of Saint John 59", "patristic", "Homily 59", "https://www.newadvent.org/fathers/240159.htm", ["shepherd", "door", "sheep", "pastor", "john"], ["JHN"], [10]),
+  e("calvin-john-14", "John Calvin", "Commentary on John 14", "reformed", "John 14:6", "https://ccel.org/ccel/calvin/calcom35/calcom35.iv.i.html", ["way", "truth", "life", "father", "mediator", "john"], ["JHN"], [14]),
   e("aquinas-catena-john-14", "Thomas Aquinas", "Catena Aurea on John 14", "scholastic", "Catena Aurea John 14:6", "https://www.ccel.org/ccel/aquinas/catena4.html", ["way", "truth", "life", "augustine", "divinity", "humanity", "john"], ["JHN"], [14]),
-  e("augustine-john-tr69", "Augustine of Hippo", "Tractates on the Gospel of John 69", "patristic", "Tractate 69", "https://www.ccel.org/ccel/schaff/npnf107.ii.html", ["way", "truth", "life", "walk", "john"], ["JHN"], [14]),
-  e("calvin-john-19", "John Calvin", "Commentary on John 19", "reformed", "John 19:30", "https://www.ccel.org/ccel/calvin/calcom34.html", ["finished", "redemption", "sacrifice", "cross", "satisfaction", "john"], ["JHN"], [19]),
-  e("augustine-john-tr119", "Augustine of Hippo", "Tractates on the Gospel of John 119", "patristic", "Tractate 119", "https://www.ccel.org/ccel/schaff/npnf107.ii.html", ["finished", "fulfilled", "prophecy", "cross", "john"], ["JHN"], [19]),
+  e("augustine-john-tr69", "Augustine of Hippo", "Tractates on the Gospel of John 69", "patristic", "Tractate 69", "https://www.newadvent.org/fathers/1701069.htm", ["way", "truth", "life", "walk", "john"], ["JHN"], [14]),
+  e("calvin-john-19", "John Calvin", "Commentary on John 19", "reformed", "John 19:30", "https://ccel.org/ccel/calvin/calcom35/calcom35.ix.vii.html", ["finished", "redemption", "sacrifice", "cross", "satisfaction", "john"], ["JHN"], [19]),
+  e("augustine-john-tr119", "Augustine of Hippo", "Tractates on the Gospel of John 119", "patristic", "Tractate 119", "https://www.newadvent.org/fathers/1701119.htm", ["finished", "fulfilled", "prophecy", "cross", "john"], ["JHN"], [19]),
   e("aquinas-catena-john-19", "Thomas Aquinas", "Catena Aurea on John 19", "scholastic", "Catena Aurea John 19:30", "https://www.ccel.org/ccel/aquinas/catena4.html", ["finished", "chrysostom", "victory", "cross", "john"], ["JHN"], [19]),
   e("chrysostom-rom-h1", "John Chrysostom", "Homilies on Romans 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/210201.htm", ["romans", "gospel", "paul", "faith"], ["ROM"], [1]),
   e("chrysostom-rom-h2", "John Chrysostom", "Homilies on Romans 2", "patristic", "Homily 2", "https://www.newadvent.org/fathers/210202.htm", ["romans", "wrath", "sin", "gentile"], ["ROM"], [1, 2]),
@@ -713,12 +716,12 @@ const HAND: CatalogEntry[] = [
   e("henry-revelation-19", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Revelation 19", "https://ccel.org/ccel/henry/mhc6/mhc6.Rev.xx.html", ["revelation", "henry", "word", "logos", "blood", "king"], ["REV"], [19]),
   e("augustine-sotm-1", "Augustine", "On the Sermon on the Mount, Book 1", "patristic", "Matthew 5", "https://www.newadvent.org/fathers/16011.htm", ["matthew", "beatitudes", "sermon", "mount", "augustine"], ["MAT"], [5]),
   e("augustine-sotm-2", "Augustine", "On the Sermon on the Mount, Book 2", "patristic", "Matthew 6–7", "https://www.newadvent.org/fathers/16012.htm", ["matthew", "prayer", "sermon", "mount", "augustine"], ["MAT"], [6, 7]),
-  e("luther-sermon-tares", "Martin Luther", "Assorted Sermons", "lutheran", "The Wheat and the Tares", "https://ccel.org/ccel/luther/sermons/sermons.i.html", ["matthew", "tares", "wheat", "kingdom", "luther"], ["MAT"], [13]),
-  e("luther-sermon-sower", "Martin Luther", "Assorted Sermons", "lutheran", "Luke 8:4–15", "https://ccel.org/ccel/luther/sermons/sermons.ii.html", ["luke", "sower", "word", "luther"], ["LUK"], [8]),
-  e("luther-sermon-high-priest", "Martin Luther", "Assorted Sermons", "lutheran", "Hebrews 9:11–15", "https://ccel.org/ccel/luther/sermons/sermons.iii.html", ["hebrews", "priest", "blood", "luther"], ["HEB"], [9]),
-  e("luther-sermon-law-gospel", "Martin Luther", "Assorted Sermons", "lutheran", "2 Corinthians 3:4–11", "https://ccel.org/ccel/luther/sermons/sermons.v.html", ["corinthians", "law", "gospel", "spirit", "luther"], ["2CO"], [3]),
-  e("luther-sermon-john-6", "Martin Luther", "Assorted Sermons", "lutheran", "John 6:44–55", "https://ccel.org/ccel/luther/sermons/sermons.vii.html", ["john", "bread", "faith", "luther"], ["JHN"], [6]),
-  e("luther-sermon-john-10", "Martin Luther", "Assorted Sermons", "lutheran", "John 10:1–11", "https://ccel.org/ccel/luther/sermons/sermons.viii.html", ["john", "shepherd", "door", "preaching", "luther"], ["JHN"], [10]),
+  e("luther-sermon-tares", "Martin Luther", "Assorted Sermons", "lutheran", "The Wheat and the Tares", "https://ccel.org/ccel/luther/sermons/sermons.i.iii.html", ["matthew", "tares", "wheat", "kingdom", "luther"], ["MAT"], [13]),
+  e("luther-sermon-sower", "Martin Luther", "Assorted Sermons", "lutheran", "Luke 8:4–15", "https://ccel.org/ccel/luther/sermons/sermons.ii.ii.html", ["luke", "sower", "word", "luther"], ["LUK"], [8]),
+  e("luther-sermon-high-priest", "Martin Luther", "Assorted Sermons", "lutheran", "Hebrews 9:11–15", "https://ccel.org/ccel/luther/sermons/sermons.iii.i.html", ["hebrews", "priest", "blood", "luther"], ["HEB"], [9]),
+  e("luther-sermon-law-gospel", "Martin Luther", "Assorted Sermons", "lutheran", "2 Corinthians 3:4–11", "https://ccel.org/ccel/luther/sermons/sermons.v.i.html", ["corinthians", "law", "gospel", "spirit", "luther"], ["2CO"], [3]),
+  e("luther-sermon-john-6", "Martin Luther", "Assorted Sermons", "lutheran", "John 6:44–55", "https://ccel.org/ccel/luther/sermons/sermons.vii.iii.html", ["john", "bread", "faith", "luther"], ["JHN"], [6]),
+  e("luther-sermon-john-10", "Martin Luther", "Assorted Sermons", "lutheran", "John 10:1–11", "https://ccel.org/ccel/luther/sermons/sermons.viii.iii.html", ["john", "shepherd", "door", "preaching", "luther"], ["JHN"], [10]),
   e("aquinas-catena-matthew-1", "Thomas Aquinas", "Catena Aurea on Matthew", "catholic", "Matthew 1", "https://www.ccel.org/ccel/aquinas/catena1.ii.i.html", ["matthew", "gospel", "aquinas", "thomas", "catena"], ["MAT"], [1]),
   e("owen-hebrews-6", "John Owen", "Nature and Causes of Apostasy from the Gospel", "reformed", "Hebrews 6:4–6", "https://ccel.org/ccel/owen/apostasy/apostasy.i.v.html", ["hebrews", "apostasy", "owen", "gospel"], ["HEB"], [6]),
 ];
@@ -816,6 +819,14 @@ export function scoreEntry(
   if (bookId && entry.books?.length && !entry.books.includes(bookId)) {
     return 0;
   }
+  // If a specific chapter is requested, entries restricted to other chapters must never match.
+  if (
+    chapter != null &&
+    entry.chapters?.length &&
+    !entry.chapters.includes(chapter)
+  ) {
+    return 0;
+  }
   let score = 0;
   const tags = new Set(entry.tags);
   const voice = entry.voice.toLowerCase();
@@ -870,7 +881,13 @@ export function mapCatalog(opts: {
     );
   const hasChapterPage = ranked.some((r) => chapterMatch(r.entry));
   const bookMatch = (entry: CatalogEntry) =>
-    Boolean(opts.bookId && entry.books?.includes(opts.bookId));
+    Boolean(
+      opts.bookId &&
+        entry.books?.includes(opts.bookId) &&
+        (opts.chapter == null ||
+          !entry.chapters?.length ||
+          entry.chapters.includes(opts.chapter)),
+    );
   const hasBookPage = ranked.some((r) => bookMatch(r.entry));
 
   const consider = (r: { entry: CatalogEntry; score: number }) => {

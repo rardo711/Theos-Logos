@@ -223,6 +223,36 @@ const curated: Record<string, ReceptionResult> = {
       "Luther, sermons on John 3",
     ),
   ),
+  "JHN-10-11": desk(
+    card(
+      "Augustine of Hippo",
+      "Tractates on John 46",
+      "patristic",
+      "The good shepherd gives His life for the sheep. He who enters by the door is the shepherd; but He who is the door is Himself the shepherd. Through Christ the Mediator we are brought unto the Father, preserved by His blood from the devouring wolf.",
+      "Augustine, In Ioannem Tract. 46.5",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on John 10:11",
+      "reformed",
+      "The good shepherd giveth his life for the sheep. From the extraordinary affection which he bears towards the sheep, he shows how truly he acts as a shepherd; for he does not hesitate to die for them, unlike the hireling who flees at the wolf's approach.",
+      "Calvin, Comm. John 10:11",
+    ),
+    card(
+      "Martin Luther",
+      "Sermon on John 10:11–16",
+      "lutheran",
+      "Christ calls Himself the Good Shepherd because He does not drive the sheep with threats or demands of the law, but gives His own life for them and preserves them in grace against the wolf, sin, and death.",
+      "Luther, Church Postil, Misericordias Domini",
+    ),
+    card(
+      "Matthew Henry",
+      "Commentary on the Whole Bible",
+      "reformed",
+      "It is the property of every good shepherd to hazard his life in defense of his sheep; but Christ did much more than hazard it: he actually laid down his life for the sheep, to pay their ransom and satisfy the divine justice.",
+      "Henry, Comm. John 10:11",
+    ),
+  ),
   "JHN-14-6": desk(
     card(
       "Cyril of Alexandria",
@@ -1999,6 +2029,59 @@ export const CURATED_ENTRIES: CuratedReceptionEntry[] = [
     citation: "Aquinas, Catena Aurea on John 6:44",
     url: "https://www.ccel.org/ccel/aquinas/catena4.html",
   },
+  // John 10:11
+  {
+    verseRef: "JHN.10.11",
+    sourceId: "augustine-john",
+    excerpt:
+      "The good shepherd gives His life for the sheep. He who enters by the door is the shepherd; but He who is the door is Himself the shepherd. Through Christ the Mediator we are brought unto the Father, preserved by His blood from the devouring wolf.",
+    theologicalNote:
+      "Christ as both the only door of access and the self-giving Shepherd whose blood redeems the flock.",
+    voice: "Augustine of Hippo",
+    work: "Tractates on the Gospel of John (Tractate XLVI)",
+    tradition: "western-patristic",
+    citation: "NPNF 1/7, Tractate 46 on John 10:11–13",
+    url: "https://www.newadvent.org/fathers/1701046.htm",
+  },
+  {
+    verseRef: "JHN.10.11",
+    sourceId: "calvin-john",
+    excerpt:
+      "The good shepherd giveth his life for the sheep. From the extraordinary affection which he bears towards the sheep, he shows how truly he acts as a shepherd; for he does not hesitate to die for them, unlike the hireling who flees at the wolf's approach.",
+    theologicalNote:
+      "The voluntary self-giving of Christ distinguishes the genuine Shepherd from hirelings.",
+    voice: "John Calvin",
+    work: "Commentary on the Gospel According to John",
+    tradition: "reformed",
+    citation: "Calvin, Comm. John 10:11",
+    url: "https://ccel.org/ccel/calvin/calcom34/calcom34.xvi.iii.html",
+  },
+  {
+    verseRef: "JHN.10.11",
+    sourceId: "luther-john",
+    excerpt:
+      "Christ calls Himself the Good Shepherd because He does not drive the sheep with threats or demands of the law, but gives His own life for them and preserves them in grace against the wolf, sin, and death.",
+    theologicalNote:
+      "Pastoral care grounded in the Gospel of gratuitous redemption rather than legal coercion.",
+    voice: "Martin Luther",
+    work: "Sermon on John 10:11–16",
+    tradition: "lutheran",
+    citation: "Luther, Church Postil, Misericordias Domini",
+    url: "https://ccel.org/ccel/luther/sermons/sermons.viii.iii.html",
+  },
+  {
+    verseRef: "JHN.10.11",
+    sourceId: "poole-john",
+    excerpt:
+      "It is the property of every good shepherd to hazard his life in defense of his sheep; but Christ did much more than hazard it: he actually laid down his life for the sheep, to pay their ransom and satisfy the divine justice.",
+    theologicalNote:
+      "The shepherd's voluntary death as substitutionary ransom for the flock.",
+    voice: "Matthew Henry",
+    work: "Commentary on the Whole Bible",
+    tradition: "reformed",
+    citation: "Henry, Comm. John 10:11",
+    url: "https://ccel.org/ccel/henry/mhc5/mhc5.John.xi.html",
+  },
   // John 14:6
   {
     verseRef: "JHN.14.6",
@@ -2024,7 +2107,7 @@ export const CURATED_ENTRIES: CuratedReceptionEntry[] = [
     work: "Commentary on the Gospel According to John",
     tradition: "reformed",
     citation: "Calvin, Comm. John 14:6",
-    url: "https://www.ccel.org/ccel/calvin/calcom34.html",
+    url: "https://ccel.org/ccel/calvin/calcom35/calcom35.iv.i.html",
   },
   {
     verseRef: "JHN.14.6",
@@ -2037,7 +2120,7 @@ export const CURATED_ENTRIES: CuratedReceptionEntry[] = [
     work: "Tractates on the Gospel of John (Tractate LXIX)",
     tradition: "western-patristic",
     citation: "NPNF 1/7, Tractate 69 on John 14:6",
-    url: "https://www.ccel.org/ccel/schaff/npnf107.ii.html",
+    url: "https://www.newadvent.org/fathers/1701069.htm",
   },
   // John 19:30
   {
@@ -2051,7 +2134,7 @@ export const CURATED_ENTRIES: CuratedReceptionEntry[] = [
     work: "Commentary on the Gospel According to John",
     tradition: "reformed",
     citation: "Calvin, Comm. John 19:30",
-    url: "https://www.ccel.org/ccel/calvin/calcom34.html",
+    url: "https://ccel.org/ccel/calvin/calcom35/calcom35.ix.vii.html",
   },
   {
     verseRef: "JHN.19.30",
@@ -2064,7 +2147,7 @@ export const CURATED_ENTRIES: CuratedReceptionEntry[] = [
     work: "Tractates on the Gospel of John (Tractate CXIX)",
     tradition: "western-patristic",
     citation: "NPNF 1/7, Tractate 119 on John 19:30",
-    url: "https://www.ccel.org/ccel/schaff/npnf107.ii.html",
+    url: "https://www.newadvent.org/fathers/1701119.htm",
   },
   {
     verseRef: "JHN.19.30",

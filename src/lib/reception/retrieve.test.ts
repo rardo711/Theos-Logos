@@ -713,3 +713,74 @@ describe("removing generated source cards", () => {
   });
 });
 
+describe("systemic boilerplate and landing page rejection", () => {
+  it("rejects digital library headers, landing chrome, and promotional banners", async () => {
+    const { isBoilerplate, isSubstantiveQuote } = await import("./retrieve.ts");
+
+    const badExamples = [
+      "Work info: Commentary on John - Volume 1 - Christian Classics Ethereal Library",
+      "Martin Luther: Assorted Sermons By Martin Luther - Christian Classics Ethereal Library",
+      "Please help support the mission of New Advent and get the full contents of this website as an instant download. Includes the Catholic Encyclopedia, Church Fathers, Summa, Bible and more.",
+      "Home | Browse Titles | Browse Authors | Search | Library Info",
+      "Christian Classics Ethereal Library - CCEL Reader width: 800px Text size: 14pt",
+      "Disable scripture popups | Bible version: KJV",
+      "The following sermon is taken from volume 3 of the church postil.",
+    ];
+
+    for (const bad of badExamples) {
+      assert.equal(isBoilerplate(bad), true, `Expected boilerplate for: "${bad}"`);
+      assert.equal(isSubstantiveQuote(bad), false, `Expected not substantive for: "${bad}"`);
+    }
+
+    const goodQuotes = [
+      "The Word was not made.",
+      "The good shepherd gives His life for the sheep. Through Christ the Mediator we are brought unto the Father.",
+      "By this word Christ testifies that the whole work of our redemption is fulfilled and consummated.",
+      "Christ calls Himself the Good Shepherd because He does not drive the sheep with threats or demands of the law, but gives His own life for them.",
+    ];
+
+    for (const good of goodQuotes) {
+      assert.equal(isBoilerplate(good), false, `Expected clean quote for: "${good}"`);
+      assert.equal(isSubstantiveQuote(good), true, `Expected substantive quote for: "${good}"`);
+    }
+  });
+
+  it("serves curated cards for John 10:11 Good Shepherd with substantive historical sources", async () => {
+    const { getCurated } = await import("./curated.ts");
+    const jhn10 = getCurated("JHN", 10, 11);
+    assert.ok(jhn10 && jhn10.cards.length >= 4);
+
+    const voices = jhn10.cards.map((c) => c.voice);
+    assert.ok(voices.includes("Augustine of Hippo"));
+    assert.ok(voices.includes("John Calvin"));
+    assert.ok(voices.includes("Martin Luther"));
+    assert.ok(voices.includes("Matthew Henry"));
+
+    for (const card of jhn10.cards) {
+      assert.ok(!card.quote.includes("Christian Classics Ethereal Library"));
+      assert.ok(!card.quote.includes("Work info:"));
+      assert.ok(!card.quote.includes("New Advent"));
+      assert.ok(card.quote.length > 50);
+    }
+  });
+
+  it("enforces chapter boundaries in catalog mapping so wrong-chapter entries never leak", async () => {
+    const { mapCatalog } = await import("./catalog.ts");
+    const results = mapCatalog({
+      question: "good shepherd gives his life",
+      bookId: "JHN",
+      chapter: 10,
+    });
+
+    assert.ok(results.length > 0);
+    for (const r of results) {
+      if (r.chapters?.length) {
+        assert.ok(
+          r.chapters.includes(10),
+          `Entry ${r.id} restricted to chapters ${r.chapters.join(", ")} matched chapter 10!`,
+        );
+      }
+    }
+  });
+});
+

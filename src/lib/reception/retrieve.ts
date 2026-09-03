@@ -22,29 +22,158 @@ export type FetchedExtract = {
   paragraphs: string[];
 };
 
-export function htmlToText(html: string): string {
+export function sanitizeHtml(html: string): string {
   return html
+    .replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, " ")
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
     .replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<header\b[^>]*>[\s\S]*?<\/header>/gi, " ")
+    .replace(/<nav\b[^>]*>[\s\S]*?<\/nav>/gi, " ")
+    .replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/gi, " ")
+    .replace(/<aside\b[^>]*>[\s\S]*?<\/aside>/gi, " ")
+    .replace(/<form\b[^>]*>[\s\S]*?<\/form>/gi, " ")
+    .replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, " ")
+    .replace(/<table\b[^>]*class=["'][^"']*book_navbar[^"']*["'][^>]*>[\s\S]*?<\/table>/gi, " ")
+    .replace(
+      /<div\b[^>]*(?:id|class)=["'][^"']*(?:navbar|header|banner|workinfo|reader-toc|selection-popup|popover|nav-top|book_menu|searchbox|usertagbar|toolbar|crumbs|breadcrumb)[^"']*["'][^>]*>[\s\S]*?<\/div>/gi,
+      " ",
+    );
+}
+
+export function htmlToText(html: string): string {
+  const clean = sanitizeHtml(html);
+  return clean
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/gi, " ")
-    .replace(/&/gi, "&")
-    .replace(/"/gi, '"')
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
     .replace(/&#39;/g, "'")
-    .replace(/</gi, "<")
-    .replace(/>/gi, ">")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&mdash;/gi, "—")
+    .replace(/&ndash;/gi, "–")
+    .replace(/&hellip;/gi, "...")
     .replace(/\s+/g, " ")
     .trim();
 }
 
+export function isBoilerplate(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length < 15) return true;
+  // Short fragments without sentence punctuation are almost always navigation tags or isolated headings
+  if (trimmed.length < 35 && !/[.;:?!]/.test(trimmed)) return true;
+  const lower = trimmed.toLowerCase();
+
+  // 1. Known digital library headers, site metadata, fundraising, and UI chrome
+  if (
+    lower.includes("christian classics ethereal library") ||
+    lower.includes("ccel.org") ||
+    lower.includes("browse titles") ||
+    lower.includes("browse authors") ||
+    lower.includes("work info:") ||
+    lower.includes("work info") ||
+    lower.includes("please help support the mission of new advent") ||
+    (lower.includes("new advent") &&
+      (lower.includes("instant download") ||
+        lower.includes("catholic encyclopedia") ||
+        lower.includes("home >"))) ||
+    lower.includes("disable scripture popups") ||
+    (lower.includes("bible version") && lower.includes("scripture popups")) ||
+    lower.includes("theological markup language") ||
+    lower.includes("pdf microsoft word") ||
+    lower.includes("reader width") ||
+    lower.includes("text size") ||
+    lower.includes("show footnotes") ||
+    lower.includes("search this book") ||
+    lower.includes("search within this book") ||
+    lower.includes("highlight selected text") ||
+    lower.includes("please login or register") ||
+    lower.includes("log in | register") ||
+    lower.includes("all rights reserved") ||
+    lower.includes("public domain") ||
+    lower.includes("union theological seminary") ||
+    lower.includes("grand rapids, mi") ||
+    lower.includes("wm. b. eerdmans") ||
+    lower.includes("baker book house") ||
+    lower.includes("the following sermon is taken from volume")
+  ) {
+    return true;
+  }
+
+  // 2. Structural metadata prefixes
+  if (
+    lower.startsWith("translated by") ||
+    lower.startsWith("edited by") ||
+    lower.startsWith("preface") ||
+    lower.startsWith("contents") ||
+    lower.startsWith("table of contents") ||
+    lower.startsWith("index") ||
+    lower.startsWith("title page") ||
+    lower.startsWith("born:") ||
+    lower.startsWith("died:") ||
+    lower.startsWith("related topics:") ||
+    lower.startsWith("work:") ||
+    lower.startsWith("author:")
+  ) {
+    return true;
+  }
+
+  // 3. Site and book title-card strings
+  if (
+    lower.includes("assorted sermons by martin luther") ||
+    lower.includes("assorted sermons")
+  ) {
+    if (lower.split(/\s+/).length < 15) return true;
+  }
+
+  // 4. Navigation menus with pipe delimiters (e.g. "Log in | Register | Browse | Bibles")
+  const pipeCount = (trimmed.match(/\|/g) || []).length;
+  if (pipeCount >= 2) return true;
+
+  // 5. Breadcrumb trails with repeated arrows
+  const breadcrumbCount = (trimmed.match(/[>»«]/g) || []).length;
+  if (breadcrumbCount >= 3) return true;
+
+  // 6. Sentence punctuation check:
+  // Genuine commentary paragraphs of substantial length (>= 50 chars) should contain standard punctuation.
+  // A string of 50+ chars with NO sentence punctuation is almost invariably a heading or menu list.
+  if (trimmed.length >= 50 && !/[.;:?!]/.test(trimmed)) {
+    return true;
+  }
+
+  // 7. Title-case ratio check:
+  // In body prose, only a fraction of words are capitalized. In title banners/navigation lists,
+  // >60% of words are capitalized.
+  const words = trimmed.split(/\s+/).filter((w) => w.length > 1);
+  if (words.length >= 8) {
+    const capitalized = words.filter((w) => /^[A-Z]/.test(w)).length;
+    if (capitalized / words.length > 0.6) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function isSubstantiveQuote(text: string): boolean {
+  if (isBoilerplate(text)) return false;
+  const trimmed = text.trim();
+  if (trimmed.length < 15) return false;
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  if (words.length < 3) return false;
+  return true;
+}
+
 export function paragraphsFromHtml(html: string): string[] {
-  const chunks = html.split(/<\/p>|<br\s*\/?>|<\/div>|<\/h[1-6]>/i);
+  const clean = sanitizeHtml(html);
+  const chunks = clean.split(/<\/p>|<br\s*\/?>|<\/div>|<\/h[1-6]>/i);
   const out: string[] = [];
   const seen = new Set<string>();
   for (const chunk of chunks) {
     const text = htmlToText(chunk);
-    if (text.length < 80 || text.length > 1800) continue;
+    if (text.length < 80 || text.length > 2200) continue;
+    if (isBoilerplate(text) || !isSubstantiveQuote(text)) continue;
     const key = text.slice(0, 80).toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -60,14 +189,13 @@ export function pickParagraphs(
 ): string[] {
   const tokens = tokenize(query);
   if (!tokens.length) {
-    // If no query, skip header-like boilerplate paragraphs
     return paragraphs
-      .filter((p) => !isBoilerplate(p))
+      .filter((p) => !isBoilerplate(p) && isSubstantiveQuote(p))
       .slice(0, limit);
   }
   const hits = paragraphs
     .map((p) => {
-      if (isBoilerplate(p)) return { p, score: 0 };
+      if (isBoilerplate(p) || !isSubstantiveQuote(p)) return { p, score: 0 };
       const lower = p.toLowerCase();
       let score = 0;
       for (const t of tokens) if (lower.includes(t)) score += 1;
@@ -79,32 +207,11 @@ export function pickParagraphs(
     .map((x) => x.p);
 
   if (!hits.length) {
-    return paragraphs.filter((p) => !isBoilerplate(p)).slice(0, limit);
+    return paragraphs
+      .filter((p) => !isBoilerplate(p) && isSubstantiveQuote(p))
+      .slice(0, limit);
   }
   return hits;
-}
-
-function isBoilerplate(text: string): boolean {
-  const trimmed = text.trim();
-  if (trimmed.length < 30) return true;
-  const lower = trimmed.toLowerCase();
-  if (
-    lower.startsWith("translated by") ||
-    lower.startsWith("edited by") ||
-    lower.startsWith("preface") ||
-    lower.startsWith("contents") ||
-    lower.startsWith("table of contents") ||
-    lower.startsWith("index") ||
-    lower.startsWith("title page") ||
-    lower.includes("all rights reserved") ||
-    lower.includes("union theological seminary") ||
-    lower.includes("ccel.org") ||
-    lower.includes("grand rapids, mi") ||
-    lower.includes("wm. b. eerdmans")
-  ) {
-    return true;
-  }
-  return false;
 }
 
 function allowed(url: string): boolean {
@@ -202,7 +309,13 @@ export function extractsPrompt(
   locale: Locale = "en",
 ): string {
   const blocks = extracts.map((ex, i) => {
-    const body = ex.paragraphs.map((p, n) => `(${n + 1}) ${p}`).join("\n");
+    const cleanParas = ex.paragraphs.filter(
+      (p) => !isBoilerplate(p) && isSubstantiveQuote(p),
+    );
+    const body = cleanParas
+      .slice(0, 4)
+      .map((p, n) => `(${n + 1}) ${p}`)
+      .join("\n");
     return [
       `EXTRACT ${i + 1}`,
       `voice: ${ex.entry.voice}`,
@@ -223,7 +336,9 @@ export function extractsPrompt(
 function cardsFromExtracts(extracts: FetchedExtract[]): SourceCard[] {
   const cards: SourceCard[] = [];
   for (const ex of extracts) {
-    const validPara = ex.paragraphs.find((p) => !isBoilerplate(p));
+    const validPara = ex.paragraphs.find(
+      (p) => !isBoilerplate(p) && isSubstantiveQuote(p),
+    );
     if (!validPara) continue;
     const quote = validPara.slice(0, 600);
     cards.push({
@@ -266,6 +381,8 @@ export function parseRetrieved(raw: string): SourceCard[] {
     const cards: SourceCard[] = [];
     for (const c of parsed.cards) {
       if (!c.voice || !c.quote || !c.citation) continue;
+      const quoteStr = String(c.quote).trim();
+      if (isBoilerplate(quoteStr) || !isSubstantiveQuote(quoteStr)) continue;
       const tradition = TRADITIONS.has(c.tradition as Tradition)
         ? (c.tradition as Tradition)
         : "patristic";
@@ -273,7 +390,7 @@ export function parseRetrieved(raw: string): SourceCard[] {
         voice: String(c.voice).slice(0, 80),
         work: String(c.work ?? "").slice(0, 120),
         tradition,
-        quote: String(c.quote).slice(0, 600),
+        quote: quoteStr.slice(0, 600),
         note: c.note ? String(c.note).slice(0, 280) : undefined,
         citation: String(c.citation).slice(0, 220),
         paraphrased: Boolean(c.paraphrased),
