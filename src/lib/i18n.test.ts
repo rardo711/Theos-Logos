@@ -6,6 +6,8 @@ describe("i18n", () => {
   it("switches chrome to Spanish", () => {
     assert.equal(t("en", "inquire"), "Inquire");
     assert.equal(t("es", "inquire"), "Consultar");
+    assert.equal(t("en", "commentaries"), "Commentaries on this verse");
+    assert.equal(t("es", "commentaries"), "Comentarios sobre este versículo");
     assert.equal(t("es", "chapter", { n: 1 }), "Capítulo 1");
     assert.equal(corpusLabel("es", "gospels", "name"), "Los Evangelios");
     assert.equal(t("es", "inThisChapter"), "En este capítulo");
