@@ -6,14 +6,14 @@ import {
   getCached,
   removeCached,
   saveCached,
-} from "./cache";
+} from "./cache.ts";
 import {
   curatedBookIds,
   getCurated,
   getCuratedCardsForVerse,
   hasCurated,
   markedVerses as curatedMarked,
-} from "./curated";
+} from "./curated.ts";
 
 
 /** Cards from a focused Inquire that are not already on the desk. */

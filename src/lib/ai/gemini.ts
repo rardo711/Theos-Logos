@@ -18,7 +18,12 @@ export function geminiModel(): string {
 
 export function isGemini3(model: string): boolean {
   const id = model.toLowerCase();
-  return id.includes("gemini-3.7") || id.includes("gemini-3.8") || id.includes("gemini-3-");
+  return (
+    id.includes("gemini-3.7") ||
+    id.includes("gemini-3.6") ||
+    id.includes("gemini-3.8") ||
+    id.includes("gemini-3-")
+  );
 }
 
 export function generationConfigFor(
@@ -28,8 +33,16 @@ export function generationConfigFor(
   temperature?: number;
   maxOutputTokens: number;
   responseMimeType: "application/json";
+  thinkingConfig?: { thinkingLevel: "low" | "medium" | "high" };
 } {
   const maxOutputTokens = opts.maxOutputTokens ?? 1600;
+  if (isGemini3(model)) {
+    return {
+      maxOutputTokens,
+      responseMimeType: "application/json" as const,
+      thinkingConfig: { thinkingLevel: "low" as const },
+    };
+  }
   return {
     temperature: opts.temperature ?? 0.2,
     maxOutputTokens,

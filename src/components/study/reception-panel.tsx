@@ -153,7 +153,7 @@ export function ReceptionPanel({
       if (data.source === "curated") {
         // Direct established primary sources addressing the question or verse
         next = data;
-      } else if (Boolean(prior?.cards.length) && (mode === "traditions" || Boolean(focus))) {
+      } else if (prior && prior.cards.length > 0 && (mode === "traditions" || Boolean(focus))) {
         const added = additionalSourceCards(prior.cards, data.cards);
         if (!added.length && !data.cards.length) {
           throw new Error("NO_MORE");
@@ -333,7 +333,7 @@ export function ReceptionPanel({
             <p className="max-w-xs text-sm leading-relaxed text-muted">
               {t(locale, "receptionHint")}
             </p>
-            {marked.length > 0 ? (
+            {chapter && marked.length > 0 ? (
               <div>
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
@@ -488,12 +488,14 @@ export function ReceptionPanel({
                   ) : null}
                 </div>
                 {result.cards.map((card, i) => {
-                  const gen = isCardGenerated(
-                    card,
-                    chapter.bookId,
-                    chapter.chapter,
-                    selectedVerse,
-                  );
+                  const gen = chapter
+                    ? isCardGenerated(
+                        card,
+                        chapter.bookId,
+                        chapter.chapter,
+                        selectedVerse,
+                      )
+                    : isCardGenerated(card);
                   return (
                     <SourceCard
                       key={`${card.voice}-${card.citation}-${i}`}

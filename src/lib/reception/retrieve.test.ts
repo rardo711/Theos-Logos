@@ -543,3 +543,173 @@ describe("matthew reception desk", () => {
   });
 });
 
+describe("mark reception desk", () => {
+  it("provides Scholastic and Reformed sources for Mark", async () => {
+    const { RECEPTION_SOURCES } = await import("./catalog.ts");
+    const mrkSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "Mark");
+    assert.ok(mrkSources.length >= 3, `found ${mrkSources.length} Mark sources`);
+
+    const ids = new Set(mrkSources.map((s) => s.id));
+    assert.ok(ids.has("aquinas-catena-mark"));
+    assert.ok(ids.has("calvin-mark"));
+    assert.ok(ids.has("poole-mark"));
+
+    const eras = new Set(mrkSources.map((s) => s.era));
+    assert.ok(eras.has("medieval"));
+    assert.ok(eras.has("reformation"));
+    assert.ok(eras.has("puritan"));
+  });
+
+  it("serves curated cards for Mark pericopes (10:45 ransom, 15:34 cry of dereliction)", async () => {
+    const { getCurated } = await import("./curated.ts");
+
+    const mrk10 = getCurated("MRK", 10, 45);
+    assert.ok(mrk10 && mrk10.cards.length >= 3);
+    const mrk10Voices = mrk10.cards.map((c) => c.voice);
+    assert.ok(mrk10Voices.includes("Thomas Aquinas"));
+    assert.ok(mrk10Voices.includes("John Calvin"));
+    assert.ok(mrk10Voices.includes("Matthew Poole"));
+
+    const mrk15 = getCurated("MRK", 15, 34);
+    assert.ok(mrk15 && mrk15.cards.length >= 3);
+    const mrk15Voices = mrk15.cards.map((c) => c.voice);
+    assert.ok(mrk15Voices.includes("John Calvin"));
+    assert.ok(mrk15Voices.includes("Thomas Aquinas"));
+  });
+});
+
+describe("luke reception desk", () => {
+  it("provides Patristic, Scholastic, and Reformed sources for Luke", async () => {
+    const { RECEPTION_SOURCES } = await import("./catalog.ts");
+    const lukSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "Luke");
+    assert.ok(lukSources.length >= 6, `found ${lukSources.length} Luke sources`);
+
+    const ids = new Set(lukSources.map((s) => s.id));
+    assert.ok(ids.has("cyril-luke"));
+    assert.ok(ids.has("ambrose-luke"));
+    assert.ok(ids.has("aquinas-catena-luke"));
+    assert.ok(ids.has("calvin-luke"));
+    assert.ok(ids.has("luther-magnificat"));
+    assert.ok(ids.has("poole-luke"));
+
+    const eras = new Set(lukSources.map((s) => s.era));
+    assert.ok(eras.has("patristic"));
+    assert.ok(eras.has("medieval"));
+    assert.ok(eras.has("reformation"));
+    assert.ok(eras.has("puritan"));
+  });
+
+  it("serves curated cards for Luke pericopes (Magnificat, Tax Collector, Penitent Thief)", async () => {
+    const { getCurated } = await import("./curated.ts");
+
+    // Magnificat
+    const luk1_46 = getCurated("LUK", 1, 46);
+    assert.ok(luk1_46 && luk1_46.cards.length >= 2);
+    const luk1_48 = getCurated("LUK", 1, 48);
+    assert.ok(luk1_48 && luk1_48.cards.length >= 2);
+    const luk1Voices = [...(luk1_46?.cards ?? []), ...(luk1_48?.cards ?? [])].map((c) => c.voice);
+    assert.ok(luk1Voices.includes("Ambrose of Milan"));
+    assert.ok(luk1Voices.includes("Martin Luther"));
+    assert.ok(luk1Voices.includes("John Calvin"));
+
+    // Pharisee and Tax Collector
+    const luk18_13 = getCurated("LUK", 18, 13);
+    assert.ok(luk18_13 && luk18_13.cards.length >= 2);
+    const luk18_14 = getCurated("LUK", 18, 14);
+    assert.ok(luk18_14 && luk18_14.cards.length >= 2);
+    const luk18Voices = [...(luk18_13?.cards ?? []), ...(luk18_14?.cards ?? [])].map((c) => c.voice);
+    assert.ok(luk18Voices.includes("Cyril of Alexandria"));
+    assert.ok(luk18Voices.includes("John Calvin"));
+    assert.ok(luk18Voices.includes("Thomas Aquinas"));
+
+    // Penitent Thief
+    const luk23_42 = getCurated("LUK", 23, 42);
+    assert.ok(luk23_42 && luk23_42.cards.length >= 1);
+    const luk23_43 = getCurated("LUK", 23, 43);
+    assert.ok(luk23_43 && luk23_43.cards.length >= 2);
+    const luk23Voices = [...(luk23_42?.cards ?? []), ...(luk23_43?.cards ?? [])].map((c) => c.voice);
+    assert.ok(luk23Voices.includes("Thomas Aquinas"));
+    assert.ok(luk23Voices.includes("John Calvin"));
+    assert.ok(luk23Voices.includes("Ambrose of Milan"));
+  });
+});
+
+describe("john reception desk", () => {
+  it("provides Patristic, Scholastic, and Reformed sources for John", async () => {
+    const { RECEPTION_SOURCES } = await import("./catalog.ts");
+    const jhnSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "John");
+    assert.ok(jhnSources.length >= 6, `found ${jhnSources.length} John sources`);
+
+    const ids = new Set(jhnSources.map((s) => s.id));
+    assert.ok(ids.has("chrysostom-john"));
+    assert.ok(ids.has("augustine-john"));
+    assert.ok(ids.has("aquinas-catena-john"));
+    assert.ok(ids.has("calvin-john"));
+    assert.ok(ids.has("luther-john"));
+    assert.ok(ids.has("poole-john"));
+
+    const eras = new Set(jhnSources.map((s) => s.era));
+    assert.ok(eras.has("patristic"));
+    assert.ok(eras.has("medieval"));
+    assert.ok(eras.has("reformation"));
+    assert.ok(eras.has("puritan"));
+  });
+
+  it("serves curated cards for John iconic pericopes (1:1, 6:44, 14:6, 19:30)", async () => {
+    const { getCurated } = await import("./curated.ts");
+
+    // John 1:1
+    const jhn1 = getCurated("JHN", 1, 1);
+    assert.ok(jhn1 && jhn1.cards.length >= 4);
+    const jhn1Voices = jhn1.cards.map((c) => c.voice);
+    assert.ok(jhn1Voices.includes("John Chrysostom"));
+    assert.ok(jhn1Voices.includes("Augustine") || jhn1Voices.includes("Augustine of Hippo"));
+    assert.ok(jhn1Voices.includes("John Calvin"));
+
+    // John 6:44
+    const jhn6 = getCurated("JHN", 6, 44);
+    assert.ok(jhn6 && jhn6.cards.length >= 3);
+    const jhn6Voices = jhn6.cards.map((c) => c.voice);
+    assert.ok(jhn6Voices.includes("Augustine of Hippo"));
+    assert.ok(jhn6Voices.includes("John Calvin"));
+    assert.ok(jhn6Voices.includes("Thomas Aquinas"));
+
+    // John 14:6
+    const jhn14 = getCurated("JHN", 14, 6);
+    assert.ok(jhn14 && jhn14.cards.length >= 3);
+    const jhn14Voices = jhn14.cards.map((c) => c.voice);
+    assert.ok(jhn14Voices.includes("Thomas Aquinas"));
+    assert.ok(jhn14Voices.includes("John Calvin"));
+    assert.ok(jhn14Voices.includes("Augustine of Hippo"));
+
+    // John 19:30
+    const jhn19 = getCurated("JHN", 19, 30);
+    assert.ok(jhn19 && jhn19.cards.length >= 3);
+    const jhn19Voices = jhn19.cards.map((c) => c.voice);
+    assert.ok(jhn19Voices.includes("John Calvin"));
+    assert.ok(jhn19Voices.includes("Augustine of Hippo"));
+    assert.ok(jhn19Voices.includes("Thomas Aquinas"));
+  });
+});
+
+describe("removing generated source cards", () => {
+  it("distinguishes generated cards from curated desk cards", async () => {
+    const { isCardGenerated } = await import("./notes.ts");
+    const { getCurated } = await import("./curated.ts");
+
+    const genCard = {
+      voice: "Unknown Commentator",
+      citation: "Random Citation",
+      work: "Random Work",
+      quote: "Some generated quote",
+      tradition: "reformed" as const,
+      source: "generated" as const,
+    };
+    assert.equal(isCardGenerated(genCard, "MAT", 1, 21), true);
+
+    const mat1 = getCurated("MAT", 1, 21);
+    assert.ok(mat1 && mat1.cards.length > 0);
+    assert.equal(isCardGenerated(mat1.cards[0], "MAT", 1, 21), false);
+  });
+});
+

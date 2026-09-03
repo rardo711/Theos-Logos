@@ -40,9 +40,10 @@ Key authors and works available on CCEL:
 | Origen | c. 184–253 | *De Principiis*, *Commentary on John* |
 | Athanasius | c. 296–373 | *On the Incarnation* |
 | John Chrysostom | c. 349–407 | *Homilies on the New Testament* |
-| Augustine of Hippo | 354–430 | *City of God*, *Confessions*, *On the Spirit and the Letter* |
+| Augustine of Hippo | 354–430 | *City of God*, *Confessions*, *Tractates on the Gospel of John*, *On the Spirit and the Letter* |
 | Jerome | c. 342–420 | *Vulgate*, *Commentary on Galatians* |
-| Cyril of Alexandria | c. 376–444 | *Commentary on John* |
+| Cyril of Alexandria | c. 376–444 | *Commentary on Luke* (Syriac MS trans. R. Payne Smith), *Commentary on John* |
+| Ambrose of Milan | c. 339–397 | *Exposition of the Gospel according to Luke*, *Hexameron* |
 | Gregory of Nyssa | c. 335–395 | *Homilies on the Beatitudes*, *Life of Moses* |
 
 ### Medieval Scholastics
@@ -50,7 +51,7 @@ Key works reverenced in Reformed scholastic retrieval:
 
 | Author | Dates | Notable Works | Access |
 |--------|-------|--------------|--------|
-| Thomas Aquinas | 1225–1274 | *Catena Aurea on Matthew* (1263), *Summa Theologiae* | [ccel.org/ccel/aquinas/catena1](https://ccel.org/ccel/aquinas/catena1) |
+| Thomas Aquinas | 1225–1274 | *Catena Aurea on the Four Gospels* (Matthew: catena1, Mark: catena2, Luke: catena3, John: catena4; 1263), *Summa Theologiae* | [ccel.org/ccel/aquinas/catena1](https://ccel.org/ccel/aquinas/catena1) |
 | Anselm of Canterbury | 1033–1109 | *Cur Deus Homo*, *Proslogion* | [ccel.org](https://ccel.org) |
 
 ### Reformers & Puritans
@@ -58,11 +59,11 @@ All are public domain. Primary digital archive: CCEL and Internet Archive.
 
 | Author | Key Works | CCEL Link |
 |--------|----------|-----------|
-| John Calvin | *Institutes of the Christian Religion* (1559), *Harmony of the Evangelists / Matthew* (1555), *Commentaries on the Bible* (1540–1564) | [ccel.org/ccel/calvin](https://ccel.org/ccel/calvin) |
-| Martin Luther | *Bondage of the Will* (1525), *Commentary on the Sermon on the Mount* (1532), *Large Catechism* (1529), *Commentary on Galatians* (1535) | [ccel.org/ccel/luther](https://ccel.org/ccel/luther) |
+| John Calvin | *Institutes of the Christian Religion* (1559), *Harmony of the Evangelists (Matthew, Mark, Luke)* (1555), *Commentary on John* (1553), *Commentaries on the Bible* (1540–1564) | [ccel.org/ccel/calvin](https://ccel.org/ccel/calvin) |
+| Martin Luther | *Bondage of the Will* (1525), *Commentary on the Sermon on the Mount* (1532), *The Magnificat Translated and Explained* (1521), *Sermons on the Gospel of St. John* (1537–1540), *Large Catechism* (1529), *Commentary on Galatians* (1535) | [ccel.org/ccel/luther](https://ccel.org/ccel/luther) |
 | Ulrich Zwingli | *Commentary on True and False Religion* (1525) | [ccel.org](https://ccel.org) |
 | Heinrich Bullinger | *Decades* (1549–1552) | [ccel.org](https://ccel.org) |
-| Matthew Poole | *Annotations upon the Holy Bible* (1683–1685; Matthew volume) | [ccel.org/ccel/poole](https://ccel.org/ccel/poole) |
+| Matthew Poole | *Annotations upon the Holy Bible* (1683–1685; Matthew, Mark, Luke, John) | [ccel.org/ccel/poole](https://ccel.org/ccel/poole) |
 | John Owen | *The Death of Death in the Death of Christ* (1647), *Communion with God* (1657) | [ccel.org/ccel/owen](https://ccel.org/ccel/owen) |
 | Francis Turretin | *Institutes of Elenctic Theology* (1679–1685) | [archive.org](https://archive.org) |
 | Herman Witsius | *The Economy of the Covenants* (1677) | [archive.org](https://archive.org) |

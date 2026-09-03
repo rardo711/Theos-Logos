@@ -11,15 +11,19 @@ All sources listed here are in the **public domain** (primarily pre-1928 works i
 ## 🔷 Medieval Scholastic Tradition
 
 ### Thomas Aquinas — Catena Aurea (Golden Chain) on the Gospels (1263)
-**Coverage:** Matthew, Mark, Luke, John (verse-by-verse Patristic synthesis)
+**Coverage:** Matthew, Mark, Luke, John (verse-by-verse Patristic synthesis across all four Gospels)
 **Tradition:** Medieval Scholastic / Patristic Retrieval
 **Access:** Free, public domain
 
 **Where to find:**
-- CCEL: https://ccel.org/ccel/aquinas/catena1 (Volume 1: Matthew)
+- CCEL: 
+  - Volume 1 (Matthew): https://ccel.org/ccel/aquinas/catena1
+  - Volume 2 (Mark): https://ccel.org/ccel/aquinas/catena2 (e.g. https://www.ccel.org/ccel/aquinas/catena2.iii.iv.html)
+  - Volume 3 (Luke): https://ccel.org/ccel/aquinas/catena3 (e.g. https://www.ccel.org/ccel/aquinas/catena3.iii.i.html)
+  - Volume 4 (John): https://ccel.org/ccel/aquinas/catena4 (e.g. https://www.ccel.org/ccel/aquinas/catena4.i.i.html)
 - Internet Archive: "Catena Aurea Thomas Aquinas"
 
-**Characteristics:** Exhaustive line-by-line synthesis of Greek and Latin Church Fathers (Chrysostom, Jerome, Augustine, Hilary, Cyril) compiled for Pope Urban IV. Widely respected in Reformed scholastic retrieval.
+**Characteristics:** Exhaustive line-by-line synthesis of Greek and Latin Church Fathers (Chrysostom, Jerome, Augustine, Hilary, Cyril, Ambrose) compiled for Pope Urban IV. Widely respected in Reformed scholastic retrieval.
 
 ---
 
@@ -60,13 +64,14 @@ All sources listed here are in the **public domain** (primarily pre-1928 works i
 - Archive.org: Search "Calvin Commentary"
 
 **Notable works:**
+- Commentary on a Harmony of the Evangelists (Matthew, Mark, Luke; 1555)
+- Commentary on the Gospel according to John (1553)
 - Commentary on Romans
-- Commentary on John
 - Commentary on Genesis
-- Institutes (theological, not commentary but invaluable)
+- Institutes of the Christian Religion (1559)
 
 ### Matthew Poole's Annotations upon the Holy Bible (1683–1685)
-**Coverage:** Complete Bible (Matthew completed by Poole)
+**Coverage:** Complete Bible (Matthew, Mark, Luke, John completed by Poole)
 **Tradition:** Puritan / English Reformed
 **Access:** Free, public domain
 
@@ -74,7 +79,7 @@ All sources listed here are in the **public domain** (primarily pre-1928 works i
 - CCEL: https://www.ccel.org/ccel/poole/annotations.html
 - Bible Hub: https://biblehub.com/commentaries/poole/
 
-**Characteristics:** Scholarly, lucid, rigorous Puritan exposition reconciling difficult texts and refuting Socinian, Arminian, and Roman errors while drawing upon Hebrew and Greek idioms.
+**Characteristics:** Scholarly, lucid, rigorous Puritan exposition reconciling difficult texts and refuting Socinian, Arminian, and Roman errors while drawing upon Hebrew and Greek idioms. Covers Matthew, Mark, Luke, and John.
 
 ### Charles Spurgeon's Works (1850s-1890s)
 **Coverage:** Selective passages
@@ -131,23 +136,33 @@ All sources listed here are in the **public domain** (primarily pre-1928 works i
 1. **Augustine of Hippo** (354-430)
    - City of God
    - On the Trinity
+   - Tractates on the Gospel of John (In Joannis Evangelium Tractatus)
    - Expositions on the Psalms
    - On the Predestination of the Saints
    - Against Pelagius
 
 2. **John Chrysostom** (347-407)
    - Homilies on Matthew
-   - Homilies on John
+   - Homilies on the Gospel of St. John
    - Homilies on Romans
    - Homilies on Hebrews
    - Extensive preaching commentary
 
-3. **Athanasius** (296-373)
+3. **Cyril of Alexandria** (376-444)
+   - Commentary on the Gospel of Saint Luke (Homilies on Luke; Syriac MS trans. R. Payne Smith; tertullian.org)
+   - Commentary on the Gospel of Saint John
+
+4. **Ambrose of Milan** (339-397)
+   - Exposition of the Holy Gospel according to Saint Luke (Expositio Evangelii secundum Lucam)
+   - Hexameron
+   - Theological and sacramental treatises
+
+5. **Athanasius** (296-373)
    - Against the Arians
    - On the Incarnation
    - Doctrinal works with Scripture exposition
 
-4. **Jerome** (347-420)
+6. **Jerome** (347-420)
    - Commentary on various books
    - Translator of the Vulgate
    - Letters with scriptural exposition

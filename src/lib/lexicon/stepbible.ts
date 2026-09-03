@@ -6,9 +6,9 @@ import {
   deskAttribution,
   type Compact,
 } from "./data/desk.ts";
-import hebrewJson from "./data/hebrew.json";
-import greekJson from "./data/greek.json";
-import glossesJson from "./data/glosses.json";
+import hebrewJson from "./data/hebrew.json" with { type: "json" };
+import greekJson from "./data/greek.json" with { type: "json" };
+import glossesJson from "./data/glosses.json" with { type: "json" };
 
 export type StepEntry = {
   strongs: string;

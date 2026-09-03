@@ -78,7 +78,9 @@ export function pickParagraphs(
     .slice(0, limit)
     .map((x) => x.p);
 
-  // When a query is present, do NOT return irrelevant paragraphs
+  if (!hits.length) {
+    return paragraphs.filter((p) => !isBoilerplate(p)).slice(0, limit);
+  }
   return hits;
 }
 

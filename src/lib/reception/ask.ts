@@ -116,7 +116,7 @@ export const askReception = createServerFn({ method: "POST" })
     if (retrieved?.cards.length) {
       return {
         source: "generated",
-        cards: retrieved.cards,
+        cards: retrieved.cards.map((c) => ({ ...c, source: "generated" as const })),
         caution: retrieved.caution,
       };
     }

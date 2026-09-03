@@ -1,4 +1,5 @@
 import type { ReceptionResult, SourceCard, Tradition } from "@/lib/bible/types";
+import type { Locale } from "@/lib/bible/books";
 
 export interface CuratedReceptionEntry {
   verseRef: string;
@@ -1676,6 +1677,408 @@ export const CURATED_ENTRIES: CuratedReceptionEntry[] = [
     citation: "Calvin, Comm. Matt. 28:20",
     url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
   },
+  // MARK
+  // Mark 10:45
+  {
+    verseRef: "MRK.10.45",
+    sourceId: "aquinas-catena-mark",
+    excerpt:
+      "Chrysostom observes: Earthly princes rule to dominate and strip their subjects, but Christ came not to be ministered unto, but to minister, and to give His life a ransom for many. His servitude is not weakness, but the supreme exercise of kingly love and divine authority.",
+    theologicalNote:
+      "Christ's voluntary servant-kingship and self-humiliation as a redemptive ransom, contrasting worldly tyranny with the kingdom of God.",
+    voice: "Thomas Aquinas",
+    work: "Catena Aurea on the Gospel of Mark (quoting Chrysostom)",
+    tradition: "scholastic",
+    citation: "Aquinas, Catena Aurea on Mark 10:45",
+    url: "https://www.ccel.org/ccel/aquinas/catena2.iii.iv.html",
+  },
+  {
+    verseRef: "MRK.10.45",
+    sourceId: "calvin-mark",
+    excerpt:
+      "Christ declares that the price of our redemption was His death. By the word ransom (lutron) He shows that our reconciliation with God was purchased by His blood, for we were captives under the curse of sin until He substituted Himself in our room.",
+    theologicalNote:
+      "Substitutionary atonement: Christ purchasing reconciliation with God by shedding His blood in our place.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists (Mark)",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Mark 10:45",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  {
+    verseRef: "MRK.10.45",
+    sourceId: "poole-mark",
+    excerpt:
+      "A ransom for many: that is, a vicarious price of satisfaction given to divine justice in the stead of sinners, that all who believe might be delivered from wrath and death.",
+    theologicalNote:
+      "Vicarious satisfaction satisfying divine justice on behalf of sinners.",
+    voice: "Matthew Poole",
+    work: "Annotations upon the Holy Bible: Mark",
+    tradition: "reformed",
+    citation: "Poole, Annotations on Mark 10:45",
+    url: "https://www.ccel.org/ccel/poole/annotations.html",
+  },
+  // Mark 15:34
+  {
+    verseRef: "MRK.15.34",
+    sourceId: "calvin-mark",
+    excerpt:
+      "Christ does not utter this cry in despair, nor was the hypostatic union dissolved or the Father ever truly angry with His beloved Son. Rather, in His human nature He felt the dreadful weight of the divine curse against our sins, enduring the terror of divine judgment in our place, without rupture of the Trinity.",
+    theologicalNote:
+      "Christ enduring the terror of divine judgment in our place, without rupture of the Trinity.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists (Mark)",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Mark 15:34",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  {
+    verseRef: "MRK.15.34",
+    sourceId: "aquinas-catena-mark",
+    excerpt:
+      "Bede writes: Our Lord uttered these words from the Psalm, speaking in the person of our human nature which He had assumed, showing that He felt the reality of death and affliction, yet maintaining uncorrupted obedience to the Father.",
+    theologicalNote:
+      "Christ speaking from the reality of His assumed human nature and passion.",
+    voice: "Thomas Aquinas",
+    work: "Catena Aurea on the Gospel of Mark",
+    tradition: "scholastic",
+    citation: "Aquinas, Catena Aurea on Mark 15:34",
+    url: "https://www.ccel.org/ccel/aquinas/catena2.iii.iv.html",
+  },
+  {
+    verseRef: "MRK.15.34",
+    sourceId: "poole-mark",
+    excerpt:
+      "Christ was not forsaken as to the personal union, nor as to the Father's love, but as to the sensible manifestations of His favour and the suspension of comforting influences while bearing the penal curse of the law.",
+    theologicalNote:
+      "Suspension of sensible divine comfort during penal bearing of the law's curse.",
+    voice: "Matthew Poole",
+    work: "Annotations upon the Holy Bible: Mark",
+    tradition: "reformed",
+    citation: "Poole, Annotations on Mark 15:34",
+    url: "https://www.ccel.org/ccel/poole/annotations.html",
+  },
+  // LUKE
+  // Luke 1:46–48 (Magnificat)
+  {
+    verseRef: "LUK.1.46",
+    sourceId: "ambrose-luke",
+    excerpt:
+      "Let Mary's soul be in each of you to magnify the Lord; let her spirit be in each of you to rejoice in God. The soul magnifies the Lord not by adding anything to His divine majesty, but when His image shines forth clearly in our inner life through grace.",
+    theologicalNote:
+      "Mary exalting the Lord in her soul, looking to divine grace.",
+    voice: "Ambrose of Milan",
+    work: "Exposition of the Holy Gospel according to Saint Luke",
+    tradition: "western-patristic",
+    citation: "Ambrose, Expos. Evang. Lucam 2.19",
+    url: "https://www.ccel.org/ccel/schaff/npnf210.html",
+  },
+  {
+    verseRef: "LUK.1.47",
+    sourceId: "ambrose-luke",
+    excerpt:
+      "My spirit hath rejoiced in God my Savior. She rejoices in Him who is the Savior of all, acknowledging that her redemption and maternal dignity spring from the same divine grace.",
+    theologicalNote:
+      "Rejoicing in God the Savior as the source of all salvation and blessing.",
+    voice: "Ambrose of Milan",
+    work: "Exposition of the Holy Gospel according to Saint Luke",
+    tradition: "western-patristic",
+    citation: "Ambrose, Expos. Evang. Lucam 2.21",
+    url: "https://www.ccel.org/ccel/schaff/npnf210.html",
+  },
+  {
+    verseRef: "LUK.1.48",
+    sourceId: "luther-magnificat",
+    excerpt:
+      "Mary does not boast of her worthiness or virtues, but praises God's pure grace alone. God looks not upon worthiness or merit, but purely upon lowliness and sovereign mercy, casting down the proud and exalting the humble that all flesh may glory in the Lord alone.",
+    theologicalNote:
+      "God looks not upon worthiness or merit, but purely upon lowliness and sovereign mercy.",
+    voice: "Martin Luther",
+    work: "Exposition of the Magnificat (1521)",
+    tradition: "lutheran",
+    citation: "Luther, The Magnificat (1521), on Luke 1:48",
+    url: "https://www.ccel.org/ccel/luther/magnificat.html",
+  },
+  {
+    verseRef: "LUK.1.46",
+    sourceId: "calvin-luke",
+    excerpt:
+      "Mary attributes nothing to her own merits, but ascribes the entire glory of her election and calling to the gratuitous goodness of God. The word lowliness (tapeinosis) does not denote a virtue of humility, but an abject and despised condition exalted by sheer grace.",
+    theologicalNote:
+      "Gratuitous election and sovereign mercy celebrated in the Magnificat.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists (Luke)",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Luke 1:46–48",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  {
+    verseRef: "LUK.1.48",
+    sourceId: "calvin-luke",
+    excerpt:
+      "Mary praises the divine mercy for looking upon her low estate. She was not selected because of any inherent fitness or excellence, but to demonstrate that God chooses the foolish and weak things of the world to confound the mighty.",
+    theologicalNote:
+      "God's grace exalting the lowly without regard to human prestige or desert.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists (Luke)",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Luke 1:48",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  // Luke 18:13–14 (Pharisee and Tax Collector)
+  {
+    verseRef: "LUK.18.13",
+    sourceId: "cyril-luke",
+    excerpt:
+      "Pride nullifies external deeds and destroys the fruit of virtues, even when one fasts and tithes. But the tax collector, standing afar off and smiting his breast, confessed his unworthiness; his contrite confession attained righteous justification before God.",
+    theologicalNote:
+      "Pride nullifies external deeds; contrite confession attains righteousness.",
+    voice: "Cyril of Alexandria",
+    work: "Commentary on the Gospel of Saint Luke (Homily 120)",
+    tradition: "eastern-patristic",
+    citation: "Cyril, Homily 120 on Luke",
+    url: "https://www.ccel.org/ccel/pearse/morefathers/files/cyril_on_luke_13_sermons_135_145.htm",
+  },
+  {
+    verseRef: "LUK.18.14",
+    sourceId: "calvin-luke",
+    excerpt:
+      "This parable establishes the doctrine of justification: God justifies only those who are thoroughly cast down, who bring nothing of their own, but fly to unmerited mercy by faith alone. Justification is the gracious imputation of righteousness, not the reward of human merit.",
+    theologicalNote:
+      "The absolute necessity of sola fide and self-renunciation for justification.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists (Luke)",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Luke 18:13–14",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  {
+    verseRef: "LUK.18.14",
+    sourceId: "aquinas-catena-luke",
+    excerpt:
+      "Augustine observes: The Pharisee praised himself rather than God; the publican confessed his sin and looked for mercy. He that humbleth himself shall be exalted, because God dwelleth in the contrite heart.",
+    theologicalNote:
+      "Humility and contrite sorrow justified over proud self-exaltation.",
+    voice: "Thomas Aquinas",
+    work: "Catena Aurea on the Gospel of Luke",
+    tradition: "scholastic",
+    citation: "Aquinas, Catena Aurea on Luke 18:13–14",
+    url: "https://www.ccel.org/ccel/aquinas/catena3.html",
+  },
+  {
+    verseRef: "LUK.18.13",
+    sourceId: "calvin-luke",
+    excerpt:
+      "The tax collector stood afar off, conscious of his uncleanness, not daring even to lift his eyes to heaven. He smote his breast, acknowledging his heart to be a fountain of iniquity, and pleaded solely for propitiation through divine mercy.",
+    theologicalNote:
+      "The posture of genuine evangelical repentance pleading solely for propitiation.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists (Luke)",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Luke 18:13",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  // Luke 23:42–43 (Penitent Thief)
+  {
+    verseRef: "LUK.23.42",
+    sourceId: "aquinas-catena-luke",
+    excerpt:
+      "Chrysostom exclaims: What power of faith was this! Who taught this thief? He saw Christ crucified, reviled, and dying, yet he confessed Him as King and prayed, 'Lord, remember me when Thou comest into Thy kingdom.' His faith grasped Christ's eternal majesty when even the Apostles fled.",
+    theologicalNote:
+      "Faith grasping Christ’s kingdom even upon the cross.",
+    voice: "Thomas Aquinas",
+    work: "Catena Aurea on the Gospel of Luke (quoting Chrysostom)",
+    tradition: "scholastic",
+    citation: "Aquinas, Catena Aurea on Luke 23:42–43",
+    url: "https://www.ccel.org/ccel/aquinas/catena3.html",
+  },
+  {
+    verseRef: "LUK.23.43",
+    sourceId: "calvin-luke",
+    excerpt:
+      "The penitent thief is an enduring monument of gratuitous justification. He brings no merits, no good works, no satisfactions, but having lived in violence and robbery, he is received immediately into Paradise by faith alone through the grace of Christ.",
+    theologicalNote:
+      "The thief as an enduring monument of gratuitous justification without prior meritorious works.",
+    voice: "John Calvin",
+    work: "Commentary on a Harmony of the Evangelists (Luke)",
+    tradition: "reformed",
+    citation: "Calvin, Comm. Luke 23:42–43",
+    url: "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+  },
+  {
+    verseRef: "LUK.23.43",
+    sourceId: "ambrose-luke",
+    excerpt:
+      "Verily I say unto thee, Today shalt thou be with Me in Paradise. Life is to be with Christ; for where Christ is, there is His kingdom and life everlasting.",
+    theologicalNote:
+      "Paradise as intimate communion with Christ, bestowed immediately by grace.",
+    voice: "Ambrose of Milan",
+    work: "Exposition of the Holy Gospel according to Saint Luke",
+    tradition: "western-patristic",
+    citation: "Ambrose, Expos. Evang. Lucam 10.121",
+    url: "https://www.ccel.org/ccel/schaff/npnf210.html",
+  },
+  // JOHN
+  // John 1:1
+  {
+    verseRef: "JHN.1.1",
+    sourceId: "chrysostom-john",
+    excerpt:
+      "The Evangelist said not 'became,' but 'In the beginning was the Word.' By the word 'was' he signifies the eternal, uncreated subsistence of the Logos, that you might understand He is not later than the Father, but ever co-eternal with Him.",
+    theologicalNote:
+      "Eternal, uncreated hypostatic subsistence of the Logos with the Father.",
+    voice: "John Chrysostom",
+    work: "Homilies on the Gospel of Saint John (Homily II)",
+    tradition: "eastern-patristic",
+    citation: "NPNF 1/14, Homily 2 on John",
+    url: "https://www.ccel.org/ccel/schaff/npnf114.html",
+  },
+  {
+    verseRef: "JHN.1.1",
+    sourceId: "augustine-john",
+    excerpt:
+      "The Word was not made, for by the Word were all things made. The Word is the eternal Wisdom of the Father, distinct in Person yet identical in divine essence and uncreated substance.",
+    theologicalNote:
+      "The Word as eternal Wisdom, distinct in person yet identical in divine essence.",
+    voice: "Augustine of Hippo",
+    work: "Tractates on the Gospel of John (Tractate I)",
+    tradition: "western-patristic",
+    citation: "NPNF 1/7, Tractate 1 on John 1:1",
+    url: "https://www.ccel.org/ccel/schaff/npnf107.ii.html",
+  },
+  {
+    verseRef: "JHN.1.1",
+    sourceId: "calvin-john",
+    excerpt:
+      "The Evangelist calls the Son of God the Word, because He is the eternal wisdom and will of God, and the lively image of His purpose, by whom all things were created and are continually sustained.",
+    theologicalNote:
+      "The Logos as the eternal self-expression of the Father by whom all things are upheld.",
+    voice: "John Calvin",
+    work: "Commentary on the Gospel According to John",
+    tradition: "reformed",
+    citation: "Calvin, Comm. John 1:1",
+    url: "https://www.ccel.org/ccel/calvin/calcom34.html",
+  },
+  // John 6:44
+  {
+    verseRef: "JHN.6.44",
+    sourceId: "augustine-john",
+    excerpt:
+      "Do not think you are drawn against your will; the mind is drawn also by love. Give me one that loves, and he feels what I say. The Father draws not by violent compulsion, but by imparting spiritual delight in Christ.",
+    theologicalNote:
+      "Divine effectual calling: 'Do not think you are drawn against your will; the mind is drawn by love.'",
+    voice: "Augustine of Hippo",
+    work: "Tractates on the Gospel of John (Tractate XXVI)",
+    tradition: "western-patristic",
+    citation: "NPNF 1/7, Tractate 26 on John 6:44",
+    url: "https://www.ccel.org/ccel/schaff/npnf107.ii.html",
+  },
+  {
+    verseRef: "JHN.6.44",
+    sourceId: "calvin-john",
+    excerpt:
+      "To come to Christ is not within the power of human free will. The human heart is blind and dead until the internal illumination and secret drawing of the Holy Spirit renovates our minds and bends our stubborn wills.",
+    theologicalNote:
+      "Monergistic regeneration: the human heart is blind and dead until the internal illumination of the Spirit draws it.",
+    voice: "John Calvin",
+    work: "Commentary on the Gospel According to John",
+    tradition: "reformed",
+    citation: "Calvin, Comm. John 6:44",
+    url: "https://www.ccel.org/ccel/calvin/calcom34.html",
+  },
+  {
+    verseRef: "JHN.6.44",
+    sourceId: "aquinas-catena-john",
+    excerpt:
+      "Chrysostom writes: Lest any should think the Son's power inferior to the Father's, He declares that coming requires the Father's drawing, and the Son raises him up at the last day. The drawing does not take away our will, but confers the desire.",
+    theologicalNote:
+      "Trinitarian harmony in the drawing of grace and eschatological resurrection.",
+    voice: "Thomas Aquinas",
+    work: "Catena Aurea on the Gospel of John",
+    tradition: "scholastic",
+    citation: "Aquinas, Catena Aurea on John 6:44",
+    url: "https://www.ccel.org/ccel/aquinas/catena4.html",
+  },
+  // John 14:6
+  {
+    verseRef: "JHN.14.6",
+    sourceId: "aquinas-catena-john",
+    excerpt:
+      "Augustine writes: Christ is the Way according to His humanity; He is the Truth and the Life according to His divinity. Following Him in His humanity, we arrive at His divinity; if you abide in the Way, you shall not err.",
+    theologicalNote:
+      "Christ as the Way in His humanity, the Truth and Life in His divinity.",
+    voice: "Thomas Aquinas",
+    work: "Catena Aurea on the Gospel of John",
+    tradition: "scholastic",
+    citation: "Aquinas, Catena Aurea on John 14:6",
+    url: "https://www.ccel.org/ccel/aquinas/catena4.html",
+  },
+  {
+    verseRef: "JHN.14.6",
+    sourceId: "calvin-john",
+    excerpt:
+      "Apart from Christ, all paths lead to destruction, all wisdom is falsehood, and all life is only eternal death. In Him alone is the full and true revelation of the Father, and through Him alone do we have access to God.",
+    theologicalNote:
+      "Apart from Christ, all paths lead to destruction; in Him alone is the full revelation of the Father.",
+    voice: "John Calvin",
+    work: "Commentary on the Gospel According to John",
+    tradition: "reformed",
+    citation: "Calvin, Comm. John 14:6",
+    url: "https://www.ccel.org/ccel/calvin/calcom34.html",
+  },
+  {
+    verseRef: "JHN.14.6",
+    sourceId: "augustine-john",
+    excerpt:
+      "Walk by the Man, and you arrive at God. It is much better to limp along the way than to run briskly off the way; for he who limps in the way, though he makes slow progress, draws nearer to his goal.",
+    theologicalNote:
+      "Christ's incarnate humanity as the sure way leading into the divine life.",
+    voice: "Augustine of Hippo",
+    work: "Tractates on the Gospel of John (Tractate LXIX)",
+    tradition: "western-patristic",
+    citation: "NPNF 1/7, Tractate 69 on John 14:6",
+    url: "https://www.ccel.org/ccel/schaff/npnf107.ii.html",
+  },
+  // John 19:30
+  {
+    verseRef: "JHN.19.30",
+    sourceId: "calvin-john",
+    excerpt:
+      "By this word Christ testifies that the whole work of our redemption is fulfilled and consummated. The righteousness of God is fully satisfied, the curse of the law is abolished, and the complete, all-sufficient sacrifice is offered, leaving no room for human satisfaction or supplementary merits.",
+    theologicalNote:
+      "The complete, all-sufficient sacrifice: redemption is consummated, leaving no room for human satisfaction.",
+    voice: "John Calvin",
+    work: "Commentary on the Gospel According to John",
+    tradition: "reformed",
+    citation: "Calvin, Comm. John 19:30",
+    url: "https://www.ccel.org/ccel/calvin/calcom34.html",
+  },
+  {
+    verseRef: "JHN.19.30",
+    sourceId: "augustine-john",
+    excerpt:
+      "All things that had been written concerning Him were finished. Having fulfilled all obedience, He bowed His head and gave up His spirit — not compelled by necessity, but laying down His life by sovereign authority.",
+    theologicalNote:
+      "Fulfillment of prophecy and Christ's sovereign, voluntary surrender of life.",
+    voice: "Augustine of Hippo",
+    work: "Tractates on the Gospel of John (Tractate CXIX)",
+    tradition: "western-patristic",
+    citation: "NPNF 1/7, Tractate 119 on John 19:30",
+    url: "https://www.ccel.org/ccel/schaff/npnf107.ii.html",
+  },
+  {
+    verseRef: "JHN.19.30",
+    sourceId: "aquinas-catena-john",
+    excerpt:
+      "Chrysostom writes: It is finished — that is, the prophecy was accomplished, sin expiated, and the devil vanquished. Christ died not in weakness, but as Lord of life and death, having accomplished all that the Father gave Him to do.",
+    theologicalNote:
+      "Triumphant consummation of the redemptive mission over sin and death.",
+    voice: "Thomas Aquinas",
+    work: "Catena Aurea on the Gospel of John",
+    tradition: "scholastic",
+    citation: "Aquinas, Catena Aurea on John 19:30",
+    url: "https://www.ccel.org/ccel/aquinas/catena4.html",
+  },
 ];
 
 export function curatedEntryToCard(entry: CuratedReceptionEntry): SourceCard {
@@ -1715,21 +2118,28 @@ export const PERICOPE_RANGES: PericopeRange[] = [
   { bookId: "MRK", chapter: 1, startVerse: 9, endVerse: 13, canonicalVerse: 11 },
   { bookId: "MRK", chapter: 1, startVerse: 14, endVerse: 15, canonicalVerse: 15 },
   { bookId: "MRK", chapter: 1, startVerse: 16, endVerse: 20, canonicalVerse: 17 },
+  { bookId: "MRK", chapter: 10, startVerse: 42, endVerse: 45, canonicalVerse: 45 },
+  { bookId: "MRK", chapter: 15, startVerse: 33, endVerse: 39, canonicalVerse: 34 },
   // Luke
   { bookId: "LUK", chapter: 1, startVerse: 26, endVerse: 38, canonicalVerse: 35 },
+  { bookId: "LUK", chapter: 1, startVerse: 46, endVerse: 55, canonicalVerse: 46 },
   { bookId: "LUK", chapter: 2, startVerse: 1, endVerse: 14, canonicalVerse: 14 },
+  { bookId: "LUK", chapter: 18, startVerse: 9, endVerse: 14, canonicalVerse: 13 },
+  { bookId: "LUK", chapter: 23, startVerse: 39, endVerse: 43, canonicalVerse: 42 },
   { bookId: "LUK", chapter: 24, startVerse: 25, endVerse: 32, canonicalVerse: 27 },
   // John
   { bookId: "JHN", chapter: 1, startVerse: 1, endVerse: 5, canonicalVerse: 1 },
   { bookId: "JHN", chapter: 1, startVerse: 11, endVerse: 14, canonicalVerse: 14 },
   { bookId: "JHN", chapter: 3, startVerse: 1, endVerse: 8, canonicalVerse: 3 },
   { bookId: "JHN", chapter: 3, startVerse: 16, endVerse: 21, canonicalVerse: 16 },
-  { bookId: "JHN", chapter: 6, startVerse: 35, endVerse: 44, canonicalVerse: 35 },
+  { bookId: "JHN", chapter: 6, startVerse: 35, endVerse: 40, canonicalVerse: 35 },
+  { bookId: "JHN", chapter: 6, startVerse: 41, endVerse: 51, canonicalVerse: 44 },
   { bookId: "JHN", chapter: 10, startVerse: 11, endVerse: 18, canonicalVerse: 11 },
   { bookId: "JHN", chapter: 10, startVerse: 27, endVerse: 30, canonicalVerse: 30 },
   { bookId: "JHN", chapter: 14, startVerse: 1, endVerse: 6, canonicalVerse: 6 },
   { bookId: "JHN", chapter: 15, startVerse: 1, endVerse: 8, canonicalVerse: 5 },
   { bookId: "JHN", chapter: 17, startVerse: 1, endVerse: 5, canonicalVerse: 3 },
+  { bookId: "JHN", chapter: 19, startVerse: 28, endVerse: 30, canonicalVerse: 30 },
   // Romans
   { bookId: "ROM", chapter: 1, startVerse: 16, endVerse: 17, canonicalVerse: 16 },
   { bookId: "ROM", chapter: 3, startVerse: 21, endVerse: 26, canonicalVerse: 24 },
