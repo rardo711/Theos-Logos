@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Loader2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
-import { askReception, gatherCommentaries, synthesizeFromCards } from "@/lib/reception/ask";
+import { gatherCommentaries, synthesizeFromCards } from "@/lib/reception/ask";
 import {
   additionalSourceCards,
   clearGeneratedNotesForChapter,
@@ -71,7 +71,7 @@ export function ReceptionPanel({
   const [question, setQuestion] = useState("");
   const [aimOpen, setAimOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [loadingKind, setLoadingKind] = useState<"commentaries" | "inquire" | "compare" | null>(null);
+  const [loadingKind, setLoadingKind] = useState<"commentaries" | "inquire" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ReceptionResult | null>(null);
   const [synthesis, setSynthesis] = useState<DeskSynthesis | null>(null);
@@ -110,87 +110,6 @@ export function ReceptionPanel({
       setResult(null);
     }
   }, [chapter, selectedVerse]);
-
-  async function run(mode: "reception" | "traditions") {
-    if (!chapter) return;
-    const focus = question.trim();
-    const emptyInquire = mode === "reception" && !focus;
-    const prior = resultRef.current;
-
-    // If empty inquire and we already have curated cards for this exact verse on desk, show them cleanly
-    if (emptyInquire && prior?.cards.length && prior.source === "curated") {
-      setError(null);
-      return;
-    }
-
-    setLoading(true);
-    setLoadingKind("compare");
-    setError(null);
-    setLexicon(null);
-    try {
-      const data = await askReception({
-        data: {
-          bookId: chapter.bookId,
-          bookName: chapter.bookName,
-          chapter: chapter.chapter,
-          verse: selectedVerse,
-          verseText: verse?.text ?? "",
-          passage: chapter.verses
-            .slice(0, 12)
-            .map((v) => `${v.verse} ${v.text}`)
-            .join("\n"),
-          question: focus || undefined,
-          mode,
-          locale,
-          haveCards:
-            (focus || mode === "traditions") && prior?.cards.length
-              ? prior.cards.map((c) => ({
-                  voice: c.voice,
-                  citation: c.citation,
-                  quote: c.quote,
-                  url: c.url,
-                }))
-              : undefined,
-        },
-      });
-
-      let next = data;
-      if (data.source === "curated") {
-        // Direct established primary sources addressing the question or verse
-        next = data;
-      } else if (prior && prior.cards.length > 0 && (mode === "traditions" || Boolean(focus))) {
-        const added = additionalSourceCards(prior.cards, data.cards);
-        if (!added.length && !data.cards.length) {
-          throw new Error("NO_MORE");
-        }
-        next = {
-          source: data.source,
-          cards: added.length ? [...prior.cards, ...added] : data.cards,
-          caution: data.caution ?? prior.caution,
-        };
-      }
-
-      setResult(next);
-      if (selectedVerse != null && next.cards.length) {
-        rememberReception(
-          chapter.bookId,
-          chapter.chapter,
-          selectedVerse,
-          next,
-        );
-        touchNotes();
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error && err.message === "NO_MORE"
-          ? t(locale, "noMore")
-          : t(locale, "receptionFailed"),
-      );
-    } finally {
-      setLoading(false);
-      setLoadingKind(null);
-    }
-  }
 
   async function runCommentaries() {
     if (!chapter) return;
@@ -258,9 +177,11 @@ export function ReceptionPanel({
     if (!chapter) return;
     const cards = resultRef.current?.cards ?? [];
     if (!cards.length) {
+      setAimOpen(true);
       setError(t(locale, "needCommentariesFirst"));
       return;
     }
+    setAimOpen(true);
     setLoading(true);
     setLoadingKind("inquire");
     setError(null);
@@ -566,39 +487,14 @@ export function ReceptionPanel({
                   : t(locale, "commentaries")}
               </button>
             </div>
-            <p className="mb-4 text-2xs leading-relaxed text-faint">
-              {t(locale, "inquireHint")}
-            </p>
-
-            {synthesis ? (
-              <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
-                <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  {t(locale, "synthesisFromDesk")}
-                </p>
-                {synthesis.question ? (
-                  <p className="mt-1 text-xs text-muted italic">{synthesis.question}</p>
-                ) : null}
-                <p className="mt-2 font-serif text-base leading-relaxed text-ink whitespace-pre-wrap">
-                  {synthesis.answer}
-                </p>
-                {synthesis.cited.length ? (
-                  <p className="mt-3 text-2xs tracking-wide text-faint">
-                    {synthesis.cited.join(" · ")}
-                  </p>
-                ) : null}
-              </article>
-            ) : null}
-
-            {loading ? (
+            {loading && loadingKind === "commentaries" ? (
               <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
                 <Loader2 size={14} className="animate-spin text-oxblood" />
-                {loadingKind === "inquire"
-                  ? t(locale, "synthesizing")
-                  : t(locale, "consulting")}
+                {t(locale, "consulting")}
               </p>
             ) : null}
 
-            {error ? (
+            {error && loadingKind === "commentaries" ? (
               <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
                 {error}
               </p>
@@ -714,26 +610,55 @@ export function ReceptionPanel({
                     placeholder={t(locale, "aimPlaceholder")}
                     className="w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-oxblood"
                   />
+                  <p className="mt-2 text-2xs leading-relaxed text-faint">
+                    {t(locale, "inquireHint")}
+                  </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       type="submit"
                       disabled={loading}
                       className="min-h-11 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
                     >
-                      {loading ? t(locale, "consultingShort") : t(locale, "inquire")}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={loading}
-                      onClick={() => void run("traditions")}
-                      className="min-h-11 rounded-md border border-rule px-4 text-xs font-semibold tracking-wide text-ink uppercase hover:border-ink/30 disabled:opacity-60"
-                    >
-                      {t(locale, "compare")}
+                      {loadingKind === "inquire"
+                        ? t(locale, "consultingShort")
+                        : t(locale, "inquire")}
                     </button>
                   </div>
                 </form>
               ) : null}
             </div>
+
+            {loading && loadingKind === "inquire" ? (
+              <p className="mt-4 mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
+                <Loader2 size={14} className="animate-spin text-oxblood" />
+                {t(locale, "synthesizing")}
+              </p>
+            ) : null}
+
+            {error && loadingKind !== "commentaries" ? (
+              <p className="mt-4 mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
+                {error}
+              </p>
+            ) : null}
+
+            {synthesis ? (
+              <article className="mt-4 mb-2 rounded-lg border border-rule bg-surface p-4 shadow-soft">
+                <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
+                  {t(locale, "synthesisFromDesk")}
+                </p>
+                {synthesis.question ? (
+                  <p className="mt-1 text-xs text-muted italic">{synthesis.question}</p>
+                ) : null}
+                <p className="mt-2 font-serif text-base leading-relaxed text-ink whitespace-pre-wrap">
+                  {synthesis.answer}
+                </p>
+                {synthesis.cited.length ? (
+                  <p className="mt-3 text-2xs tracking-wide text-faint">
+                    {synthesis.cited.join(" · ")}
+                  </p>
+                ) : null}
+              </article>
+            ) : null}
           </>
         )}
       </div>
