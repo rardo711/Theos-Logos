@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Loader2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
-import { askReception } from "@/lib/reception/ask";
+import { askReception, gatherCommentaries, synthesizeFromCards } from "@/lib/reception/ask";
 import {
   additionalSourceCards,
   clearGeneratedNotesForChapter,
@@ -16,7 +16,7 @@ import { removeCached, saveCached } from "@/lib/reception/cache";
 import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
 import { t } from "@/lib/i18n";
 import { localizeCaution } from "@/lib/i18n-sources";
-import type { Chapter, LexiconResult, ReceptionResult, SourceCard as Card } from "@/lib/bible/types";
+import type { Chapter, DeskSynthesis, LexiconResult, ReceptionResult, SourceCard as Card } from "@/lib/bible/types";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 import { SourceCard } from "./source-card";
@@ -71,8 +71,10 @@ export function ReceptionPanel({
   const [question, setQuestion] = useState("");
   const [aimOpen, setAimOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingKind, setLoadingKind] = useState<"commentaries" | "inquire" | "compare" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ReceptionResult | null>(null);
+  const [synthesis, setSynthesis] = useState<DeskSynthesis | null>(null);
   const resultRef = useRef<ReceptionResult | null>(null);
   resultRef.current = result;
   const [lexicon, setLexicon] = useState<LexiconResult | null>(null);
@@ -98,6 +100,8 @@ export function ReceptionPanel({
     setError(null);
     setQuestion("");
     setAimOpen(false);
+    setSynthesis(null);
+    setLoadingKind(null);
     if (chapter && selectedVerse != null) {
       setResult(getDeskNotes(chapter.bookId, chapter.chapter, selectedVerse));
     } else if (chapter) {
@@ -120,6 +124,7 @@ export function ReceptionPanel({
     }
 
     setLoading(true);
+    setLoadingKind("compare");
     setError(null);
     setLexicon(null);
     try {
@@ -183,6 +188,113 @@ export function ReceptionPanel({
       );
     } finally {
       setLoading(false);
+      setLoadingKind(null);
+    }
+  }
+
+  async function runCommentaries() {
+    if (!chapter) return;
+    const prior = resultRef.current;
+    setLoading(true);
+    setLoadingKind("commentaries");
+    setError(null);
+    setLexicon(null);
+    setSynthesis(null);
+    try {
+      const data = await gatherCommentaries({
+        data: {
+          bookId: chapter.bookId,
+          bookName: chapter.bookName,
+          chapter: chapter.chapter,
+          verse: selectedVerse,
+          verseText: verse?.text ?? "",
+          passage: chapter.verses
+            .slice(0, 12)
+            .map((v) => `${v.verse} ${v.text}`)
+            .join("\n"),
+          mode: "reception",
+          locale,
+          haveCards: prior?.cards.length
+            ? prior.cards.map((c) => ({
+                voice: c.voice,
+                citation: c.citation,
+                quote: c.quote,
+                url: c.url,
+              }))
+            : undefined,
+        },
+      });
+      const added = prior?.cards.length
+        ? additionalSourceCards(prior.cards, data.cards)
+        : data.cards;
+      const next: ReceptionResult = prior?.cards.length
+        ? {
+            source: added.length ? data.source : prior.source,
+            cards: added.length ? [...prior.cards, ...added] : prior.cards,
+            caution: data.caution ?? prior.caution,
+          }
+        : data;
+      if (prior?.cards.length && !added.length && !data.cards.length) {
+        throw new Error("NO_MORE");
+      }
+      setResult(next);
+      if (selectedVerse != null && next.cards.length) {
+        rememberReception(chapter.bookId, chapter.chapter, selectedVerse, next);
+        touchNotes();
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message === "NO_MORE"
+          ? t(locale, "noMore")
+          : t(locale, "receptionFailed"),
+      );
+    } finally {
+      setLoading(false);
+      setLoadingKind(null);
+    }
+  }
+
+  async function runInquire() {
+    if (!chapter) return;
+    const cards = resultRef.current?.cards ?? [];
+    if (!cards.length) {
+      setError(t(locale, "needCommentariesFirst"));
+      return;
+    }
+    setLoading(true);
+    setLoadingKind("inquire");
+    setError(null);
+    setLexicon(null);
+    try {
+      const data = await synthesizeFromCards({
+        data: {
+          bookName: chapter.bookName,
+          chapter: chapter.chapter,
+          verse: selectedVerse,
+          verseText: verse?.text ?? "",
+          question: question.trim() || undefined,
+          locale,
+          cards,
+        },
+      });
+      if (!data.answer) {
+        setError(data.caution || t(locale, "synthesisFailed"));
+        setSynthesis(null);
+        return;
+      }
+      setSynthesis({
+        question: data.question,
+        answer: data.answer,
+        cited: data.cited,
+      });
+      if (data.caution && resultRef.current) {
+        setResult({ ...resultRef.current, caution: data.caution });
+      }
+    } catch {
+      setError(t(locale, "synthesisFailed"));
+    } finally {
+      setLoading(false);
+      setLoadingKind(null);
     }
   }
 
@@ -442,10 +554,47 @@ export function ReceptionPanel({
               </article>
             ) : null}
 
+            <div className="mb-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => void runCommentaries()}
+                className="min-h-11 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
+              >
+                {loadingKind === "commentaries"
+                  ? t(locale, "consultingShort")
+                  : t(locale, "commentaries")}
+              </button>
+            </div>
+            <p className="mb-4 text-2xs leading-relaxed text-faint">
+              {t(locale, "inquireHint")}
+            </p>
+
+            {synthesis ? (
+              <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
+                <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
+                  {t(locale, "synthesisFromDesk")}
+                </p>
+                {synthesis.question ? (
+                  <p className="mt-1 text-xs text-muted italic">{synthesis.question}</p>
+                ) : null}
+                <p className="mt-2 font-serif text-base leading-relaxed text-ink whitespace-pre-wrap">
+                  {synthesis.answer}
+                </p>
+                {synthesis.cited.length ? (
+                  <p className="mt-3 text-2xs tracking-wide text-faint">
+                    {synthesis.cited.join(" · ")}
+                  </p>
+                ) : null}
+              </article>
+            ) : null}
+
             {loading ? (
               <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
                 <Loader2 size={14} className="animate-spin text-oxblood" />
-                {t(locale, "consulting")}
+                {loadingKind === "inquire"
+                  ? t(locale, "synthesizing")
+                  : t(locale, "consulting")}
               </p>
             ) : null}
 
@@ -552,7 +701,7 @@ export function ReceptionPanel({
                   className="pt-2 pb-4"
                   onSubmit={(e) => {
                     e.preventDefault();
-                    void run("reception");
+                    void runInquire();
                   }}
                 >
                   <label className="sr-only" htmlFor="ask-verse">
