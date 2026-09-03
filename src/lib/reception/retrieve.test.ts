@@ -51,6 +51,83 @@ describe("primary-source mapping", () => {
     assert.ok(ids.includes("calvin-colossians-1"), `expected calvin-colossians-1, got ${ids.join(",")}`);
   });
 
+  it("maps Colossians 1:15 to the hymn page, not only 1:24 sufferings", () => {
+    const hits = mapCatalog({
+      question: "image of the invisible God",
+      bookId: "COL",
+      chapter: 1,
+      verseText: "Who is the image of the invisible God, the firstborn of every creature",
+    });
+    const ids = hits.map((h) => h.id);
+    assert.ok(
+      ids.includes("calvin-colossians-1-hymn") || ids.includes("chrysostom-col-h3") || ids.includes("henry-colossians-1"),
+      `expected Col 1 hymn/chapter page, got ${ids.join(",")}`,
+    );
+    assert.ok(hits[0]?.books?.includes("COL"), `top hit must be Colossians, got ${ids.join(",")}`);
+  });
+
+  it("maps Colossians 2–4 to same-book chapter pages, not unbooked Christology", () => {
+    const cases = [
+      {
+        chapter: 2,
+        verseText: "See to it that no one takes you captive by philosophy and empty deceit",
+        ids: ["calvin-colossians-2", "henry-colossians-2"],
+      },
+      {
+        chapter: 3,
+        verseText: "For you have died, and your life is hidden with Christ in God",
+        ids: ["calvin-colossians-3", "henry-colossians-3"],
+      },
+      {
+        chapter: 4,
+        verseText: "Continue steadfastly in prayer, being watchful in it with thanksgiving",
+        ids: ["calvin-colossians-4", "henry-colossians-4"],
+      },
+    ];
+    for (const c of cases) {
+      const hits = mapCatalog({
+        question: c.chapter === 3 ? "hidden with Christ" : "",
+        bookId: "COL",
+        chapter: c.chapter,
+        verseText: c.verseText,
+      });
+      const ids = hits.map((h) => h.id);
+      for (const id of c.ids) {
+        assert.ok(ids.includes(id), `expected ${id} for COL ${c.chapter}, got ${ids.join(",")}`);
+      }
+      assert.ok(
+        hits[0]?.books?.includes("COL"),
+        `COL ${c.chapter} top hit must be Colossians, got ${ids.join(",")}`,
+      );
+      assert.equal(
+        ids.includes("irenaeus-ah-3-9") && ids.indexOf("irenaeus-ah-3-9") === 0,
+        false,
+        `Irenaeus must not lead COL ${c.chapter}, got ${ids.join(",")}`,
+      );
+    }
+  });
+
+  it("maps mid-book NT Henry chapter pages beyond the chapter-1 floor", () => {
+    const cases = [
+      { bookId: "1CO", chapter: 13, id: "henry-1corinthians-13" },
+      { bookId: "PHP", chapter: 2, id: "henry-philippians-2" },
+      { bookId: "MAT", chapter: 13, id: "henry-matthew-13" },
+    ];
+    for (const c of cases) {
+      const hits = mapCatalog({
+        question: "",
+        bookId: c.bookId,
+        chapter: c.chapter,
+        verseText: "Christ Jesus",
+      });
+      const ids = hits.map((h) => h.id);
+      assert.ok(ids.includes(c.id), `expected ${c.id}, got ${ids.join(",")}`);
+      const henry = hits.find((h) => h.id === c.id);
+      assert.ok(henry?.chapters?.includes(c.chapter));
+      assert.equal(/argument/i.test(henry?.locus ?? ""), false);
+    }
+  });
+
   it("maps Ephesians 1:3 to Calvin and Henry chapter pages, not only Argument", () => {
     const hits = mapCatalog({
       question: "",
@@ -394,6 +471,13 @@ describe("html extract", () => {
     const paras = pickParagraphs(paragraphsFromHtml(html), "predestination");
     assert.equal(paras.length, 1);
     assert.ok(paras[0].toLowerCase().includes("predestination"));
+  });
+
+  it("keeps the page extract when verse tokens miss", () => {
+    const html = `<p>Paul writes to the saints at Colossae concerning the preeminence of the Son and the fullness that dwells in him bodily, which the church receives as her head.</p>`;
+    const paras = pickParagraphs(paragraphsFromHtml(html), "philosophy empty deceit");
+    assert.equal(paras.length, 1);
+    assert.ok(paras[0].toLowerCase().includes("colossae"));
   });
 });
 

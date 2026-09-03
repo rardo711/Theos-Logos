@@ -28,7 +28,7 @@ function e(
   return { id, voice, work, tradition, locus, url, tags, books, chapters };
 }
 
-export const CATALOG: CatalogEntry[] = [
+const HAND: CatalogEntry[] = [
   // John — Gospel of the Word
   e("augustine-john-tr1", "Augustine", "Tractates on the Gospel of John 1", "patristic", "Tractate 1", "https://www.newadvent.org/fathers/1701001.htm", ["word", "logos", "beginning", "john", "incarnation"], ["JHN"], [1]),
   e("augustine-john-tr3", "Augustine", "Tractates on the Gospel of John 3", "patristic", "Tractate 3", "https://www.newadvent.org/fathers/1701003.htm", ["word", "light", "john", "witness"], ["JHN"], [1]),
@@ -171,7 +171,7 @@ export const CATALOG: CatalogEntry[] = [
 
   e("calvin-colossians", "John Calvin", "Commentary on Colossians", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom42/calcom42.v.i.html", ["colossians", "col", "paul", "calvin"], ["COL"]),
   e("henry-colossians", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Colossians intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Col.i.html", ["colossians", "col", "paul", "henry"], ["COL"]),
-  e("chrysostom-colossians", "John Chrysostom", "Homilies on Colossians 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/230301.htm", ["colossians", "col", "paul", "chrysostom"], ["COL"]),
+  e("chrysostom-colossians", "John Chrysostom", "Homilies on Colossians 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/230301.htm", ["colossians", "col", "paul", "chrysostom", "apostle"], ["COL"], [1]),
 
   e("calvin-1thessalonians", "John Calvin", "Commentary on 1 Thessalonians", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom42/calcom42.vi.ii.html", ["thessalonians", "paul", "calvin"], ["1TH"]),
   e("henry-1thessalonians", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "1 Thessalonians intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iTh.i.html", ["thessalonians", "paul", "henry"], ["1TH"]),
@@ -277,10 +277,21 @@ export const CATALOG: CatalogEntry[] = [
   e("henry-jude-1", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Jude", "https://ccel.org/ccel/henry/mhc6/mhc6.Ju.ii.html", ["jude", "henry", "ungodly", "faith"], ["JUD"], [1]),
   e("henry-revelation-1", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Revelation 1", "https://ccel.org/ccel/henry/mhc6/mhc6.Rev.ii.html", ["revelation", "henry", "apocalypse", "alpha"], ["REV"], [1]),
 
-  // Colossians 1 chapter pages so Col 1:24 scores (Calvin / Henry / Chrysostom)
+  // Colossians chapter pages — all four chapters, not only 1:24
+  e("calvin-colossians-1-open", "John Calvin", "Commentary on Colossians", "reformed", "Colossians 1:1–8", "https://ccel.org/ccel/calvin/calcom42/calcom42.v.ii.i.html", ["colossians", "col", "calvin", "apostle", "paul", "faith"], ["COL"], [1]),
+  e("calvin-colossians-1-hymn", "John Calvin", "Commentary on Colossians", "reformed", "Colossians 1:15–18", "https://ccel.org/ccel/calvin/calcom42/calcom42.v.ii.iii.html", ["colossians", "col", "calvin", "image", "invisible", "firstborn", "fullness", "dwell"], ["COL"], [1]),
   e("calvin-colossians-1", "John Calvin", "Commentary on Colossians", "reformed", "Colossians 1:24–29", "https://ccel.org/ccel/calvin/calcom42/calcom42.v.ii.vi.html", ["colossians", "col", "calvin", "sufferings", "afflictions", "church", "flesh"], ["COL"], [1]),
-  e("henry-colossians-1", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Colossians 1", "https://ccel.org/ccel/henry/mhc6/mhc6.Col.ii.html", ["colossians", "col", "henry", "sufferings", "afflictions", "church"], ["COL"], [1]),
+  e("henry-colossians-1", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Colossians 1", "https://ccel.org/ccel/henry/mhc6/mhc6.Col.ii.html", ["colossians", "col", "henry", "image", "firstborn", "fullness", "sufferings", "afflictions", "church"], ["COL"], [1]),
+  e("chrysostom-col-h3", "John Chrysostom", "Homilies on Colossians 3", "patristic", "Homily 3", "https://www.newadvent.org/fathers/230303.htm", ["colossians", "col", "chrysostom", "image", "invisible", "firstborn"], ["COL"], [1]),
   e("chrysostom-colossians-h4", "John Chrysostom", "Homilies on Colossians 4", "patristic", "Homily 4", "https://www.newadvent.org/fathers/230304.htm", ["colossians", "col", "chrysostom", "sufferings", "afflictions", "church", "flesh"], ["COL"], [1]),
+  e("calvin-colossians-2", "John Calvin", "Commentary on Colossians", "reformed", "Colossians 2:1", "https://ccel.org/ccel/calvin/calcom42/calcom42.v.iii.i.html", ["colossians", "col", "calvin", "philosophy", "deceit", "captive", "fullness"], ["COL"], [2]),
+  e("chrysostom-col-h6", "John Chrysostom", "Homilies on Colossians 6", "patristic", "Homily 6", "https://www.newadvent.org/fathers/230306.htm", ["colossians", "col", "chrysostom", "philosophy", "walk", "rooted"], ["COL"], [2]),
+  e("chrysostom-col-h7", "John Chrysostom", "Homilies on Colossians 7", "patristic", "Homily 7", "https://www.newadvent.org/fathers/230307.htm", ["colossians", "col", "chrysostom", "shadow", "body", "christ"], ["COL"], [2]),
+  e("calvin-colossians-3", "John Calvin", "Commentary on Colossians", "reformed", "Colossians 3:1", "https://ccel.org/ccel/calvin/calcom42/calcom42.v.iv.i.html", ["colossians", "col", "calvin", "hidden", "christ", "life", "above"], ["COL"], [3]),
+  e("chrysostom-col-h8", "John Chrysostom", "Homilies on Colossians 8", "patristic", "Homily 8", "https://www.newadvent.org/fathers/230308.htm", ["colossians", "col", "chrysostom", "hidden", "christ", "life"], ["COL"], [3]),
+  e("chrysostom-col-h9", "John Chrysostom", "Homilies on Colossians 9", "patristic", "Homily 9", "https://www.newadvent.org/fathers/230309.htm", ["colossians", "col", "chrysostom", "word", "sing", "peace"], ["COL"], [3]),
+  e("calvin-colossians-4", "John Calvin", "Commentary on Colossians", "reformed", "Colossians 4:1", "https://ccel.org/ccel/calvin/calcom42/calcom42.v.v.i.html", ["colossians", "col", "calvin", "prayer", "speech", "grace"], ["COL"], [4]),
+  e("chrysostom-col-h11", "John Chrysostom", "Homilies on Colossians 11", "patristic", "Homily 11", "https://www.newadvent.org/fathers/230311.htm", ["colossians", "col", "chrysostom", "prayer", "speech"], ["COL"], [4]),
 
   // Distinctive mid-book pages and sermons — not a per-chapter dump
   e("henry-hebrews-4", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Hebrews 4", "https://ccel.org/ccel/henry/mhc6/mhc6.Heb.v.html", ["hebrews", "henry", "word", "logos", "sword", "rest"], ["HEB"], [4]),
@@ -296,7 +307,76 @@ export const CATALOG: CatalogEntry[] = [
   e("luther-sermon-john-10", "Martin Luther", "Assorted Sermons", "lutheran", "John 10:1–11", "https://ccel.org/ccel/luther/sermons/sermons.viii.html", ["john", "shepherd", "door", "preaching", "luther"], ["JHN"], [10]),
   e("aquinas-catena-matthew-1", "Thomas Aquinas", "Catena Aurea on Matthew", "catholic", "Matthew 1", "https://www.ccel.org/ccel/aquinas/catena1.ii.i.html", ["matthew", "gospel", "aquinas", "thomas", "catena"], ["MAT"], [1]),
   e("owen-hebrews-6", "John Owen", "Nature and Causes of Apostasy from the Gospel", "reformed", "Hebrews 6:4–6", "https://ccel.org/ccel/owen/apostasy/apostasy.i.v.html", ["hebrews", "apostasy", "owen", "gospel"], ["HEB"], [6]),
-]
+];
+
+/** MHC chapter N is roman(N+1) because .i.html is the book intro. */
+const ROMAN = [
+  "", "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x",
+  "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx",
+  "xxi", "xxii", "xxiii", "xxiv", "xxv", "xxvi", "xxvii", "xxviii", "xxix",
+] as const;
+
+const HENRY_NT = [
+  ["matthew", "MAT", "Matt", "mhc5", "Matthew", 28],
+  ["mark", "MRK", "Mark", "mhc5", "Mark", 16],
+  ["luke", "LUK", "Luke", "mhc5", "Luke", 24],
+  ["john", "JHN", "John", "mhc5", "John", 21],
+  ["acts", "ACT", "Acts", "mhc6", "Acts", 28],
+  ["romans", "ROM", "Rom", "mhc6", "Romans", 16],
+  ["1corinthians", "1CO", "iCor", "mhc6", "1 Corinthians", 16],
+  ["2corinthians", "2CO", "iiCor", "mhc6", "2 Corinthians", 13],
+  ["galatians", "GAL", "Gal", "mhc6", "Galatians", 6],
+  ["ephesians", "EPH", "Eph", "mhc6", "Ephesians", 6],
+  ["philippians", "PHP", "Phi", "mhc6", "Philippians", 4],
+  ["colossians", "COL", "Col", "mhc6", "Colossians", 4],
+  ["1thessalonians", "1TH", "iTh", "mhc6", "1 Thessalonians", 5],
+  ["2thessalonians", "2TH", "iiTh", "mhc6", "2 Thessalonians", 3],
+  ["1timothy", "1TI", "iTim", "mhc6", "1 Timothy", 6],
+  ["2timothy", "2TI", "iiTim", "mhc6", "2 Timothy", 4],
+  ["titus", "TIT", "Tit", "mhc6", "Titus", 3],
+  ["philemon", "PHM", "Phm", "mhc6", "Philemon", 1],
+  ["hebrews", "HEB", "Heb", "mhc6", "Hebrews", 13],
+  ["james", "JAS", "Jam", "mhc6", "James", 5],
+  ["1peter", "1PE", "iPet", "mhc6", "1 Peter", 5],
+  ["2peter", "2PE", "iiPet", "mhc6", "2 Peter", 3],
+  ["1john", "1JN", "iJo", "mhc6", "1 John", 5],
+  ["2john", "2JN", "iiJo", "mhc6", "2 John", 1],
+  ["3john", "3JN", "iiiJo", "mhc6", "3 John", 1],
+  ["jude", "JUD", "Ju", "mhc6", "Jude", 1],
+  ["revelation", "REV", "Rev", "mhc6", "Revelation", 22],
+] as const;
+
+function henryNtChapters(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, slug, vol, name, chapters] of HENRY_NT) {
+    const tag = name.toLowerCase().replace(/^\d+\s+/, "");
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `henry-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      const file = ROMAN[ch + 1];
+      if (!file) continue;
+      out.push(
+        e(
+          id,
+          "Matthew Henry",
+          "Commentary on the Whole Bible",
+          "reformed",
+          `${name} ${ch}`,
+          `https://ccel.org/ccel/henry/${vol}/${vol}.${slug}.${file}.html`,
+          [tag, "henry"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+export const CATALOG: CatalogEntry[] = (() => {
+  const have = new Set(HAND.map((x) => x.id));
+  return [...HAND, ...henryNtChapters(have)];
+})();
 
 const STOP = new Set([
   "the", "and", "of", "to", "a", "in", "that", "is", "was", "he", "for", "it",
@@ -331,7 +411,7 @@ export function scoreEntry(
     if (voice.includes(t)) score += 5;
     if (work.includes(t)) score += 1;
   }
-  if (bookId && entry.books?.includes(bookId)) score += 3;
+  if (bookId && entry.books?.includes(bookId)) score += 8;
   if (
     bookId &&
     chapter != null &&
@@ -375,6 +455,9 @@ export function mapCatalog(opts: {
         entry.chapters?.includes(opts.chapter),
     );
   const hasChapterPage = ranked.some((r) => chapterMatch(r.entry));
+  const bookMatch = (entry: CatalogEntry) =>
+    Boolean(opts.bookId && entry.books?.includes(opts.bookId));
+  const hasBookPage = ranked.some((r) => bookMatch(r.entry));
 
   const consider = (r: { entry: CatalogEntry; score: number }) => {
     if (picked.length >= limit) return;
@@ -384,9 +467,21 @@ export function mapCatalog(opts: {
   };
 
   // Chapter pages first so Argument/intro rows are not the only hit.
+  // One page per voice here so three Calvin slices cannot crowd Henry out.
   if (hasChapterPage) {
     for (const r of ranked) {
-      if (chapterMatch(r.entry)) consider(r);
+      if (!chapterMatch(r.entry)) continue;
+      if (picked.length >= limit) break;
+      if (voices.has(r.entry.voice)) continue;
+      voices.add(r.entry.voice);
+      picked.push(r.entry);
+    }
+  }
+  // Same-book pages next so unbooked "christ/god" treatises cannot drown Colossians.
+  if (hasBookPage) {
+    for (const r of ranked) {
+      if (picked.some((e) => e.id === r.entry.id)) continue;
+      if (bookMatch(r.entry)) consider(r);
     }
   }
   for (const r of ranked) {

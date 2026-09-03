@@ -60,7 +60,7 @@ export function pickParagraphs(
 ): string[] {
   const tokens = tokenize(query);
   if (!tokens.length) return paragraphs.slice(0, limit);
-  return paragraphs
+  const hits = paragraphs
     .map((p) => {
       const lower = p.toLowerCase();
       let score = 0;
@@ -71,6 +71,9 @@ export function pickParagraphs(
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((x) => x.p);
+  // Same-book pages were already chosen; do not drop them when the verse
+  // wording is absent from the first extract window.
+  return hits.length ? hits : paragraphs.slice(0, limit);
 }
 
 function allowed(url: string): boolean {
@@ -265,16 +268,20 @@ export async function assembleFromSources(opts: {
   const locale: Locale = opts.locale === "es" ? "es" : "en";
   const caution = t(locale, "cautionRetrieved");
   const focused = Boolean(opts.question.trim());
+  const fallback = { cards: cardsFromExtracts(extracts), caution };
 
-  if (!geminiApiKey()) {
-    throw new Error("Reception is unavailable in this environment.");
+  if (!geminiApiKey()) return fallback;
+
+  try {
+    const text = await generateGeminiJson({
+      system: librarianSystem(locale, focused),
+      user: extractsPrompt(extracts, opts.focus, locale),
+      maxOutputTokens: 1600,
+    });
+    const cards = parseRetrieved(text);
+    return { cards: cards.length ? cards : fallback.cards, caution };
+  } catch {
+    return fallback;
   }
-
-  const text = await generateGeminiJson({
-    system: librarianSystem(locale, focused),
-    user: extractsPrompt(extracts, opts.focus, locale),
-    maxOutputTokens: 1600,
-  });
-  const cards = parseRetrieved(text);
-  return { cards, caution };
 }
+
