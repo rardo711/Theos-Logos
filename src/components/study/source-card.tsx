@@ -20,25 +20,25 @@ export function SourceCard({
     <article className="group rounded-lg border border-rule bg-surface p-4 shadow-soft tl-chapter">
       <header className="mb-3 flex items-baseline justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-display text-base font-semibold leading-tight text-ink">
-              {shown.voice}
-            </h3>
+          <h3 className="font-display text-base font-semibold leading-tight text-ink">
+            {shown.voice}
+          </h3>
+          <p className="mt-0.5 flex min-w-0 items-center gap-1.5">
+            <span className="truncate text-xs text-muted">{shown.work}</span>
             {card.grounded ? (
-              <span className="rounded bg-oxblood-soft px-1.5 py-0.5 text-3xs font-medium tracking-wider text-oxblood uppercase">
+              <span className="shrink-0 rounded px-1 py-px text-[9px] font-medium leading-4 tracking-wide text-oxblood uppercase">
                 {t(locale, "groundedBadge")}
               </span>
             ) : isGenerated ? (
-              <span className="rounded bg-faint/10 px-1.5 py-0.5 text-3xs font-medium tracking-wider text-muted uppercase">
+              <span className="shrink-0 rounded px-1 py-px text-[9px] font-medium leading-4 tracking-wide text-faint uppercase">
                 {t(locale, "generatedBadge")}
               </span>
             ) : (
-              <span className="rounded bg-faint/10 px-1.5 py-0.5 text-3xs font-medium tracking-wider text-muted uppercase">
+              <span className="shrink-0 rounded px-1 py-px text-[9px] font-medium leading-4 tracking-wide text-faint uppercase">
                 {t(locale, "curatedBadge")}
               </span>
             )}
-          </div>
-          <p className="mt-0.5 truncate text-xs text-muted">{shown.work}</p>
+          </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span
