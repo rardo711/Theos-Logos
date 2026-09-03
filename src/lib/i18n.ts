@@ -72,10 +72,18 @@ const EN = {
   deskNotes: "Desk notes",
   gathered: "Gathered sources",
   noNotesInquire:
-    "No desk notes for this verse yet. Inquire only if you want the librarian to gather named sources — not a homily.",
+    "No desk notes for this verse yet. Use Commentaries to gather named sources. Inquire then reads only those cards.",
   aim: "Aim the sources",
   aimPlaceholder: "Optional focus: eternity, incarnation…",
   inquire: "Inquire",
+  commentaries: "Commentaries on this verse",
+  inquireHint:
+    "Inquire answers from the cards already on this desk. It does not search the web.",
+  needCommentariesFirst:
+    "Gather commentaries first. Inquire only reads the cards already on this desk.",
+  synthesisFromDesk: "From the sources on this desk",
+  synthesizing: "Reading the desk notes…",
+  synthesisFailed: "The desk could not verify a grounded answer.",
   compare: "Compare",
   sources: "Sources",
   removeCard: "Remove card from desk",
@@ -197,10 +205,18 @@ const ES: { [K in keyof typeof EN]: string } = {
   deskNotes: "Notas de escritorio",
   gathered: "Fuentes reunidas",
   noNotesInquire:
-    "Aún no hay notas para este versículo. Pregunte solo si desea que el bibliotecario reúna fuentes nombradas — no una homilía.",
+    "Aún no hay notas para este versículo. Use Comentarios para reunir fuentes nombradas. Consultar después solo lee esas fichas.",
   aim: "Apuntar las fuentes",
   aimPlaceholder: "Enfoque opcional: eternidad, encarnación…",
   inquire: "Consultar",
+  commentaries: "Comentarios sobre este versículo",
+  inquireHint:
+    "Consultar responde desde las fichas ya reunidas en este escritorio. No busca en la red.",
+  needCommentariesFirst:
+    "Primero reúna comentarios. Consultar solo lee las fichas que ya están en el escritorio.",
+  synthesisFromDesk: "Desde las fuentes de este escritorio",
+  synthesizing: "Leyendo las notas del escritorio…",
+  synthesisFailed: "El escritorio no pudo verificar una respuesta fundamentada.",
   compare: "Comparar",
   sources: "Fuentes",
   removeCard: "Eliminar cita del escritorio",
