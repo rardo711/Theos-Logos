@@ -36,10 +36,12 @@ export interface SourceCard {
   tradition: Tradition;
   quote: string;
   note?: string;
+  contextBridge?: string;
   citation: string;
   paraphrased?: boolean;
   url?: string;
   source?: "curated" | "generated";
+  grounded?: boolean;
 }
 
 export interface ReceptionResult {

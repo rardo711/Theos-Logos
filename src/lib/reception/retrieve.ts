@@ -344,28 +344,90 @@ export async function retrieveExtracts(opts: {
   return found.filter((x): x is FetchedExtract => x != null);
 }
 
-function librarianSystem(locale: Locale, focused = false): string {
-  const notes =
-    locale === "es"
-      ? "Locale is es. Write note fields in Spanish. Quotes stay in the source language of the extract."
-      : "Locale is en. Write note fields in English. Quotes stay in the source language of the extract.";
-  const countRule = focused
-    ? "- Return 1 to 4 ADDITIONAL cards that uniquely answer the focus/question, different voices from a generic verse stack. Do not restate Augustine/Chrysostom/Calvin/Henry unless a quote uniquely answers. If the extracts only repeat that stack, return {\"cards\":[],\"caution\":\"No additional sources for that focus.\"}."
-    : "- 3 to 4 cards, different voices. Short quotes (1–3 sentences).";
-  return `You are a research librarian for Theos Logos. You fetch, verify, and organize. You do not own the theology.
+/**
+ * Deterministic Substring Guardrail
+ * Validates the model's extraction before it enters the UI state.
+ * Returns true if the quote (normalized, stripped of ellipses) is an exact substring
+ * of the original fetched text chunk.
+ */
+export function validateReceptionOutput(
+  response: { status?: string; quote?: string } | string,
+  originalChunk: string,
+): boolean {
+  const quote = typeof response === "string" ? response : response.quote;
+  const status = typeof response === "string" ? "valid" : (response.status ?? "valid");
+  if (status !== "valid" || !quote || !originalChunk) {
+    return false;
+  }
 
-Rules:
-- Return JSON only: {"cards":[{voice,work,tradition,quote,note,citation,paraphrased,url}],"caution":string}
-- tradition must be one of: patristic, reformed, lutheran, catholic, orthodox, confession, eastern-patristic, western-patristic, scholastic, puritan
-- Quote ONLY from the FETCHED EXTRACTS. If a wording is not in an extract, omit that card.
-- Never invent a citation or a URL. Use the extract's locus and url.
-- ADD cards aimed at the focus/question. Do not restate a generic Augustine/Chrysostom/Calvin/Westminster stack unless a quote uniquely answers the question.
-- paraphrased=false when the quote is taken verbatim (shortened only by ellipsis). paraphrased=true if you compress a sentence from the extract.
+  const normalize = (str: string) =>
+    str
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2014\u2013-]/g, " ")
+      .replace(/[.,;:!?]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+
+  const cleanChunk = normalize(originalChunk);
+  const cleanQuote = normalize(quote.replace(/\.\.\./g, " ").replace(/…/g, " "));
+
+  // If quote contains ellipsis bridging non-essential clauses, verify each segment
+  const segments = quote
+    .split(/\.\.\.|…/)
+    .map((s) => normalize(s))
+    .filter((s) => s.length >= 6);
+
+  if (segments.length > 1) {
+    return segments.every((seg) => cleanChunk.includes(seg));
+  }
+
+  return cleanChunk.includes(cleanQuote);
+}
+
+function librarianSystem(locale: Locale, focused = false): string {
+  const languageRule =
+    locale === "es"
+      ? "Language: Write 'context_bridge' in Spanish. The 'quote' field MUST remain in the verbatim source language of the text chunk."
+      : "Language: Write 'context_bridge' in English. The 'quote' field MUST remain in the verbatim source language of the text chunk.";
+
+  const countRule = focused
+    ? "- Return 1 to 4 ADDITIONAL cards that uniquely answer the focus/question, different voices from a generic verse stack. If the extracts only repeat that stack or do not treat the question, return {\"cards\":[],\"caution\":\"No additional sources for that focus.\"}"
+    : "- Return 2 to 4 cards, different voices. Short verbatim quotes (1–3 sentences).";
+
+  return `You are a historical-theological reception extraction engine for the New Testament in Theos Logos. Your sole duty is to extract verbatim primary source quotations from the provided text chunk(s) that explicitly cite, expound, or comment upon the specified target verse.
+
+STRICT OPERATIONAL RULES:
+1. REJECTION CRITERIA:
+   - If a provided text chunk DOES NOT directly quote, reference, or expound the specific target verse/pericope, set "status" to "rejected" and provide a brief "rejection_reason".
+   - Merely sharing a general theological theme (e.g., grace, election, faith, will, sin) or expounding an unrelated cross-reference (e.g., James 1 instead of Romans 9) requires immediate rejection.
+2. ZERO PARAMETRIC RECALL:
+   - You have no external memory. Work exclusively from the characters inside "TEXT CHUNK". Do not correct archaic spelling, modernize phrasing, or introduce outside sentences.
+3. VERBATIM EXTRACTION:
+   - The "quote" field must be an exact, character-for-character substring of "TEXT CHUNK". Ellipses (...) may only bridge non-essential clauses within that exact chunk.
+4. CONTEXT BRIDGE:
+   - The "context_bridge" must be strictly one concise sentence summarizing how the author applies or interprets the specific target verse in context.
+5. STRICT JSON OUTPUT:
+   - Return valid JSON matching this schema:
+   {
+     "cards": [
+       {
+         "status": "valid" | "rejected",
+         "rejection_reason": string,
+         "voice": string,
+         "work": string,
+         "tradition": "patristic" | "reformed" | "lutheran" | "catholic" | "orthodox" | "confession" | "eastern-patristic" | "western-patristic" | "scholastic" | "puritan",
+         "quote": string,
+         "context_bridge": string,
+         "citation": string,
+         "url": string
+       }
+     ],
+     "caution": string
+   }
 - ${countRule}
-- Separate an author's own words from later interpretation. Label interpretation in note.
-- No homily. No application. No celebrity pastors.
-- ${notes}
-- If the extracts do not treat the term as subject, return {"cards":[],"caution":"..."}.`;
+- ${languageRule}`;
 }
 
 export function extractsPrompt(
@@ -380,20 +442,23 @@ export function extractsPrompt(
     const body = cleanParas
       .slice(0, 4)
       .map((p, n) => `(${n + 1}) ${p}`)
-      .join("\n");
+      .join("\n\n");
     return [
-      `EXTRACT ${i + 1}`,
+      `=== SOURCE METADATA (${i + 1}) ===`,
       `voice: ${ex.entry.voice}`,
       `work: ${ex.entry.work}`,
       `tradition: ${ex.entry.tradition}`,
       `locus: ${ex.entry.locus}`,
       `url: ${ex.url}`,
+      `TEXT CHUNK:`,
+      `"""`,
       body,
+      `"""`,
     ].join("\n");
   });
   const localeLine =
     locale === "es"
-      ? "Locale: es. Write note fields in Spanish. Quotes stay in the source language of the extract."
+      ? "Locale: es. Write context_bridge in Spanish. Quotes stay in the source language of the extract."
       : "Locale: en.";
   return [focus, localeLine, "", ...blocks].join("\n\n");
 }
@@ -418,6 +483,7 @@ function cardsFromExtracts(extracts: FetchedExtract[]): SourceCard[] {
       paraphrased: false,
       url: ex.url,
       source: "generated",
+      grounded: true,
     });
     if (cards.length >= 4) break;
   }
@@ -437,33 +503,72 @@ const TRADITIONS = new Set<Tradition>([
   "puritan",
 ]);
 
-export function parseRetrieved(raw: string): SourceCard[] {
+export function parseRetrieved(
+  raw: string,
+  extracts?: FetchedExtract[],
+): SourceCard[] {
   const start = raw.indexOf("{");
   const end = raw.lastIndexOf("}");
   if (start < 0 || end <= start) return [];
   try {
     const parsed = JSON.parse(raw.slice(start, end + 1)) as {
-      cards?: Array<Partial<SourceCard>>;
+      cards?: Array<{
+        status?: string;
+        rejection_reason?: string;
+        voice?: string;
+        work?: string;
+        tradition?: string;
+        quote?: string;
+        context_bridge?: string;
+        note?: string;
+        citation?: string;
+        paraphrased?: boolean;
+        url?: string;
+      }>;
     };
     if (!Array.isArray(parsed.cards)) return [];
+
+    const allChunkText = (extracts ?? [])
+      .flatMap((e) => e.paragraphs)
+      .join(" \n\n ");
+
     const cards: SourceCard[] = [];
     for (const c of parsed.cards) {
+      if (c.status === "rejected") continue;
       if (!c.voice || !c.quote || !c.citation) continue;
+
       const quoteStr = String(c.quote).trim();
       if (isBoilerplate(quoteStr) || !isSubstantiveQuote(quoteStr)) continue;
+
+      // Deterministic Substring Guardrail:
+      // Verify quote is a verbatim substring of the retrieved chunk
+      if (
+        allChunkText &&
+        !validateReceptionOutput({ status: "valid", quote: quoteStr }, allChunkText)
+      ) {
+        continue;
+      }
+
       const tradition = TRADITIONS.has(c.tradition as Tradition)
         ? (c.tradition as Tradition)
         : "patristic";
+
+      const contextBridge = c.context_bridge
+        ? String(c.context_bridge).slice(0, 320)
+        : undefined;
+
       cards.push({
         voice: String(c.voice).slice(0, 80),
         work: String(c.work ?? "").slice(0, 120),
         tradition,
         quote: truncateAtSentence(quoteStr, 600),
-        note: c.note ? String(c.note).slice(0, 280) : undefined,
+        note: c.note ? String(c.note).slice(0, 280) : contextBridge,
+        contextBridge,
         citation: String(c.citation).slice(0, 220),
-        paraphrased: Boolean(c.paraphrased),
+        paraphrased: false,
         url: c.url ? String(c.url).slice(0, 240) : undefined,
         source: "generated",
+        grounded: true,
       });
       if (cards.length >= 5) break;
     }
@@ -504,16 +609,21 @@ export async function assembleFromSources(opts: {
     const text = await generateGeminiJson({
       system: librarianSystem(locale, focused),
       user: extractsPrompt(extracts, opts.focus, locale),
+      temperature: 0.0,
       maxOutputTokens: 1600,
     });
-    const cards = parseRetrieved(text);
+    const cards = parseRetrieved(text, extracts);
     return {
       cards: cards.length ? cards : fallback.cards,
       caution: !cards.length && focused
         ? (locale === "es"
             ? "No se encontraron citas en las fuentes primarias recuperadas que respondan directamente a su consulta."
             : "No direct quotations found in the retrieved primary sources that address this inquiry.")
-        : caution,
+        : !cards.length
+          ? (locale === "es"
+              ? "No hay comentarios históricos verificados indexados para este versículo todavía."
+              : "No verified historical commentary indexed for this verse yet.")
+          : caution,
     };
   } catch {
     return fallback;

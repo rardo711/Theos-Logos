@@ -24,11 +24,19 @@ export function SourceCard({
             <h3 className="font-display text-base font-semibold leading-tight text-ink">
               {shown.voice}
             </h3>
-            {isGenerated ? (
+            {card.grounded ? (
+              <span className="rounded bg-oxblood-soft px-1.5 py-0.5 text-3xs font-medium tracking-wider text-oxblood uppercase">
+                {t(locale, "groundedBadge")}
+              </span>
+            ) : isGenerated ? (
               <span className="rounded bg-faint/10 px-1.5 py-0.5 text-3xs font-medium tracking-wider text-muted uppercase">
                 {t(locale, "generatedBadge")}
               </span>
-            ) : null}
+            ) : (
+              <span className="rounded bg-faint/10 px-1.5 py-0.5 text-3xs font-medium tracking-wider text-muted uppercase">
+                {t(locale, "curatedBadge")}
+              </span>
+            )}
           </div>
           <p className="mt-0.5 truncate text-xs text-muted">{shown.work}</p>
         </div>
@@ -56,10 +64,15 @@ export function SourceCard({
           ) : null}
         </div>
       </header>
+      {shown.contextBridge ? (
+        <p className="mb-2 text-xs leading-relaxed text-muted font-sans">
+          {shown.contextBridge}
+        </p>
+      ) : null}
       <blockquote className="rounded-sm border-l-[3px] border-oxblood bg-oxblood-soft/60 py-2.5 pr-3 pl-3 font-serif text-base leading-relaxed text-ink italic">
         “{shown.quote}”
       </blockquote>
-      {shown.note ? (
+      {shown.note && shown.note !== shown.contextBridge ? (
         <p className="mt-2.5 text-sm leading-relaxed text-muted">{shown.note}</p>
       ) : null}
       <p className="mt-3 text-2xs tracking-wide text-faint">

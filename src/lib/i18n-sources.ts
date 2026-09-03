@@ -173,6 +173,9 @@ export function localizeCard(card: SourceCard, locale: Locale): SourceCard {
     work: localizeTitle(card.work, locale),
     citation: localizeTitle(card.citation, locale),
     note: card.note ? localizeTitle(card.note, locale) : card.note,
+    contextBridge: card.contextBridge
+      ? localizeTitle(card.contextBridge, locale)
+      : card.contextBridge,
   };
 }
 

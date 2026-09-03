@@ -474,6 +474,8 @@ const HAND: CatalogEntry[] = [
   e("calvin-matt-1", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Matthew 1", "https://ccel.org/ccel/calvin/calcom31/calcom31.ii.i.html", ["matthew", "son", "david", "calvin"], ["MAT"], [1]),
   e("calvin-rom-8", "John Calvin", "Commentary on Romans", "reformed", "Romans 8", "https://ccel.org/ccel/calvin/calcom38/calcom38.xii.i.html", ["spirit", "adoption", "predestination", "romans", "calvin"], ["ROM"], [8]),
   e("calvin-rom-9", "John Calvin", "Commentary on Romans", "reformed", "Romans 9", "https://ccel.org/ccel/calvin/calcom38/calcom38.xiii.i.html", ["election", "reprobation", "mercy", "romans", "calvin"], ["ROM"], [9]),
+  e("chrysostom-rom-h16", "John Chrysostom", "Homilies on Romans 16", "patristic", "Homily 16", "https://www.newadvent.org/fathers/210216.htm", ["election", "mercy", "will", "potter", "romans", "chrysostom"], ["ROM"], [9]),
+  e("augustine-enchiridion-rom9", "Augustine", "Enchiridion", "patristic", "Enchiridion 98", "https://www.newadvent.org/fathers/1302.htm", ["mercy", "will", "romans", "predestination", "augustine"], ["ROM"], [9]),
   e("henry-gen-1", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Genesis 1", "https://ccel.org/ccel/henry/mhc1/mhc1.Gen.ii.html", ["creation", "beginning", "genesis", "henry"], ["GEN"], [1]),
   e("henry-rom-9", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Romans 9", "https://ccel.org/ccel/henry/mhc5/mhc5.Rom.ix.html", ["election", "mercy", "romans", "henry"], ["ROM"], [9]),
   e("basil-hexaemeron-1", "Basil of Caesarea", "Hexaemeron, Homily 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/32011.htm", ["creation", "beginning", "genesis", "basil"], ["GEN"], [1]),
@@ -827,6 +829,7 @@ export function scoreEntry(
   tokens: string[],
   bookId?: string,
   chapter?: number,
+  questionTokens?: string[],
 ): number {
   // Declared books that are not the inquired book cannot drown REV / 1JN / 2JN / 3JN / HEB.
   if (bookId && entry.books?.length && !entry.books.includes(bookId)) {
@@ -844,6 +847,21 @@ export function scoreEntry(
   // They must not match mid-book chapters (> 1).
   if (chapter != null && chapter > 1 && isBookIntro(entry)) {
     return 0;
+  }
+  // Unscoped dogmatic / topical treatises (no books specified):
+  // When a specific biblical book is inquired, unscoped treatises must NEVER match purely based
+  // on coincidental English words in the verse text (e.g., "will", "grace", "faith", "sin").
+  // They may only match if the user explicitly queried the author, work, or topic in questionTokens.
+  if (bookId && (!entry.books || entry.books.length === 0)) {
+    const qToks = questionTokens ?? [];
+    if (!qToks.length) return 0;
+    const hasExplicitQueryHit = qToks.some(
+      (t) =>
+        entry.voice.toLowerCase().includes(t) ||
+        entry.tags.includes(t) ||
+        entry.work.toLowerCase().includes(t),
+    );
+    if (!hasExplicitQueryHit) return 0;
   }
   // Multi-book general treatises without chapters (e.g. Adv. Haer. with books: ["JHN", "MAT", "MRK", "LUK"])
   // must not match mid-book chapters (> 1) unless explicit tokens hit.
@@ -903,6 +921,7 @@ export function mapCatalog(opts: {
   limit?: number;
 }): CatalogEntry[] {
   const limit = opts.limit ?? 5;
+  const questionTokens = tokenize(opts.question);
   const tokens = tokenize(
     [opts.question, opts.verseText, opts.bookId, String(opts.chapter ?? "")].join(
       " ",
@@ -910,7 +929,7 @@ export function mapCatalog(opts: {
   );
   const ranked = CATALOG.map((entry) => ({
     entry,
-    score: scoreEntry(entry, tokens, opts.bookId, opts.chapter),
+    score: scoreEntry(entry, tokens, opts.bookId, opts.chapter, questionTokens),
   }))
     .filter((r) => r.score > 0)
     .sort((a, b) => b.score - a.score);

@@ -6,6 +6,7 @@ import {
   paragraphsFromHtml,
   pickParagraphs,
   parseRetrieved,
+  validateReceptionOutput,
 } from "./retrieve.ts";
 
 describe("primary-source mapping", () => {
@@ -836,6 +837,135 @@ describe("systemic boilerplate and landing page rejection", () => {
         `Argument entry ${r.id} leaked into mid-book chapter query!`,
       );
     }
+  });
+
+  it("verifies validateReceptionOutput enforces strict deterministic substring matching", () => {
+    const chunk = "It is not therefore of him that willeth, nor of him that runneth, but of God that showeth mercy; not because man cannot will and run, but because God prepares the will.";
+    
+    // Exact match
+    assert.equal(
+      validateReceptionOutput(
+        { status: "valid", quote: "It is not therefore of him that willeth, nor of him that runneth, but of God that showeth mercy" },
+        chunk,
+      ),
+      true,
+    );
+
+    // Ellipsis bridge
+    assert.equal(
+      validateReceptionOutput(
+        { status: "valid", quote: "It is not therefore of him that willeth... but of God that showeth mercy" },
+        chunk,
+      ),
+      true,
+    );
+
+    // Rejection when status is rejected
+    assert.equal(
+      validateReceptionOutput(
+        { status: "rejected", quote: "It is not therefore of him that willeth" },
+        chunk,
+      ),
+      false,
+    );
+
+    // Rejection when quote is hallucinated/not in chunk (e.g. from James 1 or other sources)
+    assert.equal(
+      validateReceptionOutput(
+        { status: "valid", quote: "Let no man say when he is tempted, I am tempted of God" },
+        chunk,
+      ),
+      false,
+    );
+  });
+
+  it("parses retrieved response and filters hallucinated extracts with parseRetrieved", () => {
+    const mockExtracts = [
+      {
+        entry: {
+          id: "augustine-enchiridion-rom9",
+          voice: "Augustine",
+          work: "Enchiridion",
+          tradition: "patristic" as const,
+          locus: "Enchiridion 98",
+          url: "https://www.newadvent.org/fathers/1302.htm",
+          tags: ["election"],
+        },
+        url: "https://www.newadvent.org/fathers/1302.htm",
+        paragraphs: [
+          "It is not therefore of him that willeth, nor of him that runneth, but of God that showeth mercy; not because man cannot will and run, but because God prepares the will and grants the strength.",
+        ],
+      },
+    ];
+
+    const modelResponseWithHallucination = JSON.stringify({
+      cards: [
+        {
+          status: "valid",
+          voice: "Augustine",
+          work: "Enchiridion",
+          tradition: "patristic",
+          quote: "It is not therefore of him that willeth, nor of him that runneth, but of God that showeth mercy.",
+          context_bridge: "Augustine explains that human willing is prepared and sustained by divine mercy.",
+          citation: "Enchiridion 98",
+          url: "https://www.newadvent.org/fathers/1302.htm",
+        },
+        {
+          status: "valid",
+          voice: "Augustine",
+          work: "On Grace and Free Will",
+          tradition: "patristic",
+          quote: "Let no man say when he is tempted, I am tempted of God: for God cannot be tempted with evil.",
+          context_bridge: "Augustine addresses free will citing James 1.",
+          citation: "De gratia 2",
+          url: "https://www.newadvent.org/fathers/1503.htm",
+        },
+        {
+          status: "rejected",
+          rejection_reason: "Irrelevant cross-reference",
+          voice: "Pelagius",
+          quote: "Man is able to do all good by free choice.",
+          citation: "Letter to Demetrias",
+        },
+      ],
+      caution: "Verified public extract.",
+    });
+
+    const parsedCards = parseRetrieved(modelResponseWithHallucination, mockExtracts);
+    // Only the genuine grounded quote from Enchiridion 98 should pass; the James quote and rejected quote are filtered
+    assert.equal(parsedCards.length, 1);
+    assert.equal(parsedCards[0].voice, "Augustine");
+    assert.equal(parsedCards[0].work, "Enchiridion");
+    assert.equal(parsedCards[0].grounded, true);
+    assert.ok(parsedCards[0].contextBridge?.includes("divine mercy"));
+  });
+
+  it("isolates Romans 9:16 from topical unbooked treatises like De gratia et libero arbitrio", () => {
+    const hits = mapCatalog({
+      question: "",
+      bookId: "ROM",
+      chapter: 9,
+      verseText: "So then it depends not on human will or exertion, but on God, who has mercy.",
+    });
+
+    const ids = hits.map((h) => h.id);
+    assert.ok(!ids.includes("augustine-grace-freewill"), "augustine-grace-freewill must NOT match Romans 9!");
+    assert.ok(ids.includes("chrysostom-rom-h16"), "Must match Chrysostom Homily 16 on Romans 9");
+    assert.ok(ids.includes("augustine-enchiridion-rom9"), "Must match Augustine Enchiridion 98 on Romans 9:16");
+    assert.ok(ids.includes("calvin-rom-9"), "Must match Calvin Romans 9");
+    assert.ok(ids.includes("henry-rom-9") || ids.includes("henry-romans-9"), "Must match Matthew Henry Romans 9");
+  });
+
+  it("serves verified historical curated cards for Romans 9:16", async () => {
+    const { getCurated } = await import("./curated.ts");
+    const desk = getCurated("ROM", 9, 16);
+    assert.ok(desk && desk.cards.length >= 4);
+
+    const voices = desk.cards.map((c) => c.voice);
+    assert.ok(voices.includes("Augustine"));
+    assert.ok(voices.includes("John Chrysostom"));
+    assert.ok(voices.includes("John Calvin"));
+    assert.ok(voices.includes("Matthew Henry"));
   });
 });
 
