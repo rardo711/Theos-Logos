@@ -3,6 +3,7 @@ import { t } from "@/lib/i18n";
 import { canInstallPwa, installPwa, subscribePwa } from "@/lib/pwa";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
+import { useSlidingPill } from "./sliding-pill";
 
 export function TypeMenu() {
   const open = useStudy((s) => s.typeOpen);
@@ -14,6 +15,8 @@ export function TypeMenu() {
   const locale = useStudy((s) => s.locale);
   const setLocale = useStudy((s) => s.setLocale);
   const [installable, setInstallable] = useState(false);
+  const [localeRef, localeInk] = useSlidingPill(locale, open);
+  const [lampRef, lampInk] = useSlidingPill(theme, open);
 
   useEffect(() => {
     const sync = () => setInstallable(canInstallPwa());
@@ -28,6 +31,7 @@ export function TypeMenu() {
     { id: "dark" as const, label: t(locale, "night") },
     { id: "auto" as const, label: t(locale, "auto") },
   ];
+  const rangeP = `${((fontSize - 16) / 12) * 100}%`;
 
   return (
     <>
@@ -36,7 +40,12 @@ export function TypeMenu() {
         aria-label={t(locale, "closeAppearance")}
         onClick={() => setOpen(false)}
       />
-      <div className="absolute top-[calc(100%+6px)] left-0 z-50 w-72 rounded-lg border border-rule bg-surface p-4 shadow-soft">
+      <div
+        className="tl-menu absolute top-[calc(100%+6px)] left-0 z-50 w-72 rounded-lg border border-rule bg-surface p-4 shadow-soft"
+        data-open="true"
+        role="dialog"
+        aria-label={t(locale, "theDesk")}
+      >
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-0.5 rounded-t-lg bg-oxblood"
@@ -52,7 +61,7 @@ export function TypeMenu() {
         <div className="mb-1 flex items-center gap-2">
           <button
             type="button"
-            className="flex size-11 items-center justify-center text-sm text-muted"
+            className="flex size-11 items-center justify-center text-sm text-muted transition-[color,transform] duration-150 ease-out hover:text-ink active:scale-[0.96]"
             onClick={() => setFontSize(fontSize - 2)}
             aria-label={t(locale, "smaller")}
           >
@@ -65,11 +74,13 @@ export function TypeMenu() {
             step={2}
             value={fontSize}
             onChange={(e) => setFontSize(Number(e.target.value))}
-            className="w-full accent-oxblood"
+            className="tl-range"
+            style={{ ["--range-p" as string]: rangeP }}
+            aria-label={t(locale, "scriptureSize")}
           />
           <button
             type="button"
-            className="font-display flex size-11 items-center justify-center text-lg text-ink"
+            className="font-display flex size-11 items-center justify-center text-lg text-ink transition-transform duration-150 ease-out active:scale-[0.96]"
             onClick={() => setFontSize(fontSize + 2)}
             aria-label={t(locale, "larger")}
           >
@@ -97,7 +108,18 @@ export function TypeMenu() {
         <p className="mb-2 mt-4 text-xs font-medium text-muted">
           {t(locale, "scripture")}
         </p>
-        <div className="mb-4 flex rounded-md border border-rule p-0.5">
+        <div
+          ref={localeRef}
+          className="relative mb-4 flex overflow-hidden rounded-md border border-rule p-0.5"
+        >
+          <span
+            className="tl-seg-ink"
+            data-ready={localeInk.ready ? "true" : "false"}
+            style={{
+              width: localeInk.w,
+              transform: `translateX(${localeInk.x}px)`,
+            }}
+          />
           {(
             [
               ["en", t(locale, "english")],
@@ -107,11 +129,12 @@ export function TypeMenu() {
             <button
               key={id}
               type="button"
+              data-active={locale === id ? "true" : undefined}
               onClick={() => setLocale(id)}
               className={cn(
-                "min-h-11 flex-1 rounded-xs text-xs font-semibold",
+                "relative z-10 min-h-11 flex-1 rounded-xs text-xs font-semibold transition-colors duration-150 ease-out",
                 locale === id
-                  ? "bg-oxblood text-oxblood-fg"
+                  ? "text-oxblood-fg"
                   : "text-muted hover:text-ink",
               )}
             >
@@ -121,16 +144,28 @@ export function TypeMenu() {
         </div>
 
         <p className="mb-2 text-xs font-medium text-muted">{t(locale, "lamp")}</p>
-        <div className="flex rounded-md border border-rule p-0.5">
+        <div
+          ref={lampRef}
+          className="relative flex overflow-hidden rounded-md border border-rule p-0.5"
+        >
+          <span
+            className="tl-seg-ink"
+            data-ready={lampInk.ready ? "true" : "false"}
+            style={{
+              width: lampInk.w,
+              transform: `translateX(${lampInk.x}px)`,
+            }}
+          />
           {lamps.map((lamp) => (
             <button
               key={lamp.id}
               type="button"
+              data-active={theme === lamp.id ? "true" : undefined}
               onClick={() => setTheme(lamp.id)}
               className={cn(
-                "min-h-11 flex-1 rounded-xs text-xs font-semibold",
+                "relative z-10 min-h-11 flex-1 rounded-xs text-xs font-semibold transition-colors duration-150 ease-out",
                 theme === lamp.id
-                  ? "bg-oxblood text-oxblood-fg"
+                  ? "text-oxblood-fg"
                   : "text-muted hover:text-ink",
               )}
             >
@@ -147,7 +182,7 @@ export function TypeMenu() {
                 if (ok) setOpen(false);
               });
             }}
-            className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md bg-oxblood px-3 text-xs font-semibold tracking-[0.12em] text-oxblood-fg uppercase"
+            className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md bg-oxblood px-3 text-xs font-semibold tracking-[0.12em] text-oxblood-fg uppercase transition-transform duration-150 ease-out active:scale-[0.96]"
           >
             {t(locale, "install")}
           </button>

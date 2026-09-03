@@ -450,14 +450,14 @@ export function VerseHint({
   if (selected == null || receptionOpen || receptionPinned) return null;
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-      <div className="pointer-events-auto flex items-center gap-1 rounded-md border border-rule bg-surface px-1.5 py-1 shadow-soft">
+      <div className="tl-hint pointer-events-auto flex items-center gap-1 rounded-md border border-rule bg-surface px-1.5 py-1 shadow-soft">
         <span className="px-2.5 font-serif text-sm font-medium text-oxblood tabular-nums">
           {selected}
         </span>
         <button
           type="button"
           onClick={onInquire}
-          className="rounded-sm bg-oxblood px-4 py-2.5 text-xs font-semibold tracking-[0.12em] text-oxblood-fg uppercase"
+          className="rounded-sm bg-oxblood px-4 py-2.5 text-xs font-semibold tracking-[0.12em] text-oxblood-fg uppercase transition-transform duration-150 ease-out active:scale-[0.96]"
         >
           {noted ? t(locale, "deskNotes") : t(locale, "sources")}
         </button>

@@ -15,7 +15,7 @@ export function Wordmark({
       <span
         aria-hidden
         className={cn(
-          "relative flex size-9 shrink-0 items-center justify-center overflow-hidden bg-oxblood text-oxblood-fg",
+          "relative flex size-9 shrink-0 items-center justify-center overflow-hidden bg-oxblood text-oxblood-fg transition-[box-shadow] duration-200 ease-out",
           active && "ring-1 ring-oxblood/50",
         )}
         style={{ borderRadius: 5 }}

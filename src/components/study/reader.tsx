@@ -28,6 +28,38 @@ function neighbor(
   return null;
 }
 
+function animateScrollToTop(
+  el: HTMLElement,
+  anim: { id: number | null },
+) {
+  if (anim.id != null) cancelAnimationFrame(anim.id);
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) {
+    el.scrollTop = 0;
+    anim.id = null;
+    return;
+  }
+  const start = el.scrollTop;
+  if (start <= 0) {
+    anim.id = null;
+    return;
+  }
+  const t0 = performance.now();
+  const dur = 420;
+  const step = (now: number) => {
+    const t = Math.min(1, (now - t0) / dur);
+    const k = 1 - (1 - t) ** 3;
+    el.scrollTop = start * (1 - k);
+    if (t < 1) {
+      anim.id = requestAnimationFrame(step);
+    } else {
+      el.scrollTop = 0;
+      anim.id = null;
+    }
+  };
+  anim.id = requestAnimationFrame(step);
+}
+
 export function Reader({
   chapter,
   loading,
@@ -43,12 +75,15 @@ export function Reader({
   const prevChapter = useStudy((s) => s.prevChapter);
   const notesRev = useStudy((s) => s.notesRev);
   const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
+  const receptionOpen = useStudy((s) => s.receptionOpen);
+  const receptionPinned = useStudy((s) => s.receptionPinned);
   const locale = useStudy((s) => s.locale);
   const bookId = useStudy((s) => s.bookId);
   const chapterNum = useStudy((s) => s.chapter);
   const scrollRef = useRef<HTMLDivElement>(null);
   const verseRefs = useRef<Map<number, HTMLElement>>(new Map());
   const touch = useRef<{ x: number; y: number } | null>(null);
+  const topAnim = useRef<{ id: number | null }>({ id: null });
   const [showTop, setShowTop] = useState(false);
 
   const book = getBook(bookId);
@@ -60,13 +95,25 @@ export function Reader({
   const prevDest = neighbor(bookId, chapterNum, -1);
   const nextDest = neighbor(bookId, chapterNum, 1);
   const sections = chapter?.verses.filter((v) => v.title) ?? [];
+  const hintUp =
+    selected != null && !receptionOpen && !receptionPinned;
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    if (topAnim.current.id != null) {
+      cancelAnimationFrame(topAnim.current.id);
+      topAnim.current.id = null;
+    }
     el.scrollTop = 0;
     setShowTop(false);
   }, [chapter?.reference, chapter?.bookId, chapter?.chapter]);
+
+  useEffect(() => {
+    return () => {
+      if (topAnim.current.id != null) cancelAnimationFrame(topAnim.current.id);
+    };
+  }, []);
 
   useEffect(() => {
     if (selected == null) return;
@@ -90,30 +137,14 @@ export function Reader({
     scroller.scrollTo({ top: Math.max(0, next), behavior: "smooth" });
   }, [selected, chapter?.reference]);
 
+  function updateShowTop(el: HTMLElement) {
+    const room = el.scrollHeight - el.clientHeight;
+    const top = room > 200 && el.scrollTop > 280;
+    setShowTop((prev) => (prev === top ? prev : top));
+  }
+
   return (
-    <div
-      ref={scrollRef}
-      className="tl-scroll absolute inset-0 overflow-y-auto"
-      onScroll={(e) => {
-        const top = e.currentTarget.scrollTop > 360;
-        setShowTop((prev) => (prev === top ? prev : top));
-      }}
-      onTouchStart={(e) => {
-        touch.current = {
-          x: e.targetTouches[0].clientX,
-          y: e.targetTouches[0].clientY,
-        };
-      }}
-      onTouchEnd={(e) => {
-        if (!touch.current) return;
-        const dx = touch.current.x - e.changedTouches[0].clientX;
-        const dy = touch.current.y - e.changedTouches[0].clientY;
-        touch.current = null;
-        if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
-        if (dx > 0 && canNext) nextChapter();
-        else if (dx < 0 && canPrev) prevChapter();
-      }}
-    >
+    <div className="absolute inset-0">
       {loading ? (
         <div
           aria-hidden
@@ -124,217 +155,254 @@ export function Reader({
       ) : null}
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 bottom-0 left-0 w-px bg-oxblood/30"
+        className="pointer-events-none absolute top-0 bottom-0 left-0 z-[1] w-px bg-oxblood/30"
       />
-      <div className="mx-auto max-w-[42rem] px-5 pt-6 pb-36 sm:px-10 sm:pt-12">
-        {loading && !chapter ? (
-          <div className="space-y-4" aria-busy>
-            <div className="mx-auto h-3 w-28 rounded-sm bg-oxblood/15" />
-            <div className="mx-auto h-10 w-44 rounded-sm bg-oxblood/20" />
-            <div className="mt-10 space-y-3">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-4 rounded-sm bg-oxblood/10"
-                  style={{ width: `${80 - (i % 3) * 12}%` }}
-                />
-              ))}
-            </div>
-          </div>
-        ) : error && !chapter ? (
-          <p className="font-display text-center text-lg text-oxblood italic">
-            {error}
-          </p>
-        ) : chapter ? (
-          <div
-            key={`${chapter.bookId}-${chapter.chapter}`}
-            className="tl-chapter"
-          >
-            <header className="mb-8 text-center sm:mb-10">
-              <p className="text-2xs font-medium tracking-[0.22em] text-muted uppercase">
-                {chapter.translationName}
-              </p>
-              <h1 className="font-display mt-2 text-[2rem] leading-none font-semibold tracking-tight text-ink sm:text-5xl">
-                {chapter.bookName}
-              </h1>
-              <p className="mt-1.5 text-xs tracking-[0.18em] text-faint uppercase">
-                {t(locale, "chapter", { n: chapter.chapter })}
-              </p>
-              <div className="mt-5 flex items-center justify-center gap-2">
-                <span className="h-px w-10 bg-rule" />
-                <span className="size-1.5 rounded-full bg-oxblood/70" />
-                <span className="h-px w-10 bg-rule" />
+      <div
+        ref={scrollRef}
+        className="tl-scroll absolute inset-0 overflow-y-auto"
+        onScroll={(e) => {
+          updateShowTop(e.currentTarget);
+        }}
+        onTouchStart={(e) => {
+          if (topAnim.current.id != null) {
+            cancelAnimationFrame(topAnim.current.id);
+            topAnim.current.id = null;
+          }
+          touch.current = {
+            x: e.targetTouches[0].clientX,
+            y: e.targetTouches[0].clientY,
+          };
+        }}
+        onTouchEnd={(e) => {
+          if (!touch.current) return;
+          const dx = touch.current.x - e.changedTouches[0].clientX;
+          const dy = touch.current.y - e.changedTouches[0].clientY;
+          touch.current = null;
+          if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+          if (dx > 0 && canNext) nextChapter();
+          else if (dx < 0 && canPrev) prevChapter();
+        }}
+        onWheel={() => {
+          if (topAnim.current.id != null) {
+            cancelAnimationFrame(topAnim.current.id);
+            topAnim.current.id = null;
+          }
+        }}
+      >
+        <div className="mx-auto max-w-[42rem] px-5 pt-6 pb-36 sm:px-10 sm:pt-12">
+          {loading && !chapter ? (
+            <div className="space-y-4" aria-busy>
+              <div className="mx-auto h-3 w-28 rounded-sm bg-oxblood/15" />
+              <div className="mx-auto h-10 w-44 rounded-sm bg-oxblood/20" />
+              <div className="mt-10 space-y-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-4 rounded-sm bg-oxblood/10"
+                    style={{ width: `${80 - (i % 3) * 12}%` }}
+                  />
+                ))}
               </div>
-            </header>
-
-            {sections.length > 1 ? (
-              <nav
-                aria-label={t(locale, "inThisChapter")}
-                className="mb-8 rounded-md border border-rule bg-surface/80 px-4 py-3"
-              >
-                <p className="mb-2 text-2xs font-semibold tracking-[0.16em] text-faint uppercase">
-                  {t(locale, "inThisChapter")}
+            </div>
+          ) : error && !chapter ? (
+            <p className="font-display text-center text-lg text-oxblood italic">
+              {error}
+            </p>
+          ) : chapter ? (
+            <div
+              key={`${chapter.bookId}-${chapter.chapter}`}
+              className="tl-chapter"
+            >
+              <header className="mb-8 text-center sm:mb-10">
+                <p className="text-2xs font-medium tracking-[0.22em] text-muted uppercase">
+                  {chapter.translationName}
                 </p>
-                <ul className="space-y-0.5">
-                  {sections.map((s) => (
-                    <li key={s.verse}>
-                      <button
-                        type="button"
-                        onClick={() => setVerse(s.verse)}
+                <h1 className="font-display mt-2 text-[2rem] leading-none font-semibold tracking-tight text-ink sm:text-5xl">
+                  {chapter.bookName}
+                </h1>
+                <p className="mt-1.5 text-xs tracking-[0.18em] text-faint uppercase">
+                  {t(locale, "chapter", { n: chapter.chapter })}
+                </p>
+                <div className="mt-5 flex items-center justify-center gap-2">
+                  <span className="h-px w-10 bg-rule" />
+                  <span className="size-1.5 rounded-full bg-oxblood/70" />
+                  <span className="h-px w-10 bg-rule" />
+                </div>
+              </header>
+
+              {sections.length > 1 ? (
+                <nav
+                  aria-label={t(locale, "inThisChapter")}
+                  className="mb-8 rounded-md border border-rule bg-surface/80 px-4 py-3"
+                >
+                  <p className="mb-2 text-2xs font-semibold tracking-[0.16em] text-faint uppercase">
+                    {t(locale, "inThisChapter")}
+                  </p>
+                  <ul className="space-y-0.5">
+                    {sections.map((s) => (
+                      <li key={s.verse}>
+                        <button
+                          type="button"
+                          onClick={() => setVerse(s.verse)}
+                          className={cn(
+                            "flex min-h-10 w-full items-baseline gap-2 rounded-xs px-1 text-left text-sm transition-colors duration-150 ease-out",
+                            selected === s.verse
+                              ? "font-medium text-oxblood"
+                              : "text-ink hover:text-oxblood",
+                          )}
+                        >
+                          <span className="w-6 shrink-0 font-serif text-xs text-faint tabular-nums">
+                            {s.verse}
+                          </span>
+                          <span className="font-display tracking-tight">
+                            {s.title}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              ) : null}
+
+              <div className="bible-prose font-serif text-[length:var(--reading-size,20px)] leading-[1.8] text-ink">
+                {chapter.verses.map((v, i) => {
+                  const on = selected === v.verse;
+                  const noted = hasNotes(
+                    chapter.bookId,
+                    chapter.chapter,
+                    v.verse,
+                  );
+                  return (
+                    <Fragment key={v.verse}>
+                      {v.title ? (
+                        <h3
+                          id={`s-${v.verse}`}
+                          className="bible-heading"
+                          data-first={i === 0 ? "true" : undefined}
+                        >
+                          {v.title}
+                        </h3>
+                      ) : null}
+                      <span
+                        ref={(el) => {
+                          if (el) verseRefs.current.set(v.verse, el);
+                        }}
+                        id={`v-${v.verse}`}
+                        role="button"
+                        tabIndex={0}
+                        aria-current={on ? "true" : undefined}
+                        onClick={() => {
+                          if (on) {
+                            setVerse(null);
+                            setReceptionOpen(false);
+                            return;
+                          }
+                          setVerse(v.verse);
+                          if (
+                            noted &&
+                            !useStudy.getState().receptionPinned
+                          ) {
+                            setReceptionOpen(true);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key !== "Enter" && e.key !== " ") return;
+                          e.preventDefault();
+                          e.currentTarget.click();
+                        }}
                         className={cn(
-                          "flex min-h-10 w-full items-baseline gap-2 rounded-xs px-1 text-left text-sm",
-                          selected === s.verse
-                            ? "font-medium text-oxblood"
-                            : "text-ink hover:text-oxblood",
+                          "cursor-pointer rounded-xs transition-colors duration-200",
+                          on
+                            ? "bg-oxblood-soft shadow-[inset_3px_0_0_0_var(--color-oxblood)]"
+                            : "hover:bg-oxblood-soft/55",
                         )}
                       >
-                        <span className="w-6 shrink-0 font-serif text-xs text-faint tabular-nums">
-                          {s.verse}
-                        </span>
-                        <span className="font-display tracking-tight">
-                          {s.title}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            ) : null}
+                        <sup className="verse-num mr-1 select-none">
+                          {v.verse}
+                          {noted ? (
+                            <span
+                              className="verse-mark"
+                              title={t(locale, "verseNotes")}
+                            />
+                          ) : null}
+                        </sup>
+                        {v.text}{" "}
+                      </span>
+                    </Fragment>
+                  );
+                })}
+              </div>
 
-            <div className="bible-prose font-serif text-[length:var(--reading-size,20px)] leading-[1.8] text-ink">
-              {chapter.verses.map((v, i) => {
-                const on = selected === v.verse;
-                const noted = hasNotes(
-                  chapter.bookId,
-                  chapter.chapter,
-                  v.verse,
-                );
-                return (
-                  <Fragment key={v.verse}>
-                    {v.title ? (
-                      <h3
-                        id={`s-${v.verse}`}
-                        className="bible-heading"
-                        data-first={i === 0 ? "true" : undefined}
-                      >
-                        {v.title}
-                      </h3>
-                    ) : null}
-                    <span
-                      ref={(el) => {
-                        if (el) verseRefs.current.set(v.verse, el);
-                      }}
-                      id={`v-${v.verse}`}
-                      role="button"
-                      tabIndex={0}
-                      aria-current={on ? "true" : undefined}
-                      onClick={() => {
-                        if (on) {
-                          setVerse(null);
-                          setReceptionOpen(false);
-                          return;
-                        }
-                        setVerse(v.verse);
-                        if (
-                          noted &&
-                          !useStudy.getState().receptionPinned
-                        ) {
-                          setReceptionOpen(true);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key !== "Enter" && e.key !== " ") return;
-                        e.preventDefault();
-                        e.currentTarget.click();
-                      }}
-                      className={cn(
-                        "cursor-pointer rounded-xs transition-colors duration-200",
-                        on
-                          ? "bg-oxblood-soft shadow-[inset_3px_0_0_0_var(--color-oxblood)]"
-                          : "hover:bg-oxblood-soft/55",
-                      )}
-                    >
-                      <sup className="verse-num mr-1 select-none">
-                        {v.verse}
-                        {noted ? (
-                          <span
-                            className="verse-mark"
-                            title={t(locale, "verseNotes")}
-                          />
-                        ) : null}
-                      </sup>
-                      {v.text}{" "}
-                    </span>
-                  </Fragment>
-                );
-              })}
-            </div>
-
-            <footer className="mt-16 flex items-center justify-between gap-3 border-t border-rule pt-6">
-              <button
-                type="button"
-                onClick={prevChapter}
-                disabled={!canPrev}
-                className="inline-flex min-h-11 min-w-0 items-center gap-1 rounded-md px-2 py-2 text-sm text-muted transition-transform duration-150 ease-out hover:text-ink active:not-disabled:scale-[0.96] disabled:pointer-events-none disabled:opacity-30"
-              >
-                <ChevronLeft size={16} className="shrink-0" />
-                <span className="truncate">
-                  {prevDest
-                    ? `${bookName(getBook(prevDest.bookId), locale)} ${prevDest.chapter}`
-                    : t(locale, "previous")}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={nextChapter}
-                disabled={!canNext}
-                className="inline-flex min-h-11 min-w-0 items-center gap-1 rounded-md px-2 py-2 text-sm text-muted transition-transform duration-150 ease-out hover:text-ink active:not-disabled:scale-[0.96] disabled:pointer-events-none disabled:opacity-30"
-              >
-                <span className="truncate">
-                  {nextDest
-                    ? `${bookName(getBook(nextDest.bookId), locale)} ${nextDest.chapter}`
-                    : t(locale, "next")}
-                </span>
-                <ChevronRight size={16} className="shrink-0" />
-              </button>
-            </footer>
-            <p className="mt-8 text-2xs leading-relaxed text-faint italic">
-              {chapter.translationNote}
-              {notesRev >= 0 &&
-              chapter.verses.some((v) =>
-                hasNotes(chapter.bookId, chapter.chapter, v.verse),
-              )
-                ? t(locale, "redMarks")
-                : ""}
-            </p>
-            {isEsv ? (
-              <p className="mt-2">
-                <a
-                  href="https://www.esv.org/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-2xs font-semibold tracking-wide text-oxblood uppercase hover:underline"
+              <footer className="mt-16 flex items-center justify-between gap-3 border-t border-rule pt-6">
+                <button
+                  type="button"
+                  onClick={prevChapter}
+                  disabled={!canPrev}
+                  className="inline-flex min-h-11 min-w-0 items-center gap-1 rounded-md px-2 py-2 text-sm text-muted transition-[color,transform] duration-150 ease-out hover:text-ink active:not-disabled:scale-[0.96] disabled:pointer-events-none disabled:opacity-30"
                 >
-                  {t(locale, "esvSite")}
-                </a>
+                  <ChevronLeft size={16} className="shrink-0" />
+                  <span className="truncate">
+                    {prevDest
+                      ? `${bookName(getBook(prevDest.bookId), locale)} ${prevDest.chapter}`
+                      : t(locale, "previous")}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={nextChapter}
+                  disabled={!canNext}
+                  className="inline-flex min-h-11 min-w-0 items-center gap-1 rounded-md px-2 py-2 text-sm text-muted transition-[color,transform] duration-150 ease-out hover:text-ink active:not-disabled:scale-[0.96] disabled:pointer-events-none disabled:opacity-30"
+                >
+                  <span className="truncate">
+                    {nextDest
+                      ? `${bookName(getBook(nextDest.bookId), locale)} ${nextDest.chapter}`
+                      : t(locale, "next")}
+                  </span>
+                  <ChevronRight size={16} className="shrink-0" />
+                </button>
+              </footer>
+              <p className="mt-8 text-2xs leading-relaxed text-faint italic">
+                {chapter.translationNote}
+                {notesRev >= 0 &&
+                chapter.verses.some((v) =>
+                  hasNotes(chapter.bookId, chapter.chapter, v.verse),
+                )
+                  ? t(locale, "redMarks")
+                  : ""}
               </p>
-            ) : null}
-          </div>
-        ) : null}
+              {isEsv ? (
+                <p className="mt-2">
+                  <a
+                    href="https://www.esv.org/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-2xs font-semibold tracking-wide text-oxblood uppercase hover:underline"
+                  >
+                    {t(locale, "esvSite")}
+                  </a>
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       </div>
 
-      {showTop ? (
-        <button
-          type="button"
-          onClick={() =>
-            scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })
-          }
-          className="absolute right-3 bottom-[max(5.5rem,env(safe-area-inset-bottom))] z-10 flex size-11 items-center justify-center rounded-md border border-rule bg-surface text-ink shadow-soft transition-transform duration-150 ease-out active:scale-[0.96]"
-          aria-label={t(locale, "backToTop")}
-        >
-          <ArrowUp size={16} />
-        </button>
-      ) : null}
+      <button
+        type="button"
+        onClick={() => {
+          const el = scrollRef.current;
+          if (!el) return;
+          animateScrollToTop(el, topAnim.current);
+        }}
+        className="tl-back-top"
+        data-show={showTop ? "true" : "false"}
+        data-nudge={hintUp ? "true" : "false"}
+        aria-label={t(locale, "backToTop")}
+        tabIndex={showTop ? 0 : -1}
+        aria-hidden={!showTop}
+      >
+        <ArrowUp size={16} />
+      </button>
     </div>
   );
 }

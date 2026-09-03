@@ -8,7 +8,7 @@ export function SourceCard({ card }: { card: Card }) {
   const locale = useStudy((s) => s.locale);
   const shown = localizeCard(card, locale);
   return (
-    <article className="rounded-lg border border-rule bg-surface p-4 shadow-soft">
+    <article className="rounded-lg border border-rule bg-surface p-4 shadow-soft tl-chapter">
       <header className="mb-3 flex items-baseline justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-display text-base font-semibold leading-tight text-ink">
