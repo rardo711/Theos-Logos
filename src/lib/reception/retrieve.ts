@@ -153,11 +153,76 @@ export function isBoilerplate(text: string): boolean {
     }
   }
 
+  // 8. Embedded scripture verse blocks (e.g. "33 When Jesus therefore saw... 34 And said... 35 Jesus wept...")
+  if (isEmbeddedScripture(text)) {
+    return true;
+  }
+
   return false;
 }
 
+/**
+ * Detects blocks of raw Scripture verses embedded in digital commentary editions.
+ * In CCEL and similar libraries, the scripture text is quoted prior to the commentary,
+ * containing verse numbers followed by capitalized sentences (e.g. "33 When Jesus... 34 And said... 35 Jesus wept.").
+ * These must be excluded so they are not mistaken for the author's commentary.
+ */
+export function isEmbeddedScripture(text: string): boolean {
+  const trimmed = text.trim();
+  const verseMarkers = trimmed.match(/(?:^|\.\s+|\s)\d{1,3}\s+[A-Z][a-z]+/g);
+  if (verseMarkers && verseMarkers.length >= 2) {
+    if (/^\d{1,3}\s+[A-Z]/.test(trimmed) || verseMarkers.length >= 3) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Truncates text cleanly at sentence boundaries (. ! ?) or clause boundaries (; :),
+ * avoiding mid-word and mid-sentence amputations.
+ */
+export function truncateAtSentence(text: string, maxLen = 520): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxLen) return trimmed;
+
+  // Attempt to cut at a sentence ending (. ! ?) followed by whitespace or end of string
+  const sentenceMatches = Array.from(trimmed.matchAll(/[.!?](?=\s|$)/g));
+  let bestCut = -1;
+  for (const m of sentenceMatches) {
+    const end = (m.index ?? 0) + 1;
+    if (end <= maxLen && end >= 120) {
+      bestCut = end;
+    }
+  }
+
+  if (bestCut > 0) {
+    return trimmed.slice(0, bestCut).trim();
+  }
+
+  // Fallback: cut at last semicolon or colon
+  const clauseMatches = Array.from(trimmed.matchAll(/[;:][\s]/g));
+  for (const m of clauseMatches) {
+    const end = (m.index ?? 0) + 1;
+    if (end <= maxLen && end >= 120) {
+      bestCut = end;
+    }
+  }
+  if (bestCut > 0) {
+    return trimmed.slice(0, bestCut).trim() + "…";
+  }
+
+  // Fallback: cut at last word space before maxLen
+  const lastSpace = trimmed.lastIndexOf(" ", maxLen);
+  if (lastSpace > 60) {
+    return trimmed.slice(0, lastSpace).trim() + "…";
+  }
+
+  return trimmed.slice(0, maxLen).trim() + "…";
+}
+
 export function isSubstantiveQuote(text: string): boolean {
-  if (isBoilerplate(text)) return false;
+  if (isBoilerplate(text) || isEmbeddedScripture(text)) return false;
   const trimmed = text.trim();
   if (trimmed.length < 15) return false;
   const words = trimmed.split(/\s+/).filter(Boolean);
@@ -337,10 +402,13 @@ function cardsFromExtracts(extracts: FetchedExtract[]): SourceCard[] {
   const cards: SourceCard[] = [];
   for (const ex of extracts) {
     const validPara = ex.paragraphs.find(
-      (p) => !isBoilerplate(p) && isSubstantiveQuote(p),
+      (p) =>
+        !isBoilerplate(p) &&
+        isSubstantiveQuote(p) &&
+        !isEmbeddedScripture(p),
     );
     if (!validPara) continue;
-    const quote = validPara.slice(0, 600);
+    const quote = truncateAtSentence(validPara, 520);
     cards.push({
       voice: ex.entry.voice,
       work: ex.entry.work,
@@ -390,7 +458,7 @@ export function parseRetrieved(raw: string): SourceCard[] {
         voice: String(c.voice).slice(0, 80),
         work: String(c.work ?? "").slice(0, 120),
         tradition,
-        quote: quoteStr.slice(0, 600),
+        quote: truncateAtSentence(quoteStr, 600),
         note: c.note ? String(c.note).slice(0, 280) : undefined,
         citation: String(c.citation).slice(0, 220),
         paraphrased: Boolean(c.paraphrased),

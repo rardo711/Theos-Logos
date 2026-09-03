@@ -782,5 +782,60 @@ describe("systemic boilerplate and landing page rejection", () => {
       }
     }
   });
+
+  it("filters embedded scripture blocks and truncates quotes at sentence boundaries", async () => {
+    const { isEmbeddedScripture, truncateAtSentence } = await import("./retrieve.ts");
+
+    const rawScriptureBlock =
+      "33 When Jesus therefore saw her weeping, and the Jews also weeping which came with her, he groaned in the spirit, and was troubled, 34 And said, Where have ye laid him? They said unto him, Lord, come and see. 35 Jesus wept. 36 Then said the Jews, Behold how he loved him!";
+    assert.equal(isEmbeddedScripture(rawScriptureBlock), true);
+
+    const actualCommentary =
+      "(1.) As he was going to the grave, as if he had been following the corpse thither, Jesus wept, v. 35. A very short verse, but it affords many useful instructions: [1.] That Jesus Christ was really and truly man, and partook of the flesh and blood of the children.";
+    assert.equal(isEmbeddedScripture(actualCommentary), false);
+
+    const multiSentence =
+      "Christ did indeed weep, but it was because He willed to weep. He troubled Himself, because He had the power to be troubled or not to be troubled. He wept to teach men to weep with them that weep, and to show the reality of the human nature He had assumed.";
+    const truncated = truncateAtSentence(multiSentence, 150);
+    assert.ok(truncated.endsWith("."));
+    assert.ok(!truncated.includes("…"));
+    assert.equal(
+      truncated,
+      "Christ did indeed weep, but it was because He willed to weep. He troubled Himself, because He had the power to be troubled or not to be troubled.",
+    );
+  });
+
+  it("serves curated cards for John 11:35 Jesus Wept with pericope range mapping", async () => {
+    const { getCurated, getCuratedCardsForVerse } = await import("./curated.ts");
+    const desk = getCurated("JHN", 11, 35);
+    assert.ok(desk && desk.cards.length >= 4);
+
+    const voices = desk.cards.map((c) => c.voice);
+    assert.ok(voices.includes("Augustine of Hippo"));
+    assert.ok(voices.includes("John Calvin"));
+    assert.ok(voices.includes("Matthew Henry"));
+    assert.ok(voices.includes("Cyril of Alexandria"));
+
+    // Check pericope mapping for neighboring verses in John 11:32-37
+    const pericopeCards = getCuratedCardsForVerse("JHN", 11, 33);
+    assert.equal(pericopeCards.length, desk.cards.length);
+  });
+
+  it("does not match whole-book introductory arguments for mid-book chapter queries", async () => {
+    const { mapCatalog } = await import("./catalog.ts");
+    const results = mapCatalog({
+      question: "Why did Jesus weep?",
+      bookId: "JHN",
+      chapter: 11,
+      verseText: "Jesus wept.",
+    });
+
+    for (const r of results) {
+      assert.ok(
+        r.locus.toLowerCase() !== "argument",
+        `Argument entry ${r.id} leaked into mid-book chapter query!`,
+      );
+    }
+  });
 });
 

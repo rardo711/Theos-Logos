@@ -5,7 +5,7 @@
  */
 
 export const GEMINI_TIMEOUT_MS = 25_000;
-const FALLBACK_MODEL = "gemini-3.8-flash";
+const FALLBACK_MODEL = "gemini-3.6-flash";
 
 export function geminiApiKey(): string | undefined {
   const key = process.env.GEMINI_API_KEY?.trim();
@@ -13,7 +13,7 @@ export function geminiApiKey(): string | undefined {
 }
 
 export function geminiModel(): string {
-  return process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash";
+  return process.env.GEMINI_MODEL?.trim() || "gemini-3.8-flash";
 }
 
 export function isGemini3(model: string): boolean {

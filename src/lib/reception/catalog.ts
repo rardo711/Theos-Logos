@@ -459,6 +459,8 @@ const HAND: CatalogEntry[] = [
   e("calvin-john-10", "John Calvin", "Commentary on John 10", "reformed", "John 10:11–15", "https://ccel.org/ccel/calvin/calcom34/calcom34.xvi.iii.html", ["shepherd", "sheep", "hireling", "life", "wolf", "john"], ["JHN"], [10]),
   e("augustine-john-tr46", "Augustine of Hippo", "Tractates on the Gospel of John 46", "patristic", "Tractate 46", "https://www.newadvent.org/fathers/1701046.htm", ["shepherd", "door", "sheep", "life", "wolf", "hireling", "john"], ["JHN"], [10]),
   e("chrysostom-john-h59", "John Chrysostom", "Homilies on the Gospel of Saint John 59", "patristic", "Homily 59", "https://www.newadvent.org/fathers/240159.htm", ["shepherd", "door", "sheep", "pastor", "john"], ["JHN"], [10]),
+  e("calvin-john-11", "John Calvin", "Commentary on John 11", "reformed", "John 11:33–37", "https://ccel.org/ccel/calvin/calcom34/calcom34.xvii.i.html", ["wept", "lazarus", "tears", "humanity", "compassion", "john"], ["JHN"], [11]),
+  e("augustine-john-tr49", "Augustine of Hippo", "Tractates on the Gospel of John 49", "patristic", "Tractate 49", "https://www.newadvent.org/fathers/1701049.htm", ["wept", "lazarus", "tears", "resurrection", "humanity", "john"], ["JHN"], [11]),
   e("calvin-john-14", "John Calvin", "Commentary on John 14", "reformed", "John 14:6", "https://ccel.org/ccel/calvin/calcom35/calcom35.iv.i.html", ["way", "truth", "life", "father", "mediator", "john"], ["JHN"], [14]),
   e("aquinas-catena-john-14", "Thomas Aquinas", "Catena Aurea on John 14", "scholastic", "Catena Aurea John 14:6", "https://www.ccel.org/ccel/aquinas/catena4.html", ["way", "truth", "life", "augustine", "divinity", "humanity", "john"], ["JHN"], [14]),
   e("augustine-john-tr69", "Augustine of Hippo", "Tractates on the Gospel of John 69", "patristic", "Tractate 69", "https://www.newadvent.org/fathers/1701069.htm", ["way", "truth", "life", "walk", "john"], ["JHN"], [14]),
@@ -809,6 +811,17 @@ export function tokenize(text: string): string[] {
     .filter((w) => w.length > 2 && !STOP.has(w));
 }
 
+export function isBookIntro(entry: CatalogEntry): boolean {
+  const locus = entry.locus.toLowerCase();
+  return (
+    locus === "argument" ||
+    locus.endsWith("intro") ||
+    locus === "intro" ||
+    entry.tags.includes("argument") ||
+    entry.tags.includes("intro")
+  );
+}
+
 export function scoreEntry(
   entry: CatalogEntry,
   tokens: string[],
@@ -827,6 +840,29 @@ export function scoreEntry(
   ) {
     return 0;
   }
+  // Book introductions, prefaces, and "Arguments" are scoped to chapter 1 / whole-book overview.
+  // They must not match mid-book chapters (> 1).
+  if (chapter != null && chapter > 1 && isBookIntro(entry)) {
+    return 0;
+  }
+  // Multi-book general treatises without chapters (e.g. Adv. Haer. with books: ["JHN", "MAT", "MRK", "LUK"])
+  // must not match mid-book chapters (> 1) unless explicit tokens hit.
+  if (
+    chapter != null &&
+    chapter > 1 &&
+    entry.books &&
+    entry.books.length > 1 &&
+    (!entry.chapters || !entry.chapters.length)
+  ) {
+    const hasExplicitHit = tokens.some(
+      (t) =>
+        entry.voice.toLowerCase().includes(t) ||
+        entry.tags.includes(t) ||
+        entry.work.toLowerCase().includes(t),
+    );
+    if (!hasExplicitHit) return 0;
+  }
+
   let score = 0;
   const tags = new Set(entry.tags);
   const voice = entry.voice.toLowerCase();
@@ -836,7 +872,17 @@ export function scoreEntry(
     if (voice.includes(t)) score += 5;
     if (work.includes(t)) score += 1;
   }
-  if (bookId && entry.books?.includes(bookId)) score += 8;
+  if (bookId && entry.books?.length === 1 && entry.books.includes(bookId)) {
+    score += 8;
+  } else if (
+    bookId &&
+    entry.books &&
+    entry.books.length > 1 &&
+    entry.books.includes(bookId) &&
+    (chapter == null || chapter === 1)
+  ) {
+    score += 2;
+  }
   if (
     bookId &&
     chapter != null &&
@@ -885,8 +931,8 @@ export function mapCatalog(opts: {
       opts.bookId &&
         entry.books?.includes(opts.bookId) &&
         (opts.chapter == null ||
-          !entry.chapters?.length ||
-          entry.chapters.includes(opts.chapter)),
+          ((opts.chapter === 1 || !isBookIntro(entry)) &&
+            (!entry.chapters?.length || entry.chapters.includes(opts.chapter)))),
     );
   const hasBookPage = ranked.some((r) => bookMatch(r.entry));
 
@@ -923,7 +969,10 @@ export function mapCatalog(opts: {
   if (!picked.length && opts.bookId) {
     return CATALOG.filter((e) => {
       if (!e.books?.includes(opts.bookId!)) return false;
-      if (opts.chapter == null || !e.chapters?.length) return true;
+      if (opts.chapter == null || !e.chapters?.length) {
+        if (opts.chapter != null && opts.chapter > 1 && isBookIntro(e)) return false;
+        return true;
+      }
       return e.chapters.includes(opts.chapter);
     }).slice(0, limit);
   }

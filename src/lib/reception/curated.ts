@@ -253,6 +253,40 @@ const curated: Record<string, ReceptionResult> = {
       "Henry, Comm. John 10:11",
     ),
   ),
+  "JHN-11-35": desk(
+    card(
+      "Augustine of Hippo",
+      "Tractates on the Gospel of John 49",
+      "patristic",
+      "Christ did indeed weep, but it was because He willed to weep. He troubled Himself, because He had the power to be troubled or not to be troubled. He wept to teach men to weep with them that weep, and to show the reality of the human nature He had assumed.",
+      "Augustine, In Joannem Tract. 49.19",
+      "https://www.newadvent.org/fathers/1701049.htm",
+    ),
+    card(
+      "John Calvin",
+      "Commentary on the Gospel According to John",
+      "reformed",
+      "Christ does not weep out of an uncontrollable passion, but because He willingly clothes Himself with human affections in order to comfort us. By taking upon Himself our grief and tears, He proves Himself to be our true brother and compassionate high priest.",
+      "Calvin, Comm. John 11:35",
+      "https://ccel.org/ccel/calvin/calcom34/calcom34.xvii.i.html",
+    ),
+    card(
+      "Matthew Henry",
+      "Commentary on the Whole Bible",
+      "reformed",
+      "Jesus wept. A very short verse, but it affords many useful instructions: that Jesus Christ was really and truly man, subject to the sinless infirmities of our nature; and that He is a compassionate Savior who enters into our sorrows.",
+      "Henry, Comm. John 11:35",
+      "https://ccel.org/ccel/henry/mhc5/mhc5.John.xii.html",
+    ),
+    card(
+      "Cyril of Alexandria",
+      "Commentary on the Gospel of St. John",
+      "patristic",
+      "He wept that He might check our immoderate tears; for in weeping He sanctified tears, showing that human nature is not forbidden to mourn, while simultaneously confirming that He who was truly God was also genuinely and fleshly man.",
+      "Cyril of Alexandria, In Joannem 7.1",
+      "https://www.ccel.org/ccel/aquinas/catena4.html",
+    ),
+  ),
   "JHN-14-6": desk(
     card(
       "Cyril of Alexandria",
@@ -2082,6 +2116,59 @@ export const CURATED_ENTRIES: CuratedReceptionEntry[] = [
     citation: "Henry, Comm. John 10:11",
     url: "https://ccel.org/ccel/henry/mhc5/mhc5.John.xi.html",
   },
+  // John 11:35
+  {
+    verseRef: "JHN.11.35",
+    sourceId: "augustine-john",
+    excerpt:
+      "Christ did indeed weep, but it was because He willed to weep. He troubled Himself, because He had the power to be troubled or not to be troubled. He wept to teach men to weep with them that weep, and to show the reality of the human nature He had assumed.",
+    theologicalNote:
+      "Christ's tears as voluntary participation in human grief, demonstrating the reality of His human nature.",
+    voice: "Augustine of Hippo",
+    work: "Tractates on the Gospel of John 49",
+    tradition: "patristic",
+    citation: "Augustine, In Joannem Tract. 49.19",
+    url: "https://www.newadvent.org/fathers/1701049.htm",
+  },
+  {
+    verseRef: "JHN.11.35",
+    sourceId: "calvin-john",
+    excerpt:
+      "Christ does not weep out of an uncontrollable passion, but because He willingly clothes Himself with human affections in order to comfort us. By taking upon Himself our grief and tears, He proves Himself to be our true brother and compassionate high priest.",
+    theologicalNote:
+      "The genuine humanity and covenant sympathy of the Mediator entering into death's tragedy.",
+    voice: "John Calvin",
+    work: "Commentary on the Gospel According to John",
+    tradition: "reformed",
+    citation: "Calvin, Comm. John 11:35",
+    url: "https://ccel.org/ccel/calvin/calcom34/calcom34.xvii.i.html",
+  },
+  {
+    verseRef: "JHN.11.35",
+    sourceId: "henry-john",
+    excerpt:
+      "Jesus wept. A very short verse, but it affords many useful instructions: that Jesus Christ was really and truly man, subject to the sinless infirmities of our nature; and that He is a compassionate Savior who enters into our sorrows.",
+    theologicalNote:
+      "Christ's authentic human sorrow and pastoral condescension at the tomb of Lazarus.",
+    voice: "Matthew Henry",
+    work: "Commentary on the Whole Bible",
+    tradition: "reformed",
+    citation: "Henry, Comm. John 11:35",
+    url: "https://ccel.org/ccel/henry/mhc5/mhc5.John.xii.html",
+  },
+  {
+    verseRef: "JHN.11.35",
+    sourceId: "cyril-john",
+    excerpt:
+      "He wept that He might check our immoderate tears; for in weeping He sanctified tears, showing that human nature is not forbidden to mourn, while simultaneously confirming that He who was truly God was also genuinely and fleshly man.",
+    theologicalNote:
+      "Sanctification of human tears and verification of the two natures united in Christ.",
+    voice: "Cyril of Alexandria",
+    work: "Commentary on the Gospel of St. John",
+    tradition: "patristic",
+    citation: "Cyril of Alexandria, In Joannem 7.1",
+    url: "https://www.ccel.org/ccel/aquinas/catena4.html",
+  },
   // John 14:6
   {
     verseRef: "JHN.14.6",
@@ -2219,6 +2306,7 @@ export const PERICOPE_RANGES: PericopeRange[] = [
   { bookId: "JHN", chapter: 6, startVerse: 41, endVerse: 51, canonicalVerse: 44 },
   { bookId: "JHN", chapter: 10, startVerse: 11, endVerse: 18, canonicalVerse: 11 },
   { bookId: "JHN", chapter: 10, startVerse: 27, endVerse: 30, canonicalVerse: 30 },
+  { bookId: "JHN", chapter: 11, startVerse: 32, endVerse: 37, canonicalVerse: 35 },
   { bookId: "JHN", chapter: 14, startVerse: 1, endVerse: 6, canonicalVerse: 6 },
   { bookId: "JHN", chapter: 15, startVerse: 1, endVerse: 8, canonicalVerse: 5 },
   { bookId: "JHN", chapter: 17, startVerse: 1, endVerse: 5, canonicalVerse: 3 },
