@@ -1,11 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Loader2, PanelRight, PanelRightClose, X } from "lucide-react";
+import { ChevronDown, Loader2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
 import { askReception } from "@/lib/reception/ask";
-import { additionalSourceCards, getDeskNotes, markedVerses, rememberReception } from "@/lib/reception/notes";
+import {
+  additionalSourceCards,
+  clearGeneratedNotesForChapter,
+  clearGeneratedNotesForVerse,
+  getDeskNotes,
+  hasCachedNotesInChapter,
+  isCardGenerated,
+  markedVerses,
+  rememberReception,
+} from "@/lib/reception/notes";
+import { getCurated, hasCurated } from "@/lib/reception/curated";
+import { removeCached, saveCached } from "@/lib/reception/cache";
 import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
 import { t } from "@/lib/i18n";
 import { localizeCaution } from "@/lib/i18n-sources";
-import type { Chapter, LexiconResult, ReceptionResult } from "@/lib/bible/types";
+import type { Chapter, LexiconResult, ReceptionResult, SourceCard as Card } from "@/lib/bible/types";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 import { SourceCard } from "./source-card";
@@ -102,7 +113,8 @@ export function ReceptionPanel({
     const emptyInquire = mode === "reception" && !focus;
     const prior = resultRef.current;
 
-    if (emptyInquire && prior?.cards.length) {
+    // If empty inquire and we already have curated cards for this exact verse on desk, show them cleanly
+    if (emptyInquire && prior?.cards.length && prior.source === "curated") {
       setError(null);
       return;
     }
@@ -137,18 +149,18 @@ export function ReceptionPanel({
         },
       });
 
-      const shouldAppend =
-        Boolean(prior?.cards.length) &&
-        (mode === "traditions" || Boolean(focus));
       let next = data;
-      if (shouldAppend && prior) {
+      if (data.source === "curated") {
+        // Direct established primary sources addressing the question or verse
+        next = data;
+      } else if (Boolean(prior?.cards.length) && (mode === "traditions" || Boolean(focus))) {
         const added = additionalSourceCards(prior.cards, data.cards);
-        if (!added.length) {
+        if (!added.length && !data.cards.length) {
           throw new Error("NO_MORE");
         }
         next = {
-          source: "generated",
-          cards: [...prior.cards, ...added],
+          source: data.source,
+          cards: added.length ? [...prior.cards, ...added] : data.cards,
           caution: data.caution ?? prior.caution,
         };
       }
@@ -177,6 +189,77 @@ export function ReceptionPanel({
   function runLexicon(word: string) {
     setError(null);
     setLexicon(lookupWordNow(word, reference));
+  }
+
+  const hasGeneratedCards = useMemo(() => {
+    if (!result || !chapter || selectedVerse == null) return false;
+    return result.cards.some((c) =>
+      isCardGenerated(c, chapter.bookId, chapter.chapter, selectedVerse),
+    );
+  }, [result, chapter, selectedVerse]);
+
+  const hasCuratedForVerse = useMemo(() => {
+    if (!chapter || selectedVerse == null) return false;
+    return hasCurated(chapter.bookId, chapter.chapter, selectedVerse);
+  }, [chapter, selectedVerse]);
+
+  function handleRemoveCard(cardToRemove: Card) {
+    if (!chapter || selectedVerse == null || !result) return;
+    const newCards = result.cards.filter(
+      (c) =>
+        !(
+          c.voice === cardToRemove.voice &&
+          c.citation === cardToRemove.citation &&
+          c.quote.trim().slice(0, 50) === cardToRemove.quote.trim().slice(0, 50)
+        ),
+    );
+
+    const curated = getCurated(chapter.bookId, chapter.chapter, selectedVerse);
+    const hasAnyCurated = curated && curated.cards.length > 0;
+    const remainingGenerated = newCards.filter((c) =>
+      isCardGenerated(c, chapter.bookId, chapter.chapter, selectedVerse),
+    );
+
+    if (newCards.length === 0) {
+      removeCached(chapter.bookId, chapter.chapter, selectedVerse);
+      setResult(hasAnyCurated ? curated : null);
+    } else if (remainingGenerated.length === 0 && hasAnyCurated) {
+      removeCached(chapter.bookId, chapter.chapter, selectedVerse);
+      setResult({
+        ...curated,
+        cards: newCards,
+      });
+    } else {
+      const updated: ReceptionResult = {
+        ...result,
+        cards: newCards,
+        source: remainingGenerated.length > 0 ? "generated" : "curated",
+      };
+      saveCached(chapter.bookId, chapter.chapter, selectedVerse, updated);
+      setResult(updated);
+    }
+    touchNotes();
+  }
+
+  function handleRemoveAllGenerated() {
+    if (!chapter || selectedVerse == null) return;
+    const restored = clearGeneratedNotesForVerse(
+      chapter.bookId,
+      chapter.chapter,
+      selectedVerse,
+    );
+    setResult(restored);
+    setError(null);
+    touchNotes();
+  }
+
+  function handleClearChapterGenerated() {
+    if (!chapter) return;
+    clearGeneratedNotesForChapter(chapter.bookId, chapter.chapter);
+    if (selectedVerse != null) {
+      setResult(getDeskNotes(chapter.bookId, chapter.chapter, selectedVerse));
+    }
+    touchNotes();
   }
 
   return (
@@ -252,23 +335,45 @@ export function ReceptionPanel({
             </p>
             {marked.length > 0 ? (
               <div>
-                <p className="mb-2 text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  {t(locale, "notesOnChapter")}
-                </p>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
+                    {t(locale, "notesOnChapter")}
+                  </p>
+                  {hasCachedNotesInChapter(chapter.bookId, chapter.chapter) ? (
+                    <button
+                      type="button"
+                      onClick={handleClearChapterGenerated}
+                      className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-2xs font-medium text-muted hover:bg-oxblood-soft hover:text-oxblood transition-colors"
+                      title={t(locale, "clearChapterGenerated")}
+                    >
+                      <Trash2 size={11} />
+                      <span>{t(locale, "clearChapterGenerated")}</span>
+                    </button>
+                  ) : null}
+                </div>
                 <p className="mb-2 text-sm text-muted">
                   {t(locale, "markedOpen")}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {marked.map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setVerse(n)}
-                      className="min-h-11 rounded-md border border-rule bg-surface px-3 text-sm font-semibold text-ink hover:border-oxblood hover:text-oxblood"
-                    >
-                      v. {n}
-                    </button>
-                  ))}
+                  {marked.map((n) => {
+                    const isGenOnly = !hasCurated(chapter.bookId, chapter.chapter, n);
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setVerse(n)}
+                        className={cn(
+                          "min-h-11 rounded-md border px-3 text-sm font-semibold transition-colors",
+                          isGenOnly
+                            ? "border-dashed border-rule bg-surface/80 text-ink hover:border-oxblood hover:text-oxblood"
+                            : "border-rule bg-surface text-ink hover:border-oxblood hover:text-oxblood",
+                        )}
+                        title={isGenOnly ? t(locale, "generatedBadge") : t(locale, "curatedBadge")}
+                      >
+                        v. {n}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ) : (
@@ -352,14 +457,52 @@ export function ReceptionPanel({
 
             {result?.cards.length ? (
               <div className="mb-6 space-y-3">
-                <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  {result.source === "curated"
-                    ? t(locale, "deskNotes")
-                    : t(locale, "gathered")}
-                </p>
-                {result.cards.map((card, i) => (
-                  <SourceCard key={`${card.voice}-${i}`} card={card} />
-                ))}
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
+                    {result.source === "curated" && !hasGeneratedCards
+                      ? t(locale, "deskNotes")
+                      : t(locale, "gathered")}
+                  </p>
+                  {hasGeneratedCards ? (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAllGenerated}
+                      className="inline-flex items-center gap-1 rounded-sm px-2 py-1 text-2xs font-medium tracking-wide text-muted hover:bg-oxblood-soft hover:text-oxblood transition-colors"
+                      title={
+                        hasCuratedForVerse
+                          ? t(locale, "resetToDeskNotes")
+                          : t(locale, "removeGenerated")
+                      }
+                    >
+                      {hasCuratedForVerse ? (
+                        <RotateCcw size={12} />
+                      ) : (
+                        <Trash2 size={12} />
+                      )}
+                      <span>
+                        {hasCuratedForVerse
+                          ? t(locale, "resetToDeskNotes")
+                          : t(locale, "removeGenerated")}
+                      </span>
+                    </button>
+                  ) : null}
+                </div>
+                {result.cards.map((card, i) => {
+                  const gen = isCardGenerated(
+                    card,
+                    chapter.bookId,
+                    chapter.chapter,
+                    selectedVerse,
+                  );
+                  return (
+                    <SourceCard
+                      key={`${card.voice}-${card.citation}-${i}`}
+                      card={card}
+                      isGenerated={gen}
+                      onRemove={gen ? () => handleRemoveCard(card) : undefined}
+                    />
+                  );
+                })}
                 {result.caution ? (
                   <p className="pt-1 text-2xs leading-relaxed text-faint italic">
                     {localizeCaution(result.caution, locale)}

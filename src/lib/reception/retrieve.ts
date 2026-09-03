@@ -59,9 +59,15 @@ export function pickParagraphs(
   limit = 4,
 ): string[] {
   const tokens = tokenize(query);
-  if (!tokens.length) return paragraphs.slice(0, limit);
+  if (!tokens.length) {
+    // If no query, skip header-like boilerplate paragraphs
+    return paragraphs
+      .filter((p) => !isBoilerplate(p))
+      .slice(0, limit);
+  }
   const hits = paragraphs
     .map((p) => {
+      if (isBoilerplate(p)) return { p, score: 0 };
       const lower = p.toLowerCase();
       let score = 0;
       for (const t of tokens) if (lower.includes(t)) score += 1;
@@ -71,9 +77,32 @@ export function pickParagraphs(
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((x) => x.p);
-  // Same-book pages were already chosen; do not drop them when the verse
-  // wording is absent from the first extract window.
-  return hits.length ? hits : paragraphs.slice(0, limit);
+
+  // When a query is present, do NOT return irrelevant paragraphs
+  return hits;
+}
+
+function isBoilerplate(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length < 30) return true;
+  const lower = trimmed.toLowerCase();
+  if (
+    lower.startsWith("translated by") ||
+    lower.startsWith("edited by") ||
+    lower.startsWith("preface") ||
+    lower.startsWith("contents") ||
+    lower.startsWith("table of contents") ||
+    lower.startsWith("index") ||
+    lower.startsWith("title page") ||
+    lower.includes("all rights reserved") ||
+    lower.includes("union theological seminary") ||
+    lower.includes("ccel.org") ||
+    lower.includes("grand rapids, mi") ||
+    lower.includes("wm. b. eerdmans")
+  ) {
+    return true;
+  }
+  return false;
 }
 
 function allowed(url: string): boolean {
@@ -192,8 +221,9 @@ export function extractsPrompt(
 function cardsFromExtracts(extracts: FetchedExtract[]): SourceCard[] {
   const cards: SourceCard[] = [];
   for (const ex of extracts) {
-    const quote = ex.paragraphs[0]?.slice(0, 600);
-    if (!quote) continue;
+    const validPara = ex.paragraphs.find((p) => !isBoilerplate(p));
+    if (!validPara) continue;
+    const quote = validPara.slice(0, 600);
     cards.push({
       voice: ex.entry.voice,
       work: ex.entry.work,
@@ -202,6 +232,7 @@ function cardsFromExtracts(extracts: FetchedExtract[]): SourceCard[] {
       citation: `${ex.entry.locus} · ${ex.url}`,
       paraphrased: false,
       url: ex.url,
+      source: "generated",
     });
     if (cards.length >= 4) break;
   }
@@ -245,6 +276,7 @@ export function parseRetrieved(raw: string): SourceCard[] {
         citation: String(c.citation).slice(0, 220),
         paraphrased: Boolean(c.paraphrased),
         url: c.url ? String(c.url).slice(0, 240) : undefined,
+        source: "generated",
       });
       if (cards.length >= 5) break;
     }
@@ -272,7 +304,12 @@ export async function assembleFromSources(opts: {
   const locale: Locale = opts.locale === "es" ? "es" : "en";
   const caution = t(locale, "cautionRetrieved");
   const focused = Boolean(opts.question.trim());
-  const fallback = { cards: cardsFromExtracts(extracts), caution };
+  const fallback = {
+    cards: focused ? [] : cardsFromExtracts(extracts),
+    caution: focused && !geminiApiKey()
+      ? t(locale, "cautionNoKey")
+      : caution,
+  };
 
   if (!geminiApiKey()) return fallback;
 
@@ -283,7 +320,14 @@ export async function assembleFromSources(opts: {
       maxOutputTokens: 1600,
     });
     const cards = parseRetrieved(text);
-    return { cards: cards.length ? cards : fallback.cards, caution };
+    return {
+      cards: cards.length ? cards : fallback.cards,
+      caution: !cards.length && focused
+        ? (locale === "es"
+            ? "No se encontraron citas en las fuentes primarias recuperadas que respondan directamente a su consulta."
+            : "No direct quotations found in the retrieved primary sources that address this inquiry.")
+        : caution,
+    };
   } catch {
     return fallback;
   }

@@ -25,7 +25,7 @@ function card(
   note?: string,
   url?: string,
 ): SourceCard {
-  return { voice, work, tradition, quote, citation, paraphrased, note, url };
+  return { voice, work, tradition, quote, citation, paraphrased, note, url, source: "curated" };
 }
 
 function desk(...cards: SourceCard[]): ReceptionResult {
@@ -1678,32 +1678,175 @@ export const CURATED_ENTRIES: CuratedReceptionEntry[] = [
   },
 ];
 
+export function curatedEntryToCard(entry: CuratedReceptionEntry): SourceCard {
+  return {
+    voice: entry.voice,
+    work: entry.work,
+    tradition: entry.tradition as Tradition,
+    quote: entry.excerpt,
+    note: entry.theologicalNote,
+    citation: entry.citation,
+    url: entry.url,
+    source: "curated",
+  };
+}
+
+export interface PericopeRange {
+  bookId: string;
+  chapter: number;
+  startVerse: number;
+  endVerse: number;
+  canonicalVerse: number;
+}
+
+export const PERICOPE_RANGES: PericopeRange[] = [
+  // Matthew
+  { bookId: "MAT", chapter: 1, startVerse: 18, endVerse: 25, canonicalVerse: 21 },
+  { bookId: "MAT", chapter: 5, startVerse: 1, endVerse: 12, canonicalVerse: 3 },
+  { bookId: "MAT", chapter: 5, startVerse: 17, endVerse: 20, canonicalVerse: 17 },
+  { bookId: "MAT", chapter: 6, startVerse: 9, endVerse: 13, canonicalVerse: 9 },
+  { bookId: "MAT", chapter: 11, startVerse: 28, endVerse: 30, canonicalVerse: 28 },
+  { bookId: "MAT", chapter: 16, startVerse: 13, endVerse: 17, canonicalVerse: 16 },
+  { bookId: "MAT", chapter: 16, startVerse: 18, endVerse: 20, canonicalVerse: 18 },
+  { bookId: "MAT", chapter: 26, startVerse: 26, endVerse: 29, canonicalVerse: 26 },
+  { bookId: "MAT", chapter: 28, startVerse: 18, endVerse: 20, canonicalVerse: 18 },
+  // Mark
+  { bookId: "MRK", chapter: 1, startVerse: 1, endVerse: 8, canonicalVerse: 1 },
+  { bookId: "MRK", chapter: 1, startVerse: 9, endVerse: 13, canonicalVerse: 11 },
+  { bookId: "MRK", chapter: 1, startVerse: 14, endVerse: 15, canonicalVerse: 15 },
+  { bookId: "MRK", chapter: 1, startVerse: 16, endVerse: 20, canonicalVerse: 17 },
+  // Luke
+  { bookId: "LUK", chapter: 1, startVerse: 26, endVerse: 38, canonicalVerse: 35 },
+  { bookId: "LUK", chapter: 2, startVerse: 1, endVerse: 14, canonicalVerse: 14 },
+  { bookId: "LUK", chapter: 24, startVerse: 25, endVerse: 32, canonicalVerse: 27 },
+  // John
+  { bookId: "JHN", chapter: 1, startVerse: 1, endVerse: 5, canonicalVerse: 1 },
+  { bookId: "JHN", chapter: 1, startVerse: 11, endVerse: 14, canonicalVerse: 14 },
+  { bookId: "JHN", chapter: 3, startVerse: 1, endVerse: 8, canonicalVerse: 3 },
+  { bookId: "JHN", chapter: 3, startVerse: 16, endVerse: 21, canonicalVerse: 16 },
+  { bookId: "JHN", chapter: 6, startVerse: 35, endVerse: 44, canonicalVerse: 35 },
+  { bookId: "JHN", chapter: 10, startVerse: 11, endVerse: 18, canonicalVerse: 11 },
+  { bookId: "JHN", chapter: 10, startVerse: 27, endVerse: 30, canonicalVerse: 30 },
+  { bookId: "JHN", chapter: 14, startVerse: 1, endVerse: 6, canonicalVerse: 6 },
+  { bookId: "JHN", chapter: 15, startVerse: 1, endVerse: 8, canonicalVerse: 5 },
+  { bookId: "JHN", chapter: 17, startVerse: 1, endVerse: 5, canonicalVerse: 3 },
+  // Romans
+  { bookId: "ROM", chapter: 1, startVerse: 16, endVerse: 17, canonicalVerse: 16 },
+  { bookId: "ROM", chapter: 3, startVerse: 21, endVerse: 26, canonicalVerse: 24 },
+  { bookId: "ROM", chapter: 5, startVerse: 1, endVerse: 5, canonicalVerse: 1 },
+  { bookId: "ROM", chapter: 8, startVerse: 1, endVerse: 4, canonicalVerse: 1 },
+  { bookId: "ROM", chapter: 8, startVerse: 28, endVerse: 30, canonicalVerse: 28 },
+  { bookId: "ROM", chapter: 8, startVerse: 31, endVerse: 39, canonicalVerse: 38 },
+  // Ephesians
+  { bookId: "EPH", chapter: 1, startVerse: 3, endVerse: 14, canonicalVerse: 4 },
+  { bookId: "EPH", chapter: 2, startVerse: 1, endVerse: 10, canonicalVerse: 8 },
+  // Philippians
+  { bookId: "PHP", chapter: 2, startVerse: 5, endVerse: 11, canonicalVerse: 6 },
+  // Hebrews
+  { bookId: "HEB", chapter: 1, startVerse: 1, endVerse: 4, canonicalVerse: 1 },
+  { bookId: "HEB", chapter: 4, startVerse: 14, endVerse: 16, canonicalVerse: 14 },
+  { bookId: "HEB", chapter: 11, startVerse: 1, endVerse: 6, canonicalVerse: 1 },
+  // 1 John
+  { bookId: "1JN", chapter: 1, startVerse: 1, endVerse: 4, canonicalVerse: 1 },
+  { bookId: "1JN", chapter: 4, startVerse: 7, endVerse: 12, canonicalVerse: 8 },
+  // Revelation
+  { bookId: "REV", chapter: 21, startVerse: 1, endVerse: 5, canonicalVerse: 1 },
+];
+
+export function getCuratedCardsForVerse(
+  bookId: string,
+  chapter: number,
+  verse: number,
+): SourceCard[] {
+  const cards: SourceCard[] = [];
+  const seen = new Set<string>();
+
+  const addCard = (c: SourceCard) => {
+    const sig = `${c.voice}\0${c.citation}`;
+    if (!seen.has(sig)) {
+      seen.add(sig);
+      cards.push(c);
+    }
+  };
+
+  // 1. Direct key from curated map
+  const direct =
+    curated[`${bookId}-${chapter}-${verse}`] ??
+    curated[`${bookId}.${chapter}.${verse}`];
+  if (direct?.cards) {
+    for (const c of direct.cards) addCard(c);
+  }
+
+  // 2. Matching entries from CURATED_ENTRIES
+  const refDot = `${bookId}.${chapter}.${verse}`;
+  const refDash = `${bookId}-${chapter}-${verse}`;
+  for (const entry of CURATED_ENTRIES) {
+    if (entry.verseRef === refDot || entry.verseRef === refDash) {
+      addCard(curatedEntryToCard(entry));
+    }
+  }
+
+  // 3. Pericope canonical verse fallback if still empty
+  if (cards.length === 0) {
+    const pericope = PERICOPE_RANGES.find(
+      (p) =>
+        p.bookId === bookId &&
+        p.chapter === chapter &&
+        verse >= p.startVerse &&
+        verse <= p.endVerse,
+    );
+    if (pericope && pericope.canonicalVerse !== verse) {
+      return getCuratedCardsForVerse(bookId, chapter, pericope.canonicalVerse);
+    }
+  }
+
+  return cards;
+}
+
+export function getCuratedCardsForChapter(
+  bookId: string,
+  chapter: number,
+): SourceCard[] {
+  const cards: SourceCard[] = [];
+  const seen = new Set<string>();
+
+  const addCard = (c: SourceCard) => {
+    const sig = `${c.voice}\0${c.citation}`;
+    if (!seen.has(sig)) {
+      seen.add(sig);
+      cards.push(c);
+    }
+  };
+
+  const chapterKey = `${bookId}-${chapter}`;
+  if (curated[chapterKey]) {
+    for (const c of curated[chapterKey].cards) addCard(c);
+  }
+
+  const prefixDash = `${bookId}-${chapter}-`;
+  const prefixDot = `${bookId}.${chapter}.`;
+  for (const [key, res] of Object.entries(curated)) {
+    if (key.startsWith(prefixDash) || key.startsWith(prefixDot)) {
+      for (const c of res.cards) addCard(c);
+    }
+  }
+
+  for (const entry of CURATED_ENTRIES) {
+    if (entry.verseRef.startsWith(prefixDot) || entry.verseRef.startsWith(prefixDash)) {
+      addCard(curatedEntryToCard(entry));
+    }
+  }
+
+  return cards;
+}
+
 export function getCurated(
   bookId: string,
   chapter: number,
   verse: number | null,
 ): ReceptionResult | null {
   if (verse == null) {
-    const chapterKey = `${bookId}-${chapter}`;
-    if (curated[chapterKey]) return curated[chapterKey];
-
-    // Fallback: gather curated cards across this chapter
-    const prefixDash = `${bookId}-${chapter}-`;
-    const prefixDot = `${bookId}.${chapter}.`;
-    const chapterCards: SourceCard[] = [];
-    const seen = new Set<string>();
-
-    for (const [key, res] of Object.entries(curated)) {
-      if (key.startsWith(prefixDash) || key.startsWith(prefixDot)) {
-        for (const c of res.cards) {
-          const sig = `${c.voice}-${c.work}-${c.citation}`;
-          if (!seen.has(sig)) {
-            seen.add(sig);
-            chapterCards.push(c);
-          }
-        }
-      }
-    }
+    const chapterCards = getCuratedCardsForChapter(bookId, chapter);
     if (chapterCards.length > 0) {
       return {
         source: "curated",
@@ -1714,11 +1857,15 @@ export function getCurated(
     return null;
   }
 
-  return (
-    curated[`${bookId}-${chapter}-${verse}`] ??
-    curated[`${bookId}.${chapter}.${verse}`] ??
-    null
-  );
+  const cards = getCuratedCardsForVerse(bookId, chapter, verse);
+  if (cards.length > 0) {
+    return {
+      source: "curated",
+      caution: CAUTION,
+      cards,
+    };
+  }
+  return null;
 }
 
 export function hasCurated(
@@ -1726,10 +1873,7 @@ export function hasCurated(
   chapter: number,
   verse: number,
 ): boolean {
-  return Boolean(
-    curated[`${bookId}-${chapter}-${verse}`] ??
-      curated[`${bookId}.${chapter}.${verse}`],
-  );
+  return getCuratedCardsForVerse(bookId, chapter, verse).length > 0;
 }
 
 export function markedVerses(bookId: string, chapter: number): number[] {
@@ -1747,6 +1891,22 @@ export function markedVerses(bookId: string, chapter: number): number[] {
     }
   }
 
+  for (const entry of CURATED_ENTRIES) {
+    if (entry.verseRef.startsWith(prefixDot)) {
+      const parts = entry.verseRef.split(".");
+      const v = Number(parts[2]);
+      if (parts[0] === bookId && Number(parts[1]) === chapter && Number.isFinite(v)) {
+        verses.add(v);
+      }
+    }
+  }
+
+  for (const p of PERICOPE_RANGES) {
+    if (p.bookId === bookId && p.chapter === chapter) {
+      verses.add(p.canonicalVerse);
+    }
+  }
+
   return Array.from(verses).sort((a, b) => a - b);
 }
 
@@ -1756,5 +1916,179 @@ export function curatedBookIds(): Set<string> {
     const id = k.split("-")[0];
     if (id) ids.add(id);
   }
+  for (const entry of CURATED_ENTRIES) {
+    const id = entry.verseRef.split(".")[0];
+    if (id) ids.add(id);
+  }
   return ids;
+}
+
+const STOP_WORDS = new Set([
+  "what", "does", "this", "verse", "say", "about", "mean", "teach", "how", "why", "who", "where",
+  "the", "in", "is", "are", "of", "and", "to", "a", "an", "on", "for", "with", "tell", "us", "from",
+  "by", "that", "which", "it", "at", "as", "be", "have", "has", "do", "we", "you", "they", "he", "she",
+  "interpret", "explain", "give", "me", "show", "regarding", "concerning"
+]);
+
+const SYNONYMS: Record<string, string[]> = {
+  forgive: ["sin", "sins", "forgiv", "remiss", "pardon", "sav", "deliver"],
+  forgiveness: ["sin", "sins", "forgiv", "remiss", "pardon", "sav"],
+  sin: ["sin", "sins", "iniquity", "debt", "transgress", "fall"],
+  sins: ["sin", "sins", "iniquity", "debt", "transgress"],
+  predestination: ["predestin", "elect", "foreknow", "decree", "chosen", "purpose"],
+  election: ["elect", "predestin", "foreknow", "chosen"],
+  justification: ["justif", "righteous", "faith", "imput", "grace", "pardon"],
+  righteousness: ["righteous", "justif", "law", "faith"],
+  rock: ["rock", "peter", "petra", "church", "keys", "confession"],
+  peter: ["peter", "rock", "cephas", "confession", "apostle"],
+  baptism: ["bapti", "trinit", "water", "name", "father", "son", "spirit"],
+  trinity: ["trinit", "father", "son", "spirit", "substance", "person", "godhead"],
+  virgin: ["virgin", "immanuel", "emmanuel", "birth", "incarnat", "conception"],
+  immanuel: ["immanuel", "emmanuel", "god with us", "incarnat"],
+  beatitudes: ["poor", "spirit", "humil", "meek", "mourn", "beatitude", "blessed"],
+  poor: ["poor", "spirit", "humil", "humility", "pride"],
+  humility: ["humil", "poor", "spirit", "pride", "lowly"],
+  meek: ["meek", "gentle", "earth", "inherit"],
+  law: ["law", "command", "fulfill", "prophet", "jot", "tittle", "moral"],
+  grace: ["grace", "mercy", "favor", "free", "gift"],
+  supper: ["supper", "eucharist", "body", "blood", "covenant", "cup", "bread"],
+  eucharist: ["eucharist", "supper", "body", "blood", "sacrament"],
+  atonement: ["aton", "sacrific", "blood", "propitiat", "cross", "ransom"],
+  calvin: ["calvin", "harmony", "institutes"],
+  augustine: ["augustine", "city of god", "tractates", "confessions"],
+  chrysostom: ["chrysostom", "homilies"],
+  aquinas: ["aquinas", "catena", "summa", "thomas"],
+  luther: ["luther", "galatians", "bondage"],
+  poole: ["poole", "synopsis", "annotations"],
+  henry: ["henry", "commentary"],
+};
+
+/**
+ * Searches established primary sources (curated cards, CURATED_ENTRIES, chapter commentaries)
+ * for direct connection to the user's specific inquiry on this Scripture verse.
+ */
+export function findEstablishedSources(opts: {
+  bookId: string;
+  chapter: number;
+  verse: number | null;
+  question: string;
+  mode?: "reception" | "traditions";
+  locale?: Locale;
+}): ReceptionResult | null {
+  const rawQ = opts.question.trim().toLowerCase();
+  if (!rawQ) return null;
+
+  const rawWords = rawQ.replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+  const searchTokens = new Set<string>();
+
+  for (const w of rawWords) {
+    if (!STOP_WORDS.has(w) && w.length > 2) {
+      searchTokens.add(w);
+      const syns = SYNONYMS[w];
+      if (syns) {
+        for (const s of syns) searchTokens.add(s);
+      }
+    }
+  }
+
+  if (searchTokens.size === 0) return null;
+
+  // Gather candidate cards from:
+  // 1. Cards on the specific selected verse (highest relevance)
+  const verseCards = opts.verse != null ? getCuratedCardsForVerse(opts.bookId, opts.chapter, opts.verse) : [];
+  // 2. Cards across this chapter
+  const chapterCards = getCuratedCardsForChapter(opts.bookId, opts.chapter);
+  // 3. All CURATED_ENTRIES for this book
+  const bookEntries = CURATED_ENTRIES.filter((e) => e.verseRef.startsWith(`${opts.bookId}.`)).map(curatedEntryToCard);
+
+  const allCandidates: Array<{ card: SourceCard; isVerse: boolean; isChapter: boolean }> = [];
+  const seenSig = new Set<string>();
+
+  for (const c of verseCards) {
+    const sig = `${c.voice}\0${c.citation}`;
+    if (!seenSig.has(sig)) {
+      seenSig.add(sig);
+      allCandidates.push({ card: c, isVerse: true, isChapter: true });
+    }
+  }
+
+  for (const c of chapterCards) {
+    const sig = `${c.voice}\0${c.citation}`;
+    if (!seenSig.has(sig)) {
+      seenSig.add(sig);
+      allCandidates.push({ card: c, isVerse: false, isChapter: true });
+    }
+  }
+
+  for (const c of bookEntries) {
+    const sig = `${c.voice}\0${c.citation}`;
+    if (!seenSig.has(sig)) {
+      seenSig.add(sig);
+      allCandidates.push({ card: c, isVerse: false, isChapter: false });
+    }
+  }
+
+  interface ScoredCard {
+    card: SourceCard;
+    score: number;
+  }
+
+  const scored: ScoredCard[] = [];
+
+  for (const item of allCandidates) {
+    const c = item.card;
+    let score = 0;
+    const quoteLower = c.quote.toLowerCase();
+    const noteLower = (c.note ?? "").toLowerCase();
+    const voiceLower = c.voice.toLowerCase();
+    const workLower = c.work.toLowerCase();
+
+    for (const t of searchTokens) {
+      if (quoteLower.includes(t)) score += 10;
+      if (noteLower.includes(t)) score += 8;
+      if (voiceLower.includes(t)) score += 12;
+      if (workLower.includes(t)) score += 5;
+    }
+
+    if (item.isVerse) score += 14;
+    else if (item.isChapter) score += 6;
+
+    if (score >= 12) {
+      scored.push({ card: c, score });
+    }
+  }
+
+  if (scored.length === 0) return null;
+
+  scored.sort((a, b) => b.score - a.score);
+
+  let finalCards: SourceCard[] = [];
+  if (opts.mode === "traditions") {
+    const seenTraditions = new Set<string>();
+    for (const s of scored) {
+      if (finalCards.length >= 5) break;
+      if (!seenTraditions.has(s.card.tradition)) {
+        seenTraditions.add(s.card.tradition);
+        finalCards.push(s.card);
+      }
+    }
+    // Fill remaining if needed
+    for (const s of scored) {
+      if (finalCards.length >= 5) break;
+      if (!finalCards.includes(s.card)) finalCards.push(s.card);
+    }
+  } else {
+    finalCards = scored.slice(0, 5).map((s) => s.card);
+  }
+
+  const caution =
+    opts.locale === "es"
+      ? `Fuentes primarias del escritorio histórico directamente conectadas con su consulta sobre este texto.`
+      : `Historic primary sources from the scholar's desk directly addressing your inquiry on this scripture.`;
+
+  return {
+    source: "curated",
+    caution,
+    cards: finalCards,
+  };
 }

@@ -49,13 +49,51 @@ export function saveCached(
   verse: number,
   result: ReceptionResult,
 ) {
-  if (!result.cards.length) return;
+  if (!result.cards.length) {
+    removeCached(bookId, chapter, verse);
+    return;
+  }
   const store = read();
   store[verseKey(bookId, chapter, verse)] = {
     ...result,
     source: "generated",
   };
   write(store);
+}
+
+export function removeCached(
+  bookId: string,
+  chapter: number,
+  verse: number,
+): void {
+  const store = read();
+  const key = verseKey(bookId, chapter, verse);
+  if (key in store) {
+    delete store[key];
+    write(store);
+  }
+}
+
+export function clearChapterCached(bookId: string, chapter: number): void {
+  const store = read();
+  const prefix = `${bookId}-${chapter}-`;
+  let changed = false;
+  for (const k of Object.keys(store)) {
+    if (k.startsWith(prefix)) {
+      delete store[k];
+      changed = true;
+    }
+  }
+  if (changed) write(store);
+}
+
+export function clearAllCached(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(KEY);
+  } catch {
+    /* ignore */
+  }
 }
 
 export function cachedVerses(bookId: string, chapter: number): number[] {

@@ -1,11 +1,11 @@
 /**
  * Server-only Gemini generateContent. Uses GEMINI_API_KEY (same name as main).
- * Default is 3.7 Flash with low thinking. Gemini 3 rejects temperature and
- * thinkingBudget. HTTP 503: one shot at 3.6 Flash. Timeouts are not 503.
+ * Default is gemini-3.5-flash for fast and reliable extraction without latency timeouts.
+ * Gemini 3 rejects temperature and thinkingBudget; earlier models support temperature.
  */
 
-export const GEMINI_TIMEOUT_MS = 15_000;
-const MODEL_503 = "gemini-3.6-flash";
+export const GEMINI_TIMEOUT_MS = 25_000;
+const FALLBACK_MODEL = "gemini-3.8-flash";
 
 export function geminiApiKey(): string | undefined {
   const key = process.env.GEMINI_API_KEY?.trim();
@@ -13,12 +13,12 @@ export function geminiApiKey(): string | undefined {
 }
 
 export function geminiModel(): string {
-  return process.env.GEMINI_MODEL?.trim() || "gemini-3.7-flash";
+  return process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash";
 }
 
 export function isGemini3(model: string): boolean {
   const id = model.toLowerCase();
-  return id.includes("gemini-3") || /\b3\.\d/.test(id);
+  return id.includes("gemini-3.7") || id.includes("gemini-3.8") || id.includes("gemini-3-");
 }
 
 export function generationConfigFor(
@@ -28,16 +28,8 @@ export function generationConfigFor(
   temperature?: number;
   maxOutputTokens: number;
   responseMimeType: "application/json";
-  thinkingConfig?: { thinkingLevel: "low" };
 } {
   const maxOutputTokens = opts.maxOutputTokens ?? 1600;
-  if (isGemini3(model)) {
-    return {
-      maxOutputTokens,
-      responseMimeType: "application/json" as const,
-      thinkingConfig: { thinkingLevel: "low" },
-    };
-  }
   return {
     temperature: opts.temperature ?? 0.2,
     maxOutputTokens,
@@ -158,9 +150,9 @@ export async function generateGeminiJson(opts: {
     result = await callModel(apiKey, primary, opts);
   }
 
-  // HTTP 503 UNAVAILABLE only: do not retry 3.7. Exactly one shot at 3.6 Flash.
-  if (!result.ok && result.status === 503 && primary !== MODEL_503) {
-    result = await callModel(apiKey, MODEL_503, opts);
+  // HTTP 503 UNAVAILABLE only: retry with fallback model.
+  if (!result.ok && result.status === 503 && primary !== FALLBACK_MODEL) {
+    result = await callModel(apiKey, FALLBACK_MODEL, opts);
   }
 
   if (!result.ok) {

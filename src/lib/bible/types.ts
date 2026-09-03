@@ -39,6 +39,7 @@ export interface SourceCard {
   citation: string;
   paraphrased?: boolean;
   url?: string;
+  source?: "curated" | "generated";
 }
 
 export interface ReceptionResult {
