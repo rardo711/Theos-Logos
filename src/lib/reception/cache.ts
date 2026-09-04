@@ -138,3 +138,15 @@ export function cachedBookIds(): string[] {
   }
   return [...ids];
 }
+
+/** Chapters in a book that have any cached desk, used for library dots. */
+export function cachedChapters(bookId: string): number[] {
+  const prefix = `${bookId}-`;
+  const out = new Set<number>();
+  for (const k of Object.keys(read())) {
+    if (!k.startsWith(prefix)) continue;
+    const ch = Number(k.slice(prefix.length).split("-")[0]);
+    if (Number.isFinite(ch)) out.add(ch);
+  }
+  return [...out];
+}

@@ -3873,6 +3873,32 @@ export function markedVerses(bookId: string, chapter: number): number[] {
   return Array.from(verses).sort((a, b) => a - b);
 }
 
+export function markedChapters(bookId: string): number[] {
+  const chapters = new Set<number>();
+  const dash = `${bookId}-`;
+  const dot = `${bookId}.`;
+  for (const k of Object.keys(curated)) {
+    if (k.startsWith(dash)) {
+      const ch = Number(k.slice(dash.length).split("-")[0]);
+      if (Number.isFinite(ch)) chapters.add(ch);
+    } else if (k.startsWith(dot)) {
+      const ch = Number(k.slice(dot.length).split(".")[0]);
+      if (Number.isFinite(ch)) chapters.add(ch);
+    }
+  }
+  for (const entry of CURATED_ENTRIES) {
+    const parts = entry.verseRef.split(".");
+    if (parts[0] === bookId) {
+      const ch = Number(parts[1]);
+      if (Number.isFinite(ch)) chapters.add(ch);
+    }
+  }
+  for (const p of PERICOPE_RANGES) {
+    if (p.bookId === bookId) chapters.add(p.chapter);
+  }
+  return Array.from(chapters).sort((a, b) => a - b);
+}
+
 export function curatedBookIds(): Set<string> {
   const ids = new Set<string>();
   for (const k of Object.keys(curated)) {

@@ -47,6 +47,7 @@ const EN = {
   chapterMetaCorpus: "{n} chapters · {corpus}",
   chapterMetaNotes: " · {count} with notes in ch. {chapter}",
   anotherBook: "Another book",
+  verses: "Verses",
   noBook: "No book matches “{q}”.",
   notesInBook: "Desk notes in this book",
   reception: "Reception",
@@ -120,7 +121,7 @@ const EN = {
   selectPassageDone: "Done",
   clearSelection: "Clear",
   rangeTooLong: "A passage can span at most {n} verses.",
-  selectPassageHint: "Tap to extend the passage. Tap an end verse to trim it.",
+  selectPassageHint: "Tap to extend the passage. Tap an end verse to trim it. Shift-click also extends.",
   orientationHeading: "Orientation",
   orientationReadNext: "Read next",
   orientationCaution:
@@ -194,6 +195,7 @@ const ES: { [K in keyof typeof EN]: string } = {
   chapterMetaCorpus: "{n} capítulos · {corpus}",
   chapterMetaNotes: " · {count} con notas en el cap. {chapter}",
   anotherBook: "Otro libro",
+  verses: "Versículos",
   noBook: "Ningún libro coincide con “{q}”.",
   notesInBook: "Notas de escritorio en este libro",
   reception: "Recepción",
@@ -267,7 +269,7 @@ const ES: { [K in keyof typeof EN]: string } = {
   selectPassageDone: "Listo",
   clearSelection: "Borrar",
   rangeTooLong: "Un pasaje puede abarcar como máximo {n} versículos.",
-  selectPassageHint: "Toque para extender el pasaje. Toque un extremo para recortarlo.",
+  selectPassageHint: "Toque para extender el pasaje. Toque un extremo para recortarlo. Mayús-clic también extiende.",
   orientationHeading: "Orientación",
   orientationReadNext: "Para leer",
   orientationCaution:

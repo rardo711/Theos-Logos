@@ -507,7 +507,11 @@ export function ReceptionPanel({
           </div>
         ) : (
           <>
-            {verse ? (
+            {selectionText ? (
+              <p className="tl-quote mb-5 pl-3 font-serif text-base leading-relaxed text-ink italic">
+                {selectionText}
+              </p>
+            ) : verse ? (
               <p className="tl-quote mb-5 pl-3 font-serif text-base leading-relaxed text-ink italic">
                 {verse.text}
               </p>

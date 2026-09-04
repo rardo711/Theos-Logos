@@ -37,7 +37,9 @@ export function StudyWorkspace() {
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const setReceptionPinned = useStudy((s) => s.setReceptionPinned);
   const setVerse = useStudy((s) => s.setVerse);
+  const tapVerse = useStudy((s) => s.tapVerse);
   const selectedVerse = useStudy((s) => s.selectedVerse);
+  const selectedEndVerse = useStudy((s) => s.selectedEndVerse);
   const notesRev = useStudy((s) => s.notesRev);
 
   const [chapter, setChapter] = useState<Chapter | null>(null);
@@ -146,6 +148,13 @@ export function StudyWorkspace() {
         if (!ch?.verses.length) return;
         e.preventDefault();
         const cur = selectedVerse;
+        const end = selectedEndVerse ?? selectedVerse;
+        if (e.shiftKey) {
+          const last = ch.verses[ch.verses.length - 1]?.verse ?? 1;
+          const from = end ?? ch.verses[0]?.verse ?? 1;
+          tapVerse(Math.min(last, from + 1));
+          return;
+        }
         const idx =
           cur == null
             ? 0
@@ -161,6 +170,12 @@ export function StudyWorkspace() {
         if (!ch?.verses.length) return;
         e.preventDefault();
         const cur = selectedVerse;
+        if (e.shiftKey) {
+          const first = ch.verses[0]?.verse ?? 1;
+          const from = cur ?? first;
+          tapVerse(Math.max(first, from - 1));
+          return;
+        }
         if (cur == null) {
           setVerse(ch.verses[0]?.verse ?? null);
           return;
@@ -186,18 +201,26 @@ export function StudyWorkspace() {
   }, [
     chapter,
     selectedVerse,
+    selectedEndVerse,
     setLibraryOpen,
     setTypeOpen,
     setReceptionOpen,
     setReceptionPinned,
     setVerse,
+    tapVerse,
   ]);
 
   const verseHasNotes =
     notesRev >= 0 &&
     chapter != null &&
     selectedVerse != null &&
-    hasNotes(chapter.bookId, chapter.chapter, selectedVerse);
+    (() => {
+      const end = selectedEndVerse ?? selectedVerse;
+      for (let v = selectedVerse; v <= end; v++) {
+        if (hasNotes(chapter.bookId, chapter.chapter, v)) return true;
+      }
+      return false;
+    })();
 
   function closeReception() {
     setReceptionPinned(false);
@@ -243,6 +266,7 @@ export function StudyWorkspace() {
             <div className="absolute inset-0 z-20 flex flex-col md:hidden">
               <div className="relative h-[34%] min-h-32 overflow-hidden border-b border-rule bg-paper">
                 <Reader
+                  compact
                   chapter={shownChapter}
                   loading={waitingOnFetch}
                   error={null}
@@ -268,7 +292,15 @@ export function StudyWorkspace() {
         ) : null}
       </div>
 
-      <LibraryDrawer />
+      <LibraryDrawer
+        verseCount={
+          shownChapter &&
+          shownChapter.bookId === bookId &&
+          shownChapter.chapter === chapterNum
+            ? shownChapter.verses.length
+            : 0
+        }
+      />
     </div>
   );
 }

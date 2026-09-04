@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState, Fragment } from "react";
+import { useEffect, useMemo, useRef, useState, Fragment } from "react";
 import { ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { BIBLE_BOOKS, bookName, getBook } from "@/lib/bible/books";
 import type { Chapter } from "@/lib/bible/types";
 import { splitDropCap } from "@/lib/bible/drop-cap";
 import { inRange, MAX_RANGE_VERSES } from "@/lib/bible/range";
 import { t } from "@/lib/i18n";
-import { hasNotes } from "@/lib/reception/notes";
+import { markedVerses } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
+import { VerseSelector } from "./verse-selector";
 
 function neighbor(
   bookId: string,
@@ -66,10 +67,12 @@ export function Reader({
   chapter,
   loading,
   error,
+  compact = false,
 }: {
   chapter: Chapter | null;
   loading: boolean;
   error: string | null;
+  compact?: boolean;
 }) {
   const selected = useStudy((s) => s.selectedVerse);
   const selectedEnd = useStudy((s) => s.selectedEndVerse);
@@ -105,6 +108,13 @@ export function Reader({
   const sections = chapter?.verses.filter((v) => v.title) ?? [];
   const hintUp =
     selected != null && !receptionOpen && !receptionPinned;
+  const notedSet = useMemo(
+    () =>
+      chapter
+        ? new Set(markedVerses(chapter.bookId, chapter.chapter))
+        : new Set<number>(),
+    [chapter, notesRev],
+  );
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -157,7 +167,7 @@ export function Reader({
   }
 
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0 flex flex-col">
       {loading ? (
         <div
           aria-hidden
@@ -170,9 +180,32 @@ export function Reader({
         aria-hidden
         className="pointer-events-none absolute top-0 bottom-0 left-0 z-[1] w-px bg-lamp/30"
       />
+      {chapter && !loading && !compact ? (
+        <VerseSelector
+          count={chapter.verses.length}
+          selected={selected}
+          selectedEnd={selectedEnd}
+          noted={notedSet}
+          layout="rail"
+          label={t(locale, "verses")}
+          onPick={(n, extend) => {
+            if (extend || selectMode) {
+              const refused = tapVerse(n);
+              if (refused) setRangeNotice(refused);
+              else setRangeNotice(null);
+              return;
+            }
+            if (selected === n && selectedEnd == null) {
+              setVerse(null);
+              return;
+            }
+            setVerse(n);
+          }}
+        />
+      ) : null}
       <div
         ref={scrollRef}
-        className="tl-scroll absolute inset-0 overflow-y-auto"
+        className="tl-scroll relative min-h-0 flex-1 overflow-y-auto"
         onScroll={(e) => {
           updateShowTop(e.currentTarget);
         }}
@@ -277,7 +310,7 @@ export function Reader({
                 </nav>
               ) : null}
 
-              {selectMode ? (
+              {selectMode || rangeNotice ? (
                 <p
                   role={rangeNotice ? "alert" : undefined}
                   className={cn(
@@ -298,11 +331,7 @@ export function Reader({
                 {chapter.verses.map((v, i) => {
                   const on = inRange(range, v.verse);
                   const isRangeStart = range != null && v.verse === range.start;
-                  const noted = hasNotes(
-                    chapter.bookId,
-                    chapter.chapter,
-                    v.verse,
-                  );
+                  const noted = notedSet.has(v.verse);
                   const drop = i === 0 ? splitDropCap(v.text) : null;
                   return (
                     <Fragment key={v.verse}>
@@ -318,16 +347,18 @@ export function Reader({
                       <span
                         ref={(el) => {
                           if (el) verseRefs.current.set(v.verse, el);
+                          else verseRefs.current.delete(v.verse);
                         }}
                         id={`v-${v.verse}`}
                         role="button"
                         tabIndex={0}
-                        aria-current={on ? "true" : undefined}
-                        onClick={() => {
-                          if (selectMode) {
-                            // In select mode a tap edits the range; it never
-                            // closes the panel, since the reader is still
-                            // composing the passage they want to study.
+                        aria-current={isRangeStart ? "true" : undefined}
+                        aria-selected={on ? "true" : undefined}
+                        onMouseDown={(e) => {
+                          if (e.shiftKey) e.preventDefault();
+                        }}
+                        onClick={(e) => {
+                          if (selectMode || e.shiftKey) {
                             const refused = tapVerse(v.verse);
                             if (refused) setRangeNotice(refused);
                             else setRangeNotice(null);
@@ -407,9 +438,7 @@ export function Reader({
               <p className="mt-8 text-2xs leading-relaxed text-faint italic">
                 {chapter.translationNote}
                 {notesRev >= 0 &&
-                chapter.verses.some((v) =>
-                  hasNotes(chapter.bookId, chapter.chapter, v.verse),
-                )
+                chapter.verses.some((v) => notedSet.has(v.verse))
                   ? t(locale, "redMarks")
                   : ""}
               </p>

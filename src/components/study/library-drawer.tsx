@@ -18,11 +18,12 @@ import {
 } from "@/lib/bible/books";
 import { searchScripture } from "@/lib/bible/find";
 import type { ScriptureHit } from "@/lib/bible/search";
-import { markedVerses, bookHasNotes } from "@/lib/reception/notes";
+import { markedVerses, markedChapters, bookHasNotes } from "@/lib/reception/notes";
 import { corpusLabel, t } from "@/lib/i18n";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 import { useSlidingPill } from "./sliding-pill";
+import { VerseSelector } from "./verse-selector";
 
 function highlightMatch(text: string, query: string) {
   const q = query.trim();
@@ -41,15 +42,18 @@ function highlightMatch(text: string, query: string) {
   );
 }
 
-export function LibraryDrawer() {
+export function LibraryDrawer({ verseCount = 0 }: { verseCount?: number }) {
   const open = useStudy((s) => s.libraryOpen);
   const tab = useStudy((s) => s.libraryTab);
   const setOpen = useStudy((s) => s.setLibraryOpen);
   const bookId = useStudy((s) => s.bookId);
   const chapter = useStudy((s) => s.chapter);
+  const selectedVerse = useStudy((s) => s.selectedVerse);
+  const selectedEndVerse = useStudy((s) => s.selectedEndVerse);
   const setBook = useStudy((s) => s.setBook);
   const setChapter = useStudy((s) => s.setChapter);
   const jumpTo = useStudy((s) => s.jumpTo);
+  const tapVerse = useStudy((s) => s.tapVerse);
   const notesRev = useStudy((s) => s.notesRev);
   const locale = useStudy((s) => s.locale);
   const [query, setQuery] = useState("");
@@ -91,6 +95,11 @@ export function LibraryDrawer() {
     () => markedVerses(current.id, chapter),
     [current.id, chapter, notesRev],
   );
+  const chaptersWithNotes = useMemo(
+    () => new Set(markedChapters(current.id)),
+    [current.id, notesRev],
+  );
+  const notedVerses = useMemo(() => new Set(notes), [notes]);
   const [tabBarRef, tabInk] = useSlidingPill(view);
   const [railBarRef, railInk] = useSlidingPill(browseCorpus, open && view === "books");
 
@@ -446,15 +455,18 @@ export function LibraryDrawer() {
                   {Array.from({ length: current.chapters }, (_, i) => i + 1).map(
                     (n) => {
                       const active = n === chapter;
-                      const noted = notes.includes(n);
+                      const noted = chaptersWithNotes.has(n);
                       return (
                         <button
                           key={n}
                           type="button"
                           data-active-chapter={active ? "true" : undefined}
                           onClick={() => {
+                            if (n === chapter) {
+                              setOpen(false);
+                              return;
+                            }
                             setChapter(n);
-                            setOpen(false);
                           }}
                           className={cn(
                             "relative flex min-h-11 items-center justify-center rounded-sm text-sm font-semibold tabular-nums transition-[background-color,color,box-shadow,transform] duration-150 ease-out active:scale-[0.96]",
@@ -472,6 +484,22 @@ export function LibraryDrawer() {
                     },
                   )}
                 </div>
+                <VerseSelector
+                  count={verseCount}
+                  selected={selectedVerse}
+                  selectedEnd={selectedEndVerse}
+                  noted={notedVerses}
+                  layout="grid"
+                  label={t(locale, "verses")}
+                  onPick={(n, extend) => {
+                    if (extend) {
+                      tapVerse(n);
+                    } else {
+                      jumpTo(bookId, chapter, n);
+                    }
+                    setOpen(false);
+                  }}
+                />
               </div>
             </div>
 
