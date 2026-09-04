@@ -27,6 +27,9 @@ jobs:
       - name: Run source discovery scanners
         run: node scripts/research/run-all.mjs
 
+      - name: Stage output (gitignored by default)
+        run: git add -f scripts/research/output
+
       - name: Open a PR with the findings
         uses: peter-evans/create-pull-request@v6
         with:
