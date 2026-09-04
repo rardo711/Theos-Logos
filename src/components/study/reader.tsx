@@ -162,6 +162,7 @@ export function Reader({
       <div
         ref={scrollRef}
         className="tl-scroll absolute inset-0 overflow-y-auto"
+        data-pick={selected != null ? "true" : "false"}
         onScroll={(e) => {
           updateShowTop(e.currentTarget);
         }}
@@ -191,7 +192,10 @@ export function Reader({
           }
         }}
       >
-        <div className="mx-auto max-w-[42rem] px-5 pt-6 pb-36 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-10 sm:pt-12">
+        <div
+          className="tl-read mx-auto max-w-[42rem] px-5 pt-6 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-10 sm:pt-12"
+          data-pick={selected != null ? "true" : "false"}
+        >
           {loading && !chapter ? (
             <div className="space-y-4" aria-busy>
               <div className="mx-auto h-3 w-28 rounded-sm bg-lamp/15" />

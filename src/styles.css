@@ -68,6 +68,9 @@
   --motion-scale-menu: 0.97;
   --motion-y-small: 6px;
   --motion-y-medium: 12px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --pick-stack: calc(4.85rem + var(--safe-bottom));
+  --read-bottom: max(1.75rem, calc(var(--safe-bottom) + 1.25rem));
 }
 
 @layer base {
@@ -81,6 +84,7 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     height: 100%;
+    height: 100dvh;
     overflow: hidden;
     overscroll-behavior: none;
   }
@@ -92,9 +96,10 @@
   body {
     margin: 0;
     position: fixed;
-    inset: 0;
+    top: var(--app-top, 0px);
+    left: var(--app-left, 0px);
     width: 100%;
-    height: 100%;
+    height: 100dvh;
     height: var(--app-h, 100dvh);
     overflow: hidden;
     overscroll-behavior: none;
@@ -329,6 +334,16 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+.tl-read {
+  padding-bottom: var(--read-bottom);
+  scroll-padding-bottom: var(--read-bottom);
+}
+
+.tl-read[data-pick="true"] {
+  padding-bottom: calc(var(--pick-stack) + 1.25rem);
+  scroll-padding-bottom: calc(var(--pick-stack) + 1.25rem);
 }
 
 .tl-dim {
@@ -649,7 +664,7 @@
 .tl-back-top {
   position: absolute;
   right: max(0.85rem, env(safe-area-inset-right));
-  bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 0.85rem));
+  bottom: max(1.25rem, calc(var(--safe-bottom) + 0.75rem));
   left: auto;
   z-index: 10;
   display: flex;
@@ -671,7 +686,7 @@
 }
 
 .tl-back-top[data-nudge="true"] {
-  bottom: max(5.65rem, calc(env(safe-area-inset-bottom) + 5rem));
+  bottom: calc(var(--pick-stack) + 0.75rem);
 }
 
 .tl-back-top[data-show="true"] {
@@ -763,6 +778,11 @@
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   overflow-anchor: none;
+  scroll-padding-bottom: var(--read-bottom);
+}
+
+.tl-scroll[data-pick="true"] {
+  scroll-padding-bottom: calc(var(--pick-stack) + 1.25rem);
 }
 
 .tl-scroll::-webkit-scrollbar {

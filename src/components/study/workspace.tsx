@@ -13,8 +13,17 @@ import { ReceptionPanel, VerseHint } from "./reception-panel";
 import { TopBar } from "./top-bar";
 
 function lockAppHeight() {
-  const h = window.visualViewport?.height ?? window.innerHeight;
-  document.documentElement.style.setProperty("--app-h", `${Math.round(h)}px`);
+  const vv = window.visualViewport;
+  const root = document.documentElement;
+  if (vv) {
+    root.style.setProperty("--app-h", `${Math.round(vv.height)}px`);
+    root.style.setProperty("--app-top", `${Math.round(vv.offsetTop)}px`);
+    root.style.setProperty("--app-left", `${Math.round(vv.offsetLeft)}px`);
+  } else {
+    root.style.setProperty("--app-h", `${Math.round(window.innerHeight)}px`);
+    root.style.setProperty("--app-top", "0px");
+    root.style.setProperty("--app-left", "0px");
+  }
 }
 
 function chapterFitsLocale(ch: Chapter, locale: string): boolean {
