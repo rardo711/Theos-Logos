@@ -3,7 +3,7 @@ import { ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { BIBLE_BOOKS, bookName, getBook } from "@/lib/bible/books";
 import type { Chapter } from "@/lib/bible/types";
 import { splitDropCap } from "@/lib/bible/drop-cap";
-import { inRange, MAX_RANGE_VERSES } from "@/lib/bible/range";
+import { inRange } from "@/lib/bible/range";
 import { t } from "@/lib/i18n";
 import { markedVerses } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
@@ -73,13 +73,11 @@ export function Reader({
 }) {
   const selected = useStudy((s) => s.selectedVerse);
   const selectedEnd = useStudy((s) => s.selectedEndVerse);
-  const selectMode = useStudy((s) => s.selectMode);
-  const tapVerse = useStudy((s) => s.tapVerse);
+  const pickVerse = useStudy((s) => s.pickVerse);
   const setVerse = useStudy((s) => s.setVerse);
   const nextChapter = useStudy((s) => s.nextChapter);
   const prevChapter = useStudy((s) => s.prevChapter);
   const notesRev = useStudy((s) => s.notesRev);
-  const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
   const receptionOpen = useStudy((s) => s.receptionOpen);
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const locale = useStudy((s) => s.locale);
@@ -90,7 +88,6 @@ export function Reader({
   const touch = useRef<{ x: number; y: number } | null>(null);
   const topAnim = useRef<{ id: number | null }>({ id: null });
   const [showTop, setShowTop] = useState(false);
-  const [rangeNotice, setRangeNotice] = useState<"too-long" | null>(null);
   const range =
     selected == null ? null : { start: selected, end: selectedEnd ?? selected };
 
@@ -122,12 +119,7 @@ export function Reader({
     }
     el.scrollTop = 0;
     setShowTop(false);
-    setRangeNotice(null);
   }, [chapter?.reference, chapter?.bookId, chapter?.chapter]);
-
-  useEffect(() => {
-    if (!selectMode) setRangeNotice(null);
-  }, [selectMode]);
 
   useEffect(() => {
     return () => {
@@ -284,18 +276,6 @@ export function Reader({
                 </nav>
               ) : null}
 
-              {rangeNotice ? (
-                <p
-                  role="alert"
-                  className="mb-3 text-2xs leading-relaxed text-oxblood italic"
-                >
-                  {t(locale, "rangeTooLong").replace(
-                    "{n}",
-                    String(MAX_RANGE_VERSES),
-                  )}
-                </p>
-              ) : null}
-
               <div className="bible-prose font-serif text-[length:var(--reading-size,20px)] leading-[1.8] text-ink">
                 {chapter.verses.map((v, i) => {
                   const on = inRange(range, v.verse);
@@ -327,17 +307,7 @@ export function Reader({
                           if (e.shiftKey) e.preventDefault();
                         }}
                         onClick={() => {
-                          const refused = tapVerse(v.verse, {
-                            ifTooLong: selectMode ? "refuse" : "jump",
-                          });
-                          if (refused) {
-                            setRangeNotice(refused);
-                            return;
-                          }
-                          setRangeNotice(null);
-                          if (useStudy.getState().selectedVerse == null) {
-                            setReceptionOpen(false);
-                          }
+                          pickVerse(v.verse);
                         }}
                         onKeyDown={(e) => {
                           if (e.key !== "Enter" && e.key !== " ") return;

@@ -68,6 +68,7 @@ export function rangeVerses(range: VerseRange): number[] {
  * Pass `{ ifTooLong: "jump" }` to treat that tap as a new single-verse
  * selection instead -- that is the phone grammar, so a far tap is a jump, not
  * a dead control.
+ */
 export function applyVerseTap(
   range: VerseRange | null,
   verse: number,
@@ -102,4 +103,29 @@ export function applyVerseTap(
   if (verse === range.start) return { range: { start: range.start + 1, end: range.end } };
   if (verse === range.end) return { range: { start: range.start, end: range.end - 1 } };
   return { range: { start: verse, end: verse } };
+}
+
+/**
+ * Grow-only pick used on the scripture itself. A tap never clears and never
+ * trims -- the X on the selection bar does that. A tap inside the range is a
+ * no-op. A tap that would exceed the cap jumps to that verse as a new start.
+ */
+export function applyVersePick(
+  range: VerseRange | null,
+  verse: number,
+): VerseRange {
+  if (range == null) return { start: verse, end: verse };
+  if (verse < range.start) {
+    const next = { start: verse, end: range.end };
+    return rangeLength(next) > MAX_RANGE_VERSES
+      ? { start: verse, end: verse }
+      : next;
+  }
+  if (verse > range.end) {
+    const next = { start: range.start, end: verse };
+    return rangeLength(next) > MAX_RANGE_VERSES
+      ? { start: verse, end: verse }
+      : next;
+  }
+  return range;
 }

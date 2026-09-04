@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { BIBLE_BOOKS, getBook, type Locale } from "@/lib/bible/books";
-import { applyVerseTap, type VerseRange } from "@/lib/bible/range";
+import { applyVersePick, applyVerseTap, type VerseRange } from "@/lib/bible/range";
 import { applyDocumentLocale } from "@/lib/i18n";
 
 const KEY = "theos-logos-hybrid";
@@ -99,6 +99,8 @@ interface StudyState extends Persisted {
   /** Applies the select-mode tap rules. Returns "too-long" when the tap was refused. */
   tapVerse: (verse: number, opts?: { ifTooLong?: "refuse" | "jump" }) =>
     "too-long" | null;
+  /** Grow the selected passage. Never clears -- that is clearSelection. */
+  pickVerse: (verse: number) => void;
   clearSelection: () => void;
   setTheme: (theme: Theme) => void;
   setFontSize: (n: number) => void;
@@ -227,6 +229,18 @@ export const useStudy = create<StudyState>((set, get) => ({
           : null,
     });
     return null;
+  },
+  pickVerse: (verse) => {
+    const { selectedVerse, selectedEndVerse } = get();
+    const current =
+      selectedVerse == null
+        ? null
+        : { start: selectedVerse, end: selectedEndVerse ?? selectedVerse };
+    const next = applyVersePick(current, verse);
+    set({
+      selectedVerse: next.start,
+      selectedEndVerse: next.end !== next.start ? next.end : null,
+    });
   },
   clearSelection: () => set({ selectedVerse: null, selectedEndVerse: null }),
   setTheme: (theme) => {

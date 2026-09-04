@@ -233,15 +233,21 @@
 }
 
 .tl-verse[aria-selected="true"] {
-  background: color-mix(in oklab, var(--color-ink) 8%, transparent);
+  background: color-mix(in oklab, var(--color-lamp) 10%, transparent);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--color-lamp);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.22em;
 }
 
 .tl-verse[data-range-start="true"] {
-  box-shadow: inset 2px 0 0 0 var(--color-lamp);
+  box-shadow: none;
 }
 
 .dark .tl-verse[aria-selected="true"] {
-  background: var(--color-lamp-soft);
+  background: color-mix(in oklab, var(--color-lamp) 16%, transparent);
 }
 
 .tl-quote {
@@ -605,6 +611,10 @@
   animation: tl-hint-in var(--motion-fast) var(--ease-smooth-out);
 }
 
+.tl-pick {
+  animation: tl-hint-in var(--motion-fast) var(--ease-smooth-out);
+}
+
 @keyframes tl-hint-in {
   from {
     opacity: 0;
@@ -705,6 +715,7 @@
 
   .tl-chapter,
   .tl-hint,
+  .tl-pick,
   .tl-sheet,
   .tl-sheet-up,
   .tl-menu,

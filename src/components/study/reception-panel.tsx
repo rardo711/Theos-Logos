@@ -14,7 +14,8 @@ import {
 import { getCurated, hasCurated } from "@/lib/reception/curated";
 import { removeCached, saveCached } from "@/lib/reception/cache";
 import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
-import { formatReference, formatVerseSpan } from "@/lib/bible/reference";
+import { formatReference } from "@/lib/bible/reference";
+import { bookName, getBook } from "@/lib/bible/books";
 import { t } from "@/lib/i18n";
 import { localizeCaution } from "@/lib/i18n-sources";
 import type { Chapter, DeskSynthesis, LexiconResult, ReceptionResult, SourceCard as Card } from "@/lib/bible/types";
@@ -804,20 +805,39 @@ export function VerseHint({
   const receptionOpen = useStudy((s) => s.receptionOpen);
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const locale = useStudy((s) => s.locale);
+  const bookId = useStudy((s) => s.bookId);
+  const chapter = useStudy((s) => s.chapter);
+  const clearSelection = useStudy((s) => s.clearSelection);
   if (selected == null || receptionOpen || receptionPinned) return null;
+  const reference = formatReference(
+    bookName(getBook(bookId), locale),
+    chapter,
+    selected,
+    selectedEnd,
+  );
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-      <div className="tl-hint pointer-events-auto flex items-center gap-1 rounded-md border border-rule bg-surface px-1.5 py-1 shadow-soft">
-        <span className="px-2.5 font-serif text-sm font-medium text-lamp tabular-nums">
-          {formatVerseSpan(selected, selectedEnd)}
-        </span>
-        <button
-          type="button"
-          onClick={onInquire}
-          className="rounded-sm bg-oxblood px-4 py-2.5 text-xs font-semibold tracking-[0.12em] text-oxblood-fg uppercase transition-transform duration-150 ease-out active:scale-[0.96]"
-        >
-          {noted ? t(locale, "deskNotes") : t(locale, "sources")}
-        </button>
+    <div className="tl-pick pointer-events-none absolute inset-x-0 bottom-0 z-20">
+      <div className="pointer-events-auto border-t border-rule bg-surface pb-[env(safe-area-inset-bottom)]">
+        <div className="relative flex h-14 items-center justify-center px-14">
+          <button
+            type="button"
+            onClick={onInquire}
+            className="min-h-11 max-w-full truncate px-2 font-display text-[0.95rem] font-medium tracking-tight text-ink"
+          >
+            {reference}
+            {noted ? (
+              <span className="sr-only">. {t(locale, "deskNotes")}</span>
+            ) : null}
+          </button>
+          <button
+            type="button"
+            onClick={clearSelection}
+            aria-label={t(locale, "clearSelection")}
+            className="absolute top-1/2 right-[max(0.35rem,env(safe-area-inset-right))] flex size-11 -translate-y-1/2 items-center justify-center rounded-full text-muted transition-colors duration-150 ease-out hover:text-ink"
+          >
+            <X size={18} strokeWidth={1.75} />
+          </button>
+        </div>
       </div>
     </div>
   );
