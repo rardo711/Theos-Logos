@@ -119,6 +119,57 @@ All sources listed here are in the **public domain** (primarily pre-1928 works i
 
 ---
 
+## ⚠️ Attribution Cautions
+
+Sources that are easy to cite wrongly. Each of these has already produced a
+bad card on this desk.
+
+### Luther on the Sermon on the Mount (1532)
+
+**Do not cite** `ccel.org/ccel/luther/good_works/good_works.ii.html` for this.
+That path is the *Treatise on Good Works* (1520), a different work of twelve
+years earlier. The Sermon on the Mount material is the 1530–32 Wittenberg
+weekday sermons on Matthew 5–7 (*Wochenpredigten über Matth. 5–7*, WA 32).
+
+- **Public domain:** the German and Latin text, and the 1892 Charles A. Hay
+  translation in print.
+- **Not public domain:** the widely quoted *Luther's Works* vol. 21 rendering
+  (Fortress Press).
+- **Status here:** `RECEPTION_SOURCES` carries the work with a `sourceNote`
+  and **no `sourceUrl`**, because no public-domain edition has been verified.
+
+### Volume index pages are not commentary
+
+CCEL and New Advent serve tables of contents at URLs that look like content:
+
+| Looks like | Actually is |
+|---|---|
+| `ccel.org/ccel/schaff/npnf110.html` | NPNF 1/10 volume index |
+| `ccel.org/ccel/schaff/npnf106.html` | NPNF 1/6 volume index |
+| `ccel.org/ccel/aquinas/catena3.html` | *Catena Aurea* volume root |
+| `ccel.org/ccel/poole/annotations.html` | Poole's index page |
+| `ccel.org/ccel/calvin/calcom31/calcom31.i.html` | Harmony vol. 1 title page |
+
+Fetching one of these returns a preface or a contents list, which the desk
+then presents as commentary on the verse. 43 catalog rows and 49 curated
+citations pointed at pages of this kind before they were removed. A test now
+rejects them.
+
+### Calvin on CCEL is split by pericope, not by chapter
+
+`calcom38.xiii.i.html` is Romans **9:1–5**, not Romans 9. A row scoped to the
+whole chapter answers for verses the page never reaches. Rows covering one
+pericope carry a `verses` range so the scorer can drop them for other verses.
+
+### Aquinas: two different works
+
+The *Catena Aurea* is a **compilation** — Aquinas chaining Greek and Latin
+fathers verse by verse. Attribute those excerpts to the father being quoted,
+not to Aquinas. His own voice is in the lecture commentaries (*Super Epistolam
+ad Romanos*, *Super Evangelium S. Ioannis*), which are separate works.
+
+---
+
 ## 🔶 Patristic Sources (Church Fathers)
 
 ### Early Church Fathers Collection

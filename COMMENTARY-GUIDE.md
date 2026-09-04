@@ -97,6 +97,41 @@ Each tradition has unique colors for easy identification:
 | Orthodox | Green | Light Green |
 | Mainline | Pink | Light Pink |
 
+## Catalog Rules (reception engine)
+
+Two rules govern every row added to `src/lib/reception/catalog.ts` or
+`catalog-weak-nt.ts`, and both are enforced by tests in `retrieve.test.ts`.
+
+**No index pages.** A row must point at a page that contains commentary on the
+verse. An NPNF volume root, a *Catena Aurea* volume root, Poole's
+`annotations.html`, or a `calcom{n}.i.html` title page is a table of contents;
+fetching one returns a preface that the desk then shows as if it were exegesis.
+
+**No page twice.** Each request fetches at most seven pages. A URL indexed
+under two ids spends two of those slots on the same text.
+
+### The `verses` range
+
+`CatalogEntry` takes an optional inclusive `verses: [start, end]` for a row
+that covers one pericope rather than a whole chapter:
+
+```ts
+e("calvin-rom-9-1", "John Calvin", "Commentary on Romans", "reformed",
+  "Romans 9:1-5", "https://ccel.org/ccel/calvin/calcom38/calcom38.xiii.i.html",
+  ["romans", "calvin"], ["ROM"], [9]),
+// with verses: [1, 5]
+```
+
+`scoreEntry` returns 0 for any verse outside the range, so the row cannot
+answer for a verse its page never reaches. Rows without the field keep
+chapter-level behaviour. CCEL splits Calvin by pericope, so his chapter-scoped
+rows are the main candidates for it.
+
+Run `npm run verify:urls` before committing catalog changes. It needs network
+access and exits non-zero on any non-200.
+
+---
+
 ## Sources to Consider Adding
 
 ### Reformed Tradition

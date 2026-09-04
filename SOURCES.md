@@ -170,6 +170,83 @@ Used for verification links in word-study output — not as primary lexical auth
 
 ---
 
+
+## Reception Catalog
+
+The desk fetches primary sources from a committed index of public pages
+(`src/lib/reception/catalog.ts` and `catalog-weak-nt.ts`). Nothing is
+downloaded at build time; the index holds URLs, and pages are fetched per
+request from the allowlisted hosts in `retrieve-net.ts`.
+
+### Generators
+
+| Voice | Host | URL pattern | Books |
+|---|---|---|---|
+| Matthew Henry, *Commentary on the Whole Bible* | ccel.org | `henry/mhc5\|mhc6/{vol}.{Book}.{roman}.html` | all 27 NT books, per chapter |
+| John Gill, *Exposition of the Entire Bible* | biblehub.com | `commentaries/gill/{book}/{ch}.htm` | 27 NT books, per chapter |
+| Matthew Poole, *Annotations* | biblehub.com | `commentaries/poole/{book}/{ch}.htm` | 27 NT books, per chapter |
+| J. A. Bengel, *Gnomon* | biblehub.com | `commentaries/bengel/{book}/{ch}.htm` | 27 NT books, per chapter |
+| John Calvin, *Commentaries* | ccel.org | `calvin/calcom{31-45}/...` | Acts, Hebrews, Catholic Epistles per chapter; the rest by hand |
+| John Wesley, *Explanatory Notes* | godrules.net | `wesley/wesleyrev{ch}.htm` | Revelation |
+| Geneva Bible notes | biblehub.com | `geneva/revelation/{ch}.htm` | Revelation |
+| Church Fathers | newadvent.org | per-homily and per-treatise pages | hand-indexed |
+
+### Rules the index enforces
+
+Two tests in `retrieve.test.ts` gate every catalog change:
+
+- **No page twice.** A duplicate URL under two ids burns one of the seven
+  fetch slots on a page already read.
+- **No volume index or title page.** An NPNF volume root, a Catena volume
+  root, Poole's `annotations.html`, or a `calcom{n}.i.html` title page is a
+  table of contents. Fetching one returns a preface as though it were
+  commentary on the verse, which is how the desk once answered Romans 9:11
+  with Calvin on 9:4.
+
+A row may carry an inclusive `verses` range when it covers one pericope
+rather than a whole chapter; `scoreEntry` then drops it for any verse outside
+that range. CCEL splits Calvin this way, so a chapter-scoped Calvin row lands
+on the wrong page for most of its chapter.
+
+### Verification
+
+`npm run verify:urls` HEADs every distinct page in the index, one request per
+page, and exits non-zero on any non-200. Run it before committing catalog
+changes; it needs real network access.
+
+**Unverified as of 2026-09-04:** the Gill / Poole / Bengel rows for Matthew,
+Mark, Luke, John, Romans, 1 Corinthians and 2 Corinthians follow the same URL
+shape as the twenty books already in the generator but have not been checked
+against the live site. A wrong slug costs a fetch slot and logs a warning; it
+cannot produce a wrong citation.
+
+### Licence basis
+
+Every indexed author died before 1900, and every translation used was
+published in the United States before 1928: the Nicene and Post-Nicene Fathers
+series (1886–1900), the Calvin Translation Society editions (1843–1855), the
+Oxford *Catena Aurea* (1841), Henry (1708–1710), Poole (1685), Gill
+(1746–1763), Bengel's *Gnomon* (1742; Fausset tr. 1857), Wesley's *Notes*
+(1755), and the Geneva Bible notes (1560–1599).
+
+### Curated desk notes
+
+`curated.ts` holds hand-authored comparative entries keyed by verse, with
+`PERICOPE_RANGES` mapping neighbouring verses to a canonical one. Coverage:
+
+| Book | Pericopes |
+|---|---|
+| Romans 1–11 | 40 pericopes, 111 entries, four traditions per passage |
+| Matthew | 22 verse keys |
+| John | 12 verse keys |
+| Mark, Luke, Genesis, Psalms, Isaiah, Hebrews and others | 1–4 keys each |
+
+Entries are compressed restatements of each writer's argument at the verse,
+not transcriptions. They carry `paraphrased: true` by default, and a test
+prevents any entry claiming verbatim status. An entry links a page only when
+that page holds the passage; where no such page is verified it carries no link
+rather than a link to a volume index.
+
 ## Scholarly Integrity Notice
 
 The AI commentary engine (powered by Google Gemini with Google Search grounding) is instructed to cite from the sources above. However:
