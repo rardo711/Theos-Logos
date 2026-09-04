@@ -3,7 +3,7 @@ import { fetchChapter } from "@/lib/bible/fetch-chapter";
 import { getSeed } from "@/lib/bible/seed";
 import { attachNtHeadings } from "@/lib/bible/nt-headings";
 import type { Chapter } from "@/lib/bible/types";
-import { initPwa } from "@/lib/pwa";
+import { initPwa, isStandalone } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
 import { hasNotes } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
@@ -13,8 +13,16 @@ import { ReceptionPanel, VerseHint } from "./reception-panel";
 import { TopBar } from "./top-bar";
 
 function lockAppHeight() {
-  const vv = window.visualViewport;
   const root = document.documentElement;
+  const standalone = isStandalone();
+  root.classList.toggle("tl-standalone", standalone);
+  if (standalone) {
+    root.style.setProperty("--app-h", "100%");
+    root.style.setProperty("--app-top", "0px");
+    root.style.setProperty("--app-left", "0px");
+    return;
+  }
+  const vv = window.visualViewport;
   if (vv) {
     root.style.setProperty("--app-h", `${Math.round(vv.height)}px`);
     root.style.setProperty("--app-top", `${Math.round(vv.offsetTop)}px`);

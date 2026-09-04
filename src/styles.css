@@ -70,7 +70,7 @@
   --motion-y-medium: 12px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --pick-stack: calc(4.85rem + var(--safe-bottom));
-  --read-bottom: max(1.75rem, calc(var(--safe-bottom) + 1.25rem));
+  --read-bottom: max(1.25rem, var(--safe-bottom));
 }
 
 @layer base {
@@ -85,6 +85,7 @@
     text-size-adjust: 100%;
     height: 100%;
     height: 100dvh;
+    height: 100lvh;
     overflow: hidden;
     overscroll-behavior: none;
   }
@@ -130,6 +131,36 @@
         color-mix(in oklab, var(--color-oxblood) 14%, transparent),
         transparent 22%
       );
+  }
+
+  /* Installed PWA: fill the app window, including the gesture inset.
+     Chrome in a tab already does this; visualViewport locking left a
+     navy strip under the paper on Android standalone. */
+  html.tl-standalone body {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    min-height: 100%;
+    min-height: 100lvh;
+  }
+
+  @media (display-mode: standalone), (display-mode: fullscreen) {
+    html {
+      height: 100%;
+    }
+    body {
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: auto;
+      height: auto;
+      min-height: 100%;
+      min-height: 100lvh;
+    }
   }
 
   button:not(:disabled),
