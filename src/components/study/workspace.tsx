@@ -174,11 +174,11 @@ export function StudyWorkspace() {
 
   useEffect(() => {
     const el = sheetRef.current;
-    if (!el || sheetState === "hidden") return;
+    const chrome = el?.querySelector("[data-sheet-chrome]") as HTMLElement | null;
+    if (!el || !chrome || sheetState === "hidden") return;
     let startY = 0;
     let startT = 0;
     let pulling = false;
-    let fromChrome = false;
     let dy = 0;
     const COMMIT = 96;
     const FLING = 0.82;
@@ -186,51 +186,23 @@ export function StudyWorkspace() {
       startY = e.touches[0].clientY;
       startT = performance.now();
       pulling = false;
-      fromChrome = Boolean(
-        (e.target as HTMLElement | null)?.closest?.("[data-sheet-chrome]"),
-      );
       dy = 0;
     };
     const onMove = (e: TouchEvent) => {
       const delta = e.touches[0].clientY - startY;
       const mode = sheetStateRef.current;
       const H = el.offsetHeight;
-      const peekH =
-        (
-          el.querySelector("[data-sheet-chrome]") as HTMLElement | null
-        )?.offsetHeight ?? 92;
-      const midPx = Math.min(H * 0.42, 22 * 16);
+      pulling = true;
       if (mode === "peek") {
-        pulling = true;
-        fromChrome = true;
-        dy = Math.min(Math.max(delta, -(H - peekH)), H * 0.35);
-        setSheetDragging(true);
-        setSheetDrag(dy);
-        if (Math.abs(delta) > 6) e.preventDefault();
-        return;
+        dy = Math.min(Math.max(delta, -H * 2.2), H * 0.9);
+      } else if (mode === "mid") {
+        dy = Math.min(Math.max(delta, -H * 0.85), H * 0.9);
+      } else {
+        dy = Math.min(Math.max(delta, 0), H * 0.92);
       }
-      if (fromChrome) {
-        pulling = true;
-        if (mode === "mid") {
-          const up = -(H - midPx);
-          dy = Math.min(Math.max(delta, up), midPx - peekH + 32);
-        } else {
-          dy = Math.min(Math.max(delta, 0), H * 0.9);
-        }
-        setSheetDragging(true);
-        setSheetDrag(dy);
-        if (Math.abs(delta) > 4) e.preventDefault();
-        return;
-      }
-      const scroller = el.querySelector(".tl-scroll") as HTMLElement | null;
-      const atTop = !scroller || scroller.scrollTop <= 1;
-      if (atTop && delta > 80 && (mode === "mid" || mode === "full")) {
-        pulling = true;
-        dy = (delta - 80) * 0.48;
-        setSheetDragging(true);
-        setSheetDrag(dy);
-        e.preventDefault();
-      }
+      setSheetDragging(true);
+      setSheetDrag(dy);
+      if (Math.abs(delta) > 4) e.preventDefault();
     };
     const finish = () => {
       const v = dy / Math.max(performance.now() - startT, 1);
@@ -246,12 +218,12 @@ export function StudyWorkspace() {
         else if (dy > COMMIT || v > FLING) clearSelection();
         else setSheetDrag(0);
       } else if (mode === "mid") {
-        if (fromChrome && (dy < -COMMIT || v < -FLING)) setReceptionFull(true);
+        if (dy < -COMMIT || v < -FLING) setReceptionFull(true);
         else if (dy > COMMIT || v > FLING) {
           setReceptionFull(false);
           setReceptionOpen(false);
         } else setSheetDrag(0);
-      } else if (fromChrome && (dy > H * 0.32 || v > 1.15)) {
+      } else if (dy > H * 0.28 || v > 1.1) {
         setReceptionFull(false);
         setReceptionOpen(false);
       } else if (dy > COMMIT || v > FLING) {
@@ -260,18 +232,17 @@ export function StudyWorkspace() {
         setSheetDrag(0);
       }
       pulling = false;
-      fromChrome = false;
       dy = 0;
     };
-    el.addEventListener("touchstart", onStart, { passive: true });
-    el.addEventListener("touchmove", onMove, { passive: false });
-    el.addEventListener("touchend", finish);
-    el.addEventListener("touchcancel", finish);
+    chrome.addEventListener("touchstart", onStart, { passive: true });
+    chrome.addEventListener("touchmove", onMove, { passive: false });
+    chrome.addEventListener("touchend", finish);
+    chrome.addEventListener("touchcancel", finish);
     return () => {
-      el.removeEventListener("touchstart", onStart);
-      el.removeEventListener("touchmove", onMove);
-      el.removeEventListener("touchend", finish);
-      el.removeEventListener("touchcancel", finish);
+      chrome.removeEventListener("touchstart", onStart);
+      chrome.removeEventListener("touchmove", onMove);
+      chrome.removeEventListener("touchend", finish);
+      chrome.removeEventListener("touchcancel", finish);
     };
   }, [
     sheetState,
@@ -456,14 +427,14 @@ export function StudyWorkspace() {
             />
             <aside
               ref={sheetRef}
-              className="tl-sheet-up absolute inset-x-0 bottom-0 flex h-full w-full flex-col overflow-hidden rounded-t-2xl border-t border-rule bg-surface shadow-soft md:mx-auto md:w-[min(40rem,100%)]"
+              className="tl-sheet-up absolute inset-x-0 bottom-0 flex w-full flex-col overflow-hidden rounded-t-2xl border-t border-rule bg-surface shadow-soft md:mx-auto md:w-[min(40rem,100%)]"
               data-state={sheetState}
               data-dragging={sheetDragging ? "true" : "false"}
               style={{
                 ["--sheet-drag" as string]: `${sheetDrag}px`,
               }}
             >
-              <div className="min-h-0 flex-1">
+              <div className="flex min-h-0 flex-1 flex-col">
                 <ReceptionPanel
                   chapter={shownChapter}
                   onClose={closeReception}

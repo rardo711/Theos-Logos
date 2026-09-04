@@ -71,7 +71,8 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top-min: 0px;
   --sheet-peek: 5.75rem;
-  --sheet-mid: min(42dvh, 22rem);
+  --sheet-mid: min(48dvh, 28rem);
+  --sheet-full-gap: 0.4rem;
   --pick-stack: var(--sheet-peek);
   --read-bottom: max(1.25rem, var(--safe-bottom));
 }
@@ -431,30 +432,48 @@
 }
 
 .tl-sheet-up {
-  transform: translateY(calc(100% + var(--sheet-drag, 0px)));
+  height: var(--sheet-h, var(--sheet-peek));
+  transform: translateY(calc(var(--sheet-slide, 100%) + var(--sheet-drag, 0px)));
   pointer-events: none;
-  transition: transform 280ms var(--ease-snap);
+  transition:
+    transform 280ms var(--ease-snap),
+    height 280ms var(--ease-snap);
+}
+
+.tl-sheet-up[data-state="hidden"] {
+  --sheet-h: var(--sheet-peek);
+  --sheet-slide: 110%;
 }
 
 .tl-sheet-up[data-state="peek"] {
-  transform: translateY(calc(100% - var(--sheet-peek) + var(--sheet-drag, 0px)));
+  --sheet-h: var(--sheet-peek);
+  --sheet-slide: 0px;
   pointer-events: auto;
   touch-action: none;
 }
 
 .tl-sheet-up[data-state="mid"] {
-  transform: translateY(calc(100% - var(--sheet-mid) + var(--sheet-drag, 0px)));
+  --sheet-h: var(--sheet-mid);
+  --sheet-slide: 0px;
   pointer-events: auto;
+  touch-action: pan-y;
+}
+
+.tl-sheet-up[data-state="full"] {
+  --sheet-h: calc(100% - var(--sheet-full-gap));
+  --sheet-slide: 0px;
+  pointer-events: auto;
+  touch-action: pan-y;
+  box-shadow: 0 -18px 40px color-mix(in oklab, #1c1917 14%, transparent);
+}
+
+.dark .tl-sheet-up[data-state="full"] {
+  box-shadow: 0 -20px 48px rgba(0, 0, 0, 0.45);
 }
 
 .tl-sheet-up[data-state="mid"] [data-sheet-chrome],
 .tl-sheet-up[data-state="full"] [data-sheet-chrome] {
   touch-action: none;
-}
-
-.tl-sheet-up[data-state="full"] {
-  transform: translateY(var(--sheet-drag, 0px));
-  pointer-events: auto;
 }
 
 .tl-sheet-up[data-dragging="true"] {
