@@ -51,7 +51,7 @@ export function StudyWorkspace() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetDy, setSheetDy] = useState(0);
   const [sheetDragging, setSheetDragging] = useState(false);
-  const sheetTouch = useRef<number | null>(null);
+  const sheetRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     hydrate();
@@ -108,6 +108,68 @@ export function StudyWorkspace() {
     const t = window.setTimeout(() => setSheetShown(false), 420);
     return () => window.clearTimeout(t);
   }, [sheetWanted]);
+
+  useEffect(() => {
+    if (!sheetShown) {
+      setSheetDy(0);
+      setSheetDragging(false);
+    }
+  }, [sheetShown]);
+
+  useEffect(() => {
+    const el = sheetRef.current;
+    if (!el || !sheetOpen) return;
+    let startY = 0;
+    let startT = 0;
+    let pulling = false;
+    let dy = 0;
+    const onStart = (e: TouchEvent) => {
+      startY = e.touches[0].clientY;
+      startT = performance.now();
+      pulling = false;
+      dy = 0;
+    };
+    const onMove = (e: TouchEvent) => {
+      const delta = e.touches[0].clientY - startY;
+      const scroller = el.querySelector(".tl-scroll") as HTMLElement | null;
+      const atTop = !scroller || scroller.scrollTop <= 1;
+      const handle = (e.target as HTMLElement | null)?.closest?.(
+        "[data-sheet-handle]",
+      );
+      if (delta > 0 && (atTop || handle)) {
+        pulling = true;
+        dy = delta;
+        setSheetDragging(true);
+        setSheetDy(delta);
+        if (delta > 6) e.preventDefault();
+      } else if (pulling && delta <= 0) {
+        dy = 0;
+        setSheetDy(0);
+      }
+    };
+    const finish = () => {
+      const v = dy / Math.max(performance.now() - startT, 1);
+      setSheetDragging(false);
+      if (pulling && (dy > 48 || v > 0.5)) {
+        setReceptionPinned(false);
+        setReceptionOpen(false);
+      } else {
+        setSheetDy(0);
+      }
+      pulling = false;
+      dy = 0;
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", finish);
+    el.addEventListener("touchcancel", finish);
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", finish);
+      el.removeEventListener("touchcancel", finish);
+    };
+  }, [sheetOpen, setReceptionOpen, setReceptionPinned]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -273,6 +335,7 @@ export function StudyWorkspace() {
           />
           <VerseHint
             noted={verseHasNotes}
+            heldBack={sheetShown}
             onInquire={() => {
               if (selectedVerse != null) setReceptionOpen(true);
             }}
@@ -294,8 +357,14 @@ export function StudyWorkspace() {
                 data-open={sheetOpen ? "true" : "false"}
                 aria-label={t(locale, "closeReception")}
                 onClick={closeReception}
+                style={{
+                  ["--dim-o" as string]: sheetOpen
+                    ? String(Math.max(0.12, 1 - sheetDy / 320))
+                    : "0",
+                }}
               />
               <aside
+                ref={sheetRef}
                 className="tl-sheet-up flex h-[min(72dvh,42rem)] w-full flex-col rounded-t-xl border-t border-rule bg-paper shadow-soft"
                 data-open={sheetOpen ? "true" : "false"}
                 data-dragging={sheetDragging ? "true" : "false"}
@@ -304,31 +373,11 @@ export function StudyWorkspace() {
                 }}
               >
                 <div
-                  className="flex shrink-0 cursor-grab touch-none justify-center pt-2 pb-2 active:cursor-grabbing"
+                  data-sheet-handle
+                  className="flex shrink-0 cursor-grab justify-center pt-3 pb-2 active:cursor-grabbing"
                   aria-hidden
-                  onTouchStart={(e) => {
-                    sheetTouch.current = e.touches[0].clientY;
-                    setSheetDragging(true);
-                  }}
-                  onTouchMove={(e) => {
-                    if (sheetTouch.current == null) return;
-                    setSheetDy(e.touches[0].clientY - sheetTouch.current);
-                  }}
-                  onTouchEnd={(e) => {
-                    if (sheetTouch.current == null) return;
-                    const dy = e.changedTouches[0].clientY - sheetTouch.current;
-                    sheetTouch.current = null;
-                    setSheetDragging(false);
-                    setSheetDy(0);
-                    if (dy > 72) closeReception();
-                  }}
-                  onTouchCancel={() => {
-                    sheetTouch.current = null;
-                    setSheetDragging(false);
-                    setSheetDy(0);
-                  }}
                 >
-                  <span className="h-1 w-10 rounded-full bg-faint/70" />
+                  <span className="h-1 w-10 rounded-full bg-lamp/50" />
                 </div>
                 <div className="min-h-0 flex-1">
                   <ReceptionPanel

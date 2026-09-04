@@ -364,7 +364,10 @@ export function ReceptionPanel({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-paper">
-      <header className="relative z-10 flex items-start justify-between gap-3 border-b border-rule px-5 py-3">
+      <header
+        data-sheet-handle
+        className="relative z-10 flex items-start justify-between gap-3 border-b border-rule px-5 py-3"
+      >
         <div className="min-w-0 pt-1">
           <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
             {t(locale, "reception")}
@@ -796,9 +799,11 @@ export function ReceptionPanel({
 export function VerseHint({
   onInquire,
   noted,
+  heldBack,
 }: {
   onInquire: () => void;
   noted?: boolean;
+  heldBack?: boolean;
 }) {
   const selected = useStudy((s) => s.selectedVerse);
   const selectedEnd = useStudy((s) => s.selectedEndVerse);
@@ -808,7 +813,8 @@ export function VerseHint({
   const bookId = useStudy((s) => s.bookId);
   const chapter = useStudy((s) => s.chapter);
   const clearSelection = useStudy((s) => s.clearSelection);
-  const open = selected != null && !receptionOpen && !receptionPinned;
+  const open =
+    selected != null && !receptionOpen && !receptionPinned && !heldBack;
   const live =
     selected == null
       ? ""
@@ -821,14 +827,21 @@ export function VerseHint({
   const [label, setLabel] = useState(live);
   const [dy, setDy] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const touch = useRef<{ y: number; x: number } | null>(null);
+  const touch = useRef<{ y: number; x: number; t: number } | null>(null);
   const swallow = useRef(false);
   useEffect(() => {
     if (live) setLabel(live);
   }, [live]);
+  useEffect(() => {
+    if (open) setDy(0);
+  }, [open]);
 
   function onTouchStart(e: React.TouchEvent) {
-    touch.current = { y: e.touches[0].clientY, x: e.touches[0].clientX };
+    touch.current = {
+      y: e.touches[0].clientY,
+      x: e.touches[0].clientX,
+      t: performance.now(),
+    };
     setDragging(true);
   }
   function onTouchMove(e: React.TouchEvent) {
@@ -839,19 +852,26 @@ export function VerseHint({
     if (!touch.current) return;
     const next = e.changedTouches[0].clientY - touch.current.y;
     const dx = e.changedTouches[0].clientX - touch.current.x;
+    const dt = Math.max(performance.now() - touch.current.t, 1);
+    const v = next / dt;
     touch.current = null;
     setDragging(false);
-    setDy(0);
-    if (Math.abs(dx) > Math.abs(next) && Math.abs(dx) > 28) return;
-    if (next > 48) {
+    if (Math.abs(dx) > Math.abs(next) && Math.abs(dx) > 28) {
+      setDy(0);
+      return;
+    }
+    if (next > 36 || v > 0.45) {
       swallow.current = true;
       clearSelection();
       return;
     }
-    if (next < -40) {
+    if (next < -28 || v < -0.4) {
       swallow.current = true;
+      setDy(0);
       onInquire();
+      return;
     }
+    setDy(0);
   }
 
   function tap(fn: () => void) {

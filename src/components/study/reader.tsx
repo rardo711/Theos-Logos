@@ -135,14 +135,8 @@ export function Reader({
     if (!verse) return;
     const vBox = verse.getBoundingClientRect();
     const sBox = scroller.getBoundingClientRect();
-    const pad = 48;
-    if (vBox.top >= sBox.top + pad && vBox.bottom <= sBox.bottom - pad) return;
-    const next =
-      scroller.scrollTop +
-      (vBox.top - sBox.top) -
-      sBox.height / 2 +
-      vBox.height / 2;
-    scroller.scrollTo({ top: Math.max(0, next), behavior: "smooth" });
+    if (vBox.bottom > sBox.top + 8 && vBox.top < sBox.bottom - 8) return;
+    verse.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [selected, chapter?.reference]);
 
   function updateShowTop(el: HTMLElement) {
