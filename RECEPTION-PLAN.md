@@ -353,6 +353,60 @@ Blocked on network egress, for a session that can reach the hosts:
 
 First thing that session should run: `npm run verify:urls`.
 
+**Update 2026-09-04, later the same day:** the network-blocked half of Phase
+C now has a path that doesn't depend on this sandbox getting egress. A
+GitHub Actions workflow, `.github/workflows/reception-source-research.yml`
+(manual trigger only), runs `scripts/research/run-all.mjs` on GitHub's own
+runners — which have ordinary internet access — and opens a PR with whatever
+it finds under `scripts/research/output/`. It does not touch
+`src/lib/reception/**` itself; turning a finding into a catalog row is a
+separate, deliberate step once someone has read the PR.
+
+What it does, host by host:
+
+- **CCEL**: reads each Calvin volume's and each Catena volume's own
+  table-of-contents page (tries `calcom{NN}.html` and `calcom{NN}.i.html`,
+  keeps whichever resolves) and extracts every section link with its anchor
+  text, rather than guessing CCEL's internal numbering. `catena3.html` and
+  `catena4.html` — removed from the citable catalog in Phase B because
+  they're volume roots — are exactly the pages this crawls, since a root's
+  whole job is linking to every chapter.
+- **New Advent**: extends Chrysostom's homily numbering by increment *only*
+  for the seven works where a first-homily URL is already confirmed live
+  (Matthew, John, Romans, 1–2 Corinthians, Hebrews, Acts) — this was checked
+  against a real pair already in the catalog (Romans homily 1 → homily 16)
+  before being trusted. For Galatians through Philemon, where the numbering
+  is confirmed *not* uniform (`23051.htm` breaks the six-digit pattern the
+  others follow), it instead reads the real Fathers index page and follows
+  whichever link matches. Also probes a small range of New Advent codes for
+  Augustine's Sermon on the Mount, which Phase C8 had flagged as
+  "expected pattern; verify."
+- **Bible Hub**: spot-checks the seven book slugs added to
+  `WEAK_NT_HUB` this session without ever being fetched, and probes whether a
+  per-verse page exists at all — reporting its raw heading structure rather
+  than committing a splitter for markup nobody has seen (Phase C6).
+- **Godrules**: re-checks the 22 existing Wesley-on-Revelation rows, and
+  probes whether Wesley's *Explanatory Notes* — which cover the whole
+  New Testament — exist at the same host under a guessed filename for a
+  handful of other books. If that pattern holds, it's a real expansion: right
+  now Godrules only supplies Revelation.
+- **StudyLight.org**, a candidate fifth host: probes several guessed
+  commentary codes and URL shapes for one verse. Unlike the other four, none
+  of this pattern has ever been confirmed — it's recalled, not sourced — so
+  the scanner treats every guess as unconfirmed until a real 200 comes back.
+- Named but not scanned: **Internet Archive** (OCR'd full-text commentary
+  sets — Alford, Meyer, Vincent as a standalone set — but no per-verse HTML
+  anchors, so it needs a different ingestion approach, not an extension of
+  this scanner) and **Bible Study Tools** / **sacred-texts.com** (same shape
+  as Bible Hub, unprobed).
+
+Every parsing helper (`extractLinks`, `parseChapterVerse`, the homily-number
+extrapolation) was unit-tested against synthetic HTML and, where possible,
+against a pair of URLs already confirmed live — not just written and hoped.
+What was *not* possible from this sandbox is running it for real. First run
+should happen from the GitHub Actions tab (`workflow_dispatch`), and the
+resulting PR is where the actual verification happens.
+
 Remaining Phase D books, in the order given in §5: 1 Corinthians 11–15,
 Galatians 2–3, Ephesians 1–2, Philippians 2, Colossians 1, Hebrews, James,
 1 Peter, 1 John, Revelation, then the Gospels, Acts, and the rest.
