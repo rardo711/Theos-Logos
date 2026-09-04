@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { BIBLE_BOOKS, getBook, type Locale } from "@/lib/bible/books";
-import { applyVerseTap, type VerseRange } from "@/lib/bible/range";
+import { applyVersePick, applyVerseTap, type VerseRange } from "@/lib/bible/range";
 import { applyDocumentLocale } from "@/lib/i18n";
 
 const KEY = "theos-logos-hybrid";
@@ -53,14 +53,37 @@ function load(): Persisted {
   };
 }
 
+const THEME_LIGHT = "#fffdf8";
+const THEME_DARK = "#1c1814";
+
+function paintThemeColor(theme: Theme) {
+  document
+    .querySelectorAll('meta[name="theme-color"]')
+    .forEach((m) => m.remove());
+  const add = (content: string, media?: string) => {
+    const el = document.createElement("meta");
+    el.setAttribute("name", "theme-color");
+    el.setAttribute("content", content);
+    if (media) el.setAttribute("media", media);
+    document.head.appendChild(el);
+  };
+  if (theme === "light") add(THEME_LIGHT);
+  else if (theme === "dark") add(THEME_DARK);
+  else {
+    add(THEME_LIGHT, "(prefers-color-scheme: light)");
+    add(THEME_DARK, "(prefers-color-scheme: dark)");
+  }
+}
+
 function applyTheme(theme: Theme) {
   const dark =
     theme === "dark" ||
     (theme === "auto" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.classList.toggle("dark", dark);
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", dark ? "#1c1814" : "#f6f1e8");
+  document.documentElement.style.colorScheme =
+    theme === "auto" ? "light dark" : dark ? "dark" : "light";
+  paintThemeColor(theme);
 }
 
 let themeBound = false;
@@ -88,6 +111,7 @@ interface StudyState extends Persisted {
   libraryTab: LibraryTab;
   typeOpen: boolean;
   receptionOpen: boolean;
+  receptionFull: boolean;
   notesRev: number;
   setBook: (bookId: string, chapter?: number) => void;
   setChapter: (chapter: number) => void;
@@ -97,7 +121,10 @@ interface StudyState extends Persisted {
   setVerse: (verse: number | null) => void;
   setSelectMode: (on: boolean) => void;
   /** Applies the select-mode tap rules. Returns "too-long" when the tap was refused. */
-  tapVerse: (verse: number) => "too-long" | null;
+  tapVerse: (verse: number, opts?: { ifTooLong?: "refuse" | "jump" }) =>
+    "too-long" | null;
+  /** Grow the selected passage. Never clears -- that is clearSelection. */
+  pickVerse: (verse: number) => void;
   clearSelection: () => void;
   setTheme: (theme: Theme) => void;
   setFontSize: (n: number) => void;
@@ -105,6 +132,7 @@ interface StudyState extends Persisted {
   setLibraryOpen: (open: boolean, tab?: LibraryTab) => void;
   setTypeOpen: (open: boolean) => void;
   setReceptionOpen: (open: boolean) => void;
+  setReceptionFull: (full: boolean) => void;
   setReceptionPinned: (pinned: boolean) => void;
   touchNotes: () => void;
   dismissDisclaimer: () => void;
@@ -142,6 +170,7 @@ export const useStudy = create<StudyState>((set, get) => ({
   libraryTab: "chapters",
   typeOpen: false,
   receptionOpen: false,
+  receptionFull: false,
   receptionPinned: false,
   notesRev: 0,
   hydrate: () => {
@@ -159,6 +188,7 @@ export const useStudy = create<StudyState>((set, get) => ({
       selectedVerse: null,
       selectedEndVerse: null,
       receptionOpen: get().receptionPinned ? get().receptionOpen : false,
+      receptionFull: false,
     });
     persist(get());
   },
@@ -169,6 +199,7 @@ export const useStudy = create<StudyState>((set, get) => ({
       selectedVerse: null,
       selectedEndVerse: null,
       receptionOpen: get().receptionPinned ? get().receptionOpen : false,
+      receptionFull: false,
     });
     persist(get());
   },
@@ -180,6 +211,7 @@ export const useStudy = create<StudyState>((set, get) => ({
       selectedVerse: verse ?? null,
       selectedEndVerse: null,
       receptionOpen: get().receptionPinned ? get().receptionOpen : false,
+      receptionFull: false,
     });
     persist(get());
   },
@@ -208,13 +240,13 @@ export const useStudy = create<StudyState>((set, get) => ({
   },
   setVerse: (verse) => set({ selectedVerse: verse, selectedEndVerse: null }),
   setSelectMode: (selectMode) => set({ selectMode }),
-  tapVerse: (verse) => {
+  tapVerse: (verse, opts) => {
     const { selectedVerse, selectedEndVerse } = get();
     const current =
       selectedVerse == null
         ? null
         : { start: selectedVerse, end: selectedEndVerse ?? selectedVerse };
-    const outcome = applyVerseTap(current, verse);
+    const outcome = applyVerseTap(current, verse, opts);
     if (outcome.refused) return outcome.refused;
     set({
       selectedVerse: outcome.range?.start ?? null,
@@ -227,7 +259,28 @@ export const useStudy = create<StudyState>((set, get) => ({
     });
     return null;
   },
-  clearSelection: () => set({ selectedVerse: null, selectedEndVerse: null }),
+  pickVerse: (verse) => {
+    const { selectedVerse, selectedEndVerse } = get();
+    const current =
+      selectedVerse == null
+        ? null
+        : { start: selectedVerse, end: selectedEndVerse ?? selectedVerse };
+    const next = applyVersePick(current, verse);
+    set({
+      selectedVerse: next.start,
+      selectedEndVerse: next.end !== next.start ? next.end : null,
+    });
+  },
+  clearSelection: () => {
+    const pinned = get().receptionPinned;
+    set({
+      selectedVerse: null,
+      selectedEndVerse: null,
+      selectMode: false,
+      receptionOpen: pinned ? get().receptionOpen : false,
+      receptionFull: pinned ? get().receptionFull : false,
+    });
+  },
   setTheme: (theme) => {
     set({ theme });
     applyTheme(theme);
@@ -253,7 +306,16 @@ export const useStudy = create<StudyState>((set, get) => ({
       typeOpen,
       libraryOpen: typeOpen ? false : get().libraryOpen,
     }),
-  setReceptionOpen: (receptionOpen) => set({ receptionOpen }),
+  setReceptionOpen: (receptionOpen) =>
+    set({
+      receptionOpen,
+      receptionFull: receptionOpen ? get().receptionFull : false,
+    }),
+  setReceptionFull: (receptionFull) =>
+    set({
+      receptionFull,
+      receptionOpen: receptionFull ? true : get().receptionOpen,
+    }),
   setReceptionPinned: (receptionPinned) => {
     set({
       receptionPinned,

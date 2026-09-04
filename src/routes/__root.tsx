@@ -15,12 +15,21 @@ export const Route = createRootRoute({
           "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
       },
       { title: APP_NAME },
-      { name: "theme-color", content: "#f6f1e8" },
+      {
+        name: "theme-color",
+        content: "#fffdf8",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        name: "theme-color",
+        content: "#1c1814",
+        media: "(prefers-color-scheme: dark)",
+      },
       { name: "color-scheme", content: "light dark" },
       { name: "apple-mobile-web-app-title", content: APP_NAME },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       {
         name: "description",
         content:
@@ -44,7 +53,7 @@ export const Route = createRootRoute({
       <body>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=JSON.parse(localStorage.getItem("theos-logos-hybrid")||"{}").theme||"auto";var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",d?"#1c1814":"#f6f1e8");var h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;document.documentElement.style.setProperty("--app-h",Math.round(h)+"px");}catch(e){}})();`,
+            __html: `(function(){try{var t=JSON.parse(localStorage.getItem("theos-logos-hybrid")||"{}").theme||"auto";var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=t==="auto"?"light dark":d?"dark":"light";document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.remove();});function add(c,media){var el=document.createElement("meta");el.setAttribute("name","theme-color");el.setAttribute("content",c);if(media)el.setAttribute("media",media);document.head.appendChild(el);}if(t==="light")add("#fffdf8");else if(t==="dark")add("#1c1814");else{add("#fffdf8","(prefers-color-scheme: light)");add("#1c1814","(prefers-color-scheme: dark)");}var standalone=matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches||!!navigator.standalone;document.documentElement.classList.toggle("tl-standalone",standalone);if(standalone){var s=document.documentElement.style;s.setProperty("--app-h","100%");s.setProperty("--app-top","0px");s.setProperty("--app-left","0px");}else{var vv=window.visualViewport;var h=Math.round((vv&&vv.height)||window.innerHeight);var top=Math.round((vv&&vv.offsetTop)||0);var left=Math.round((vv&&vv.offsetLeft)||0);var s=document.documentElement.style;s.setProperty("--app-h",h+"px");s.setProperty("--app-top",top+"px");s.setProperty("--app-left",left+"px");}}catch(e){}})();`,
           }}
         />
         <PreviewHostBridge />

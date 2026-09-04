@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Loader2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Maximize2, Minimize2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
 import { gatherCommentaries, synthesizeFromCards } from "@/lib/reception/ask";
 import {
   additionalSourceCards,
@@ -15,6 +15,7 @@ import { getCurated, hasCurated } from "@/lib/reception/curated";
 import { removeCached, saveCached } from "@/lib/reception/cache";
 import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
 import { formatReference } from "@/lib/bible/reference";
+import { bookName, getBook } from "@/lib/bible/books";
 import { t } from "@/lib/i18n";
 import { localizeCaution } from "@/lib/i18n-sources";
 import type { Chapter, DeskSynthesis, LexiconResult, ReceptionResult, SourceCard as Card } from "@/lib/bible/types";
@@ -56,15 +57,16 @@ function wordChips(text: string, reference: string): string[] {
 export function ReceptionPanel({
   chapter,
   onClose,
+  sheet,
+  detent = "full",
 }: {
   chapter: Chapter | null;
   onClose?: () => void;
+  sheet?: boolean;
+  detent?: "peek" | "mid" | "full";
 }) {
   const selectedVerse = useStudy((s) => s.selectedVerse);
   const selectedEndVerse = useStudy((s) => s.selectedEndVerse);
-  const selectMode = useStudy((s) => s.selectMode);
-  const setSelectMode = useStudy((s) => s.setSelectMode);
-  const clearSelection = useStudy((s) => s.clearSelection);
   const setVerse = useStudy((s) => s.setVerse);
   const disclaimerSeen = useStudy((s) => s.disclaimerSeen);
   const dismissDisclaimer = useStudy((s) => s.dismissDisclaimer);
@@ -72,6 +74,9 @@ export function ReceptionPanel({
   const notesRev = useStudy((s) => s.notesRev);
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const setReceptionPinned = useStudy((s) => s.setReceptionPinned);
+  const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
+  const setReceptionFull = useStudy((s) => s.setReceptionFull);
+  const clearSelection = useStudy((s) => s.clearSelection);
   const locale = useStudy((s) => s.locale);
   const [question, setQuestion] = useState("");
   const [aimOpen, setAimOpen] = useState(false);
@@ -109,8 +114,13 @@ export function ReceptionPanel({
       .join(" ");
   }, [chapter, selectedVerse, selectedEndVerse]);
   const chips = useMemo(
-    () => (verse ? wordChips(verse.text, reference) : []),
-    [verse, reference],
+    () =>
+      selectionText
+        ? wordChips(selectionText, reference)
+        : verse
+          ? wordChips(verse.text, reference)
+          : [],
+    [selectionText, verse, reference],
   );
   const marked = useMemo(
     () => (chapter ? markedVerses(chapter.bookId, chapter.chapter) : []),
@@ -362,79 +372,121 @@ export function ReceptionPanel({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-paper">
-      <header className="relative z-10 flex items-start justify-between gap-3 border-b border-rule px-5 py-3">
-        <div className="min-w-0 pt-1">
-          <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-            {t(locale, "reception")}
-          </p>
-          <h2 className="font-display truncate text-lg font-semibold text-ink">
-            {selectedVerse != null ? reference : t(locale, "historicVoices")}
-          </h2>
-          <div className="mt-1 flex items-center gap-3">
+    <div className={cn("flex h-full min-h-0 flex-col", sheet ? "bg-surface" : "bg-paper")}>
+      <div
+        data-sheet-chrome
+        className={cn("shrink-0", sheet && detent === "peek" && "cursor-pointer")}
+        onClick={
+          sheet && detent === "peek" ? () => setReceptionOpen(true) : undefined
+        }
+      >
+        {sheet ? (
+          <div
+            data-sheet-handle
+            className="flex cursor-grab justify-center pt-3 pb-1 active:cursor-grabbing"
+            aria-hidden
+          >
+            <span className="h-1 w-10 rounded-full bg-lamp/50" />
+          </div>
+        ) : null}
+        <header
+          className={cn(
+            "relative z-10 flex items-start justify-between gap-3 px-5",
+            detent !== "peek" || !sheet ? "border-b border-rule py-3" : "pb-3",
+          )}
+        >
+          <div className="min-w-0 pt-1">
+            <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
+              {t(locale, "reception")}
+            </p>
+            <h2
+              key={selectedVerse != null ? reference : "voices"}
+              className="tl-pick-ref font-display truncate text-lg font-semibold text-ink"
+            >
+              {selectedVerse != null ? reference : t(locale, "historicVoices")}
+            </h2>
+          </div>
+          <div className="flex shrink-0 items-center">
             <button
               type="button"
-              onClick={() => setSelectMode(!selectMode)}
-              aria-pressed={selectMode}
-              className={cn(
-                "text-2xs font-semibold tracking-[0.14em] uppercase",
-                selectMode ? "text-oxblood" : "text-faint hover:text-muted",
-              )}
+              onClick={() => setReceptionPinned(!receptionPinned)}
+              className="hidden size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink xl:flex"
+              aria-label={
+                receptionPinned
+                  ? t(locale, "collapseSources")
+                  : t(locale, "keepSources")
+              }
+              title={
+                receptionPinned
+                  ? t(locale, "collapseSources")
+                  : t(locale, "keepSources")
+              }
             >
-              {selectMode
-                ? t(locale, "selectPassageDone")
-                : t(locale, "selectPassage")}
+              {receptionPinned ? (
+                <PanelRightClose size={18} />
+              ) : (
+                <PanelRight size={18} />
+              )}
             </button>
-            {selectMode && selectedVerse != null ? (
+            {sheet ? (
               <button
                 type="button"
-                onClick={clearSelection}
-                className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase hover:text-muted"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (detent === "peek") setReceptionOpen(true);
+                  else if (detent === "mid") setReceptionFull(true);
+                  else setReceptionFull(false);
+                }}
+                className="flex size-11 items-center justify-center rounded-md text-lamp hover:bg-paper hover:text-ink"
+                aria-label={
+                  detent === "full"
+                    ? t(locale, "midReception")
+                    : detent === "mid"
+                      ? t(locale, "fullReception")
+                      : t(locale, "raiseReception")
+                }
               >
-                {t(locale, "clearSelection")}
+                {detent === "full" ? (
+                  <Minimize2 size={18} strokeWidth={1.75} />
+                ) : detent === "mid" ? (
+                  <Maximize2 size={18} strokeWidth={1.75} />
+                ) : (
+                  <ChevronUp size={18} strokeWidth={1.75} />
+                )}
               </button>
             ) : null}
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center">
-          <button
-            type="button"
-            onClick={() => setReceptionPinned(!receptionPinned)}
-            className="hidden size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink xl:flex"
-            aria-label={
-              receptionPinned
-                ? t(locale, "collapseSources")
-                : t(locale, "keepSources")
-            }
-            title={
-              receptionPinned
-                ? t(locale, "collapseSources")
-                : t(locale, "keepSources")
-            }
-          >
-            {receptionPinned ? (
-              <PanelRightClose size={18} />
-            ) : (
-              <PanelRight size={18} />
-            )}
-          </button>
-          {onClose ? (
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
+                if (sheet && detent === "peek") {
+                  clearSelection();
+                  return;
+                }
+                if (sheet) {
+                  onClose?.();
+                  return;
+                }
                 setReceptionPinned(false);
-                onClose();
+                onClose?.();
               }}
-              className="flex size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink"
-              aria-label={t(locale, "closeReception")}
+              className="flex size-11 items-center justify-center rounded-md text-muted hover:bg-paper hover:text-ink"
+              aria-label={
+                sheet && detent === "peek"
+                  ? t(locale, "clearSelection")
+                  : t(locale, "closeReception")
+              }
             >
               <X size={18} />
             </button>
-          ) : null}
-        </div>
-      </header>
+          </div>
+        </header>
+      </div>
 
-      <div className="tl-scroll min-h-0 flex-1 overflow-y-auto px-5 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+      <div
+        className="tl-scroll min-h-0 flex-1 overflow-y-auto px-5 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+        aria-hidden={sheet && detent === "peek"}
+      >
         {!disclaimerSeen ? (
           <div className="mb-4 rounded-lg border border-rule bg-surface p-3 shadow-soft">
             <p className="text-sm leading-relaxed text-muted">
@@ -466,7 +518,7 @@ export function ReceptionPanel({
                     <button
                       type="button"
                       onClick={handleClearChapterGenerated}
-                      className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-2xs font-medium text-muted hover:bg-oxblood-soft hover:text-oxblood transition-colors"
+                      className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-2xs font-medium text-muted hover:bg-lamp-soft hover:text-lamp transition-colors"
                       title={t(locale, "clearChapterGenerated")}
                     >
                       <Trash2 size={11} />
@@ -488,8 +540,8 @@ export function ReceptionPanel({
                         className={cn(
                           "min-h-11 rounded-md border px-3 text-sm font-semibold transition-colors",
                           isGenOnly
-                            ? "border-dashed border-rule bg-surface/80 text-ink hover:border-oxblood hover:text-oxblood"
-                            : "border-rule bg-surface text-ink hover:border-oxblood hover:text-oxblood",
+                            ? "border-dashed border-rule bg-surface/80 text-ink hover:border-lamp hover:text-lamp"
+                            : "border-rule bg-surface text-ink hover:border-lamp hover:text-lamp",
                         )}
                         title={isGenOnly ? t(locale, "generatedBadge") : t(locale, "curatedBadge")}
                       >
@@ -507,8 +559,12 @@ export function ReceptionPanel({
           </div>
         ) : (
           <>
-            {verse ? (
-              <p className="mb-5 border-l-[3px] border-oxblood pl-3 font-serif text-base leading-relaxed text-ink italic">
+            {selectionText ? (
+              <p className="tl-quote mb-5 pl-3 font-serif text-base leading-relaxed text-ink italic">
+                {selectionText}
+              </p>
+            ) : verse ? (
+              <p className="tl-quote mb-5 pl-3 font-serif text-base leading-relaxed text-ink italic">
                 {verse.text}
               </p>
             ) : null}
@@ -527,8 +583,8 @@ export function ReceptionPanel({
                       className={cn(
                         "rounded-full border px-3 py-1.5 text-sm",
                         lexicon?.word.toLowerCase() === w.toLowerCase()
-                          ? "border-oxblood bg-oxblood-soft text-oxblood"
-                          : "border-rule bg-surface text-ink hover:border-oxblood hover:text-oxblood",
+                          ? "border-lamp bg-lamp-soft text-lamp"
+                          : "border-rule bg-surface text-ink hover:border-lamp hover:text-lamp",
                       )}
                     >
                       {w}
@@ -579,7 +635,7 @@ export function ReceptionPanel({
             </div>
             {loading && loadingKind === "commentaries" ? (
               <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
-                <Loader2 size={14} className="animate-spin text-oxblood" />
+                <Loader2 size={14} className="animate-spin text-lamp" />
                 {t(locale, "consulting")}
               </p>
             ) : null}
@@ -602,7 +658,7 @@ export function ReceptionPanel({
                     <button
                       type="button"
                       onClick={handleRemoveAllGenerated}
-                      className="inline-flex items-center gap-1 rounded-sm px-2 py-1 text-2xs font-medium tracking-wide text-muted hover:bg-oxblood-soft hover:text-oxblood transition-colors"
+                      className="inline-flex items-center gap-1 rounded-sm px-2 py-1 text-2xs font-medium tracking-wide text-muted hover:bg-lamp-soft hover:text-lamp transition-colors"
                       title={
                         hasCuratedForVerse
                           ? t(locale, "resetToDeskNotes")
@@ -701,7 +757,7 @@ export function ReceptionPanel({
                   {loading ? (
                     <Loader2
                       size={13}
-                      className="animate-spin text-oxblood"
+                      className="animate-spin text-lamp"
                       aria-label={t(locale, "consultingShort")}
                     />
                   ) : null}
@@ -730,7 +786,7 @@ export function ReceptionPanel({
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     placeholder={t(locale, "aimPlaceholder")}
-                    className="w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-oxblood"
+                    className="w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-lamp"
                   />
                   <p className="mt-2 text-2xs leading-relaxed text-faint">
                     {t(locale, "inquireHint")}
@@ -752,7 +808,7 @@ export function ReceptionPanel({
 
             {loading && loadingKind === "inquire" ? (
               <p className="mt-4 mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
-                <Loader2 size={14} className="animate-spin text-oxblood" />
+                <Loader2 size={14} className="animate-spin text-lamp" />
                 {t(locale, "synthesizing")}
               </p>
             ) : null}
@@ -783,36 +839,6 @@ export function ReceptionPanel({
             ) : null}
           </>
         )}
-      </div>
-    </div>
-  );
-}
-
-export function VerseHint({
-  onInquire,
-  noted,
-}: {
-  onInquire: () => void;
-  noted?: boolean;
-}) {
-  const selected = useStudy((s) => s.selectedVerse);
-  const receptionOpen = useStudy((s) => s.receptionOpen);
-  const receptionPinned = useStudy((s) => s.receptionPinned);
-  const locale = useStudy((s) => s.locale);
-  if (selected == null || receptionOpen || receptionPinned) return null;
-  return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-      <div className="tl-hint pointer-events-auto flex items-center gap-1 rounded-md border border-rule bg-surface px-1.5 py-1 shadow-soft">
-        <span className="px-2.5 font-serif text-sm font-medium text-oxblood tabular-nums">
-          {selected}
-        </span>
-        <button
-          type="button"
-          onClick={onInquire}
-          className="rounded-sm bg-oxblood px-4 py-2.5 text-xs font-semibold tracking-[0.12em] text-oxblood-fg uppercase transition-transform duration-150 ease-out active:scale-[0.96]"
-        >
-          {noted ? t(locale, "deskNotes") : t(locale, "sources")}
-        </button>
       </div>
     </div>
   );

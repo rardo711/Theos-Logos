@@ -1,20 +1,36 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchChapter } from "@/lib/bible/fetch-chapter";
 import { getSeed } from "@/lib/bible/seed";
 import { attachNtHeadings } from "@/lib/bible/nt-headings";
 import type { Chapter } from "@/lib/bible/types";
-import { initPwa } from "@/lib/pwa";
+import { initPwa, isStandalone } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
-import { hasNotes } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
 import { LibraryDrawer } from "./library-drawer";
 import { Reader } from "./reader";
-import { ReceptionPanel, VerseHint } from "./reception-panel";
+import { ReceptionPanel } from "./reception-panel";
 import { TopBar } from "./top-bar";
 
 function lockAppHeight() {
-  const h = window.visualViewport?.height ?? window.innerHeight;
-  document.documentElement.style.setProperty("--app-h", `${Math.round(h)}px`);
+  const root = document.documentElement;
+  const standalone = isStandalone();
+  root.classList.toggle("tl-standalone", standalone);
+  if (standalone) {
+    root.style.setProperty("--app-h", "100%");
+    root.style.setProperty("--app-top", "0px");
+    root.style.setProperty("--app-left", "0px");
+    return;
+  }
+  const vv = window.visualViewport;
+  if (vv) {
+    root.style.setProperty("--app-h", `${Math.round(vv.height)}px`);
+    root.style.setProperty("--app-top", `${Math.round(vv.offsetTop)}px`);
+    root.style.setProperty("--app-left", `${Math.round(vv.offsetLeft)}px`);
+  } else {
+    root.style.setProperty("--app-h", `${Math.round(window.innerHeight)}px`);
+    root.style.setProperty("--app-top", "0px");
+    root.style.setProperty("--app-left", "0px");
+  }
 }
 
 function chapterFitsLocale(ch: Chapter, locale: string): boolean {
@@ -34,17 +50,30 @@ export function StudyWorkspace() {
   const setTypeOpen = useStudy((s) => s.setTypeOpen);
   const receptionOpen = useStudy((s) => s.receptionOpen);
   const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
+  const receptionFull = useStudy((s) => s.receptionFull);
+  const setReceptionFull = useStudy((s) => s.setReceptionFull);
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const setReceptionPinned = useStudy((s) => s.setReceptionPinned);
   const setVerse = useStudy((s) => s.setVerse);
+  const tapVerse = useStudy((s) => s.tapVerse);
   const selectedVerse = useStudy((s) => s.selectedVerse);
-  const notesRev = useStudy((s) => s.notesRev);
+  const selectedEndVerse = useStudy((s) => s.selectedEndVerse);
+  const clearSelection = useStudy((s) => s.clearSelection);
 
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [wideDesk, setWideDesk] = useState(false);
+  const [sheetShown, setSheetShown] = useState(false);
+  const [sheetState, setSheetState] = useState<
+    "hidden" | "peek" | "mid" | "full"
+  >("hidden");
+  const [sheetDrag, setSheetDrag] = useState(0);
+  const [sheetDragging, setSheetDragging] = useState(false);
+  const sheetRef = useRef<HTMLElement>(null);
+  const sheetStateRef = useRef(sheetState);
+  sheetStateRef.current = sheetState;
 
   useEffect(() => {
     hydrate();
@@ -81,6 +110,181 @@ export function StudyWorkspace() {
       `${fontSize}px`,
     );
   }, [fontSize]);
+
+  const docked = receptionPinned && wideDesk && receptionOpen;
+  const want: "hidden" | "peek" | "mid" | "full" = docked
+    ? "hidden"
+    : selectedVerse == null
+      ? "hidden"
+      : receptionFull
+        ? "full"
+        : receptionOpen
+          ? "mid"
+          : "peek";
+
+  useEffect(() => {
+    if (want === "hidden") {
+      setSheetState("hidden");
+      setSheetDrag(0);
+      const t = window.setTimeout(() => setSheetShown(false), 280);
+      return () => window.clearTimeout(t);
+    }
+    setSheetShown(true);
+    const id = requestAnimationFrame(() => {
+      setSheetState(want);
+      setSheetDrag(0);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [want]);
+
+  useEffect(() => {
+    if (!sheetShown) {
+      setSheetDrag(0);
+      setSheetDragging(false);
+    }
+  }, [sheetShown]);
+
+  useEffect(() => {
+    if (!sheetShown) return;
+    const chrome = sheetRef.current?.querySelector(
+      "[data-sheet-chrome]",
+    ) as HTMLElement | null;
+    if (!chrome) return;
+    const apply = () => {
+      document.documentElement.style.setProperty(
+        "--sheet-peek",
+        `${chrome.offsetHeight}px`,
+      );
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(chrome);
+    return () => ro.disconnect();
+  }, [sheetShown, locale, selectedVerse, selectedEndVerse]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (sheetState === "mid") {
+      root.style.setProperty("--pick-stack", "var(--sheet-mid)");
+    } else {
+      root.style.setProperty("--pick-stack", "var(--sheet-peek)");
+    }
+  }, [sheetState]);
+
+  useEffect(() => {
+    const el = sheetRef.current;
+    if (!el || sheetState === "hidden") return;
+    let startY = 0;
+    let startT = 0;
+    let pulling = false;
+    let dy = 0;
+    const onStart = (e: TouchEvent) => {
+      startY = e.touches[0].clientY;
+      startT = performance.now();
+      pulling = false;
+      dy = 0;
+    };
+    const onMove = (e: TouchEvent) => {
+      const delta = e.touches[0].clientY - startY;
+      const scroller = el.querySelector(".tl-scroll") as HTMLElement | null;
+      const atTop = !scroller || scroller.scrollTop <= 1;
+      const onChrome = (e.target as HTMLElement | null)?.closest?.(
+        "[data-sheet-chrome]",
+      );
+      const mode = sheetStateRef.current;
+      const H = el.offsetHeight;
+      const peekH =
+        (
+          el.querySelector("[data-sheet-chrome]") as HTMLElement | null
+        )?.offsetHeight ?? 92;
+      const midPx = Math.min(H * 0.42, 22 * 16);
+      if (mode === "peek") {
+        pulling = true;
+        dy = Math.min(Math.max(delta, -(H - peekH)), H * 0.4);
+        setSheetDragging(true);
+        setSheetDrag(dy);
+        if (Math.abs(delta) > 6) e.preventDefault();
+        return;
+      }
+      if (mode === "mid") {
+        if (onChrome || atTop) {
+          pulling = true;
+          const up = -(H - midPx);
+          dy = Math.min(Math.max(delta, up), midPx - peekH + 48);
+          setSheetDragging(true);
+          setSheetDrag(dy);
+          if (Math.abs(delta) > 6) e.preventDefault();
+        }
+        return;
+      }
+      if (delta > 0 && (atTop || onChrome)) {
+        pulling = true;
+        dy = Math.min(delta, H * 0.92);
+        setSheetDragging(true);
+        setSheetDrag(dy);
+        if (delta > 6) e.preventDefault();
+      } else if (pulling && delta <= 0) {
+        dy = 0;
+        setSheetDrag(0);
+      }
+    };
+    const finish = () => {
+      const v = dy / Math.max(performance.now() - startT, 1);
+      const mode = sheetStateRef.current;
+      const H = el.offsetHeight;
+      setSheetDragging(false);
+      if (!pulling) {
+        dy = 0;
+        return;
+      }
+      if (mode === "peek") {
+        if (dy < -H * 0.36 || v < -1.1) {
+          setReceptionFull(true);
+        } else if (dy < -36 || v < -0.4) {
+          setReceptionOpen(true);
+        } else if (dy > 40 || v > 0.45) {
+          clearSelection();
+        } else {
+          setSheetDrag(0);
+        }
+      } else if (mode === "mid") {
+        if (dy < -48 || v < -0.45) {
+          setReceptionFull(true);
+        } else if (dy > 48 || v > 0.45) {
+          setReceptionFull(false);
+          setReceptionOpen(false);
+        } else {
+          setSheetDrag(0);
+        }
+      } else if (dy > H * 0.38 || v > 1.0) {
+        setReceptionFull(false);
+        setReceptionOpen(false);
+      } else if (dy > 48 || v > 0.5) {
+        setReceptionFull(false);
+      } else {
+        setSheetDrag(0);
+      }
+      pulling = false;
+      dy = 0;
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", finish);
+    el.addEventListener("touchcancel", finish);
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", finish);
+      el.removeEventListener("touchcancel", finish);
+    };
+  }, [
+    sheetState,
+    sheetShown,
+    setReceptionOpen,
+    setReceptionFull,
+    setReceptionPinned,
+    clearSelection,
+  ]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -146,6 +350,13 @@ export function StudyWorkspace() {
         if (!ch?.verses.length) return;
         e.preventDefault();
         const cur = selectedVerse;
+        const end = selectedEndVerse ?? selectedVerse;
+        if (e.shiftKey) {
+          const last = ch.verses[ch.verses.length - 1]?.verse ?? 1;
+          const from = end ?? ch.verses[0]?.verse ?? 1;
+          tapVerse(Math.min(last, from + 1));
+          return;
+        }
         const idx =
           cur == null
             ? 0
@@ -161,6 +372,12 @@ export function StudyWorkspace() {
         if (!ch?.verses.length) return;
         e.preventDefault();
         const cur = selectedVerse;
+        if (e.shiftKey) {
+          const first = ch.verses[0]?.verse ?? 1;
+          const from = cur ?? first;
+          tapVerse(Math.max(first, from - 1));
+          return;
+        }
         if (cur == null) {
           setVerse(ch.verses[0]?.verse ?? null);
           return;
@@ -186,25 +403,21 @@ export function StudyWorkspace() {
   }, [
     chapter,
     selectedVerse,
+    selectedEndVerse,
     setLibraryOpen,
     setTypeOpen,
     setReceptionOpen,
     setReceptionPinned,
     setVerse,
+    tapVerse,
   ]);
-
-  const verseHasNotes =
-    notesRev >= 0 &&
-    chapter != null &&
-    selectedVerse != null &&
-    hasNotes(chapter.bookId, chapter.chapter, selectedVerse);
 
   function closeReception() {
     setReceptionPinned(false);
+    setReceptionFull(false);
     setReceptionOpen(false);
   }
 
-  const docked = receptionPinned && wideDesk && receptionOpen;
   const staleChapter =
     chapter != null &&
     (chapter.bookId !== bookId ||
@@ -224,12 +437,6 @@ export function StudyWorkspace() {
             loading={waitingOnFetch || loading}
             error={error}
           />
-          <VerseHint
-            noted={verseHasNotes}
-            onInquire={() => {
-              if (selectedVerse != null) setReceptionOpen(true);
-            }}
-          />
         </section>
 
         {docked ? (
@@ -238,37 +445,70 @@ export function StudyWorkspace() {
           </aside>
         ) : null}
 
-        {receptionOpen && !docked ? (
-          <>
-            <div className="absolute inset-0 z-20 flex flex-col md:hidden">
-              <div className="relative h-[34%] min-h-32 overflow-hidden border-b border-rule bg-paper">
-                <Reader
+        {sheetShown ? (
+          <div className="pointer-events-none absolute inset-0 z-20 xl:hidden">
+            <div
+              className="tl-dim absolute inset-0"
+              data-open={sheetState === "full" ? "true" : "false"}
+              aria-hidden
+              style={{
+                ["--dim-o" as string]:
+                  sheetState === "full"
+                    ? String(Math.max(0, 1 - Math.max(0, sheetDrag) / 420))
+                    : "0",
+              }}
+            />
+            <aside
+              ref={sheetRef}
+              className="tl-sheet-up absolute inset-x-0 bottom-0 flex h-full w-full flex-col overflow-hidden rounded-t-2xl border-t border-rule bg-surface shadow-soft md:mx-auto md:w-[min(40rem,100%)]"
+              data-state={sheetState}
+              data-dragging={sheetDragging ? "true" : "false"}
+              style={{
+                ["--sheet-drag" as string]: `${sheetDrag}px`,
+              }}
+            >
+              <div className="min-h-0 flex-1">
+                <ReceptionPanel
                   chapter={shownChapter}
-                  loading={waitingOnFetch}
-                  error={null}
+                  onClose={closeReception}
+                  sheet
+                  detent={
+                    sheetState === "hidden" ? "peek" : sheetState
+                  }
                 />
               </div>
-              <div className="relative min-h-0 flex-1 bg-paper">
-                <ReceptionPanel chapter={shownChapter} onClose={closeReception} />
-              </div>
-            </div>
+            </aside>
+          </div>
+        ) : null}
 
-            <div className="absolute inset-0 z-20 hidden md:flex">
-              <button
-                type="button"
-                className="tl-dim min-w-0 flex-1"
-                aria-label={t(locale, "closeReception")}
-                onClick={closeReception}
-              />
-              <aside className="tl-sheet flex h-full w-full max-w-md flex-col border-l border-rule bg-paper shadow-soft">
-                <ReceptionPanel chapter={shownChapter} onClose={closeReception} />
-              </aside>
-            </div>
-          </>
+        {receptionOpen && !docked ? (
+          <div className="pointer-events-none absolute inset-0 z-20 hidden xl:flex">
+            <button
+              type="button"
+              className="tl-dim min-w-0 flex-1"
+              data-open="true"
+              aria-label={t(locale, "closeReception")}
+              onClick={closeReception}
+            />
+            <aside
+              className="tl-sheet flex h-full w-full max-w-md flex-col border-l border-rule bg-paper shadow-soft"
+              data-open="true"
+            >
+              <ReceptionPanel chapter={shownChapter} onClose={closeReception} />
+            </aside>
+          </div>
         ) : null}
       </div>
 
-      <LibraryDrawer />
+      <LibraryDrawer
+        verseCount={
+          shownChapter &&
+          shownChapter.bookId === bookId &&
+          shownChapter.chapter === chapterNum
+            ? shownChapter.verses.length
+            : 0
+        }
+      />
     </div>
   );
 }

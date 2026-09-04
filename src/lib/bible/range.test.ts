@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+  applyVersePick,
   applyVerseTap,
   inRange,
   isSingle,
@@ -62,9 +63,45 @@ describe("applyVerseTap", () => {
     assert.equal(rangeLength(out.range!), MAX_RANGE_VERSES);
   });
 
+  it("jumps to the far verse when asked instead of refusing", () => {
+    const long = r(1, MAX_RANGE_VERSES);
+    const out = applyVerseTap(long, MAX_RANGE_VERSES + 5, {
+      ifTooLong: "jump",
+    });
+    assert.equal(out.refused, undefined);
+    assert.deepEqual(out.range, r(MAX_RANGE_VERSES + 5, MAX_RANGE_VERSES + 5));
+  });
+
   it("refuses a downward extension past the cap too", () => {
     const out = applyVerseTap(r(20, 20 + MAX_RANGE_VERSES - 1), 1);
     assert.equal(out.refused, "too-long");
+  });
+});
+
+describe("applyVersePick", () => {
+  it("selects a verse when nothing is selected", () => {
+    assert.deepEqual(applyVersePick(null, 8), r(8, 8));
+  });
+
+  it("grows to include a neighbouring verse", () => {
+    assert.deepEqual(applyVersePick(r(8, 8), 9), r(8, 9));
+  });
+
+  it("grows downward", () => {
+    assert.deepEqual(applyVersePick(r(8, 9), 6), r(6, 9));
+  });
+
+  it("does not clear or trim when a selected verse is tapped again", () => {
+    assert.deepEqual(applyVersePick(r(8, 8), 8), r(8, 8));
+    assert.deepEqual(applyVersePick(r(8, 9), 8), r(8, 9));
+    assert.deepEqual(applyVersePick(r(8, 9), 9), r(8, 9));
+  });
+
+  it("jumps when the tap would exceed the cap", () => {
+    assert.deepEqual(
+      applyVersePick(r(1, MAX_RANGE_VERSES), MAX_RANGE_VERSES + 5),
+      r(MAX_RANGE_VERSES + 5, MAX_RANGE_VERSES + 5),
+    );
   });
 });
 

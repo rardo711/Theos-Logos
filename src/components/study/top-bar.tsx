@@ -49,7 +49,7 @@ export function TopBar() {
           <span className="font-display truncate text-[15px] font-semibold tracking-tight text-ink sm:text-base">
             {title}
           </span>
-          <span className="font-serif text-[15px] font-medium text-oxblood tabular-nums sm:text-base">
+          <span className="font-serif text-[15px] font-medium text-lamp tabular-nums sm:text-base">
             {chapterNum}
           </span>
           <ChevronDown

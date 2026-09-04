@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, Fragment } from "react";
+import { useEffect, useMemo, useRef, useState, Fragment } from "react";
 import { ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { BIBLE_BOOKS, bookName, getBook } from "@/lib/bible/books";
 import type { Chapter } from "@/lib/bible/types";
-import { inRange, MAX_RANGE_VERSES } from "@/lib/bible/range";
+import { splitDropCap } from "@/lib/bible/drop-cap";
+import { inRange } from "@/lib/bible/range";
 import { t } from "@/lib/i18n";
-import { hasNotes } from "@/lib/reception/notes";
+import { markedVerses } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 
@@ -72,14 +73,12 @@ export function Reader({
 }) {
   const selected = useStudy((s) => s.selectedVerse);
   const selectedEnd = useStudy((s) => s.selectedEndVerse);
-  const selectMode = useStudy((s) => s.selectMode);
-  const tapVerse = useStudy((s) => s.tapVerse);
+  const pickVerse = useStudy((s) => s.pickVerse);
   const setVerse = useStudy((s) => s.setVerse);
   const nextChapter = useStudy((s) => s.nextChapter);
   const prevChapter = useStudy((s) => s.prevChapter);
   const notesRev = useStudy((s) => s.notesRev);
-  const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
-  const receptionOpen = useStudy((s) => s.receptionOpen);
+  const receptionFull = useStudy((s) => s.receptionFull);
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const locale = useStudy((s) => s.locale);
   const bookId = useStudy((s) => s.bookId);
@@ -89,7 +88,6 @@ export function Reader({
   const touch = useRef<{ x: number; y: number } | null>(null);
   const topAnim = useRef<{ id: number | null }>({ id: null });
   const [showTop, setShowTop] = useState(false);
-  const [rangeNotice, setRangeNotice] = useState<"too-long" | null>(null);
   const range =
     selected == null ? null : { start: selected, end: selectedEnd ?? selected };
 
@@ -103,7 +101,14 @@ export function Reader({
   const nextDest = neighbor(bookId, chapterNum, 1);
   const sections = chapter?.verses.filter((v) => v.title) ?? [];
   const hintUp =
-    selected != null && !receptionOpen && !receptionPinned;
+    selected != null && !receptionFull && !receptionPinned;
+  const notedSet = useMemo(
+    () =>
+      chapter
+        ? new Set(markedVerses(chapter.bookId, chapter.chapter))
+        : new Set<number>(),
+    [chapter, notesRev],
+  );
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -114,12 +119,7 @@ export function Reader({
     }
     el.scrollTop = 0;
     setShowTop(false);
-    setRangeNotice(null);
   }, [chapter?.reference, chapter?.bookId, chapter?.chapter]);
-
-  useEffect(() => {
-    if (!selectMode) setRangeNotice(null);
-  }, [selectMode]);
 
   useEffect(() => {
     return () => {
@@ -131,22 +131,12 @@ export function Reader({
     if (selected == null) return;
     const scroller = scrollRef.current;
     if (!scroller) return;
-    const head = scroller.querySelector(
-      `#s-${selected}`,
-    ) as HTMLElement | null;
     const verse = verseRefs.current.get(selected);
-    const target = head ?? verse;
-    if (!target) return;
-    const vBox = target.getBoundingClientRect();
+    if (!verse) return;
+    const vBox = verse.getBoundingClientRect();
     const sBox = scroller.getBoundingClientRect();
-    const pad = 48;
-    if (vBox.top >= sBox.top + pad && vBox.bottom <= sBox.bottom - pad) return;
-    const next =
-      scroller.scrollTop +
-      (vBox.top - sBox.top) -
-      sBox.height / 2 +
-      vBox.height / 2;
-    scroller.scrollTo({ top: Math.max(0, next), behavior: "smooth" });
+    if (vBox.bottom > sBox.top + 8 && vBox.top < sBox.bottom - 8) return;
+    verse.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [selected, chapter?.reference]);
 
   function updateShowTop(el: HTMLElement) {
@@ -162,16 +152,17 @@ export function Reader({
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.5 overflow-hidden bg-rule"
         >
-          <span className="tl-progress block h-full bg-oxblood" />
+          <span className="tl-progress block h-full bg-lamp" />
         </div>
       ) : null}
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 bottom-0 left-0 z-[1] w-px bg-oxblood/30"
+        className="pointer-events-none absolute top-0 bottom-0 left-0 z-[1] w-px bg-lamp/30 max-sm:hidden"
       />
       <div
         ref={scrollRef}
         className="tl-scroll absolute inset-0 overflow-y-auto"
+        data-pick={selected != null ? "true" : "false"}
         onScroll={(e) => {
           updateShowTop(e.currentTarget);
         }}
@@ -201,16 +192,19 @@ export function Reader({
           }
         }}
       >
-        <div className="mx-auto max-w-[42rem] px-5 pt-6 pb-36 sm:px-10 sm:pt-12">
+        <div
+          className="tl-read mx-auto max-w-[42rem] px-5 pt-6 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-10 sm:pt-12"
+          data-pick={selected != null ? "true" : "false"}
+        >
           {loading && !chapter ? (
             <div className="space-y-4" aria-busy>
-              <div className="mx-auto h-3 w-28 rounded-sm bg-oxblood/15" />
-              <div className="mx-auto h-10 w-44 rounded-sm bg-oxblood/20" />
+              <div className="mx-auto h-3 w-28 rounded-sm bg-lamp/15" />
+              <div className="mx-auto h-10 w-44 rounded-sm bg-lamp/20" />
               <div className="mt-10 space-y-3">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-4 rounded-sm bg-oxblood/10"
+                    className="h-4 rounded-sm bg-lamp/10"
                     style={{ width: `${80 - (i % 3) * 12}%` }}
                   />
                 ))}
@@ -237,7 +231,7 @@ export function Reader({
                 </p>
                 <div className="mt-5 flex items-center justify-center gap-2">
                   <span className="h-px w-10 bg-rule" />
-                  <span className="size-1.5 rounded-full bg-oxblood/70" />
+                  <span className="size-1.5 rounded-full bg-lamp/70" />
                   <span className="h-px w-10 bg-rule" />
                 </div>
               </header>
@@ -259,8 +253,8 @@ export function Reader({
                           className={cn(
                             "flex min-h-10 w-full items-baseline gap-2 rounded-xs px-1 text-left text-sm transition-colors duration-150 ease-out",
                             selected === s.verse
-                              ? "font-medium text-oxblood"
-                              : "text-ink hover:text-oxblood",
+                              ? "font-medium text-lamp"
+                              : "text-ink hover:text-lamp",
                           )}
                         >
                           <span className="w-6 shrink-0 font-serif text-xs text-faint tabular-nums">
@@ -276,32 +270,13 @@ export function Reader({
                 </nav>
               ) : null}
 
-              {selectMode ? (
-                <p
-                  role={rangeNotice ? "alert" : undefined}
-                  className={cn(
-                    "mb-3 text-2xs leading-relaxed italic",
-                    rangeNotice ? "text-oxblood" : "text-faint",
-                  )}
-                >
-                  {rangeNotice === "too-long"
-                    ? t(locale, "rangeTooLong").replace(
-                        "{n}",
-                        String(MAX_RANGE_VERSES),
-                      )
-                    : t(locale, "selectPassageHint")}
-                </p>
-              ) : null}
-
               <div className="bible-prose font-serif text-[length:var(--reading-size,20px)] leading-[1.8] text-ink">
                 {chapter.verses.map((v, i) => {
                   const on = inRange(range, v.verse);
                   const isRangeStart = range != null && v.verse === range.start;
-                  const noted = hasNotes(
-                    chapter.bookId,
-                    chapter.chapter,
-                    v.verse,
-                  );
+                  const isRangeEnd = range != null && v.verse === range.end;
+                  const noted = notedSet.has(v.verse);
+                  const drop = i === 0 ? splitDropCap(v.text) : null;
                   return (
                     <Fragment key={v.verse}>
                       {v.title ? (
@@ -316,33 +291,18 @@ export function Reader({
                       <span
                         ref={(el) => {
                           if (el) verseRefs.current.set(v.verse, el);
+                          else verseRefs.current.delete(v.verse);
                         }}
                         id={`v-${v.verse}`}
                         role="button"
                         tabIndex={0}
-                        aria-current={on ? "true" : undefined}
+                        aria-current={isRangeStart ? "true" : undefined}
+                        aria-selected={on ? "true" : undefined}
+                        onMouseDown={(e) => {
+                          if (e.shiftKey) e.preventDefault();
+                        }}
                         onClick={() => {
-                          if (selectMode) {
-                            // In select mode a tap edits the range; it never
-                            // closes the panel, since the reader is still
-                            // composing the passage they want to study.
-                            const refused = tapVerse(v.verse);
-                            if (refused) setRangeNotice(refused);
-                            else setRangeNotice(null);
-                            return;
-                          }
-                          if (on) {
-                            setVerse(null);
-                            setReceptionOpen(false);
-                            return;
-                          }
-                          setVerse(v.verse);
-                          if (
-                            noted &&
-                            !useStudy.getState().receptionPinned
-                          ) {
-                            setReceptionOpen(true);
-                          }
+                          pickVerse(v.verse);
                         }}
                         onKeyDown={(e) => {
                           if (e.key !== "Enter" && e.key !== " ") return;
@@ -350,25 +310,40 @@ export function Reader({
                           e.currentTarget.click();
                         }}
                         className={cn(
-                          "cursor-pointer rounded-xs transition-colors duration-200",
-                          on ? "bg-oxblood-soft" : "hover:bg-oxblood-soft/55",
-                          // The bar marks where the passage begins, so a range
-                          // reads as one block rather than as several selected
-                          // verses that happen to be adjacent.
-                          isRangeStart &&
-                            "shadow-[inset_3px_0_0_0_var(--color-oxblood)]",
+                          "tl-verse cursor-pointer",
+                          drop && "tl-first-verse",
                         )}
+                        data-range-start={isRangeStart ? "true" : undefined}
+                        data-range-end={isRangeEnd ? "true" : undefined}
                       >
-                        <sup className="verse-num mr-1 select-none">
-                          {v.verse}
-                          {noted ? (
-                            <span
-                              className="verse-mark"
-                              title={t(locale, "verseNotes")}
-                            />
-                          ) : null}
-                        </sup>
-                        {v.text}{" "}
+                        {drop ? (
+                          <>
+                            <sup className="verse-num tl-drop-num select-none">
+                              {v.verse}
+                              {noted ? (
+                                <span
+                                  className="verse-mark"
+                                  title={t(locale, "verseNotes")}
+                                />
+                              ) : null}
+                            </sup>
+                            <span className="tl-drop">{drop.letter}</span>
+                            <span className="tl-verse-ink">{drop.rest} </span>
+                          </>
+                        ) : (
+                          <>
+                            <sup className="verse-num mr-1 select-none">
+                              {v.verse}
+                              {noted ? (
+                                <span
+                                  className="verse-mark"
+                                  title={t(locale, "verseNotes")}
+                                />
+                              ) : null}
+                            </sup>
+                            {v.text}{" "}
+                          </>
+                        )}
                       </span>
                     </Fragment>
                   );
@@ -406,9 +381,7 @@ export function Reader({
               <p className="mt-8 text-2xs leading-relaxed text-faint italic">
                 {chapter.translationNote}
                 {notesRev >= 0 &&
-                chapter.verses.some((v) =>
-                  hasNotes(chapter.bookId, chapter.chapter, v.verse),
-                )
+                chapter.verses.some((v) => notedSet.has(v.verse))
                   ? t(locale, "redMarks")
                   : ""}
               </p>
@@ -418,7 +391,7 @@ export function Reader({
                     href="https://www.esv.org/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-2xs font-semibold tracking-wide text-oxblood uppercase hover:underline"
+                    className="text-2xs font-semibold tracking-wide text-lamp uppercase hover:underline"
                   >
                     {t(locale, "esvSite")}
                   </a>

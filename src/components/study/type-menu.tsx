@@ -41,11 +41,17 @@ export function TypeMenu() {
         onClick={() => setOpen(false)}
       />
       <div
-        className="tl-menu absolute top-[calc(100%+6px)] left-0 z-50 w-72 rounded-lg border border-rule bg-surface p-4 shadow-soft"
+        className="tl-menu fixed inset-x-0 bottom-0 z-50 w-full overflow-hidden rounded-t-xl border-t border-rule bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-soft sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-[calc(100%+6px)] sm:left-0 sm:w-72 sm:rounded-lg sm:border sm:pb-4"
         data-open="true"
         role="dialog"
         aria-label={t(locale, "theDesk")}
       >
+        <div
+          className="flex justify-center pt-0.5 pb-3 sm:hidden"
+          aria-hidden
+        >
+          <span className="h-1 w-10 rounded-full bg-faint/70" />
+        </div>
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-0.5 rounded-t-lg bg-oxblood"
@@ -88,7 +94,7 @@ export function TypeMenu() {
           </button>
         </div>
         <p
-          className="mb-4 border-l-[3px] border-oxblood py-1 pl-3 font-serif text-ink italic"
+          className="tl-quote mb-4 py-1 pl-3 font-serif text-ink italic"
           style={{ fontSize: Math.min(fontSize, 22) }}
         >
           {locale === "es"
@@ -99,7 +105,7 @@ export function TypeMenu() {
           <button
             type="button"
             onClick={() => setFontSize(20)}
-            className="mb-4 block text-2xs font-medium tracking-wide text-oxblood uppercase hover:underline"
+            className="mb-4 block text-2xs font-medium tracking-wide text-lamp uppercase hover:underline"
           >
             {t(locale, "defaultSize")}
           </button>
@@ -134,7 +140,7 @@ export function TypeMenu() {
               className={cn(
                 "relative z-10 min-h-11 flex-1 rounded-xs text-xs font-semibold transition-colors duration-150 ease-out",
                 locale === id
-                  ? "text-oxblood-fg"
+                  ? "text-lamp"
                   : "text-muted hover:text-ink",
               )}
             >
@@ -165,7 +171,7 @@ export function TypeMenu() {
               className={cn(
                 "relative z-10 min-h-11 flex-1 rounded-xs text-xs font-semibold transition-colors duration-150 ease-out",
                 theme === lamp.id
-                  ? "text-oxblood-fg"
+                  ? "text-lamp"
                   : "text-muted hover:text-ink",
               )}
             >

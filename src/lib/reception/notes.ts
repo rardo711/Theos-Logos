@@ -1,6 +1,7 @@
 import type { ReceptionResult, SourceCard } from "@/lib/bible/types";
 import {
   cachedBookIds,
+  cachedChapters,
   cachedVerses,
   clearChapterCached,
   getCached,
@@ -12,6 +13,7 @@ import {
   getCurated,
   getCuratedCardsForVerse,
   hasCurated,
+  markedChapters as curatedChapters,
   markedVerses as curatedMarked,
 } from "./curated.ts";
 
@@ -117,6 +119,14 @@ export function markedVerses(bookId: string, chapter: number): number[] {
   const set = new Set([
     ...curatedMarked(bookId, chapter),
     ...cachedVerses(bookId, chapter),
+  ]);
+  return [...set].sort((a, b) => a - b);
+}
+
+export function markedChapters(bookId: string): number[] {
+  const set = new Set([
+    ...curatedChapters(bookId),
+    ...cachedChapters(bookId),
   ]);
   return [...set].sort((a, b) => a - b);
 }

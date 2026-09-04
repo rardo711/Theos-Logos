@@ -18,11 +18,12 @@ import {
 } from "@/lib/bible/books";
 import { searchScripture } from "@/lib/bible/find";
 import type { ScriptureHit } from "@/lib/bible/search";
-import { markedVerses, bookHasNotes } from "@/lib/reception/notes";
+import { markedVerses, markedChapters, bookHasNotes } from "@/lib/reception/notes";
 import { corpusLabel, t } from "@/lib/i18n";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 import { useSlidingPill } from "./sliding-pill";
+import { VerseSelector } from "./verse-selector";
 
 function highlightMatch(text: string, query: string) {
   const q = query.trim();
@@ -41,15 +42,18 @@ function highlightMatch(text: string, query: string) {
   );
 }
 
-export function LibraryDrawer() {
+export function LibraryDrawer({ verseCount = 0 }: { verseCount?: number }) {
   const open = useStudy((s) => s.libraryOpen);
   const tab = useStudy((s) => s.libraryTab);
   const setOpen = useStudy((s) => s.setLibraryOpen);
   const bookId = useStudy((s) => s.bookId);
   const chapter = useStudy((s) => s.chapter);
+  const selectedVerse = useStudy((s) => s.selectedVerse);
+  const selectedEndVerse = useStudy((s) => s.selectedEndVerse);
   const setBook = useStudy((s) => s.setBook);
   const setChapter = useStudy((s) => s.setChapter);
   const jumpTo = useStudy((s) => s.jumpTo);
+  const tapVerse = useStudy((s) => s.tapVerse);
   const notesRev = useStudy((s) => s.notesRev);
   const locale = useStudy((s) => s.locale);
   const [query, setQuery] = useState("");
@@ -91,6 +95,11 @@ export function LibraryDrawer() {
     () => markedVerses(current.id, chapter),
     [current.id, chapter, notesRev],
   );
+  const chaptersWithNotes = useMemo(
+    () => new Set(markedChapters(current.id)),
+    [current.id, notesRev],
+  );
+  const notedVerses = useMemo(() => new Set(notes), [notes]);
   const [tabBarRef, tabInk] = useSlidingPill(view);
   const [railBarRef, railInk] = useSlidingPill(browseCorpus, open && view === "books");
 
@@ -271,7 +280,7 @@ export function LibraryDrawer() {
         data-open={open ? "true" : "false"}
         className="tl-drawer relative z-10 flex h-full w-full max-w-md flex-col bg-paper shadow-soft sm:border-r sm:border-rule"
       >
-        <header className="border-b border-rule bg-surface px-4 pt-3 pb-3">
+        <header className="border-b border-rule bg-surface px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-2xs font-semibold tracking-[0.18em] text-faint uppercase">
@@ -288,7 +297,7 @@ export function LibraryDrawer() {
                 ) : (
                   <>
                     {headline}{" "}
-                    <span className="text-oxblood tabular-nums">{chapter}</span>
+                    <span className="text-lamp tabular-nums">{chapter}</span>
                   </>
                 )}
               </p>
@@ -330,7 +339,7 @@ export function LibraryDrawer() {
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck={false}
-              className="w-full rounded-md border border-rule bg-paper py-2.5 pr-10 pl-9 text-base text-ink outline-none placeholder:text-faint transition-[border-color,box-shadow] duration-150 ease-out focus:border-oxblood focus:shadow-[0_0_0_3px_var(--color-oxblood-soft)]"
+              className="w-full rounded-md border border-rule bg-paper py-2.5 pr-10 pl-9 text-base text-ink outline-none placeholder:text-faint transition-[border-color,box-shadow] duration-150 ease-out focus:border-lamp focus:shadow-[0_0_0_3px_var(--color-lamp-soft)]"
             />
             {query ? (
               <button
@@ -431,7 +440,7 @@ export function LibraryDrawer() {
                   <button
                     type="button"
                     onClick={() => setPicking("books")}
-                    className="text-sm text-oxblood transition-opacity duration-150 hover:opacity-80"
+                    className="text-sm text-lamp transition-opacity duration-150 hover:opacity-80"
                   >
                     {t(locale, "anotherBook")}
                   </button>
@@ -446,20 +455,23 @@ export function LibraryDrawer() {
                   {Array.from({ length: current.chapters }, (_, i) => i + 1).map(
                     (n) => {
                       const active = n === chapter;
-                      const noted = notes.includes(n);
+                      const noted = chaptersWithNotes.has(n);
                       return (
                         <button
                           key={n}
                           type="button"
                           data-active-chapter={active ? "true" : undefined}
                           onClick={() => {
+                            if (n === chapter) {
+                              setOpen(false);
+                              return;
+                            }
                             setChapter(n);
-                            setOpen(false);
                           }}
                           className={cn(
-                            "relative flex min-h-11 items-center justify-center rounded-sm text-sm font-semibold tabular-nums transition-[background-color,color,transform] duration-150 ease-out active:scale-[0.96]",
+                            "relative flex min-h-11 items-center justify-center rounded-sm text-sm font-semibold tabular-nums transition-[background-color,color,box-shadow,transform] duration-150 ease-out active:scale-[0.96]",
                             active
-                              ? "bg-oxblood text-oxblood-fg"
+                              ? "text-lamp shadow-[inset_0_-2px_0_0_var(--color-lamp)]"
                               : "text-ink hover:bg-surface",
                           )}
                         >
@@ -472,6 +484,22 @@ export function LibraryDrawer() {
                     },
                   )}
                 </div>
+                <VerseSelector
+                  count={verseCount}
+                  selected={selectedVerse}
+                  selectedEnd={selectedEndVerse}
+                  noted={notedVerses}
+                  layout="grid"
+                  label={t(locale, "verses")}
+                  onPick={(n, extend) => {
+                    if (extend) {
+                      tapVerse(n);
+                    } else {
+                      jumpTo(bookId, chapter, n);
+                    }
+                    setOpen(false);
+                  }}
+                />
               </div>
             </div>
 
@@ -501,8 +529,8 @@ export function LibraryDrawer() {
                             className={cn(
                               "relative z-10 min-h-10 shrink-0 snap-start rounded-sm px-2.5 text-2xs tracking-[0.12em] uppercase transition-[color,transform] duration-150 ease-out active:scale-[0.96]",
                               on
-                                ? "font-semibold text-oxblood"
-                                : "text-muted hover:text-oxblood",
+                                ? "font-semibold text-lamp"
+                                : "text-muted hover:text-lamp",
                             )}
                           >
                             {corpusLabel(locale, c.key, "short")}
@@ -528,7 +556,7 @@ export function LibraryDrawer() {
               >
                 {hits.length > 0 || searchingText ? (
                   <section className="scroll-mt-2 px-2 pt-4">
-                    <h3 className="mb-1 flex items-baseline justify-between border-b border-rule px-1 pb-1 text-2xs font-semibold tracking-[0.16em] text-oxblood uppercase">
+                    <h3 className="mb-1 flex items-baseline justify-between border-b border-rule px-1 pb-1 text-2xs font-semibold tracking-[0.16em] text-lamp uppercase">
                       <span>{t(locale, "verseHits")}</span>
                       <span className="font-serif font-normal tracking-normal text-faint normal-case">
                         {searchingText ? (
@@ -555,7 +583,7 @@ export function LibraryDrawer() {
                               }
                               className="flex min-h-11 w-full flex-col items-start gap-0.5 rounded-sm px-2 py-2 text-left transition-[background-color,transform] duration-150 ease-out hover:bg-surface active:scale-[0.99]"
                             >
-                              <span className="text-2xs font-semibold tracking-wide text-oxblood uppercase">
+                              <span className="text-2xs font-semibold tracking-wide text-lamp uppercase">
                                 {hit.bookName} {hit.chapter}:{hit.verse}
                               </span>
                               <span className="font-serif text-sm leading-snug text-ink">
@@ -588,7 +616,7 @@ export function LibraryDrawer() {
                           className={cn(
                             "mb-1 flex items-baseline justify-between border-b px-1 pb-1 text-2xs font-semibold tracking-[0.16em] uppercase transition-[color,border-color] duration-200 ease-out",
                             live
-                              ? "border-oxblood text-oxblood"
+                              ? "border-lamp text-lamp"
                               : "border-rule text-faint",
                           )}
                         >
@@ -617,7 +645,7 @@ export function LibraryDrawer() {
                                   className={cn(
                                     "flex min-h-11 w-full items-baseline justify-between gap-3 rounded-sm px-2 text-left transition-[background-color,transform] duration-150 ease-out active:scale-[0.99]",
                                     active || hinted
-                                      ? "bg-oxblood-soft"
+                                      ? "bg-lamp-soft"
                                       : "hover:bg-surface",
                                   )}
                                 >
@@ -625,7 +653,7 @@ export function LibraryDrawer() {
                                     className={cn(
                                       "flex min-w-0 items-center gap-2 font-serif text-base",
                                       active || hinted
-                                        ? "font-semibold text-oxblood"
+                                        ? "font-semibold text-lamp"
                                         : "text-ink",
                                     )}
                                   >
