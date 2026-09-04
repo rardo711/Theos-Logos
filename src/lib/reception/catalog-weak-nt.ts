@@ -21,6 +21,8 @@ const ROMAN = [
   "xxi", "xxii", "xxiii", "xxiv", "xxv", "xxvi", "xxvii", "xxviii", "xxix",
 ] as const;
 
+const REV_CHAPTERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+
 const HAND: CatalogEntry[] = [
   e("manton-james-1", "Thomas Manton", "Practical Commentary on James", "puritan", "James 1", "https://www.ccel.org/ccel/manton/manton04.iv.html", ["james", "manton", "trials", "patience", "servant"], ["JAS"], [1]),
   e("manton-james-2", "Thomas Manton", "Practical Commentary on James", "puritan", "James 2", "https://www.ccel.org/ccel/manton/manton04.v.html", ["james", "manton", "faith", "works", "poor"], ["JAS"], [2]),
@@ -45,7 +47,7 @@ const HAND: CatalogEntry[] = [
   e("chrysostom-heb-h22", "John Chrysostom", "Homilies on Hebrews 22", "patristic", "Homily 22", "https://www.newadvent.org/fathers/240222.htm", ["hebrews", "faith", "witnesses", "chrysostom"], ["HEB"], [11]),
   e("chrysostom-heb-h28", "John Chrysostom", "Homilies on Hebrews 28", "patristic", "Homily 28", "https://www.newadvent.org/fathers/240228.htm", ["hebrews", "discipline", "zion", "chrysostom"], ["HEB"], [12]),
   e("chrysostom-heb-h33", "John Chrysostom", "Homilies on Hebrews 33", "patristic", "Homily 33", "https://www.newadvent.org/fathers/240233.htm", ["hebrews", "altar", "outside", "chrysostom"], ["HEB"], [13]),
-  e("victorinus-revelation-more", "Victorinus", "Commentary on the Apocalypse", "patristic", "In Apocalypsin", "https://www.newadvent.org/fathers/0712.htm", ["revelation", "apocalypse", "victorinus"], ["REV"], [2, 5, 12, 13, 17, 19, 20, 21, 22]),
+  e("victorinus-revelation-more", "Victorinus", "Commentary on the Apocalypse", "patristic", "In Apocalypsin", "https://www.newadvent.org/fathers/0712.htm", ["revelation", "apocalypse", "victorinus"], ["REV"], REV_CHAPTERS),
 ];
 
 const CALVIN_CATHOLIC_CHAPTERS: Array<[string, string, string, number, string]> = [
@@ -146,5 +148,3 @@ export function attachWeakNtCatalog(): void {
     have.add(row.id);
   }
 }
-
-attachWeakNtCatalog();
