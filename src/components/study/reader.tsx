@@ -73,7 +73,7 @@ export function Reader({
 }) {
   const selected = useStudy((s) => s.selectedVerse);
   const selectedEnd = useStudy((s) => s.selectedEndVerse);
-  const tapVerse = useStudy((s) => s.tapVerse);
+  const pickVerse = useStudy((s) => s.pickVerse);
   const setVerse = useStudy((s) => s.setVerse);
   const nextChapter = useStudy((s) => s.nextChapter);
   const prevChapter = useStudy((s) => s.prevChapter);
@@ -298,7 +298,7 @@ export function Reader({
                           if (e.shiftKey) e.preventDefault();
                         }}
                         onClick={() => {
-                          tapVerse(v.verse, { ifTooLong: "jump" });
+                          pickVerse(v.verse);
                         }}
                         onKeyDown={(e) => {
                           if (e.key !== "Enter" && e.key !== " ") return;

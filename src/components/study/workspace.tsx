@@ -52,7 +52,11 @@ export function StudyWorkspace() {
   const [sheetDy, setSheetDy] = useState(0);
   const [sheetDragging, setSheetDragging] = useState(false);
   const [sheetPull, setSheetPull] = useState(0);
+  const [sheetClosing, setSheetClosing] = useState(false);
   const sheetRef = useRef<HTMLElement>(null);
+  const sheetOpenRef = useRef(false);
+  const sheetShownRef = useRef(false);
+  const sheetPullRef = useRef(0);
 
   useEffect(() => {
     hydrate();
@@ -93,10 +97,19 @@ export function StudyWorkspace() {
   const docked = receptionPinned && wideDesk && receptionOpen;
   const committed = receptionOpen && !docked;
   const peeking = !committed && sheetPull < -4;
+  sheetOpenRef.current = sheetOpen;
+  sheetShownRef.current = sheetShown;
+  sheetPullRef.current = sheetPull;
 
   useEffect(() => {
     if (committed) {
       setSheetShown(true);
+      setSheetClosing(false);
+      if (sheetShownRef.current && sheetPullRef.current < -4) {
+        setSheetOpen(true);
+        setSheetPull(0);
+        return;
+      }
       const id = requestAnimationFrame(() => {
         setSheetOpen(true);
         setSheetPull(0);
@@ -106,10 +119,16 @@ export function StudyWorkspace() {
     if (peeking) {
       setSheetShown(true);
       setSheetOpen(false);
+      setSheetClosing(false);
       return;
     }
+    const wasOpen = sheetOpenRef.current;
     setSheetOpen(false);
-    const t = window.setTimeout(() => setSheetShown(false), 280);
+    setSheetClosing(wasOpen);
+    const t = window.setTimeout(() => {
+      setSheetShown(false);
+      setSheetClosing(false);
+    }, 280);
     return () => window.clearTimeout(t);
   }, [committed, peeking]);
 
@@ -339,7 +358,7 @@ export function StudyWorkspace() {
           />
           <VerseHint
             noted={verseHasNotes}
-            heldBack={sheetOpen}
+            heldBack={sheetOpen || sheetClosing}
             onPull={setSheetPull}
             onInquire={() => {
               if (selectedVerse != null) setReceptionOpen(true);
@@ -356,13 +375,11 @@ export function StudyWorkspace() {
         {sheetShown ? (
           <>
             <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-end md:hidden">
-              <button
-                type="button"
+              <div
                 className="tl-dim min-h-0 flex-1"
                 data-open={sheetOpen ? "true" : "false"}
                 data-peek={peeking ? "true" : "false"}
-                aria-label={t(locale, "closeReception")}
-                onClick={closeReception}
+                aria-hidden
                 style={{
                   ["--dim-o" as string]: sheetOpen
                     ? String(Math.max(0.12, 1 - sheetDy / 320))
@@ -381,7 +398,10 @@ export function StudyWorkspace() {
                   ["--sheet-dy" as string]: `${Math.max(0, sheetDy)}px`,
                   ["--sheet-pull" as string]: `${sheetPull}px`,
                   ["--sheet-peek-o" as string]: String(
-                    Math.min(1, 0.5 + -sheetPull / 140),
+                    Math.min(1, 0.55 + -sheetPull / 120),
+                  ),
+                  ["--handle-o" as string]: String(
+                    Math.min(1, Math.max(0, -sheetPull / 56)),
                   ),
                 }}
               >

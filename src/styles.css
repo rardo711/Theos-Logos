@@ -340,7 +340,7 @@
 
 .tl-dim[data-open="true"] {
   opacity: var(--dim-o, 1);
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .tl-dim[data-peek="true"] {
@@ -397,7 +397,7 @@
 }
 
 .tl-sheet-up[data-peeking="true"] [data-sheet-handle] {
-  opacity: 0;
+  opacity: var(--handle-o, 0);
 }
 
 .tl-menu {
@@ -704,13 +704,13 @@
 
 .tl-pick[data-open="true"] {
   transform: translateY(var(--pick-dy, 0px));
-  opacity: 1;
+  opacity: var(--pick-o, 1);
   pointer-events: auto;
   touch-action: none;
 }
 
 .tl-pick[data-open="false"][data-exit="up"] {
-  transform: translateY(-28px);
+  transform: none;
   opacity: 0;
 }
 

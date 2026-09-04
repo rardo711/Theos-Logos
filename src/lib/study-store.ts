@@ -242,7 +242,15 @@ export const useStudy = create<StudyState>((set, get) => ({
       selectedEndVerse: next.end !== next.start ? next.end : null,
     });
   },
-  clearSelection: () => set({ selectedVerse: null, selectedEndVerse: null }),
+  clearSelection: () => {
+    const pinned = get().receptionPinned;
+    set({
+      selectedVerse: null,
+      selectedEndVerse: null,
+      selectMode: false,
+      receptionOpen: pinned ? get().receptionOpen : false,
+    });
+  },
   setTheme: (theme) => {
     set({ theme });
     applyTheme(theme);

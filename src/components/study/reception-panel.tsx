@@ -63,9 +63,6 @@ export function ReceptionPanel({
 }) {
   const selectedVerse = useStudy((s) => s.selectedVerse);
   const selectedEndVerse = useStudy((s) => s.selectedEndVerse);
-  const selectMode = useStudy((s) => s.selectMode);
-  const setSelectMode = useStudy((s) => s.setSelectMode);
-  const clearSelection = useStudy((s) => s.clearSelection);
   const setVerse = useStudy((s) => s.setVerse);
   const disclaimerSeen = useStudy((s) => s.disclaimerSeen);
   const dismissDisclaimer = useStudy((s) => s.dismissDisclaimer);
@@ -110,8 +107,13 @@ export function ReceptionPanel({
       .join(" ");
   }, [chapter, selectedVerse, selectedEndVerse]);
   const chips = useMemo(
-    () => (verse ? wordChips(verse.text, reference) : []),
-    [verse, reference],
+    () =>
+      selectionText
+        ? wordChips(selectionText, reference)
+        : verse
+          ? wordChips(verse.text, reference)
+          : [],
+    [selectionText, verse, reference],
   );
   const marked = useMemo(
     () => (chapter ? markedVerses(chapter.bookId, chapter.chapter) : []),
@@ -372,33 +374,12 @@ export function ReceptionPanel({
           <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
             {t(locale, "reception")}
           </p>
-          <h2 className="font-display truncate text-lg font-semibold text-ink">
+          <h2
+            key={selectedVerse != null ? reference : "voices"}
+            className="tl-pick-ref font-display truncate text-lg font-semibold text-ink"
+          >
             {selectedVerse != null ? reference : t(locale, "historicVoices")}
           </h2>
-          <div className="mt-1 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setSelectMode(!selectMode)}
-              aria-pressed={selectMode}
-              className={cn(
-                "text-2xs font-semibold tracking-[0.14em] uppercase",
-                selectMode ? "text-lamp" : "text-faint hover:text-muted",
-              )}
-            >
-              {selectMode
-                ? t(locale, "selectPassageDone")
-                : t(locale, "selectPassage")}
-            </button>
-            {selectMode && selectedVerse != null ? (
-              <button
-                type="button"
-                onClick={clearSelection}
-                className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase hover:text-muted"
-              >
-                {t(locale, "clearSelection")}
-              </button>
-            ) : null}
-          </div>
         </div>
         <div className="flex shrink-0 items-center">
           <button
@@ -912,7 +893,11 @@ export function VerseHint({
       data-exit={exit}
       data-dragging={dragging ? "true" : "false"}
       aria-hidden={!open}
-      style={{ ["--pick-dy" as string]: `${dy}px` }}
+      style={{
+        ["--pick-dy" as string]: `${Math.max(0, dy)}px`,
+        ["--pick-o" as string]:
+          dy < 0 ? String(Math.max(0, 1 + dy / 48)) : "1",
+      }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -940,8 +925,8 @@ export function VerseHint({
             disabled={!open}
             className="min-h-11 min-w-0 flex-1 truncate px-2 text-left font-display text-[0.95rem] font-medium tracking-tight text-ink"
           >
-            <span key={label} className="tl-pick-ref">
-              {label}
+            <span key={live || label} className="tl-pick-ref">
+              {live || label}
             </span>
           </button>
           <button
