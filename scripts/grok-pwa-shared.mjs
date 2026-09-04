@@ -192,8 +192,8 @@ export function renderWebManifest(hostHeader, site = {}) {
       lang: "en",
       dir: "ltr",
       prefer_related_applications: false,
-      background_color: branded ? "#12100e" : "#000000",
-      theme_color: branded ? "#1c1814" : "#000000",
+      background_color: branded ? "#fffdf8" : "#000000",
+      theme_color: branded ? "#fffdf8" : "#000000",
       icons,
     },
     null,
@@ -215,7 +215,7 @@ export function grokPwaHeadTags(appName = DEFAULT_APP_NAME) {
       "apple-mobile-web-app-status-bar-style",
       '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">',
     ],
-    ["theme-color", '<meta name="theme-color" content="#1c1814">'],
+    ["theme-color", '<meta name="theme-color" content="#fffdf8">'],
   ];
 }
 

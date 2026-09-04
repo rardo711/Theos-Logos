@@ -59,8 +59,16 @@ function applyTheme(theme: Theme) {
     (theme === "auto" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.classList.toggle("dark", dark);
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", dark ? "#1c1814" : "#f6f1e8");
+  document.documentElement.style.colorScheme = dark ? "dark" : "light";
+  const color = dark ? "#1c1814" : "#fffdf8";
+  const head = document.head;
+  document
+    .querySelectorAll('meta[name="theme-color"]')
+    .forEach((m) => m.remove());
+  const meta = document.createElement("meta");
+  meta.setAttribute("name", "theme-color");
+  meta.setAttribute("content", color);
+  head.appendChild(meta);
 }
 
 let themeBound = false;
