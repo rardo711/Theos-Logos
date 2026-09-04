@@ -4,6 +4,7 @@ import type { Locale } from "@/lib/bible/books";
 import { t } from "@/lib/i18n";
 import { getCurated, findEstablishedSources } from "./curated";
 import { assembleFromSources } from "./retrieve";
+import "./catalog-weak-nt";
 import { additionalSourceCards } from "./notes";
 import { synthesizeFromDesk } from "./synthesize";
 import type { ReceptionResult, SourceCard } from "@/lib/bible/types";
@@ -94,8 +95,6 @@ export const askReception = createServerFn({ method: "POST" })
     const question = data.question?.trim() ?? "";
     const ready = getCurated(data.bookId, data.chapter, data.verse);
 
-    // Rule 1: empty Inquire used to mean "show verse sources". Commentaries now owns
-    // gathering. Keep this path for Compare / legacy callers.
     if (!question) {
       if (ready && ready.cards.length > 0) {
         if (data.mode === "traditions") {
