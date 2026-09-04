@@ -14,6 +14,11 @@
   --color-oxblood-soft: #f1e4e1;
   --color-oxblood-fg: #fffaf6;
   --color-verse: #821111;
+  --color-gold: #b0894a;
+  --color-gold-soft: #efe4cc;
+  /* Active chrome: oxblood by day, lamp-gold by night. Brand red stays oxblood. */
+  --color-lamp: #821111;
+  --color-lamp-soft: #f1e4e1;
 
   --font-display: "Playfair Display", ui-serif, Georgia, "Times New Roman", serif;
   --font-serif: "Source Serif 4", ui-serif, Georgia, "Times New Roman", serif;
@@ -42,6 +47,10 @@
   --color-rule: #3c342e;
   --color-oxblood-soft: #3a1612;
   --color-verse: #e07064;
+  --color-gold: #c9a15b;
+  --color-gold-soft: #3a2e18;
+  --color-lamp: #c9a15b;
+  --color-lamp-soft: #3a2e18;
   --shadow-soft: 0 16px 40px rgba(0, 0, 0, 0.5);
   --shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
@@ -104,11 +113,17 @@
   }
 
   html.dark body {
-    background-image: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--color-oxblood) 16%, transparent),
-      transparent 18%
-    );
+    background-image:
+      radial-gradient(
+        ellipse at 18% -8%,
+        color-mix(in oklab, var(--color-gold) 20%, transparent),
+        transparent 48%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--color-oxblood) 14%, transparent),
+        transparent 22%
+      );
   }
 
   button:not(:disabled),
@@ -146,9 +161,41 @@
   height: 4px;
   margin-left: 2px;
   border-radius: 999px;
-  background: var(--color-oxblood);
+  background: var(--color-verse);
   vertical-align: middle;
   transform: translateY(-0.1em);
+}
+
+.tl-first-verse {
+  display: block;
+  margin-bottom: 0.45em;
+}
+
+.tl-drop {
+  font-family: var(--font-display);
+  float: left;
+  font-size: 3.25em;
+  font-weight: 600;
+  line-height: 0.78;
+  padding: 0.06em 0.12em 0.04em 0;
+  color: var(--color-ink);
+}
+
+.tl-slip {
+  position: relative;
+  border: 1px solid var(--color-rule);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-border);
+}
+
+.tl-slip::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 2px;
+  background: var(--color-oxblood);
+  pointer-events: none;
 }
 
 .tl-shell {
@@ -227,7 +274,7 @@
   left: 0;
   height: 2px;
   border-radius: 999px;
-  background: var(--color-oxblood);
+  background: var(--color-lamp);
   pointer-events: none;
 }
 
@@ -243,7 +290,7 @@
   bottom: 2px;
   left: 0;
   border-radius: var(--radius-sm);
-  background: var(--color-oxblood);
+  background: var(--color-lamp-soft);
   pointer-events: none;
 }
 
@@ -326,7 +373,7 @@
   bottom: 2px;
   left: 0;
   border-radius: var(--radius-sm);
-  background: var(--color-oxblood-soft);
+  background: var(--color-lamp-soft);
   pointer-events: none;
 }
 
@@ -410,7 +457,7 @@
   border-radius: 999px;
   background: linear-gradient(
     to right,
-    var(--color-oxblood) var(--range-p, 50%),
+    var(--color-lamp) var(--range-p, 50%),
     var(--color-rule) var(--range-p, 50%)
   );
   outline: none;
@@ -422,10 +469,10 @@
   width: 18px;
   height: 18px;
   border-radius: 999px;
-  background: var(--color-oxblood);
+  background: var(--color-lamp);
   box-shadow:
     0 0 0 3px var(--color-surface),
-    0 0 0 4px color-mix(in oklab, var(--color-oxblood) 35%, transparent);
+    0 0 0 4px color-mix(in oklab, var(--color-lamp) 35%, transparent);
   cursor: pointer;
   transition: transform var(--motion-quick) var(--ease-out);
 }
@@ -435,10 +482,10 @@
   height: 18px;
   border: none;
   border-radius: 999px;
-  background: var(--color-oxblood);
+  background: var(--color-lamp);
   box-shadow:
     0 0 0 3px var(--color-surface),
-    0 0 0 4px color-mix(in oklab, var(--color-oxblood) 35%, transparent);
+    0 0 0 4px color-mix(in oklab, var(--color-lamp) 35%, transparent);
   cursor: pointer;
 }
 
@@ -447,7 +494,7 @@
 }
 
 .tl-range:focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--color-oxblood) 55%, transparent);
+  outline: 2px solid color-mix(in oklab, var(--color-lamp) 55%, transparent);
   outline-offset: 4px;
 }
 
@@ -485,7 +532,7 @@
 }
 
 .tl-back-top:focus-visible {
-  outline: 2px solid var(--color-oxblood);
+  outline: 2px solid var(--color-lamp);
   outline-offset: 2px;
 }
 

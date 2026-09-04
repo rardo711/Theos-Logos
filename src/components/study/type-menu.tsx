@@ -134,7 +134,7 @@ export function TypeMenu() {
               className={cn(
                 "relative z-10 min-h-11 flex-1 rounded-xs text-xs font-semibold transition-colors duration-150 ease-out",
                 locale === id
-                  ? "text-oxblood-fg"
+                  ? "text-lamp"
                   : "text-muted hover:text-ink",
               )}
             >
@@ -165,7 +165,7 @@ export function TypeMenu() {
               className={cn(
                 "relative z-10 min-h-11 flex-1 rounded-xs text-xs font-semibold transition-colors duration-150 ease-out",
                 theme === lamp.id
-                  ? "text-oxblood-fg"
+                  ? "text-lamp"
                   : "text-muted hover:text-ink",
               )}
             >

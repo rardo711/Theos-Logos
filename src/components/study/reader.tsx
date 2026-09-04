@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, Fragment } from "react";
 import { ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { BIBLE_BOOKS, bookName, getBook } from "@/lib/bible/books";
 import type { Chapter } from "@/lib/bible/types";
+import { splitDropCap } from "@/lib/bible/drop-cap";
 import { inRange, MAX_RANGE_VERSES } from "@/lib/bible/range";
 import { t } from "@/lib/i18n";
 import { hasNotes } from "@/lib/reception/notes";
@@ -302,6 +303,7 @@ export function Reader({
                     chapter.chapter,
                     v.verse,
                   );
+                  const drop = i === 0 ? splitDropCap(v.text) : null;
                   return (
                     <Fragment key={v.verse}>
                       {v.title ? (
@@ -351,6 +353,7 @@ export function Reader({
                         }}
                         className={cn(
                           "cursor-pointer rounded-xs transition-colors duration-200",
+                          drop && "tl-first-verse",
                           on ? "bg-oxblood-soft" : "hover:bg-oxblood-soft/55",
                           // The bar marks where the passage begins, so a range
                           // reads as one block rather than as several selected
@@ -359,6 +362,9 @@ export function Reader({
                             "shadow-[inset_3px_0_0_0_var(--color-oxblood)]",
                         )}
                       >
+                        {drop ? (
+                          <span className="tl-drop">{drop.letter}</span>
+                        ) : null}
                         <sup className="verse-num mr-1 select-none">
                           {v.verse}
                           {noted ? (
@@ -368,7 +374,7 @@ export function Reader({
                             />
                           ) : null}
                         </sup>
-                        {v.text}{" "}
+                        {drop ? drop.rest : v.text}{" "}
                       </span>
                     </Fragment>
                   );

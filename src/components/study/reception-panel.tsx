@@ -730,7 +730,7 @@ export function ReceptionPanel({
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     placeholder={t(locale, "aimPlaceholder")}
-                    className="w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-oxblood"
+                    className="w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-lamp"
                   />
                   <p className="mt-2 text-2xs leading-relaxed text-faint">
                     {t(locale, "inquireHint")}

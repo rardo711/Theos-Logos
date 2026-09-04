@@ -330,7 +330,7 @@ export function LibraryDrawer() {
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck={false}
-              className="w-full rounded-md border border-rule bg-paper py-2.5 pr-10 pl-9 text-base text-ink outline-none placeholder:text-faint transition-[border-color,box-shadow] duration-150 ease-out focus:border-oxblood focus:shadow-[0_0_0_3px_var(--color-oxblood-soft)]"
+              className="w-full rounded-md border border-rule bg-paper py-2.5 pr-10 pl-9 text-base text-ink outline-none placeholder:text-faint transition-[border-color,box-shadow] duration-150 ease-out focus:border-lamp focus:shadow-[0_0_0_3px_var(--color-lamp-soft)]"
             />
             {query ? (
               <button
@@ -457,9 +457,9 @@ export function LibraryDrawer() {
                             setOpen(false);
                           }}
                           className={cn(
-                            "relative flex min-h-11 items-center justify-center rounded-sm text-sm font-semibold tabular-nums transition-[background-color,color,transform] duration-150 ease-out active:scale-[0.96]",
+                            "relative flex min-h-11 items-center justify-center rounded-sm text-sm font-semibold tabular-nums transition-[background-color,color,box-shadow,transform] duration-150 ease-out active:scale-[0.96]",
                             active
-                              ? "bg-oxblood text-oxblood-fg"
+                              ? "text-lamp shadow-[inset_0_-2px_0_0_var(--color-lamp)]"
                               : "text-ink hover:bg-surface",
                           )}
                         >
@@ -501,7 +501,7 @@ export function LibraryDrawer() {
                             className={cn(
                               "relative z-10 min-h-10 shrink-0 snap-start rounded-sm px-2.5 text-2xs tracking-[0.12em] uppercase transition-[color,transform] duration-150 ease-out active:scale-[0.96]",
                               on
-                                ? "font-semibold text-oxblood"
+                                ? "font-semibold text-lamp"
                                 : "text-muted hover:text-oxblood",
                             )}
                           >
@@ -588,7 +588,7 @@ export function LibraryDrawer() {
                           className={cn(
                             "mb-1 flex items-baseline justify-between border-b px-1 pb-1 text-2xs font-semibold tracking-[0.16em] uppercase transition-[color,border-color] duration-200 ease-out",
                             live
-                              ? "border-oxblood text-oxblood"
+                              ? "border-lamp text-lamp"
                               : "border-rule text-faint",
                           )}
                         >
@@ -617,7 +617,7 @@ export function LibraryDrawer() {
                                   className={cn(
                                     "flex min-h-11 w-full items-baseline justify-between gap-3 rounded-sm px-2 text-left transition-[background-color,transform] duration-150 ease-out active:scale-[0.99]",
                                     active || hinted
-                                      ? "bg-oxblood-soft"
+                                      ? "bg-lamp-soft"
                                       : "hover:bg-surface",
                                   )}
                                 >
@@ -625,7 +625,7 @@ export function LibraryDrawer() {
                                     className={cn(
                                       "flex min-w-0 items-center gap-2 font-serif text-base",
                                       active || hinted
-                                        ? "font-semibold text-oxblood"
+                                        ? "font-semibold text-lamp"
                                         : "text-ink",
                                     )}
                                   >
