@@ -5,11 +5,10 @@ import { attachNtHeadings } from "@/lib/bible/nt-headings";
 import type { Chapter } from "@/lib/bible/types";
 import { initPwa, isStandalone } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
-import { hasNotes } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
 import { LibraryDrawer } from "./library-drawer";
 import { Reader } from "./reader";
-import { ReceptionPanel, VerseHint } from "./reception-panel";
+import { ReceptionPanel } from "./reception-panel";
 import { TopBar } from "./top-bar";
 
 function lockAppHeight() {
@@ -57,7 +56,7 @@ export function StudyWorkspace() {
   const tapVerse = useStudy((s) => s.tapVerse);
   const selectedVerse = useStudy((s) => s.selectedVerse);
   const selectedEndVerse = useStudy((s) => s.selectedEndVerse);
-  const notesRev = useStudy((s) => s.notesRev);
+  const clearSelection = useStudy((s) => s.clearSelection);
 
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,15 +64,14 @@ export function StudyWorkspace() {
   const [hydrated, setHydrated] = useState(false);
   const [wideDesk, setWideDesk] = useState(false);
   const [sheetShown, setSheetShown] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [sheetDy, setSheetDy] = useState(0);
+  const [sheetState, setSheetState] = useState<"hidden" | "peek" | "open">(
+    "hidden",
+  );
+  const [sheetDrag, setSheetDrag] = useState(0);
   const [sheetDragging, setSheetDragging] = useState(false);
-  const [sheetPull, setSheetPull] = useState(0);
-  const [sheetClosing, setSheetClosing] = useState(false);
   const sheetRef = useRef<HTMLElement>(null);
-  const sheetOpenRef = useRef(false);
-  const sheetShownRef = useRef(false);
-  const sheetPullRef = useRef(0);
+  const sheetStateRef = useRef(sheetState);
+  sheetStateRef.current = sheetState;
 
   useEffect(() => {
     hydrate();
@@ -112,53 +110,57 @@ export function StudyWorkspace() {
   }, [fontSize]);
 
   const docked = receptionPinned && wideDesk && receptionOpen;
-  const committed = receptionOpen && !docked;
-  const peeking = !committed && sheetPull < -4;
-  sheetOpenRef.current = sheetOpen;
-  sheetShownRef.current = sheetShown;
-  sheetPullRef.current = sheetPull;
+  const want: "hidden" | "peek" | "open" = docked
+    ? "hidden"
+    : receptionOpen
+      ? "open"
+      : selectedVerse != null
+        ? "peek"
+        : "hidden";
 
   useEffect(() => {
-    if (committed) {
-      setSheetShown(true);
-      setSheetClosing(false);
-      if (sheetShownRef.current && sheetPullRef.current < -4) {
-        setSheetOpen(true);
-        setSheetPull(0);
-        return;
-      }
-      const id = requestAnimationFrame(() => {
-        setSheetOpen(true);
-        setSheetPull(0);
-      });
-      return () => cancelAnimationFrame(id);
+    if (want === "hidden") {
+      setSheetState("hidden");
+      setSheetDrag(0);
+      const t = window.setTimeout(() => setSheetShown(false), 280);
+      return () => window.clearTimeout(t);
     }
-    if (peeking) {
-      setSheetShown(true);
-      setSheetOpen(false);
-      setSheetClosing(false);
-      return;
-    }
-    const wasOpen = sheetOpenRef.current;
-    setSheetOpen(false);
-    setSheetClosing(wasOpen);
-    const t = window.setTimeout(() => {
-      setSheetShown(false);
-      setSheetClosing(false);
-    }, 280);
-    return () => window.clearTimeout(t);
-  }, [committed, peeking]);
+    setSheetShown(true);
+    const id = requestAnimationFrame(() => {
+      setSheetState(want);
+      setSheetDrag(0);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [want]);
 
   useEffect(() => {
     if (!sheetShown) {
-      setSheetDy(0);
+      setSheetDrag(0);
       setSheetDragging(false);
     }
   }, [sheetShown]);
 
   useEffect(() => {
+    if (!sheetShown) return;
+    const chrome = sheetRef.current?.querySelector(
+      "[data-sheet-chrome]",
+    ) as HTMLElement | null;
+    if (!chrome) return;
+    const apply = () => {
+      document.documentElement.style.setProperty(
+        "--sheet-peek",
+        `${chrome.offsetHeight}px`,
+      );
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(chrome);
+    return () => ro.disconnect();
+  }, [sheetShown, locale, selectedVerse, selectedEndVerse]);
+
+  useEffect(() => {
     const el = sheetRef.current;
-    if (!el || !sheetOpen) return;
+    if (!el || sheetState === "hidden") return;
     let startY = 0;
     let startT = 0;
     let pulling = false;
@@ -173,28 +175,50 @@ export function StudyWorkspace() {
       const delta = e.touches[0].clientY - startY;
       const scroller = el.querySelector(".tl-scroll") as HTMLElement | null;
       const atTop = !scroller || scroller.scrollTop <= 1;
-      const handle = (e.target as HTMLElement | null)?.closest?.(
-        "[data-sheet-handle]",
+      const chrome = (e.target as HTMLElement | null)?.closest?.(
+        "[data-sheet-chrome]",
       );
-      if (delta > 0 && (atTop || handle)) {
+      const mode = sheetStateRef.current;
+      if (mode === "peek") {
+        pulling = true;
+        const chrome = el.querySelector(
+          "[data-sheet-chrome]",
+        ) as HTMLElement | null;
+        const rise = Math.max(80, el.offsetHeight - (chrome?.offsetHeight ?? 92));
+        dy = Math.min(Math.max(delta, -rise), el.offsetHeight * 0.45);
+        setSheetDragging(true);
+        setSheetDrag(dy);
+        if (Math.abs(delta) > 6) e.preventDefault();
+        return;
+      }
+      if (delta > 0 && (atTop || chrome)) {
         pulling = true;
         dy = delta;
         setSheetDragging(true);
-        setSheetDy(delta);
+        setSheetDrag(delta);
         if (delta > 6) e.preventDefault();
       } else if (pulling && delta <= 0) {
         dy = 0;
-        setSheetDy(0);
+        setSheetDrag(0);
       }
     };
     const finish = () => {
       const v = dy / Math.max(performance.now() - startT, 1);
+      const mode = sheetStateRef.current;
       setSheetDragging(false);
-      if (pulling && (dy > 48 || v > 0.5)) {
+      if (!pulling) {
+        dy = 0;
+        return;
+      }
+      if (mode === "peek") {
+        if (dy < -36 || v < -0.4) setReceptionOpen(true);
+        else if (dy > 40 || v > 0.45) clearSelection();
+        else setSheetDrag(0);
+      } else if (dy > 48 || v > 0.5) {
         setReceptionPinned(false);
         setReceptionOpen(false);
       } else {
-        setSheetDy(0);
+        setSheetDrag(0);
       }
       pulling = false;
       dy = 0;
@@ -209,7 +233,13 @@ export function StudyWorkspace() {
       el.removeEventListener("touchend", finish);
       el.removeEventListener("touchcancel", finish);
     };
-  }, [sheetOpen, setReceptionOpen, setReceptionPinned]);
+  }, [
+    sheetState,
+    sheetShown,
+    setReceptionOpen,
+    setReceptionPinned,
+    clearSelection,
+  ]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -337,18 +367,6 @@ export function StudyWorkspace() {
     tapVerse,
   ]);
 
-  const verseHasNotes =
-    notesRev >= 0 &&
-    chapter != null &&
-    selectedVerse != null &&
-    (() => {
-      const end = selectedEndVerse ?? selectedVerse;
-      for (let v = selectedVerse; v <= end; v++) {
-        if (hasNotes(chapter.bookId, chapter.chapter, v)) return true;
-      }
-      return false;
-    })();
-
   function closeReception() {
     setReceptionPinned(false);
     setReceptionOpen(false);
@@ -373,14 +391,6 @@ export function StudyWorkspace() {
             loading={waitingOnFetch || loading}
             error={error}
           />
-          <VerseHint
-            noted={verseHasNotes}
-            heldBack={sheetOpen || sheetClosing}
-            onPull={setSheetPull}
-            onInquire={() => {
-              if (selectedVerse != null) setReceptionOpen(true);
-            }}
-          />
         </section>
 
         {docked ? (
@@ -390,70 +400,55 @@ export function StudyWorkspace() {
         ) : null}
 
         {sheetShown ? (
-          <>
-            <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-end xl:hidden">
-              <div
-                className="tl-dim min-h-0 flex-1"
-                data-open={sheetOpen ? "true" : "false"}
-                data-peek={peeking ? "true" : "false"}
-                aria-hidden
-                style={{
-                  ["--dim-o" as string]: sheetOpen
-                    ? String(Math.max(0.12, 1 - sheetDy / 320))
-                    : String(Math.min(0.55, -sheetPull / 240)),
-                }}
-              />
-              <aside
-                ref={sheetRef}
-                className="tl-sheet-up flex h-[min(72dvh,42rem)] w-full flex-col rounded-t-xl border-t border-rule bg-paper shadow-soft md:mx-auto md:h-[min(68dvh,46rem)] md:w-[min(40rem,100%)] md:rounded-t-2xl"
-                data-open={sheetOpen ? "true" : "false"}
-                data-peeking={peeking ? "true" : "false"}
-                data-dragging={
-                  sheetDragging || peeking ? "true" : "false"
-                }
-                style={{
-                  ["--sheet-dy" as string]: `${Math.max(0, sheetDy)}px`,
-                  ["--sheet-pull" as string]: `${sheetPull}px`,
-                  ["--sheet-peek-o" as string]: String(
-                    Math.min(1, 0.55 + -sheetPull / 120),
-                  ),
-                  ["--handle-o" as string]: String(
-                    Math.min(1, Math.max(0, -sheetPull / 56)),
-                  ),
-                }}
-              >
-                <div
-                  data-sheet-handle
-                  className="flex shrink-0 cursor-grab justify-center pt-3 pb-2 active:cursor-grabbing"
-                  aria-hidden
-                >
-                  <span className="h-1 w-10 rounded-full bg-lamp/50" />
-                </div>
-                <div className="min-h-0 flex-1">
-                  <ReceptionPanel
-                    chapter={shownChapter}
-                    onClose={closeReception}
-                  />
-                </div>
-              </aside>
-            </div>
+          <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-end xl:hidden">
+            <div
+              className="tl-dim min-h-0 flex-1"
+              data-open={sheetState === "open" ? "true" : "false"}
+              aria-hidden
+              style={{
+                ["--dim-o" as string]:
+                  sheetState === "open"
+                    ? String(Math.max(0, 1 - Math.max(0, sheetDrag) / 320))
+                    : "0",
+              }}
+            />
+            <aside
+              ref={sheetRef}
+              className="tl-sheet-up flex h-[min(72dvh,42rem)] w-full flex-col overflow-hidden rounded-t-2xl border-t border-rule bg-surface shadow-soft md:mx-auto md:h-[min(68dvh,46rem)] md:w-[min(40rem,100%)]"
+              data-state={sheetState}
+              data-dragging={sheetDragging ? "true" : "false"}
+              style={{
+                ["--sheet-drag" as string]: `${sheetDrag}px`,
+              }}
+            >
+              <div className="min-h-0 flex-1">
+                <ReceptionPanel
+                  chapter={shownChapter}
+                  onClose={closeReception}
+                  sheet
+                  expanded={sheetState === "open"}
+                />
+              </div>
+            </aside>
+          </div>
+        ) : null}
 
-            <div className="pointer-events-none absolute inset-0 z-20 hidden xl:flex">
-              <button
-                type="button"
-                className="tl-dim min-w-0 flex-1"
-                data-open={sheetOpen ? "true" : "false"}
-                aria-label={t(locale, "closeReception")}
-                onClick={closeReception}
-              />
-              <aside
-                className="tl-sheet flex h-full w-full max-w-md flex-col border-l border-rule bg-paper shadow-soft"
-                data-open={sheetOpen ? "true" : "false"}
-              >
-                <ReceptionPanel chapter={shownChapter} onClose={closeReception} />
-              </aside>
-            </div>
-          </>
+        {receptionOpen && !docked ? (
+          <div className="pointer-events-none absolute inset-0 z-20 hidden xl:flex">
+            <button
+              type="button"
+              className="tl-dim min-w-0 flex-1"
+              data-open="true"
+              aria-label={t(locale, "closeReception")}
+              onClick={closeReception}
+            />
+            <aside
+              className="tl-sheet flex h-full w-full max-w-md flex-col border-l border-rule bg-paper shadow-soft"
+              data-open="true"
+            >
+              <ReceptionPanel chapter={shownChapter} onClose={closeReception} />
+            </aside>
+          </div>
         ) : null}
       </div>
 

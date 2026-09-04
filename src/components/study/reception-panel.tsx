@@ -57,9 +57,13 @@ function wordChips(text: string, reference: string): string[] {
 export function ReceptionPanel({
   chapter,
   onClose,
+  sheet,
+  expanded,
 }: {
   chapter: Chapter | null;
   onClose?: () => void;
+  sheet?: boolean;
+  expanded?: boolean;
 }) {
   const selectedVerse = useStudy((s) => s.selectedVerse);
   const selectedEndVerse = useStudy((s) => s.selectedEndVerse);
@@ -70,6 +74,8 @@ export function ReceptionPanel({
   const notesRev = useStudy((s) => s.notesRev);
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const setReceptionPinned = useStudy((s) => s.setReceptionPinned);
+  const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
+  const clearSelection = useStudy((s) => s.clearSelection);
   const locale = useStudy((s) => s.locale);
   const [question, setQuestion] = useState("");
   const [aimOpen, setAimOpen] = useState(false);
@@ -365,61 +371,94 @@ export function ReceptionPanel({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-paper">
-      <header
-        data-sheet-handle
-        className="relative z-10 flex items-start justify-between gap-3 border-b border-rule px-5 py-3"
+    <div className={cn("flex h-full min-h-0 flex-col", sheet ? "bg-surface" : "bg-paper")}>
+      <div
+        data-sheet-chrome
+        className={cn("shrink-0", sheet && !expanded && "cursor-pointer")}
+        onClick={
+          sheet && !expanded ? () => setReceptionOpen(true) : undefined
+        }
       >
-        <div className="min-w-0 pt-1">
-          <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-            {t(locale, "reception")}
-          </p>
-          <h2
-            key={selectedVerse != null ? reference : "voices"}
-            className="tl-pick-ref font-display truncate text-lg font-semibold text-ink"
+        {sheet ? (
+          <div
+            data-sheet-handle
+            className="flex cursor-grab justify-center pt-3 pb-1 active:cursor-grabbing"
+            aria-hidden
           >
-            {selectedVerse != null ? reference : t(locale, "historicVoices")}
-          </h2>
-        </div>
-        <div className="flex shrink-0 items-center">
-          <button
-            type="button"
-            onClick={() => setReceptionPinned(!receptionPinned)}
-            className="hidden size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink xl:flex"
-            aria-label={
-              receptionPinned
-                ? t(locale, "collapseSources")
-                : t(locale, "keepSources")
-            }
-            title={
-              receptionPinned
-                ? t(locale, "collapseSources")
-                : t(locale, "keepSources")
-            }
-          >
-            {receptionPinned ? (
-              <PanelRightClose size={18} />
-            ) : (
-              <PanelRight size={18} />
-            )}
-          </button>
-          {onClose ? (
+            <span className="h-1 w-10 rounded-full bg-lamp/50" />
+          </div>
+        ) : null}
+        <header
+          className={cn(
+            "relative z-10 flex items-start justify-between gap-3 px-5",
+            expanded || !sheet ? "border-b border-rule py-3" : "pb-3",
+          )}
+        >
+          <div className="min-w-0 pt-1">
+            <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
+              {t(locale, "reception")}
+            </p>
+            <h2
+              key={selectedVerse != null ? reference : "voices"}
+              className="tl-pick-ref font-display truncate text-lg font-semibold text-ink"
+            >
+              {selectedVerse != null ? reference : t(locale, "historicVoices")}
+            </h2>
+          </div>
+          <div className="flex shrink-0 items-center">
             <button
               type="button"
-              onClick={() => {
+              onClick={() => setReceptionPinned(!receptionPinned)}
+              className="hidden size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink xl:flex"
+              aria-label={
+                receptionPinned
+                  ? t(locale, "collapseSources")
+                  : t(locale, "keepSources")
+              }
+              title={
+                receptionPinned
+                  ? t(locale, "collapseSources")
+                  : t(locale, "keepSources")
+              }
+            >
+              {receptionPinned ? (
+                <PanelRightClose size={18} />
+              ) : (
+                <PanelRight size={18} />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (sheet && expanded) {
+                  onClose?.();
+                  return;
+                }
+                if (sheet) {
+                  clearSelection();
+                  return;
+                }
                 setReceptionPinned(false);
-                onClose();
+                onClose?.();
               }}
-              className="flex size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink"
-              aria-label={t(locale, "closeReception")}
+              className="flex size-11 items-center justify-center rounded-md text-muted hover:bg-paper hover:text-ink"
+              aria-label={
+                sheet && !expanded
+                  ? t(locale, "clearSelection")
+                  : t(locale, "closeReception")
+              }
             >
               <X size={18} />
             </button>
-          ) : null}
-        </div>
-      </header>
+          </div>
+        </header>
+      </div>
 
-      <div className="tl-scroll min-h-0 flex-1 overflow-y-auto px-5 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+      <div
+        className="tl-scroll min-h-0 flex-1 overflow-y-auto px-5 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+        aria-hidden={sheet && !expanded}
+      >
         {!disclaimerSeen ? (
           <div className="mb-4 rounded-lg border border-rule bg-surface p-3 shadow-soft">
             <p className="text-sm leading-relaxed text-muted">
@@ -772,185 +811,6 @@ export function ReceptionPanel({
             ) : null}
           </>
         )}
-      </div>
-    </div>
-  );
-}
-
-export function VerseHint({
-  onInquire,
-  onPull,
-  noted,
-  heldBack,
-}: {
-  onInquire: () => void;
-  onPull?: (dy: number) => void;
-  noted?: boolean;
-  heldBack?: boolean;
-}) {
-  const selected = useStudy((s) => s.selectedVerse);
-  const selectedEnd = useStudy((s) => s.selectedEndVerse);
-  const receptionOpen = useStudy((s) => s.receptionOpen);
-  const receptionPinned = useStudy((s) => s.receptionPinned);
-  const locale = useStudy((s) => s.locale);
-  const bookId = useStudy((s) => s.bookId);
-  const chapter = useStudy((s) => s.chapter);
-  const clearSelection = useStudy((s) => s.clearSelection);
-  const open =
-    selected != null && !receptionOpen && !receptionPinned && !heldBack;
-  const exit = heldBack || receptionOpen ? "up" : "down";
-  const live =
-    selected == null
-      ? ""
-      : formatReference(
-          bookName(getBook(bookId), locale),
-          chapter,
-          selected,
-          selectedEnd,
-        );
-  const [label, setLabel] = useState(live);
-  const [dy, setDy] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const touch = useRef<{ y: number; x: number; t: number } | null>(null);
-  const swallow = useRef(false);
-  const opened = useRef(false);
-  useEffect(() => {
-    if (live) setLabel(live);
-  }, [live]);
-  useEffect(() => {
-    if (open) {
-      setDy(0);
-      opened.current = false;
-    }
-  }, [open]);
-
-  function lift() {
-    opened.current = true;
-    swallow.current = true;
-    onInquire();
-  }
-
-  function onTouchStart(e: React.TouchEvent) {
-    opened.current = false;
-    touch.current = {
-      y: e.touches[0].clientY,
-      x: e.touches[0].clientX,
-      t: performance.now(),
-    };
-    setDragging(true);
-  }
-  function onTouchMove(e: React.TouchEvent) {
-    if (!touch.current || opened.current) return;
-    const next = e.touches[0].clientY - touch.current.y;
-    const dx = e.touches[0].clientX - touch.current.x;
-    const cap = -Math.round(window.innerHeight * 0.72);
-    const liftDy = Math.max(next, cap);
-    setDy(liftDy);
-    onPull?.(Math.min(0, liftDy));
-    if (Math.abs(dx) > Math.abs(next) && Math.abs(dx) > 24) return;
-  }
-  function onTouchEnd(e: React.TouchEvent) {
-    if (!touch.current) return;
-    const next = e.changedTouches[0].clientY - touch.current.y;
-    const dx = e.changedTouches[0].clientX - touch.current.x;
-    const v = next / Math.max(performance.now() - touch.current.t, 1);
-    touch.current = null;
-    setDragging(false);
-    if (opened.current) return;
-    if (Math.abs(dx) > Math.abs(next) && Math.abs(dx) > 28) {
-      onPull?.(0);
-      setDy(0);
-      return;
-    }
-    if (next > 36 || v > 0.45) {
-      swallow.current = true;
-      onPull?.(0);
-      clearSelection();
-      return;
-    }
-    if (next < -48 || v < -0.45) {
-      lift();
-      return;
-    }
-    onPull?.(0);
-    setDy(0);
-  }
-
-  function tap(fn: () => void) {
-    return () => {
-      if (swallow.current) {
-        swallow.current = false;
-        return;
-      }
-      fn();
-    };
-  }
-
-  return (
-    <div
-      className="tl-pick absolute inset-x-0 bottom-0 z-20"
-      data-open={open ? "true" : "false"}
-      data-exit={exit}
-      data-dragging={dragging ? "true" : "false"}
-      aria-hidden={!open}
-      style={{
-        ["--pick-dy" as string]: `${Math.max(0, dy)}px`,
-        ["--pick-o" as string]:
-          dy < 0 ? String(Math.max(0, 1 + dy / 48)) : "1",
-      }}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-      onTouchCancel={() => {
-        touch.current = null;
-        setDragging(false);
-        setDy(0);
-        onPull?.(0);
-      }}
-    >
-      <div className="tl-pick-bar bg-surface pb-[env(safe-area-inset-bottom)]">
-        <button
-          type="button"
-          onClick={tap(onInquire)}
-          disabled={!open}
-          className="flex w-full flex-col items-center pt-1.5"
-          aria-label={t(locale, "reception")}
-        >
-          <span className="h-1 w-10 rounded-full bg-lamp/55" aria-hidden />
-        </button>
-        <div className="relative flex h-12 items-center px-2 pr-[max(0.35rem,env(safe-area-inset-right))]">
-          <button
-            type="button"
-            onClick={tap(onInquire)}
-            disabled={!open}
-            className="min-h-11 min-w-0 flex-1 truncate px-2 text-left font-display text-[0.95rem] font-medium tracking-tight text-ink"
-          >
-            <span key={live || label} className="tl-pick-ref">
-              {live || label}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={tap(onInquire)}
-            disabled={!open}
-            className="mr-0.5 inline-flex min-h-11 items-center gap-0.5 rounded-sm px-2 text-2xs font-semibold tracking-[0.14em] text-lamp uppercase"
-          >
-            {t(locale, "reception")}
-            <ChevronUp size={14} strokeWidth={2} />
-            {noted ? (
-              <span className="sr-only">. {t(locale, "deskNotes")}</span>
-            ) : null}
-          </button>
-          <button
-            type="button"
-            onClick={tap(clearSelection)}
-            disabled={!open}
-            aria-label={t(locale, "clearSelection")}
-            className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted transition-[color,transform,background-color] duration-150 ease-out hover:bg-lamp/10 hover:text-ink active:scale-90"
-          >
-            <X size={18} strokeWidth={1.75} />
-          </button>
-        </div>
       </div>
     </div>
   );

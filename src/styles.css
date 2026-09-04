@@ -69,7 +69,8 @@
   --motion-y-small: 6px;
   --motion-y-medium: 12px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --pick-stack: calc(4.85rem + var(--safe-bottom));
+  --sheet-peek: 5.75rem;
+  --pick-stack: var(--sheet-peek);
   --read-bottom: max(1.25rem, var(--safe-bottom));
 }
 
@@ -428,22 +429,28 @@
 }
 
 .tl-sheet-up {
-  transform: translateY(calc(100% + var(--sheet-pull, 0px)));
-  opacity: var(--sheet-peek-o, 0.55);
+  transform: translateY(calc(100% + var(--sheet-drag, 0px)));
   pointer-events: none;
-  transition:
-    transform 260ms var(--ease-snap),
-    opacity 180ms var(--ease-smooth-out);
+  transition: transform 280ms var(--ease-snap);
 }
 
-.tl-sheet-up[data-open="true"] {
-  transform: translateY(var(--sheet-dy, 0px));
-  opacity: 1;
+.tl-sheet-up[data-state="peek"] {
+  transform: translateY(calc(100% - var(--sheet-peek) + var(--sheet-drag, 0px)));
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.tl-sheet-up[data-state="open"] {
+  transform: translateY(var(--sheet-drag, 0px));
   pointer-events: auto;
 }
 
-.tl-sheet-up[data-peeking="true"] [data-sheet-handle] {
-  opacity: var(--handle-o, 0);
+.tl-sheet-up[data-state="open"] [data-sheet-chrome] {
+  touch-action: none;
+}
+
+.tl-sheet-up[data-dragging="true"] {
+  transition: none;
 }
 
 .tl-menu {
@@ -737,41 +744,6 @@
 
 .tl-hint {
   animation: tl-hint-in var(--motion-fast) var(--ease-smooth-out);
-}
-
-.tl-pick {
-  transform: translateY(110%);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    transform 260ms var(--ease-snap),
-    opacity 180ms var(--ease-smooth-out);
-}
-
-.tl-pick[data-open="true"] {
-  transform: translateY(var(--pick-dy, 0px));
-  opacity: var(--pick-o, 1);
-  pointer-events: auto;
-  touch-action: none;
-}
-
-.tl-pick[data-open="false"][data-exit="up"] {
-  transform: none;
-  opacity: 0;
-}
-
-.tl-pick[data-dragging="true"],
-.tl-sheet-up[data-dragging="true"] {
-  transition: none;
-}
-
-.tl-pick-bar {
-  border-top: 1px solid var(--color-rule);
-  box-shadow: 0 -12px 28px color-mix(in oklab, #1c1917 8%, transparent);
-}
-
-.dark .tl-pick-bar {
-  box-shadow: 0 -16px 32px rgba(0, 0, 0, 0.35);
 }
 
 .tl-pick-ref {
