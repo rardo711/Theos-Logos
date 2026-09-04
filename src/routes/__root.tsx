@@ -15,7 +15,7 @@ export const Route = createRootRoute({
           "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
       },
       { title: APP_NAME },
-      { name: "theme-color", content: "#fffdf8" },
+      { name: "theme-color", content: "#821111" },
       { name: "color-scheme", content: "light dark" },
       { name: "apple-mobile-web-app-title", content: APP_NAME },
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -44,7 +44,7 @@ export const Route = createRootRoute({
       <body>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=JSON.parse(localStorage.getItem("theos-logos-hybrid")||"{}").theme||"auto";var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",d?"#1c1814":"#fffdf8");var standalone=matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches||!!navigator.standalone;document.documentElement.classList.toggle("tl-standalone",standalone);if(standalone){var s=document.documentElement.style;s.setProperty("--app-h","100%");s.setProperty("--app-top","0px");s.setProperty("--app-left","0px");}else{var vv=window.visualViewport;var h=Math.round((vv&&vv.height)||window.innerHeight);var top=Math.round((vv&&vv.offsetTop)||0);var left=Math.round((vv&&vv.offsetLeft)||0);var s=document.documentElement.style;s.setProperty("--app-h",h+"px");s.setProperty("--app-top",top+"px");s.setProperty("--app-left",left+"px");}}catch(e){}})();`,
+            __html: `(function(){try{var t=JSON.parse(localStorage.getItem("theos-logos-hybrid")||"{}").theme||"auto";var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);var standalone=matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches||!!navigator.standalone;document.documentElement.classList.toggle("tl-standalone",standalone);if(standalone){var s=document.documentElement.style;s.setProperty("--app-h","100%");s.setProperty("--app-top","0px");s.setProperty("--app-left","0px");}else{var vv=window.visualViewport;var h=Math.round((vv&&vv.height)||window.innerHeight);var top=Math.round((vv&&vv.offsetTop)||0);var left=Math.round((vv&&vv.offsetLeft)||0);var s=document.documentElement.style;s.setProperty("--app-h",h+"px");s.setProperty("--app-top",top+"px");s.setProperty("--app-left",left+"px");}}catch(e){}})();`,
           }}
         />
         <PreviewHostBridge />

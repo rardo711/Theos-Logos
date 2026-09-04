@@ -53,17 +53,12 @@ function load(): Persisted {
   };
 }
 
-const THEME_LIGHT = "#fffdf8";
-const THEME_DARK = "#1c1814";
-
 function applyTheme(theme: Theme) {
   const dark =
     theme === "dark" ||
     (theme === "auto" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.classList.toggle("dark", dark);
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", dark ? THEME_DARK : THEME_LIGHT);
 }
 
 let themeBound = false;
