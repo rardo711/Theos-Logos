@@ -56,3 +56,137 @@ const HAND: CatalogEntry[] = [
   e("irenaeus-ah5-36-rev", "Irenaeus", "Against Heresies 5.36", "patristic", "Adv. Haer. 5.36", "https://www.newadvent.org/fathers/0103536.htm", ["revelation", "new", "heaven", "earth", "irenaeus"], ["REV"], [21]),
   e("augustine-civdei-20-rev", "Augustine", "City of God 20", "patristic", "De civitate Dei 20", "https://www.newadvent.org/fathers/120120.htm", ["revelation", "millennium", "thousand", "augustine"], ["REV"], [20]),
 ];
+
+const CALVIN_CATHOLIC_CHAPTERS: Array<[string, string, string, number, string]> = [
+  ["calvin-james-2", "James", "JAS", 2, "calcom45.vi.iii.i.html"],
+  ["calvin-james-3", "James", "JAS", 3, "calcom45.vi.iv.i.html"],
+  ["calvin-james-4", "James", "JAS", 4, "calcom45.vi.v.i.html"],
+  ["calvin-james-5", "James", "JAS", 5, "calcom45.vi.vi.i.html"],
+  ["calvin-1peter-2", "1 Peter", "1PE", 2, "calcom45.iv.iii.i.html"],
+  ["calvin-1peter-3", "1 Peter", "1PE", 3, "calcom45.iv.iv.i.html"],
+  ["calvin-1peter-4", "1 Peter", "1PE", 4, "calcom45.iv.v.i.html"],
+  ["calvin-1peter-5", "1 Peter", "1PE", 5, "calcom45.iv.vi.i.html"],
+  ["calvin-2peter-2", "2 Peter", "2PE", 2, "calcom45.vii.iii.i.html"],
+  ["calvin-2peter-3", "2 Peter", "2PE", 3, "calcom45.vii.iv.i.html"],
+  ["calvin-1john-2", "1 John", "1JN", 2, "calcom45.v.iii.i.html"],
+  ["calvin-1john-3", "1 John", "1JN", 3, "calcom45.v.iv.i.html"],
+  ["calvin-1john-4", "1 John", "1JN", 4, "calcom45.v.v.i.html"],
+  ["calvin-1john-5", "1 John", "1JN", 5, "calcom45.v.vi.i.html"],
+];
+
+const WEAK_NT_HUB = [
+  ["james", "JAS", "James", 5],
+  ["1_peter", "1PE", "1 Peter", 5],
+  ["2_peter", "2PE", "2 Peter", 3],
+  ["1_john", "1JN", "1 John", 5],
+  ["2_john", "2JN", "2 John", 1],
+  ["3_john", "3JN", "3 John", 1],
+  ["jude", "JUD", "Jude", 1],
+  ["revelation", "REV", "Revelation", 22],
+  ["hebrews", "HEB", "Hebrews", 13],
+  ["acts", "ACT", "Acts", 28],
+  ["galatians", "GAL", "Galatians", 6],
+  ["ephesians", "EPH", "Ephesians", 6],
+  ["philippians", "PHP", "Philippians", 4],
+  ["colossians", "COL", "Colossians", 4],
+  ["1_thessalonians", "1TH", "1 Thessalonians", 5],
+  ["2_thessalonians", "2TH", "2 Thessalonians", 3],
+  ["1_timothy", "1TI", "1 Timothy", 6],
+  ["2_timothy", "2TI", "2 Timothy", 4],
+  ["titus", "TIT", "Titus", 3],
+  ["philemon", "PHM", "Philemon", 1],
+] as const;
+
+const HUB_VOICES = [
+  ["gill", "John Gill", "Exposition of the Entire Bible", "reformed", "gill"],
+  ["poole", "Matthew Poole", "Annotations upon the Holy Bible", "puritan", "poole"],
+  ["bengel", "Johann Albrecht Bengel", "Gnomon of the New Testament", "lutheran", "bengel"],
+] as const;
+
+function generated(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [id, name, bookId, ch, file] of CALVIN_CATHOLIC_CHAPTERS) {
+    if (have.has(id)) continue;
+    out.push(
+      e(id, "John Calvin", `Commentary on ${name}`, "reformed", `${name} ${ch}`, `https://ccel.org/ccel/calvin/calcom45/${file}`, [name.toLowerCase().replace(/^\\d+\\s+/, ""), "calvin"], [bookId], [ch]),
+    );
+  }
+  for (let ch = 1; ch <= 13; ch++) {
+    const id = `calvin-hebrews-${ch}`;
+    if (have.has(id)) continue;
+    const file = ROMAN[ch + 6];
+    if (!file) continue;
+    out.push(e(id, "John Calvin", "Commentary on Hebrews", "reformed", `Hebrews ${ch}`, `https://ccel.org/ccel/calvin/calcom44/calcom44.${file}.i.html`, ["hebrews", "calvin"], ["HEB"], [ch]));
+  }
+  for (let ch = 1; ch <= 28; ch++) {
+    const id = `calvin-acts-${ch}`;
+    if (have.has(id)) continue;
+    if (ch <= 13) {
+      const file = ROMAN[ch + 7];
+      if (!file) continue;
+      out.push(e(id, "John Calvin", "Commentary on Acts", "reformed", `Acts ${ch}`, `https://ccel.org/ccel/calvin/calcom36/calcom36.${file}.i.html`, ["acts", "calvin", "apostles"], ["ACT"], [ch]));
+    } else {
+      const file = ROMAN[ch - 12];
+      if (!file) continue;
+      out.push(e(id, "John Calvin", "Commentary on Acts", "reformed", `Acts ${ch}`, `https://ccel.org/ccel/calvin/calcom37/calcom37.${file}.i.html`, ["acts", "calvin", "apostles"], ["ACT"], [ch]));
+    }
+  }
+  // Revelation extras first so Wesley / Geneva are not crowded out by three Hub voices.
+  for (const ch of REV_CHAPTERS) {
+    const wesleyId = `wesley-revelation-${ch}`;
+    if (!have.has(wesleyId)) {
+      out.push(
+        e(
+          wesleyId,
+          "John Wesley",
+          "Explanatory Notes upon the New Testament",
+          "reformed",
+          `Revelation ${ch}`,
+          `https://www.godrules.net/library/wesley/wesleyrev${ch}.htm`,
+          ["revelation", "wesley"],
+          ["REV"],
+          [ch],
+        ),
+      );
+    }
+    const genevaId = `geneva-revelation-${ch}`;
+    if (!have.has(genevaId)) {
+      out.push(
+        e(
+          genevaId,
+          "Geneva Bible",
+          "Geneva Bible Notes",
+          "reformed",
+          `Revelation ${ch}`,
+          `https://biblehub.com/geneva/revelation/${ch}.htm`,
+          ["revelation", "geneva", "reformer"],
+          ["REV"],
+          [ch],
+        ),
+      );
+    }
+  }
+  for (const [slug, bookId, name, chapters] of WEAK_NT_HUB) {
+    const tag = name.toLowerCase().replace(/^\\d+\\s+/, "");
+    for (const [stem, voice, work, tradition, voiceTag] of HUB_VOICES) {
+      for (let ch = 1; ch <= chapters; ch++) {
+        const id = `${stem}-${slug.replace(/_/g, "")}-${ch}`;
+        if (have.has(id)) continue;
+        out.push(
+          e(id, voice, work, tradition, `${name} ${ch}`, `https://biblehub.com/commentaries/${stem}/${slug}/${ch}.htm`, [tag, voiceTag], [bookId], [ch]),
+        );
+      }
+    }
+  }
+  return out;
+}
+
+/** Append weak-NT pointers onto the shared CATALOG array. mapCatalog reads CATALOG at call time. */
+export function attachWeakNtCatalog(): void {
+  const have = new Set(CATALOG.map((row) => row.id));
+  for (const row of [...HAND, ...generated(have)]) {
+    if (have.has(row.id)) continue;
+    CATALOG.push(row);
+    have.add(row.id);
+  }
+}
