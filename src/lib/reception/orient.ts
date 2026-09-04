@@ -32,6 +32,7 @@
 import type { Locale } from "../bible/books.ts";
 import type { DeskOrientation } from "../bible/types.ts";
 import { geminiApiKey, generateGeminiJson } from "../ai/gemini.ts";
+import { longQuotedSpans } from "./quoted.ts";
 
 /**
  * A quoted span this long is a quotation, and every quotation here would be
@@ -40,14 +41,8 @@ import { geminiApiKey, generateGeminiJson } from "../ai/gemini.ts";
  */
 const MAX_QUOTED_SPAN = 60;
 
-/** Straight and curly double quotes; single quotes are left alone for terms like eph' ho. */
-const QUOTED_SPAN = /["“]([^"“”]*)["”]/g;
-
 export function hasLongQuotedSpan(text: string): boolean {
-  for (const match of text.matchAll(QUOTED_SPAN)) {
-    if ((match[1]?.trim().length ?? 0) > MAX_QUOTED_SPAN) return true;
-  }
-  return false;
+  return longQuotedSpans(text, MAX_QUOTED_SPAN).length > 0;
 }
 
 export function hasUrl(text: string): boolean {
