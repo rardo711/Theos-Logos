@@ -516,6 +516,59 @@ describe("html extract", () => {
   });
 });
 
+describe("romans reception desk", () => {
+  it("covers every chapter of Romans 1-11 with named traditions", async () => {
+    const { CURATED_ENTRIES } = await import("./curated.ts");
+    const rom = CURATED_ENTRIES.filter((e) => e.verseRef.startsWith("ROM."));
+    const chapters = new Set(rom.map((e) => Number(e.verseRef.split(".")[1])));
+    for (let ch = 1; ch <= 11; ch++) {
+      assert.ok(chapters.has(ch), `Romans ${ch} has no curated entry`);
+    }
+  });
+
+  it("gives Romans 9:11 four traditions, not one verdict", async () => {
+    const { getCurated } = await import("./curated.ts");
+    const result = getCurated("ROM", 9, 11);
+    assert.ok(result, "Romans 9:11 must have curated cards");
+    const traditions = new Set(result.cards.map((c) => c.tradition));
+    assert.ok(traditions.has("western-patristic"), "Augustine");
+    assert.ok(traditions.has("eastern-patristic"), "Chrysostom");
+    assert.ok(traditions.has("reformed"), "Calvin");
+    assert.ok(traditions.has("scholastic"), "Aquinas");
+  });
+
+  it("resolves a verse inside a pericope to its canonical entry", async () => {
+    const { getCurated } = await import("./curated.ts");
+    const canonical = getCurated("ROM", 9, 11);
+    const neighbour = getCurated("ROM", 9, 13);
+    assert.ok(neighbour, "Romans 9:13 should fall back to the pericope");
+    assert.equal(neighbour.cards.length, canonical?.cards.length);
+  });
+
+  it("marks composed excerpts as paraphrase and links no volume index", async () => {
+    const { CURATED_ENTRIES, curatedEntryToCard } = await import("./curated.ts");
+    const verbatimClaims = CURATED_ENTRIES.filter(
+      (e) => curatedEntryToCard(e).paraphrased === false,
+    );
+    assert.deepEqual(
+      verbatimClaims.map((e) => e.verseRef),
+      [],
+      "a curated excerpt may claim verbatim only when transcribed from the page",
+    );
+    const INDEX_PAGE = [
+      /\/schaff\/npnf\d+\.html$/,
+      /\/aquinas\/catena\d+\.html$/,
+      /\/poole\/annotations\.html$/,
+      /\/calcom\d+\/calcom\d+\.i\.html$/,
+      /\/luther\/good_works\//,
+    ];
+    const badLinks = CURATED_ENTRIES.filter(
+      (e) => e.url && INDEX_PAGE.some((re) => re.test(e.url!)),
+    ).map((e) => `${e.verseRef} -> ${e.url}`);
+    assert.deepEqual(badLinks, []);
+  });
+});
+
 describe("verse-scoped catalog rows", () => {
   it("drops a pericope page that does not reach the verse", () => {
     const pericope = {

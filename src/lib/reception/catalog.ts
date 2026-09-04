@@ -29,6 +29,86 @@ export interface ReceptionSource {
 }
 
 export const RECEPTION_SOURCES: ReceptionSource[] = [
+  // ---------------------------------------------------------------- Romans
+  {
+    id: "chrysostom-romans-homilies",
+    author: "John Chrysostom",
+    shortName: "Chrysostom",
+    title: "Homilies on the Epistle of St. Paul to the Romans",
+    year: 391,
+    era: "patristic",
+    tradition: "eastern-patristic",
+    coverage: { book: "ROM", chapters: Array.from({ length: 16 }, (_, i) => i + 1), verseByVerse: true },
+    license: "public-domain",
+    sourceNote:
+      "Thirty-two homilies, NPNF 1/11, tr. J. B. Morris and W. H. Simcox, rev. George B. Stevens (1889). Indexed on New Advent one page per homily.",
+  },
+  {
+    id: "augustine-simplicianum",
+    author: "Augustine of Hippo",
+    shortName: "Augustine",
+    title: "To Simplician, On Various Questions, Book I",
+    year: 396,
+    era: "patristic",
+    tradition: "western-patristic",
+    coverage: { book: "ROM", chapters: [7, 9], verseByVerse: false },
+    license: "public-domain",
+    sourceNote:
+      "The work in which Augustine abandoned election on foreseen faith, by his own account in Retractations II.1. Question 2 treats Romans 9 directly.",
+  },
+  {
+    id: "aquinas-romans",
+    author: "Thomas Aquinas",
+    shortName: "Aquinas",
+    title: "Lectures on the Letter to the Romans",
+    year: 1273,
+    era: "medieval",
+    tradition: "scholastic",
+    coverage: { book: "ROM", chapters: Array.from({ length: 16 }, (_, i) => i + 1), verseByVerse: true },
+    license: "public-domain",
+    sourceNote:
+      "Super Epistolam ad Romanos, a reportatio of Aquinas's own lectures and his own commentary, not the compiled Catena. Cite it as his voice, unlike the Catena Aurea.",
+  },
+  {
+    id: "luther-romans",
+    author: "Martin Luther",
+    shortName: "Luther",
+    title: "Lectures on Romans",
+    year: 1516,
+    era: "reformation",
+    tradition: "lutheran",
+    coverage: { book: "ROM", chapters: Array.from({ length: 16 }, (_, i) => i + 1), verseByVerse: true },
+    license: "public-domain",
+    sourceNote:
+      "The 1515-16 Wittenberg lectures (WA 56), rediscovered in 1908. The widely used Pauck translation is under copyright; the German and Latin text is not.",
+  },
+  {
+    id: "calvin-romans",
+    author: "John Calvin",
+    shortName: "Calvin",
+    title: "Commentary on the Epistle to the Romans",
+    year: 1540,
+    era: "reformation",
+    tradition: "reformed",
+    coverage: { book: "ROM", chapters: Array.from({ length: 16 }, (_, i) => i + 1), verseByVerse: true },
+    license: "public-domain",
+    sourceNote:
+      "Calvin's first commentary. Tr. John Owen for the Calvin Translation Society (1849); CCEL calcom38, split by pericope rather than by chapter.",
+  },
+  {
+    id: "poole-annotations",
+    author: "Matthew Poole",
+    shortName: "Poole",
+    title: "Annotations upon the Holy Bible",
+    year: 1685,
+    era: "puritan",
+    tradition: "reformed",
+    coverage: { book: "ROM", chapters: Array.from({ length: 16 }, (_, i) => i + 1), verseByVerse: true },
+    license: "public-domain",
+    sourceNote:
+      "Published posthumously; Poole died in 1679 having reached Isaiah 58, and colleagues completed the New Testament from his notes.",
+  },
+
   {
     id: "chrysostom-matthew",
     author: "John Chrysostom",
