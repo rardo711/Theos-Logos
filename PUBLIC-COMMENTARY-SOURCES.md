@@ -168,6 +168,19 @@ fathers verse by verse. Attribute those excerpts to the father being quoted,
 not to Aquinas. His own voice is in the lecture commentaries (*Super Epistolam
 ad Romanos*, *Super Evangelium S. Ioannis*), which are separate works.
 
+### Wesley's Notes are substantially Bengel
+
+Wesley states in his own preface to the *Explanatory Notes upon the New
+Testament* (1754) that he drew heavily on Bengel's *Gnomon Novi Testamenti*
+(1742) — for long stretches, especially the more exegetical notes, Wesley is
+translating and condensing Bengel rather than writing independently. Bengel
+is already indexed on this desk (Bible Hub, `commentaries/bengel/`), so
+indexing more of Wesley mostly re-serves a voice already present under a
+different name. Cite Wesley for what is distinctively his — the Arminian
+readings (perseverance, Christian perfection, the predestination texts) —
+not as a general-purpose second voice on every verse. See the Wesleyan /
+Arminian Tradition section below for the source substituted in its place.
+
 ---
 
 ## 🔶 Patristic Sources (Church Fathers)
@@ -260,15 +273,6 @@ ad Romanos*, *Super Evangelium S. Ioannis*), which are separate works.
 
 **Characteristics:** Clear, practical, moderate Reformed
 
-### Adam Clarke's Commentary (1810-1826)
-**Coverage:** Complete Bible
-**Tradition:** Methodist/Arminian (not strictly Reformed but valuable)
-**Access:** Free
-
-**Where to find:**
-- CCEL: https://ccel.org/ccel/clarke/commentary
-- Bible Hub: https://biblehub.com/commentaries/clarke/
-
 ### Jamieson-Fausset-Brown Commentary (1871)
 **Coverage:** Complete Bible
 **Tradition:** Reformed/Presbyterian
@@ -277,6 +281,33 @@ ad Romanos*, *Super Evangelium S. Ioannis*), which are separate works.
 **Where to find:**
 - Bible Hub: https://biblehub.com/commentaries/jfb/
 - StudyLight: https://www.studylight.org/commentaries/eng/jfb.html
+
+---
+
+## 🔥 Wesleyan / Arminian Tradition
+
+The catalog otherwise has no non-Reformed Protestant voice: everything under
+Reformed & Puritan, Additional Reformed, and the Lutheran confessional
+sources reads the disputed texts (grace, election, perseverance) from one
+side. Clarke is the one candidate that would actually change that, not just
+add another name to the Reformed column — see the "Attribution Cautions"
+section above on why John Wesley's own Notes don't do this as well as they
+look like they should: he says in his own preface that he leaned heavily on
+Bengel's Gnomon, which is already indexed.
+
+### Adam Clarke's Commentary (1810-1826)
+**Coverage:** Complete Bible
+**Tradition:** Methodist/Arminian
+**Access:** Free
+
+**Where to find (unverified — see `scripts/research/scan-adam-clarke.mjs`):**
+- CCEL: https://ccel.org/ccel/clarke/commentary
+- Bible Hub: https://biblehub.com/commentaries/clarke/
+
+Neither URL has been fetched from a session with real network access as of
+this writing. The GitHub Actions research workflow
+(`.github/workflows/reception-source-research.yml`) checks both, plus a
+Godrules guess, and reports what actually resolves.
 
 ---
 

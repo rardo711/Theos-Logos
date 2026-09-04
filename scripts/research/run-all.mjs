@@ -12,6 +12,7 @@ import { scanNewAdvent } from "./scan-newadvent.mjs";
 import { scanBibleHub } from "./scan-biblehub.mjs";
 import { scanGodrules } from "./scan-godrules.mjs";
 import { probeStudyLight } from "./scan-studylight.mjs";
+import { scanAdamClarke } from "./scan-adam-clarke.mjs";
 
 const OUT_DIR = new URL("./output/", import.meta.url).pathname;
 
@@ -106,17 +107,44 @@ function summarize(results) {
 
   lines.push("", "## Godrules", "");
   if (byName.godrules?.ok) {
-    const { existingRevelationRows, otherBookProbe } = byName.godrules.data;
+    const { existingRevelationRows } = byName.godrules.data;
     const bad = existingRevelationRows.filter((r) => !r.ok);
     lines.push(bad.length ? `${bad.length}/22 existing Wesley Revelation rows are now broken.` : "All 22 existing Wesley Revelation rows still resolve.");
-    const hits = otherBookProbe.filter((r) => r.ok);
-    lines.push(
-      hits.length
-        ? `Wesley's Notes on other NT books found at the same naming pattern: ${hits.map((h) => `${h.bookId} (${h.url})`).join(", ")}. This is a real expansion opportunity — worth building a full per-chapter generator the same way Revelation already has one.`
-        : "No other book matched the guessed filename pattern; Wesley coverage beyond Revelation would need a different discovery approach (e.g. reading Godrules' own book index).",
-    );
   } else {
     lines.push(`Scan failed: ${byName.godrules?.error ?? "unknown error"}`);
+  }
+
+  lines.push(
+    "",
+    "## Adam Clarke (swapped in for Wesley-beyond-Revelation)",
+    "",
+    "Wesley's Notes draw heavily on Bengel, already indexed separately, so",
+    "expanding Wesley coverage would mostly duplicate an existing voice.",
+    "Clarke is independent and the catalog has no Arminian/Methodist voice",
+    "at all yet. Checked against the two leads already recorded in",
+    "PUBLIC-COMMENTARY-SOURCES.md rather than fresh guesses:",
+    "",
+  );
+  if (byName["adam-clarke"]?.ok) {
+    const { bibleHub, ccel, godrules } = byName["adam-clarke"].data;
+    lines.push(
+      bibleHub.found
+        ? `- **Bible Hub**: confirmed at ${bibleHub.url}. Same path shape already proven for Gill/Poole/Bengel — if this holds across books, it slots straight into the existing HUB_VOICES generator in catalog-weak-nt.ts.`
+        : `- **Bible Hub**: ${bibleHub.url} did not resolve (status ${bibleHub.status}). The path guessed in PUBLIC-COMMENTARY-SOURCES.md may be stale or shaped differently than Gill/Poole/Bengel.`,
+    );
+    lines.push(
+      ccel.found
+        ? `- **CCEL**: landing page confirmed at ${ccel.url}, ${ccel.linkCount} outbound link(s) found. These are the real per-volume/per-chapter URLs to build a generator from — see the \`links\` array in adam-clarke.json rather than guessing further.`
+        : `- **CCEL**: none of the candidate landing-page URLs resolved (tried: ${ccel.tried?.join(", ")}).`,
+    );
+    const godrulesHit = godrules.checked.find((c) => c.ok);
+    lines.push(
+      godrulesHit
+        ? `- **Godrules**: confirmed at ${godrulesHit.url}.`
+        : "- **Godrules**: no hit on the guessed path shape (lowest-confidence candidate of the three).",
+    );
+  } else {
+    lines.push(`Scan failed: ${byName["adam-clarke"]?.error ?? "unknown error"}`);
   }
 
   lines.push("", "## StudyLight.org (candidate fifth host)", "");
@@ -159,6 +187,7 @@ async function main() {
     runSafely("biblehub", scanBibleHub),
     runSafely("godrules", scanGodrules),
     runSafely("studylight", probeStudyLight),
+    runSafely("adam-clarke", scanAdamClarke),
   ]);
 
   for (const r of results) {

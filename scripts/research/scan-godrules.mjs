@@ -1,10 +1,14 @@
 /**
  * Godrules currently supplies only Wesley's Explanatory Notes on Revelation
  * (catalog-weak-nt.ts, wesleyrev{1-22}.htm) and Geneva Bible notes on
- * Revelation. Wesley's Notes cover the whole New Testament; if the same host
- * uses a predictable filename per book, that is a real, cheap expansion.
- * This checks the existing rows still resolve and probes a handful of other
- * books before anyone builds a generator on top of an unverified guess.
+ * Revelation. This checks those 22 rows still resolve.
+ *
+ * An earlier version of this scanner also probed whether Wesley's Notes
+ * exist for other NT books on the same host. Dropped: Wesley says in his own
+ * preface that his notes draw heavily on Bengel's Gnomon, already indexed
+ * separately via Bible Hub, so most of what "more Wesley" would add is a
+ * shorter version of a voice already on the desk. See scan-adam-clarke.mjs
+ * for the source that was substituted for it.
  */
 import { politeGet } from "./lib/fetch.mjs";
 
@@ -18,32 +22,11 @@ export async function verifyExistingRevelationRows() {
   return results;
 }
 
-// Book abbreviations guessed from the confirmed "rev" pattern; unverified.
-const PROBE_BOOKS = [
-  ["mat", "MAT"],
-  ["joh", "JHN"],
-  ["rom", "ROM"],
-  ["gal", "GAL"],
-  ["heb", "HEB"],
-  ["jam", "JAS"],
-];
-
-export async function probeOtherBooks() {
-  const results = [];
-  for (const [abbrev, bookId] of PROBE_BOOKS) {
-    const url = `https://www.godrules.net/library/wesley/wesley${abbrev}1.htm`;
-    const res = await politeGet(url, { delayMs: 300 });
-    results.push({ bookId, abbrev, url, status: res.status, ok: res.ok });
-  }
-  return results;
-}
-
 export async function scanGodrules() {
   return {
     host: "godrules.net",
     generatedAt: new Date().toISOString(),
     existingRevelationRows: await verifyExistingRevelationRows(),
-    otherBookProbe: await probeOtherBooks(),
   };
 }
 

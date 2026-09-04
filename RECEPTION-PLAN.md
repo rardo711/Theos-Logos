@@ -385,11 +385,16 @@ What it does, host by host:
   `WEAK_NT_HUB` this session without ever being fetched, and probes whether a
   per-verse page exists at all — reporting its raw heading structure rather
   than committing a splitter for markup nobody has seen (Phase C6).
-- **Godrules**: re-checks the 22 existing Wesley-on-Revelation rows, and
-  probes whether Wesley's *Explanatory Notes* — which cover the whole
-  New Testament — exist at the same host under a guessed filename for a
-  handful of other books. If that pattern holds, it's a real expansion: right
-  now Godrules only supplies Revelation.
+- **Godrules**: re-checks the 22 existing Wesley-on-Revelation rows.
+- **Adam Clarke** (swapped in for a Wesley-beyond-Revelation expansion this
+  same conversation flagged as low-value): Wesley says in his own preface
+  that his Notes draw heavily on Bengel, already indexed via Bible Hub, so
+  more Wesley coverage would mostly re-serve a voice already on the desk.
+  Clarke is independent, and the catalog has no Arminian/Methodist voice at
+  all. Checked against two leads already recorded in
+  `PUBLIC-COMMENTARY-SOURCES.md` (a Bible Hub path matching the proven
+  Gill/Poole/Bengel shape, and a CCEL landing page crawled for its own
+  outbound links) plus a lower-confidence Godrules guess.
 - **StudyLight.org**, a candidate fifth host: probes several guessed
   commentary codes and URL shapes for one verse. Unlike the other four, none
   of this pattern has ever been confirmed — it's recalled, not sourced — so
