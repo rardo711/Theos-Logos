@@ -122,7 +122,7 @@ const EN = {
   passage: "Passage",
   clearSelection: "Clear",
   rangeTooLong: "A passage can span at most {n} verses.",
-  selectPassageHint: "Tap to extend the passage. Tap an end verse to trim it. Shift-click also extends.",
+  selectPassageHint: "Tap to extend the passage. Tap an end verse to trim it.",
   orientationHeading: "Orientation",
   orientationReadNext: "Read next",
   orientationCaution:
@@ -271,7 +271,7 @@ const ES: { [K in keyof typeof EN]: string } = {
   passage: "Pasaje",
   clearSelection: "Borrar",
   rangeTooLong: "Un pasaje puede abarcar como máximo {n} versículos.",
-  selectPassageHint: "Toque para extender el pasaje. Toque un extremo para recortarlo. Mayús-clic también extiende.",
+  selectPassageHint: "Toque para extender el pasaje. Toque un extremo para recortarlo.",
   orientationHeading: "Orientación",
   orientationReadNext: "Para leer",
   orientationCaution:

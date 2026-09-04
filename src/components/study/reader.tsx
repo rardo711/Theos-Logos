@@ -8,7 +8,6 @@ import { t } from "@/lib/i18n";
 import { markedVerses } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
-import { VerseSelector } from "./verse-selector";
 
 function neighbor(
   bookId: string,
@@ -67,17 +66,14 @@ export function Reader({
   chapter,
   loading,
   error,
-  compact = false,
 }: {
   chapter: Chapter | null;
   loading: boolean;
   error: string | null;
-  compact?: boolean;
 }) {
   const selected = useStudy((s) => s.selectedVerse);
   const selectedEnd = useStudy((s) => s.selectedEndVerse);
   const selectMode = useStudy((s) => s.selectMode);
-  const setSelectMode = useStudy((s) => s.setSelectMode);
   const tapVerse = useStudy((s) => s.tapVerse);
   const setVerse = useStudy((s) => s.setVerse);
   const nextChapter = useStudy((s) => s.nextChapter);
@@ -168,7 +164,7 @@ export function Reader({
   }
 
   return (
-    <div className="tl-desk absolute inset-0">
+    <div className="absolute inset-0">
       {loading ? (
         <div
           aria-hidden
@@ -181,34 +177,9 @@ export function Reader({
         aria-hidden
         className="pointer-events-none absolute top-0 bottom-0 left-0 z-[1] w-px bg-lamp/30 max-sm:hidden"
       />
-      {chapter && !loading && !compact ? (
-        <VerseSelector
-          count={chapter.verses.length}
-          selected={selected}
-          selectedEnd={selectedEnd}
-          noted={notedSet}
-          layout="rail"
-          selectMode={selectMode}
-          onToggleSelect={() => setSelectMode(!selectMode)}
-          label={t(locale, "verses")}
-          onPick={(n, extend) => {
-            if (extend || selectMode) {
-              const refused = tapVerse(n);
-              if (refused) setRangeNotice(refused);
-              else setRangeNotice(null);
-              return;
-            }
-            if (selected === n && selectedEnd == null) {
-              setVerse(null);
-              return;
-            }
-            setVerse(n);
-          }}
-        />
-      ) : null}
       <div
         ref={scrollRef}
-        className="tl-scroll tl-desk-scroll relative min-h-0 flex-1 overflow-y-auto"
+        className="tl-scroll absolute inset-0 overflow-y-auto"
         onScroll={(e) => {
           updateShowTop(e.currentTarget);
         }}
@@ -238,7 +209,7 @@ export function Reader({
           }
         }}
       >
-        <div className="mx-auto max-w-[42rem] pt-6 pb-28 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-10 sm:pt-12 sm:pb-36">
+        <div className="mx-auto max-w-[42rem] px-5 pt-6 pb-36 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-10 sm:pt-12">
           {loading && !chapter ? (
             <div className="space-y-4" aria-busy>
               <div className="mx-auto h-3 w-28 rounded-sm bg-lamp/15" />
@@ -313,20 +284,15 @@ export function Reader({
                 </nav>
               ) : null}
 
-              {selectMode || rangeNotice ? (
+              {rangeNotice ? (
                 <p
-                  role={rangeNotice ? "alert" : undefined}
-                  className={cn(
-                    "mb-3 text-2xs leading-relaxed italic",
-                    rangeNotice ? "text-oxblood" : "text-faint",
-                  )}
+                  role="alert"
+                  className="mb-3 text-2xs leading-relaxed text-oxblood italic"
                 >
-                  {rangeNotice === "too-long"
-                    ? t(locale, "rangeTooLong").replace(
-                        "{n}",
-                        String(MAX_RANGE_VERSES),
-                      )
-                    : t(locale, "selectPassageHint")}
+                  {t(locale, "rangeTooLong").replace(
+                    "{n}",
+                    String(MAX_RANGE_VERSES),
+                  )}
                 </p>
               ) : null}
 
@@ -373,12 +339,6 @@ export function Reader({
                             return;
                           }
                           setVerse(v.verse);
-                          if (
-                            noted &&
-                            !useStudy.getState().receptionPinned
-                          ) {
-                            setReceptionOpen(true);
-                          }
                         }}
                         onKeyDown={(e) => {
                           if (e.key !== "Enter" && e.key !== " ") return;
@@ -392,18 +352,33 @@ export function Reader({
                         data-range-start={isRangeStart ? "true" : undefined}
                       >
                         {drop ? (
-                          <span className="tl-drop">{drop.letter}</span>
-                        ) : null}
-                        <sup className="verse-num mr-1 select-none">
-                          {v.verse}
-                          {noted ? (
-                            <span
-                              className="verse-mark"
-                              title={t(locale, "verseNotes")}
-                            />
-                          ) : null}
-                        </sup>
-                        {drop ? drop.rest : v.text}{" "}
+                          <>
+                            <sup className="verse-num tl-drop-num select-none">
+                              {v.verse}
+                              {noted ? (
+                                <span
+                                  className="verse-mark"
+                                  title={t(locale, "verseNotes")}
+                                />
+                              ) : null}
+                            </sup>
+                            <span className="tl-drop">{drop.letter}</span>
+                            {drop.rest}{" "}
+                          </>
+                        ) : (
+                          <>
+                            <sup className="verse-num mr-1 select-none">
+                              {v.verse}
+                              {noted ? (
+                                <span
+                                  className="verse-mark"
+                                  title={t(locale, "verseNotes")}
+                                />
+                              ) : null}
+                            </sup>
+                            {v.text}{" "}
+                          </>
+                        )}
                       </span>
                     </Fragment>
                   );
@@ -470,11 +445,10 @@ export function Reader({
           animateScrollToTop(el, topAnim.current);
         }}
         className="tl-back-top"
-        data-show={showTop ? "true" : "false"}
-        data-nudge={hintUp ? "true" : "false"}
+        data-show={showTop && !hintUp ? "true" : "false"}
         aria-label={t(locale, "backToTop")}
-        tabIndex={showTop ? 0 : -1}
-        aria-hidden={!showTop}
+        tabIndex={showTop && !hintUp ? 0 : -1}
+        aria-hidden={!(showTop && !hintUp)}
       >
         <ArrowUp size={16} />
       </button>

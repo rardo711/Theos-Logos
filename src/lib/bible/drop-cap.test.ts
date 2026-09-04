@@ -17,6 +17,12 @@ describe("splitDropCap", () => {
     });
   });
 
+  it("keeps the opening word intact when letter and rest are joined", () => {
+    const split = splitDropCap("In the beginning was the Word.");
+    assert.ok(split);
+    assert.equal(split.letter + split.rest, "In the beginning was the Word.");
+  });
+
   it("keeps a single-letter verse as the drop", () => {
     assert.deepEqual(splitDropCap("O"), { letter: "O", rest: "" });
   });

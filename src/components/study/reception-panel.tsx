@@ -14,7 +14,7 @@ import {
 import { getCurated, hasCurated } from "@/lib/reception/curated";
 import { removeCached, saveCached } from "@/lib/reception/cache";
 import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
-import { formatReference } from "@/lib/bible/reference";
+import { formatReference, formatVerseSpan } from "@/lib/bible/reference";
 import { t } from "@/lib/i18n";
 import { localizeCaution } from "@/lib/i18n-sources";
 import type { Chapter, DeskSynthesis, LexiconResult, ReceptionResult, SourceCard as Card } from "@/lib/bible/types";
@@ -800,15 +800,16 @@ export function VerseHint({
   noted?: boolean;
 }) {
   const selected = useStudy((s) => s.selectedVerse);
+  const selectedEnd = useStudy((s) => s.selectedEndVerse);
   const receptionOpen = useStudy((s) => s.receptionOpen);
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const locale = useStudy((s) => s.locale);
   if (selected == null || receptionOpen || receptionPinned) return null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))] max-sm:pb-[max(4.35rem,calc(env(safe-area-inset-bottom)+3.6rem))]">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div className="tl-hint pointer-events-auto flex items-center gap-1 rounded-md border border-rule bg-surface px-1.5 py-1 shadow-soft">
         <span className="px-2.5 font-serif text-sm font-medium text-lamp tabular-nums">
-          {selected}
+          {formatVerseSpan(selected, selectedEnd)}
         </span>
         <button
           type="button"

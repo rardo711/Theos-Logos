@@ -47,6 +47,12 @@ export function TypeMenu() {
         aria-label={t(locale, "theDesk")}
       >
         <div
+          className="flex justify-center pt-0.5 pb-3 sm:hidden"
+          aria-hidden
+        >
+          <span className="h-1 w-10 rounded-full bg-faint/70" />
+        </div>
+        <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-0.5 rounded-t-lg bg-oxblood"
         />
