@@ -1,6 +1,9 @@
 import type { Tradition } from "../bible/types.ts";
 import { CATALOG, type CatalogEntry } from "./catalog.ts";
 
+// package.json has sideEffects: false. A bare `import "./catalog-weak-nt"`
+// is dropped from the Vercel server bundle. ask.ts must call attachWeakNtCatalog().
+
 function e(
   id: string,
   voice: string,
