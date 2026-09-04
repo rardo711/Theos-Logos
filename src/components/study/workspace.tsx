@@ -3,7 +3,7 @@ import { fetchChapter } from "@/lib/bible/fetch-chapter";
 import { getSeed } from "@/lib/bible/seed";
 import { attachNtHeadings } from "@/lib/bible/nt-headings";
 import type { Chapter } from "@/lib/bible/types";
-import { initPwa, isStandalone } from "@/lib/pwa";
+import { initPwa, isStandalone, lockSafeTop } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
 import { useStudy } from "@/lib/study-store";
 import { LibraryDrawer } from "./library-drawer";
@@ -15,6 +15,7 @@ function lockAppHeight() {
   const root = document.documentElement;
   const standalone = isStandalone();
   root.classList.toggle("tl-standalone", standalone);
+  lockSafeTop();
   if (standalone) {
     root.style.setProperty("--app-h", "100%");
     root.style.setProperty("--app-top", "0px");
@@ -177,20 +178,21 @@ export function StudyWorkspace() {
     let startY = 0;
     let startT = 0;
     let pulling = false;
+    let fromChrome = false;
     let dy = 0;
+    const COMMIT = 96;
+    const FLING = 0.82;
     const onStart = (e: TouchEvent) => {
       startY = e.touches[0].clientY;
       startT = performance.now();
       pulling = false;
+      fromChrome = Boolean(
+        (e.target as HTMLElement | null)?.closest?.("[data-sheet-chrome]"),
+      );
       dy = 0;
     };
     const onMove = (e: TouchEvent) => {
       const delta = e.touches[0].clientY - startY;
-      const scroller = el.querySelector(".tl-scroll") as HTMLElement | null;
-      const atTop = !scroller || scroller.scrollTop <= 1;
-      const onChrome = (e.target as HTMLElement | null)?.closest?.(
-        "[data-sheet-chrome]",
-      );
       const mode = sheetStateRef.current;
       const H = el.offsetHeight;
       const peekH =
@@ -200,32 +202,34 @@ export function StudyWorkspace() {
       const midPx = Math.min(H * 0.42, 22 * 16);
       if (mode === "peek") {
         pulling = true;
-        dy = Math.min(Math.max(delta, -(H - peekH)), H * 0.4);
+        fromChrome = true;
+        dy = Math.min(Math.max(delta, -(H - peekH)), H * 0.35);
         setSheetDragging(true);
         setSheetDrag(dy);
         if (Math.abs(delta) > 6) e.preventDefault();
         return;
       }
-      if (mode === "mid") {
-        if (onChrome || atTop) {
-          pulling = true;
-          const up = -(H - midPx);
-          dy = Math.min(Math.max(delta, up), midPx - peekH + 48);
-          setSheetDragging(true);
-          setSheetDrag(dy);
-          if (Math.abs(delta) > 6) e.preventDefault();
-        }
-        return;
-      }
-      if (delta > 0 && (atTop || onChrome)) {
+      if (fromChrome) {
         pulling = true;
-        dy = Math.min(delta, H * 0.92);
+        if (mode === "mid") {
+          const up = -(H - midPx);
+          dy = Math.min(Math.max(delta, up), midPx - peekH + 32);
+        } else {
+          dy = Math.min(Math.max(delta, 0), H * 0.9);
+        }
         setSheetDragging(true);
         setSheetDrag(dy);
-        if (delta > 6) e.preventDefault();
-      } else if (pulling && delta <= 0) {
-        dy = 0;
-        setSheetDrag(0);
+        if (Math.abs(delta) > 4) e.preventDefault();
+        return;
+      }
+      const scroller = el.querySelector(".tl-scroll") as HTMLElement | null;
+      const atTop = !scroller || scroller.scrollTop <= 1;
+      if (atTop && delta > 80 && (mode === "mid" || mode === "full")) {
+        pulling = true;
+        dy = (delta - 80) * 0.48;
+        setSheetDragging(true);
+        setSheetDrag(dy);
+        e.preventDefault();
       }
     };
     const finish = () => {
@@ -238,33 +242,25 @@ export function StudyWorkspace() {
         return;
       }
       if (mode === "peek") {
-        if (dy < -H * 0.36 || v < -1.1) {
-          setReceptionFull(true);
-        } else if (dy < -36 || v < -0.4) {
-          setReceptionOpen(true);
-        } else if (dy > 40 || v > 0.45) {
-          clearSelection();
-        } else {
-          setSheetDrag(0);
-        }
+        if (dy < -COMMIT || v < -FLING) setReceptionOpen(true);
+        else if (dy > COMMIT || v > FLING) clearSelection();
+        else setSheetDrag(0);
       } else if (mode === "mid") {
-        if (dy < -48 || v < -0.45) {
-          setReceptionFull(true);
-        } else if (dy > 48 || v > 0.45) {
+        if (fromChrome && (dy < -COMMIT || v < -FLING)) setReceptionFull(true);
+        else if (dy > COMMIT || v > FLING) {
           setReceptionFull(false);
           setReceptionOpen(false);
-        } else {
-          setSheetDrag(0);
-        }
-      } else if (dy > H * 0.38 || v > 1.0) {
+        } else setSheetDrag(0);
+      } else if (fromChrome && (dy > H * 0.32 || v > 1.15)) {
         setReceptionFull(false);
         setReceptionOpen(false);
-      } else if (dy > 48 || v > 0.5) {
+      } else if (dy > COMMIT || v > FLING) {
         setReceptionFull(false);
       } else {
         setSheetDrag(0);
       }
       pulling = false;
+      fromChrome = false;
       dy = 0;
     };
     el.addEventListener("touchstart", onStart, { passive: true });

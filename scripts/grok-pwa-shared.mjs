@@ -187,7 +187,9 @@ export function renderWebManifest(hostHeader, site = {}) {
       start_url: "/",
       scope: "/",
       display: "standalone",
-      display_override: ["standalone", "minimal-ui"],
+      display_override: branded
+        ? ["fullscreen", "standalone", "minimal-ui"]
+        : ["standalone", "minimal-ui"],
       lang: "en",
       dir: "ltr",
       prefer_related_applications: false,

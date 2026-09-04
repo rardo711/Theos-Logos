@@ -69,6 +69,7 @@
   --motion-y-small: 6px;
   --motion-y-medium: 12px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top-min: 0px;
   --sheet-peek: 5.75rem;
   --sheet-mid: min(42dvh, 22rem);
   --pick-stack: var(--sheet-peek);

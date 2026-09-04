@@ -39,6 +39,22 @@ export function isStandalone() {
   );
 }
 
+/** When Android fullscreen reports 0 inset, keep the camera cutout off the chrome. */
+export function lockSafeTop() {
+  if (typeof window === "undefined" || !document.body) return;
+  const probe = document.createElement("div");
+  probe.style.cssText =
+    "position:fixed;visibility:hidden;pointer-events:none;height:env(safe-area-inset-top,0px)";
+  document.body.appendChild(probe);
+  const inset = probe.getBoundingClientRect().height;
+  probe.remove();
+  const fullscreen = window.matchMedia("(display-mode: fullscreen)").matches;
+  document.documentElement.style.setProperty(
+    "--safe-top-min",
+    fullscreen && inset < 12 ? "2rem" : "0px",
+  );
+}
+
 export function subscribePwa(fn: () => void) {
   listeners.add(fn);
   return () => {
