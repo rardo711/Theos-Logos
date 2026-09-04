@@ -343,6 +343,10 @@
   pointer-events: auto;
 }
 
+.tl-dim[data-peek="true"] {
+  opacity: var(--dim-o, 0.25);
+}
+
 .dark .tl-dim {
   background: color-mix(in oklab, #000 52%, transparent);
 }
@@ -378,8 +382,8 @@
 }
 
 .tl-sheet-up {
-  transform: translateY(100%);
-  opacity: 0.55;
+  transform: translateY(calc(100% + var(--sheet-pull, 0px)));
+  opacity: var(--sheet-peek-o, 0.55);
   pointer-events: none;
   transition:
     transform 260ms var(--ease-snap),
@@ -390,6 +394,10 @@
   transform: translateY(var(--sheet-dy, 0px));
   opacity: 1;
   pointer-events: auto;
+}
+
+.tl-sheet-up[data-peeking="true"] [data-sheet-handle] {
+  opacity: 0;
 }
 
 .tl-menu {

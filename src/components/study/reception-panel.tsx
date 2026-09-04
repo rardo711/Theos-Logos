@@ -798,10 +798,12 @@ export function ReceptionPanel({
 
 export function VerseHint({
   onInquire,
+  onPull,
   noted,
   heldBack,
 }: {
   onInquire: () => void;
+  onPull?: (dy: number) => void;
   noted?: boolean;
   heldBack?: boolean;
 }) {
@@ -860,10 +862,11 @@ export function VerseHint({
     if (!touch.current || opened.current) return;
     const next = e.touches[0].clientY - touch.current.y;
     const dx = e.touches[0].clientX - touch.current.x;
-    setDy(next);
+    const cap = -Math.round(window.innerHeight * 0.72);
+    const liftDy = Math.max(next, cap);
+    setDy(liftDy);
+    onPull?.(Math.min(0, liftDy));
     if (Math.abs(dx) > Math.abs(next) && Math.abs(dx) > 24) return;
-    const v = next / Math.max(performance.now() - touch.current.t, 1);
-    if (next < -14 || v < -0.22) lift();
   }
   function onTouchEnd(e: React.TouchEvent) {
     if (!touch.current) return;
@@ -874,18 +877,21 @@ export function VerseHint({
     setDragging(false);
     if (opened.current) return;
     if (Math.abs(dx) > Math.abs(next) && Math.abs(dx) > 28) {
+      onPull?.(0);
       setDy(0);
       return;
     }
     if (next > 36 || v > 0.45) {
       swallow.current = true;
+      onPull?.(0);
       clearSelection();
       return;
     }
-    if (next < -14 || v < -0.22) {
+    if (next < -48 || v < -0.45) {
       lift();
       return;
     }
+    onPull?.(0);
     setDy(0);
   }
 
@@ -914,6 +920,7 @@ export function VerseHint({
         touch.current = null;
         setDragging(false);
         setDy(0);
+        onPull?.(0);
       }}
     >
       <div className="tl-pick-bar bg-surface pb-[env(safe-area-inset-bottom)]">

@@ -51,6 +51,7 @@ export function StudyWorkspace() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetDy, setSheetDy] = useState(0);
   const [sheetDragging, setSheetDragging] = useState(false);
+  const [sheetPull, setSheetPull] = useState(0);
   const sheetRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -90,18 +91,27 @@ export function StudyWorkspace() {
   }, [fontSize]);
 
   const docked = receptionPinned && wideDesk && receptionOpen;
-  const sheetWanted = receptionOpen && !docked;
+  const committed = receptionOpen && !docked;
+  const peeking = !committed && sheetPull < -4;
 
   useEffect(() => {
-    if (sheetWanted) {
+    if (committed) {
       setSheetShown(true);
-      const id = requestAnimationFrame(() => setSheetOpen(true));
+      const id = requestAnimationFrame(() => {
+        setSheetOpen(true);
+        setSheetPull(0);
+      });
       return () => cancelAnimationFrame(id);
+    }
+    if (peeking) {
+      setSheetShown(true);
+      setSheetOpen(false);
+      return;
     }
     setSheetOpen(false);
     const t = window.setTimeout(() => setSheetShown(false), 280);
     return () => window.clearTimeout(t);
-  }, [sheetWanted]);
+  }, [committed, peeking]);
 
   useEffect(() => {
     if (!sheetShown) {
@@ -329,7 +339,8 @@ export function StudyWorkspace() {
           />
           <VerseHint
             noted={verseHasNotes}
-            heldBack={sheetShown}
+            heldBack={sheetOpen}
+            onPull={setSheetPull}
             onInquire={() => {
               if (selectedVerse != null) setReceptionOpen(true);
             }}
@@ -349,21 +360,29 @@ export function StudyWorkspace() {
                 type="button"
                 className="tl-dim min-h-0 flex-1"
                 data-open={sheetOpen ? "true" : "false"}
+                data-peek={peeking ? "true" : "false"}
                 aria-label={t(locale, "closeReception")}
                 onClick={closeReception}
                 style={{
                   ["--dim-o" as string]: sheetOpen
                     ? String(Math.max(0.12, 1 - sheetDy / 320))
-                    : "0",
+                    : String(Math.min(0.55, -sheetPull / 240)),
                 }}
               />
               <aside
                 ref={sheetRef}
                 className="tl-sheet-up flex h-[min(72dvh,42rem)] w-full flex-col rounded-t-xl border-t border-rule bg-paper shadow-soft"
                 data-open={sheetOpen ? "true" : "false"}
-                data-dragging={sheetDragging ? "true" : "false"}
+                data-peeking={peeking ? "true" : "false"}
+                data-dragging={
+                  sheetDragging || peeking ? "true" : "false"
+                }
                 style={{
                   ["--sheet-dy" as string]: `${Math.max(0, sheetDy)}px`,
+                  ["--sheet-pull" as string]: `${sheetPull}px`,
+                  ["--sheet-peek-o" as string]: String(
+                    Math.min(1, 0.5 + -sheetPull / 140),
+                  ),
                 }}
               >
                 <div
