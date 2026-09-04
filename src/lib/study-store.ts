@@ -53,22 +53,37 @@ function load(): Persisted {
   };
 }
 
+const THEME_LIGHT = "#fffdf8";
+const THEME_DARK = "#1c1814";
+
+function paintThemeColor(theme: Theme) {
+  document
+    .querySelectorAll('meta[name="theme-color"]')
+    .forEach((m) => m.remove());
+  const add = (content: string, media?: string) => {
+    const el = document.createElement("meta");
+    el.setAttribute("name", "theme-color");
+    el.setAttribute("content", content);
+    if (media) el.setAttribute("media", media);
+    document.head.appendChild(el);
+  };
+  if (theme === "light") add(THEME_LIGHT);
+  else if (theme === "dark") add(THEME_DARK);
+  else {
+    add(THEME_LIGHT, "(prefers-color-scheme: light)");
+    add(THEME_DARK, "(prefers-color-scheme: dark)");
+  }
+}
+
 function applyTheme(theme: Theme) {
   const dark =
     theme === "dark" ||
     (theme === "auto" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.classList.toggle("dark", dark);
-  document.documentElement.style.colorScheme = dark ? "dark" : "light";
-  const color = dark ? "#1c1814" : "#fffdf8";
-  const head = document.head;
-  document
-    .querySelectorAll('meta[name="theme-color"]')
-    .forEach((m) => m.remove());
-  const meta = document.createElement("meta");
-  meta.setAttribute("name", "theme-color");
-  meta.setAttribute("content", color);
-  head.appendChild(meta);
+  document.documentElement.style.colorScheme =
+    theme === "auto" ? "light dark" : dark ? "dark" : "light";
+  paintThemeColor(theme);
 }
 
 let themeBound = false;
