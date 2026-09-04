@@ -1,0 +1,180 @@
+{
+  "host": "biblehub.com",
+  "generatedAt": "2026-09-04T10:53:50.571Z",
+  "newSlugVerification": [
+    {
+      "voice": "gill",
+      "slug": "matthew",
+      "bookId": "MAT",
+      "url": "https://biblehub.com/commentaries/gill/matthew/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "poole",
+      "slug": "matthew",
+      "bookId": "MAT",
+      "url": "https://biblehub.com/commentaries/poole/matthew/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "bengel",
+      "slug": "matthew",
+      "bookId": "MAT",
+      "url": "https://biblehub.com/commentaries/bengel/matthew/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "gill",
+      "slug": "mark",
+      "bookId": "MRK",
+      "url": "https://biblehub.com/commentaries/gill/mark/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "poole",
+      "slug": "mark",
+      "bookId": "MRK",
+      "url": "https://biblehub.com/commentaries/poole/mark/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "bengel",
+      "slug": "mark",
+      "bookId": "MRK",
+      "url": "https://biblehub.com/commentaries/bengel/mark/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "gill",
+      "slug": "luke",
+      "bookId": "LUK",
+      "url": "https://biblehub.com/commentaries/gill/luke/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "poole",
+      "slug": "luke",
+      "bookId": "LUK",
+      "url": "https://biblehub.com/commentaries/poole/luke/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "bengel",
+      "slug": "luke",
+      "bookId": "LUK",
+      "url": "https://biblehub.com/commentaries/bengel/luke/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "gill",
+      "slug": "john",
+      "bookId": "JHN",
+      "url": "https://biblehub.com/commentaries/gill/john/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "poole",
+      "slug": "john",
+      "bookId": "JHN",
+      "url": "https://biblehub.com/commentaries/poole/john/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "bengel",
+      "slug": "john",
+      "bookId": "JHN",
+      "url": "https://biblehub.com/commentaries/bengel/john/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "gill",
+      "slug": "romans",
+      "bookId": "ROM",
+      "url": "https://biblehub.com/commentaries/gill/romans/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "poole",
+      "slug": "romans",
+      "bookId": "ROM",
+      "url": "https://biblehub.com/commentaries/poole/romans/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "bengel",
+      "slug": "romans",
+      "bookId": "ROM",
+      "url": "https://biblehub.com/commentaries/bengel/romans/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "gill",
+      "slug": "1_corinthians",
+      "bookId": "1CO",
+      "url": "https://biblehub.com/commentaries/gill/1_corinthians/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "poole",
+      "slug": "1_corinthians",
+      "bookId": "1CO",
+      "url": "https://biblehub.com/commentaries/poole/1_corinthians/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "bengel",
+      "slug": "1_corinthians",
+      "bookId": "1CO",
+      "url": "https://biblehub.com/commentaries/bengel/1_corinthians/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "gill",
+      "slug": "2_corinthians",
+      "bookId": "2CO",
+      "url": "https://biblehub.com/commentaries/gill/2_corinthians/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "poole",
+      "slug": "2_corinthians",
+      "bookId": "2CO",
+      "url": "https://biblehub.com/commentaries/poole/2_corinthians/1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "voice": "bengel",
+      "slug": "2_corinthians",
+      "bookId": "2CO",
+      "url": "https://biblehub.com/commentaries/bengel/2_corinthians/1.htm",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "versePageProbe": {
+    "found": true,
+    "url": "https://biblehub.com/commentaries/romans/9-11.htm",
+    "headings": [],
+    "bodyLength": 63935
+  }
+}
