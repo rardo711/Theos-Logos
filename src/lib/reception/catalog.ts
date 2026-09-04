@@ -384,6 +384,12 @@ export type CatalogEntry = {
   tags: string[];
   books?: string[];
   chapters?: number[];
+  /**
+   * Inclusive verse range this page actually covers, when the page is one
+   * pericope rather than a whole chapter. CCEL splits Calvin this way, so a
+   * chapter-level row lands on the wrong page for most of the chapter.
+   */
+  verses?: [number, number];
 };
 
 function e(
@@ -794,6 +800,7 @@ export function scoreEntry(
   bookId?: string,
   chapter?: number,
   questionTokens?: string[],
+  verse?: number | null,
 ): number {
   // Declared books that are not the inquired book cannot drown REV / 1JN / 2JN / 3JN / HEB.
   if (bookId && entry.books?.length && !entry.books.includes(bookId)) {
@@ -806,6 +813,12 @@ export function scoreEntry(
     !entry.chapters.includes(chapter)
   ) {
     return 0;
+  }
+  // A pericope page that does not reach the requested verse cannot answer it,
+  // however well its wording happens to overlap.
+  if (verse != null && entry.verses) {
+    const [start, end] = entry.verses;
+    if (verse < start || verse > end) return 0;
   }
   // Book introductions, prefaces, and "Arguments" are scoped to chapter 1 / whole-book overview.
   // They must not match mid-book chapters (> 1).
@@ -880,6 +893,7 @@ export function mapCatalog(opts: {
   question: string;
   bookId?: string;
   chapter?: number;
+  verse?: number | null;
   verseText?: string;
   mode?: "reception" | "traditions";
   limit?: number;
@@ -893,7 +907,14 @@ export function mapCatalog(opts: {
   );
   const ranked = CATALOG.map((entry) => ({
     entry,
-    score: scoreEntry(entry, tokens, opts.bookId, opts.chapter, questionTokens),
+    score: scoreEntry(
+      entry,
+      tokens,
+      opts.bookId,
+      opts.chapter,
+      questionTokens,
+      opts.verse,
+    ),
   }))
     .filter((r) => r.score > 0)
     .sort((a, b) => b.score - a.score);
@@ -952,6 +973,10 @@ export function mapCatalog(opts: {
   if (!picked.length && opts.bookId) {
     return CATALOG.filter((e) => {
       if (!e.books?.includes(opts.bookId!)) return false;
+      if (opts.verse != null && e.verses) {
+        const [start, end] = e.verses;
+        if (opts.verse < start || opts.verse > end) return false;
+      }
       if (opts.chapter == null || !e.chapters?.length) {
         if (opts.chapter != null && opts.chapter > 1 && isBookIntro(e)) return false;
         return true;

@@ -516,6 +516,75 @@ describe("html extract", () => {
   });
 });
 
+describe("verse-scoped catalog rows", () => {
+  it("drops a pericope page that does not reach the verse", () => {
+    const pericope = {
+      id: "calvin-rom-9-1",
+      voice: "John Calvin",
+      work: "Commentary on Romans",
+      tradition: "reformed" as const,
+      locus: "Romans 9:1-5",
+      url: "https://ccel.org/ccel/calvin/calcom38/calcom38.xiii.i.html",
+      tags: ["romans", "calvin"],
+      books: ["ROM"],
+      chapters: [9],
+      verses: [1, 5] as [number, number],
+    };
+    const tokens = tokenize("election purpose romans");
+    assert.ok(scoreEntry(pericope, tokens, "ROM", 9, [], 4) > 0, "verse 4 is on this page");
+    assert.equal(scoreEntry(pericope, tokens, "ROM", 9, [], 11), 0, "verse 11 is not");
+    assert.ok(scoreEntry(pericope, tokens, "ROM", 9, [], null) > 0, "no verse: chapter rules apply");
+  });
+
+  it("leaves chapter-level rows alone", () => {
+    const chapterPage = {
+      id: "henry-romans-9",
+      voice: "Matthew Henry",
+      work: "Commentary on the Whole Bible",
+      tradition: "reformed" as const,
+      locus: "Romans 9",
+      url: "https://ccel.org/ccel/henry/mhc6/mhc6.Rom.x.html",
+      tags: ["romans", "henry"],
+      books: ["ROM"],
+      chapters: [9],
+    };
+    const tokens = tokenize("election romans");
+    assert.ok(scoreEntry(chapterPage, tokens, "ROM", 9, [], 11) > 0);
+  });
+});
+
+describe("New Testament coverage floor", () => {
+  const MID_CHAPTER: Array<[string, number]> = [
+    ["MAT", 5], ["MRK", 10], ["LUK", 15], ["JHN", 6], ["ACT", 17], ["ROM", 9],
+    ["1CO", 13], ["2CO", 5], ["GAL", 3], ["EPH", 2], ["PHP", 2], ["COL", 2],
+    ["1TH", 4], ["2TH", 2], ["1TI", 2], ["2TI", 3], ["TIT", 2], ["PHM", 1],
+    ["HEB", 11], ["JAS", 2], ["1PE", 2], ["2PE", 3], ["1JN", 4], ["2JN", 1],
+    ["3JN", 1], ["JUD", 1], ["REV", 20],
+  ];
+
+  it("maps every NT book to at least three same-book pages mid-book", async () => {
+    const { attachWeakNtCatalog } = await import("./catalog-weak-nt.ts");
+    attachWeakNtCatalog();
+    const thin: string[] = [];
+    for (const [bookId, chapter] of MID_CHAPTER) {
+      const hits = mapCatalog({
+        question: "",
+        bookId,
+        chapter,
+        verse: 1,
+        verseText: "",
+        mode: "reception",
+        limit: 7,
+      });
+      const sameBook = hits.filter((h) => (h.books ?? []).includes(bookId));
+      if (sameBook.length < 3) {
+        thin.push(`${bookId} ${chapter}: ${sameBook.length} (${hits.map((h) => h.id).join(", ")})`);
+      }
+    }
+    assert.deepEqual(thin, []);
+  });
+});
+
 describe("verse-anchored paragraph selection", () => {
   const VERSE_4 =
     "4. Who are Israelites, etc. Here the reason is now more plainly given, why the destruction of that people caused him so much anguish, namely because they were Israelites.";
