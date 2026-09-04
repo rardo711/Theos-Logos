@@ -432,9 +432,15 @@
 }
 
 .tl-sheet-up {
-  height: var(--sheet-h, var(--sheet-peek));
-  transform: translateY(calc(var(--sheet-slide, 100%) + var(--sheet-drag, 0px)));
+  height: calc(
+    var(--sheet-h, var(--sheet-peek)) - min(0px, var(--sheet-drag, 0px))
+  );
+  max-height: calc(100% - var(--sheet-full-gap));
+  transform: translateY(
+    calc(var(--sheet-slide, 0px) + max(0px, var(--sheet-drag, 0px)))
+  );
   pointer-events: none;
+  background: var(--color-surface);
   transition:
     transform 280ms var(--ease-snap),
     height 280ms var(--ease-snap);

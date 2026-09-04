@@ -485,7 +485,6 @@ export function ReceptionPanel({
 
       <div
         className="tl-scroll min-h-0 flex-1 overflow-y-scroll overscroll-contain px-5 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
-        aria-hidden={sheet && detent === "peek"}
       >
         {!disclaimerSeen ? (
           <div className="mb-4 rounded-lg border border-rule bg-surface p-3 shadow-soft">

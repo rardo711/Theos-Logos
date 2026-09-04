@@ -78,8 +78,6 @@ export function Reader({
   const nextChapter = useStudy((s) => s.nextChapter);
   const prevChapter = useStudy((s) => s.prevChapter);
   const notesRev = useStudy((s) => s.notesRev);
-  const receptionFull = useStudy((s) => s.receptionFull);
-  const receptionPinned = useStudy((s) => s.receptionPinned);
   const locale = useStudy((s) => s.locale);
   const bookId = useStudy((s) => s.bookId);
   const chapterNum = useStudy((s) => s.chapter);
@@ -88,6 +86,7 @@ export function Reader({
   const touch = useRef<{ x: number; y: number } | null>(null);
   const topAnim = useRef<{ id: number | null }>({ id: null });
   const [showTop, setShowTop] = useState(false);
+  const showFab = showTop && selected == null;
   const range =
     selected == null ? null : { start: selected, end: selectedEnd ?? selected };
 
@@ -100,8 +99,6 @@ export function Reader({
   const prevDest = neighbor(bookId, chapterNum, -1);
   const nextDest = neighbor(bookId, chapterNum, 1);
   const sections = chapter?.verses.filter((v) => v.title) ?? [];
-  const hintUp =
-    selected != null && !receptionFull && !receptionPinned;
   const notedSet = useMemo(
     () =>
       chapter
@@ -410,11 +407,10 @@ export function Reader({
           animateScrollToTop(el, topAnim.current);
         }}
         className="tl-back-top"
-        data-show={showTop ? "true" : "false"}
-        data-nudge={hintUp ? "true" : "false"}
+        data-show={showFab ? "true" : "false"}
         aria-label={t(locale, "backToTop")}
-        tabIndex={showTop ? 0 : -1}
-        aria-hidden={!showTop}
+        tabIndex={showFab ? 0 : -1}
+        aria-hidden={!showFab}
       >
         <ArrowUp size={16} />
       </button>

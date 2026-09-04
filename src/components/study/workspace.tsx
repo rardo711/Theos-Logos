@@ -191,14 +191,14 @@ export function StudyWorkspace() {
     const onMove = (e: TouchEvent) => {
       const delta = e.touches[0].clientY - startY;
       const mode = sheetStateRef.current;
-      const H = el.offsetHeight;
+      const room = el.parentElement?.clientHeight ?? window.innerHeight;
       pulling = true;
       if (mode === "peek") {
-        dy = Math.min(Math.max(delta, -H * 2.2), H * 0.9);
+        dy = Math.min(Math.max(delta, -(room - el.offsetHeight)), room * 0.35);
       } else if (mode === "mid") {
-        dy = Math.min(Math.max(delta, -H * 0.85), H * 0.9);
+        dy = Math.min(Math.max(delta, -(room - el.offsetHeight)), el.offsetHeight * 0.9);
       } else {
-        dy = Math.min(Math.max(delta, 0), H * 0.92);
+        dy = Math.min(Math.max(delta, 0), el.offsetHeight * 0.92);
       }
       setSheetDragging(true);
       setSheetDrag(dy);
@@ -208,13 +208,15 @@ export function StudyWorkspace() {
       const v = dy / Math.max(performance.now() - startT, 1);
       const mode = sheetStateRef.current;
       const H = el.offsetHeight;
+      const room = el.parentElement?.clientHeight ?? window.innerHeight;
       setSheetDragging(false);
       if (!pulling) {
         dy = 0;
         return;
       }
       if (mode === "peek") {
-        if (dy < -COMMIT || v < -FLING) setReceptionOpen(true);
+        if (dy < -room * 0.42 || v < -1.15) setReceptionFull(true);
+        else if (dy < -COMMIT || v < -FLING) setReceptionOpen(true);
         else if (dy > COMMIT || v > FLING) clearSelection();
         else setSheetDrag(0);
       } else if (mode === "mid") {
