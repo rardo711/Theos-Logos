@@ -47,6 +47,8 @@ export function StudyWorkspace() {
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [wideDesk, setWideDesk] = useState(false);
+  const [sheetShown, setSheetShown] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
     hydrate();
@@ -83,6 +85,26 @@ export function StudyWorkspace() {
       `${fontSize}px`,
     );
   }, [fontSize]);
+
+  const docked = receptionPinned && wideDesk && receptionOpen;
+  const sheetWanted = receptionOpen && !docked;
+
+  useEffect(() => {
+    if (sheetWanted) {
+      setSheetShown(true);
+      let inner = 0;
+      const outer = requestAnimationFrame(() => {
+        inner = requestAnimationFrame(() => setSheetOpen(true));
+      });
+      return () => {
+        cancelAnimationFrame(outer);
+        cancelAnimationFrame(inner);
+      };
+    }
+    setSheetOpen(false);
+    const t = window.setTimeout(() => setSheetShown(false), 420);
+    return () => window.clearTimeout(t);
+  }, [sheetWanted]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -227,7 +249,6 @@ export function StudyWorkspace() {
     setReceptionOpen(false);
   }
 
-  const docked = receptionPinned && wideDesk && receptionOpen;
   const staleChapter =
     chapter != null &&
     (chapter.bookId !== bookId ||
@@ -261,17 +282,20 @@ export function StudyWorkspace() {
           </aside>
         ) : null}
 
-        {receptionOpen && !docked ? (
+        {sheetShown ? (
           <>
-            <div className="absolute inset-0 z-20 flex flex-col justify-end md:hidden">
+            <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-end md:hidden">
               <button
                 type="button"
                 className="tl-dim min-h-0 flex-1"
-                data-open="true"
+                data-open={sheetOpen ? "true" : "false"}
                 aria-label={t(locale, "closeReception")}
                 onClick={closeReception}
               />
-              <aside className="tl-sheet-up flex h-[min(72dvh,42rem)] w-full flex-col rounded-t-xl border-t border-rule bg-paper shadow-soft">
+              <aside
+                className="tl-sheet-up flex h-[min(72dvh,42rem)] w-full flex-col rounded-t-xl border-t border-rule bg-paper shadow-soft"
+                data-open={sheetOpen ? "true" : "false"}
+              >
                 <div
                   className="flex shrink-0 justify-center pt-2 pb-1"
                   aria-hidden
@@ -287,14 +311,18 @@ export function StudyWorkspace() {
               </aside>
             </div>
 
-            <div className="absolute inset-0 z-20 hidden md:flex">
+            <div className="pointer-events-none absolute inset-0 z-20 hidden md:flex">
               <button
                 type="button"
                 className="tl-dim min-w-0 flex-1"
+                data-open={sheetOpen ? "true" : "false"}
                 aria-label={t(locale, "closeReception")}
                 onClick={closeReception}
               />
-              <aside className="tl-sheet flex h-full w-full max-w-md flex-col border-l border-rule bg-paper shadow-soft">
+              <aside
+                className="tl-sheet flex h-full w-full max-w-md flex-col border-l border-rule bg-paper shadow-soft"
+                data-open={sheetOpen ? "true" : "false"}
+              >
                 <ReceptionPanel chapter={shownChapter} onClose={closeReception} />
               </aside>
             </div>

@@ -131,13 +131,9 @@ export function Reader({
     if (selected == null) return;
     const scroller = scrollRef.current;
     if (!scroller) return;
-    const head = scroller.querySelector(
-      `#s-${selected}`,
-    ) as HTMLElement | null;
     const verse = verseRefs.current.get(selected);
-    const target = head ?? verse;
-    if (!target) return;
-    const vBox = target.getBoundingClientRect();
+    if (!verse) return;
+    const vBox = verse.getBoundingClientRect();
     const sBox = scroller.getBoundingClientRect();
     const pad = 48;
     if (vBox.top >= sBox.top + pad && vBox.bottom <= sBox.bottom - pad) return;
@@ -332,7 +328,7 @@ export function Reader({
                               ) : null}
                             </sup>
                             <span className="tl-drop">{drop.letter}</span>
-                            {drop.rest}{" "}
+                            <span className="tl-verse-ink">{drop.rest} </span>
                           </>
                         ) : (
                           <>
@@ -414,10 +410,11 @@ export function Reader({
           animateScrollToTop(el, topAnim.current);
         }}
         className="tl-back-top"
-        data-show={showTop && !hintUp ? "true" : "false"}
+        data-show={showTop ? "true" : "false"}
+        data-nudge={hintUp ? "true" : "false"}
         aria-label={t(locale, "backToTop")}
-        tabIndex={showTop && !hintUp ? 0 : -1}
-        aria-hidden={!(showTop && !hintUp)}
+        tabIndex={showTop ? 0 : -1}
+        aria-hidden={!showTop}
       >
         <ArrowUp size={16} />
       </button>

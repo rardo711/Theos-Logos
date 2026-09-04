@@ -808,23 +808,37 @@ export function VerseHint({
   const bookId = useStudy((s) => s.bookId);
   const chapter = useStudy((s) => s.chapter);
   const clearSelection = useStudy((s) => s.clearSelection);
-  if (selected == null || receptionOpen || receptionPinned) return null;
-  const reference = formatReference(
-    bookName(getBook(bookId), locale),
-    chapter,
-    selected,
-    selectedEnd,
-  );
+  const open = selected != null && !receptionOpen && !receptionPinned;
+  const live =
+    selected == null
+      ? ""
+      : formatReference(
+          bookName(getBook(bookId), locale),
+          chapter,
+          selected,
+          selectedEnd,
+        );
+  const [label, setLabel] = useState(live);
+  useEffect(() => {
+    if (live) setLabel(live);
+  }, [live]);
   return (
-    <div className="tl-pick pointer-events-none absolute inset-x-0 bottom-0 z-20">
-      <div className="pointer-events-auto border-t border-rule bg-surface pb-[env(safe-area-inset-bottom)]">
+    <div
+      className="tl-pick absolute inset-x-0 bottom-0 z-20"
+      data-open={open ? "true" : "false"}
+      aria-hidden={!open}
+    >
+      <div className="tl-pick-bar bg-surface pb-[env(safe-area-inset-bottom)]">
         <div className="relative flex h-14 items-center justify-center px-14">
           <button
             type="button"
             onClick={onInquire}
+            disabled={!open}
             className="min-h-11 max-w-full truncate px-2 font-display text-[0.95rem] font-medium tracking-tight text-ink"
           >
-            {reference}
+            <span key={label} className="tl-pick-ref">
+              {label}
+            </span>
             {noted ? (
               <span className="sr-only">. {t(locale, "deskNotes")}</span>
             ) : null}
@@ -832,8 +846,9 @@ export function VerseHint({
           <button
             type="button"
             onClick={clearSelection}
+            disabled={!open}
             aria-label={t(locale, "clearSelection")}
-            className="absolute top-1/2 right-[max(0.35rem,env(safe-area-inset-right))] flex size-11 -translate-y-1/2 items-center justify-center rounded-full text-muted transition-colors duration-150 ease-out hover:text-ink"
+            className="absolute top-1/2 right-[max(0.35rem,env(safe-area-inset-right))] flex size-11 -translate-y-1/2 items-center justify-center rounded-full text-muted transition-[color,transform,background-color] duration-150 ease-out hover:bg-lamp/10 hover:text-ink active:scale-90"
           >
             <X size={18} strokeWidth={1.75} />
           </button>
