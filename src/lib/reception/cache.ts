@@ -30,17 +30,29 @@ function write(store: Store) {
   }
 }
 
-export function verseKey(bookId: string, chapter: number, verse: number) {
-  return `${bookId}-${chapter}-${verse}`;
+/**
+ * A single verse keeps the key shape it has always had, so every desk cached
+ * before ranges existed still resolves. A range appends its end verse.
+ */
+export function verseKey(
+  bookId: string,
+  chapter: number,
+  verse: number,
+  verseEnd?: number | null,
+) {
+  return verseEnd != null && verseEnd > verse
+    ? `${bookId}-${chapter}-${verse}-${verseEnd}`
+    : `${bookId}-${chapter}-${verse}`;
 }
 
 export function getCached(
   bookId: string,
   chapter: number,
   verse: number | null,
+  verseEnd?: number | null,
 ): ReceptionResult | null {
   if (verse == null) return null;
-  return read()[verseKey(bookId, chapter, verse)] ?? null;
+  return read()[verseKey(bookId, chapter, verse, verseEnd)] ?? null;
 }
 
 export function saveCached(
@@ -48,13 +60,14 @@ export function saveCached(
   chapter: number,
   verse: number,
   result: ReceptionResult,
+  verseEnd?: number | null,
 ) {
   if (!result.cards.length) {
-    removeCached(bookId, chapter, verse);
+    removeCached(bookId, chapter, verse, verseEnd);
     return;
   }
   const store = read();
-  store[verseKey(bookId, chapter, verse)] = {
+  store[verseKey(bookId, chapter, verse, verseEnd)] = {
     ...result,
     source: "generated",
   };
@@ -65,9 +78,10 @@ export function removeCached(
   bookId: string,
   chapter: number,
   verse: number,
+  verseEnd?: number | null,
 ): void {
   const store = read();
-  const key = verseKey(bookId, chapter, verse);
+  const key = verseKey(bookId, chapter, verse, verseEnd);
   if (key in store) {
     delete store[key];
     write(store);
@@ -96,12 +110,24 @@ export function clearAllCached(): void {
   }
 }
 
+/**
+ * Every verse that has a saved desk, ranges expanded. A range cached as
+ * "ROM-9-14-16" marks 14, 15 and 16, so a reader scrolling past sees the whole
+ * studied block flagged rather than nothing at all.
+ */
 export function cachedVerses(bookId: string, chapter: number): number[] {
   const prefix = `${bookId}-${chapter}-`;
-  return Object.keys(read())
-    .filter((k) => k.startsWith(prefix))
-    .map((k) => Number(k.slice(prefix.length)))
-    .filter((n) => Number.isFinite(n));
+  const out = new Set<number>();
+  for (const k of Object.keys(read())) {
+    if (!k.startsWith(prefix)) continue;
+    const tail = k.slice(prefix.length);
+    const [startStr, endStr] = tail.split("-");
+    const start = Number(startStr);
+    if (!Number.isFinite(start)) continue;
+    const end = endStr != null && Number.isFinite(Number(endStr)) ? Number(endStr) : start;
+    for (let v = start; v <= Math.max(start, end); v++) out.add(v);
+  }
+  return [...out];
 }
 
 export function cachedBookIds(): string[] {

@@ -589,6 +589,29 @@ describe("verse-scoped catalog rows", () => {
     assert.ok(scoreEntry(pericope, tokens, "ROM", 9, [], null) > 0, "no verse: chapter rules apply");
   });
 
+  it("matches a pericope row whose verses overlap a selected range", () => {
+    // Selecting 4-8 spans two pericopes. A page covering 1-5 answers for the
+    // part of the selection it reaches; containment would have dropped it.
+    const pericope = {
+      id: "calvin-romans-9-1",
+      voice: "John Calvin",
+      work: "Commentary on Romans",
+      tradition: "reformed" as const,
+      locus: "Romans 9:1-5",
+      url: "https://ccel.org/ccel/calvin/calcom38/calcom38.xiii.i.html",
+      tags: ["romans", "calvin"],
+      books: ["ROM"],
+      chapters: [9],
+      verses: [1, 5] as [number, number],
+    };
+    const tokens = tokenize("election purpose romans");
+    assert.ok(scoreEntry(pericope, tokens, "ROM", 9, [], 4, 8) > 0, "4-8 overlaps 1-5");
+    assert.ok(scoreEntry(pericope, tokens, "ROM", 9, [], 1, 20) > 0, "a range that swallows it");
+    assert.ok(scoreEntry(pericope, tokens, "ROM", 9, [], 5, 9) > 0, "touching at one verse counts");
+    assert.equal(scoreEntry(pericope, tokens, "ROM", 9, [], 6, 12), 0, "6-12 is past the page");
+    assert.equal(scoreEntry(pericope, tokens, "ROM", 9, [], 11, 16), 0, "well past it");
+  });
+
   it("leaves chapter-level rows alone", () => {
     const chapterPage = {
       id: "henry-romans-9",

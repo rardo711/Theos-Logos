@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, Fragment } from "react";
 import { ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { BIBLE_BOOKS, bookName, getBook } from "@/lib/bible/books";
 import type { Chapter } from "@/lib/bible/types";
+import { inRange, MAX_RANGE_VERSES } from "@/lib/bible/range";
 import { t } from "@/lib/i18n";
 import { hasNotes } from "@/lib/reception/notes";
 import { useStudy } from "@/lib/study-store";
@@ -70,6 +71,9 @@ export function Reader({
   error: string | null;
 }) {
   const selected = useStudy((s) => s.selectedVerse);
+  const selectedEnd = useStudy((s) => s.selectedEndVerse);
+  const selectMode = useStudy((s) => s.selectMode);
+  const tapVerse = useStudy((s) => s.tapVerse);
   const setVerse = useStudy((s) => s.setVerse);
   const nextChapter = useStudy((s) => s.nextChapter);
   const prevChapter = useStudy((s) => s.prevChapter);
@@ -85,6 +89,9 @@ export function Reader({
   const touch = useRef<{ x: number; y: number } | null>(null);
   const topAnim = useRef<{ id: number | null }>({ id: null });
   const [showTop, setShowTop] = useState(false);
+  const [rangeNotice, setRangeNotice] = useState<"too-long" | null>(null);
+  const range =
+    selected == null ? null : { start: selected, end: selectedEnd ?? selected };
 
   const book = getBook(bookId);
   const bookIndex = BIBLE_BOOKS.findIndex((b) => b.id === bookId);
@@ -107,7 +114,12 @@ export function Reader({
     }
     el.scrollTop = 0;
     setShowTop(false);
+    setRangeNotice(null);
   }, [chapter?.reference, chapter?.bookId, chapter?.chapter]);
+
+  useEffect(() => {
+    if (!selectMode) setRangeNotice(null);
+  }, [selectMode]);
 
   useEffect(() => {
     return () => {
@@ -264,9 +276,27 @@ export function Reader({
                 </nav>
               ) : null}
 
+              {selectMode ? (
+                <p
+                  role={rangeNotice ? "alert" : undefined}
+                  className={cn(
+                    "mb-3 text-2xs leading-relaxed italic",
+                    rangeNotice ? "text-oxblood" : "text-faint",
+                  )}
+                >
+                  {rangeNotice === "too-long"
+                    ? t(locale, "rangeTooLong").replace(
+                        "{n}",
+                        String(MAX_RANGE_VERSES),
+                      )
+                    : t(locale, "selectPassageHint")}
+                </p>
+              ) : null}
+
               <div className="bible-prose font-serif text-[length:var(--reading-size,20px)] leading-[1.8] text-ink">
                 {chapter.verses.map((v, i) => {
-                  const on = selected === v.verse;
+                  const on = inRange(range, v.verse);
+                  const isRangeStart = range != null && v.verse === range.start;
                   const noted = hasNotes(
                     chapter.bookId,
                     chapter.chapter,
@@ -292,6 +322,15 @@ export function Reader({
                         tabIndex={0}
                         aria-current={on ? "true" : undefined}
                         onClick={() => {
+                          if (selectMode) {
+                            // In select mode a tap edits the range; it never
+                            // closes the panel, since the reader is still
+                            // composing the passage they want to study.
+                            const refused = tapVerse(v.verse);
+                            if (refused) setRangeNotice(refused);
+                            else setRangeNotice(null);
+                            return;
+                          }
                           if (on) {
                             setVerse(null);
                             setReceptionOpen(false);
@@ -312,9 +351,12 @@ export function Reader({
                         }}
                         className={cn(
                           "cursor-pointer rounded-xs transition-colors duration-200",
-                          on
-                            ? "bg-oxblood-soft shadow-[inset_3px_0_0_0_var(--color-oxblood)]"
-                            : "hover:bg-oxblood-soft/55",
+                          on ? "bg-oxblood-soft" : "hover:bg-oxblood-soft/55",
+                          // The bar marks where the passage begins, so a range
+                          // reads as one block rather than as several selected
+                          // verses that happen to be adjacent.
+                          isRangeStart &&
+                            "shadow-[inset_3px_0_0_0_var(--color-oxblood)]",
                         )}
                       >
                         <sup className="verse-num mr-1 select-none">

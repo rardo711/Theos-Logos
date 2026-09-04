@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { BIBLE_BOOKS, getBook, type Locale } from "@/lib/bible/books";
+import { applyVerseTap, type VerseRange } from "@/lib/bible/range";
 import { applyDocumentLocale } from "@/lib/i18n";
 
 const KEY = "theos-logos-hybrid";
@@ -74,7 +75,15 @@ function bindThemeListener() {
 }
 
 interface StudyState extends Persisted {
+  /**
+   * The first verse of the selection. Every reader of this field predates
+   * ranges and still gets what it expects: with no range it is the selected
+   * verse, and with one it is where the range begins.
+   */
   selectedVerse: number | null;
+  /** null when a single verse is selected. Never less than selectedVerse. */
+  selectedEndVerse: number | null;
+  selectMode: boolean;
   libraryOpen: boolean;
   libraryTab: LibraryTab;
   typeOpen: boolean;
@@ -86,6 +95,10 @@ interface StudyState extends Persisted {
   nextChapter: () => void;
   prevChapter: () => void;
   setVerse: (verse: number | null) => void;
+  setSelectMode: (on: boolean) => void;
+  /** Applies the select-mode tap rules. Returns "too-long" when the tap was refused. */
+  tapVerse: (verse: number) => "too-long" | null;
+  clearSelection: () => void;
   setTheme: (theme: Theme) => void;
   setFontSize: (n: number) => void;
   setLocale: (locale: Locale) => void;
@@ -123,6 +136,8 @@ export const useStudy = create<StudyState>((set, get) => ({
   disclaimerSeen: false,
   locale: "en",
   selectedVerse: null,
+  selectedEndVerse: null,
+  selectMode: false,
   libraryOpen: false,
   libraryTab: "chapters",
   typeOpen: false,
@@ -142,6 +157,7 @@ export const useStudy = create<StudyState>((set, get) => ({
       bookId: book.id,
       chapter: Math.min(Math.max(1, chapter), book.chapters),
       selectedVerse: null,
+      selectedEndVerse: null,
       receptionOpen: get().receptionPinned ? get().receptionOpen : false,
     });
     persist(get());
@@ -151,6 +167,7 @@ export const useStudy = create<StudyState>((set, get) => ({
     set({
       chapter: Math.min(Math.max(1, chapter), book.chapters),
       selectedVerse: null,
+      selectedEndVerse: null,
       receptionOpen: get().receptionPinned ? get().receptionOpen : false,
     });
     persist(get());
@@ -161,6 +178,7 @@ export const useStudy = create<StudyState>((set, get) => ({
       bookId: book.id,
       chapter: Math.min(Math.max(1, chapter), book.chapters),
       selectedVerse: verse ?? null,
+      selectedEndVerse: null,
       receptionOpen: get().receptionPinned ? get().receptionOpen : false,
     });
     persist(get());
@@ -188,7 +206,28 @@ export const useStudy = create<StudyState>((set, get) => ({
       get().setBook(prev.id, prev.chapters);
     }
   },
-  setVerse: (verse) => set({ selectedVerse: verse }),
+  setVerse: (verse) => set({ selectedVerse: verse, selectedEndVerse: null }),
+  setSelectMode: (selectMode) => set({ selectMode }),
+  tapVerse: (verse) => {
+    const { selectedVerse, selectedEndVerse } = get();
+    const current =
+      selectedVerse == null
+        ? null
+        : { start: selectedVerse, end: selectedEndVerse ?? selectedVerse };
+    const outcome = applyVerseTap(current, verse);
+    if (outcome.refused) return outcome.refused;
+    set({
+      selectedVerse: outcome.range?.start ?? null,
+      // A single verse keeps end null so every existing single-verse code
+      // path, cache key included, behaves exactly as it did before ranges.
+      selectedEndVerse:
+        outcome.range && outcome.range.end !== outcome.range.start
+          ? outcome.range.end
+          : null,
+    });
+    return null;
+  },
+  clearSelection: () => set({ selectedVerse: null, selectedEndVerse: null }),
   setTheme: (theme) => {
     set({ theme });
     applyTheme(theme);
@@ -228,3 +267,15 @@ export const useStudy = create<StudyState>((set, get) => ({
     persist(get());
   },
 }));
+
+/** The selection as a normalized range, or null when nothing is selected. */
+export function selectedRange(s: {
+  selectedVerse: number | null;
+  selectedEndVerse: number | null;
+}): VerseRange | null {
+  if (s.selectedVerse == null) return null;
+  return {
+    start: s.selectedVerse,
+    end: s.selectedEndVerse ?? s.selectedVerse,
+  };
+}

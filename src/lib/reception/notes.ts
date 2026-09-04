@@ -65,11 +65,12 @@ export function getDeskNotes(
   bookId: string,
   chapter: number,
   verse: number | null,
+  verseEnd?: number | null,
 ): ReceptionResult | null {
   if (verse != null) {
-    const cached = getCached(bookId, chapter, verse);
+    const cached = getCached(bookId, chapter, verse, verseEnd);
     if (cached && cached.cards.length > 0) return cached;
-    const cur = getCurated(bookId, chapter, verse);
+    const cur = getCurated(bookId, chapter, verse, verseEnd);
     if (cur && cur.cards.length > 0) return cur;
     return null;
   }
@@ -80,9 +81,10 @@ export function clearGeneratedNotesForVerse(
   bookId: string,
   chapter: number,
   verse: number,
+  verseEnd?: number | null,
 ): ReceptionResult | null {
-  removeCached(bookId, chapter, verse);
-  const cur = getCurated(bookId, chapter, verse);
+  removeCached(bookId, chapter, verse, verseEnd);
+  const cur = getCurated(bookId, chapter, verse, verseEnd);
   return cur && cur.cards.length > 0 ? cur : null;
 }
 
@@ -129,6 +131,7 @@ export function rememberReception(
   chapter: number,
   verse: number,
   result: ReceptionResult,
+  verseEnd?: number | null,
 ) {
-  saveCached(bookId, chapter, verse, result);
+  saveCached(bookId, chapter, verse, result, verseEnd);
 }

@@ -78,7 +78,7 @@ async function getPage(url: string): Promise<string | null> {
 export async function fetchEntry(
   entry: CatalogEntry,
   query: string,
-  target?: { chapter?: number; verse?: number | null },
+  target?: { chapter?: number; verse?: number | null; verseEnd?: number | null },
 ): Promise<FetchedExtract | null> {
   for (const url of [entry.url, entry.altUrl].filter(Boolean) as string[]) {
     const html = await getPage(url);
@@ -89,6 +89,7 @@ export async function fetchEntry(
       target?.verse ?? undefined,
       query,
       4,
+      target?.verseEnd,
     );
     if (!paras.length) continue;
     return { entry, url, paragraphs: paras };
@@ -101,6 +102,7 @@ export async function retrieveExtracts(opts: {
   bookId?: string;
   chapter?: number;
   verse?: number | null;
+  verseEnd?: number | null;
   verseText?: string;
   mode?: "reception" | "traditions";
   excludeUrls?: string[];
@@ -118,7 +120,11 @@ export async function retrieveExtracts(opts: {
   const take = mapped.slice(0, limit);
   const found = await Promise.all(
     take.map((e) =>
-      fetchEntry(e, query, { chapter: opts.chapter, verse: opts.verse }),
+      fetchEntry(e, query, {
+        chapter: opts.chapter,
+        verse: opts.verse,
+        verseEnd: opts.verseEnd,
+      }),
     ),
   );
   const extracts = found.filter((x): x is FetchedExtract => x != null);

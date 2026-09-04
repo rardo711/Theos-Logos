@@ -14,6 +14,7 @@ import {
 import { getCurated, hasCurated } from "@/lib/reception/curated";
 import { removeCached, saveCached } from "@/lib/reception/cache";
 import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
+import { formatReference } from "@/lib/bible/reference";
 import { t } from "@/lib/i18n";
 import { localizeCaution } from "@/lib/i18n-sources";
 import type { Chapter, DeskSynthesis, LexiconResult, ReceptionResult, SourceCard as Card } from "@/lib/bible/types";
@@ -60,6 +61,10 @@ export function ReceptionPanel({
   onClose?: () => void;
 }) {
   const selectedVerse = useStudy((s) => s.selectedVerse);
+  const selectedEndVerse = useStudy((s) => s.selectedEndVerse);
+  const selectMode = useStudy((s) => s.selectMode);
+  const setSelectMode = useStudy((s) => s.setSelectMode);
+  const clearSelection = useStudy((s) => s.clearSelection);
   const setVerse = useStudy((s) => s.setVerse);
   const disclaimerSeen = useStudy((s) => s.disclaimerSeen);
   const dismissDisclaimer = useStudy((s) => s.dismissDisclaimer);
@@ -83,9 +88,26 @@ export function ReceptionPanel({
   const reference =
     chapter == null
       ? ""
-      : selectedVerse != null
-        ? `${chapter.bookName} ${chapter.chapter}:${selectedVerse}`
-        : `${chapter.bookName} ${chapter.chapter}`;
+      : formatReference(
+          chapter.bookName,
+          chapter.chapter,
+          selectedVerse,
+          selectedEndVerse,
+        );
+  /**
+   * The whole selected passage, not just its first verse. parseSynthesis
+   * validates quoted spans against the desk cards plus this text, so sending
+   * only the anchor verse would reject an answer that quotes the middle of the
+   * range -- the same false rejection that was fixed for single verses.
+   */
+  const selectionText = useMemo(() => {
+    if (!chapter || selectedVerse == null) return "";
+    const end = selectedEndVerse ?? selectedVerse;
+    return chapter.verses
+      .filter((v) => v.verse >= selectedVerse && v.verse <= end)
+      .map((v) => v.text)
+      .join(" ");
+  }, [chapter, selectedVerse, selectedEndVerse]);
   const chips = useMemo(
     () => (verse ? wordChips(verse.text, reference) : []),
     [verse, reference],
@@ -103,13 +125,20 @@ export function ReceptionPanel({
     setSynthesis(null);
     setLoadingKind(null);
     if (chapter && selectedVerse != null) {
-      setResult(getDeskNotes(chapter.bookId, chapter.chapter, selectedVerse));
+      setResult(
+        getDeskNotes(
+          chapter.bookId,
+          chapter.chapter,
+          selectedVerse,
+          selectedEndVerse,
+        ),
+      );
     } else if (chapter) {
       setResult(getDeskNotes(chapter.bookId, chapter.chapter, null));
     } else {
       setResult(null);
     }
-  }, [chapter, selectedVerse]);
+  }, [chapter, selectedVerse, selectedEndVerse]);
 
   async function runCommentaries() {
     if (!chapter) return;
@@ -126,7 +155,8 @@ export function ReceptionPanel({
           bookName: chapter.bookName,
           chapter: chapter.chapter,
           verse: selectedVerse,
-          verseText: verse?.text ?? "",
+          verseEnd: selectedEndVerse,
+          verseText: selectionText || (verse?.text ?? ""),
           passage: chapter.verses
             .slice(0, 12)
             .map((v) => `${v.verse} ${v.text}`)
@@ -158,7 +188,13 @@ export function ReceptionPanel({
       }
       setResult(next);
       if (selectedVerse != null && next.cards.length) {
-        rememberReception(chapter.bookId, chapter.chapter, selectedVerse, next);
+        rememberReception(
+          chapter.bookId,
+          chapter.chapter,
+          selectedVerse,
+          next,
+          selectedEndVerse,
+        );
         touchNotes();
       }
     } catch (err) {
@@ -192,7 +228,8 @@ export function ReceptionPanel({
           bookName: chapter.bookName,
           chapter: chapter.chapter,
           verse: selectedVerse,
-          verseText: verse?.text ?? "",
+          verseEnd: selectedEndVerse,
+          verseText: selectionText || (verse?.text ?? ""),
           question: question.trim() || undefined,
           locale,
           cards,
@@ -247,17 +284,32 @@ export function ReceptionPanel({
         ),
     );
 
-    const curated = getCurated(chapter.bookId, chapter.chapter, selectedVerse);
+    const curated = getCurated(
+      chapter.bookId,
+      chapter.chapter,
+      selectedVerse,
+      selectedEndVerse,
+    );
     const hasAnyCurated = curated && curated.cards.length > 0;
     const remainingGenerated = newCards.filter((c) =>
       isCardGenerated(c, chapter.bookId, chapter.chapter, selectedVerse),
     );
 
     if (newCards.length === 0) {
-      removeCached(chapter.bookId, chapter.chapter, selectedVerse);
+      removeCached(
+        chapter.bookId,
+        chapter.chapter,
+        selectedVerse,
+        selectedEndVerse,
+      );
       setResult(hasAnyCurated ? curated : null);
     } else if (remainingGenerated.length === 0 && hasAnyCurated) {
-      removeCached(chapter.bookId, chapter.chapter, selectedVerse);
+      removeCached(
+        chapter.bookId,
+        chapter.chapter,
+        selectedVerse,
+        selectedEndVerse,
+      );
       setResult({
         ...curated,
         cards: newCards,
@@ -268,7 +320,13 @@ export function ReceptionPanel({
         cards: newCards,
         source: remainingGenerated.length > 0 ? "generated" : "curated",
       };
-      saveCached(chapter.bookId, chapter.chapter, selectedVerse, updated);
+      saveCached(
+        chapter.bookId,
+        chapter.chapter,
+        selectedVerse,
+        updated,
+        selectedEndVerse,
+      );
       setResult(updated);
     }
     touchNotes();
@@ -280,6 +338,7 @@ export function ReceptionPanel({
       chapter.bookId,
       chapter.chapter,
       selectedVerse,
+      selectedEndVerse,
     );
     setResult(restored);
     setError(null);
@@ -290,7 +349,14 @@ export function ReceptionPanel({
     if (!chapter) return;
     clearGeneratedNotesForChapter(chapter.bookId, chapter.chapter);
     if (selectedVerse != null) {
-      setResult(getDeskNotes(chapter.bookId, chapter.chapter, selectedVerse));
+      setResult(
+        getDeskNotes(
+          chapter.bookId,
+          chapter.chapter,
+          selectedVerse,
+          selectedEndVerse,
+        ),
+      );
     }
     touchNotes();
   }
@@ -305,6 +371,30 @@ export function ReceptionPanel({
           <h2 className="font-display truncate text-lg font-semibold text-ink">
             {selectedVerse != null ? reference : t(locale, "historicVoices")}
           </h2>
+          <div className="mt-1 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSelectMode(!selectMode)}
+              aria-pressed={selectMode}
+              className={cn(
+                "text-2xs font-semibold tracking-[0.14em] uppercase",
+                selectMode ? "text-oxblood" : "text-faint hover:text-muted",
+              )}
+            >
+              {selectMode
+                ? t(locale, "selectPassageDone")
+                : t(locale, "selectPassage")}
+            </button>
+            {selectMode && selectedVerse != null ? (
+              <button
+                type="button"
+                onClick={clearSelection}
+                className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase hover:text-muted"
+              >
+                {t(locale, "clearSelection")}
+              </button>
+            ) : null}
+          </div>
         </div>
         <div className="flex shrink-0 items-center">
           <button
