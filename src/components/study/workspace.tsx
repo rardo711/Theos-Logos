@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchChapter } from "@/lib/bible/fetch-chapter";
 import { getSeed } from "@/lib/bible/seed";
 import { attachNtHeadings } from "@/lib/bible/nt-headings";
@@ -49,6 +49,9 @@ export function StudyWorkspace() {
   const [wideDesk, setWideDesk] = useState(false);
   const [sheetShown, setSheetShown] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetDy, setSheetDy] = useState(0);
+  const [sheetDragging, setSheetDragging] = useState(false);
+  const sheetTouch = useRef<number | null>(null);
 
   useEffect(() => {
     hydrate();
@@ -295,10 +298,35 @@ export function StudyWorkspace() {
               <aside
                 className="tl-sheet-up flex h-[min(72dvh,42rem)] w-full flex-col rounded-t-xl border-t border-rule bg-paper shadow-soft"
                 data-open={sheetOpen ? "true" : "false"}
+                data-dragging={sheetDragging ? "true" : "false"}
+                style={{
+                  ["--sheet-dy" as string]: `${Math.max(0, sheetDy)}px`,
+                }}
               >
                 <div
-                  className="flex shrink-0 justify-center pt-2 pb-1"
+                  className="flex shrink-0 cursor-grab touch-none justify-center pt-2 pb-2 active:cursor-grabbing"
                   aria-hidden
+                  onTouchStart={(e) => {
+                    sheetTouch.current = e.touches[0].clientY;
+                    setSheetDragging(true);
+                  }}
+                  onTouchMove={(e) => {
+                    if (sheetTouch.current == null) return;
+                    setSheetDy(e.touches[0].clientY - sheetTouch.current);
+                  }}
+                  onTouchEnd={(e) => {
+                    if (sheetTouch.current == null) return;
+                    const dy = e.changedTouches[0].clientY - sheetTouch.current;
+                    sheetTouch.current = null;
+                    setSheetDragging(false);
+                    setSheetDy(0);
+                    if (dy > 72) closeReception();
+                  }}
+                  onTouchCancel={() => {
+                    sheetTouch.current = null;
+                    setSheetDragging(false);
+                    setSheetDy(0);
+                  }}
                 >
                   <span className="h-1 w-10 rounded-full bg-faint/70" />
                 </div>

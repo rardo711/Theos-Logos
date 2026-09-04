@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Loader2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
 import { gatherCommentaries, synthesizeFromCards } from "@/lib/reception/ask";
 import {
   additionalSourceCards,
@@ -819,36 +819,106 @@ export function VerseHint({
           selectedEnd,
         );
   const [label, setLabel] = useState(live);
+  const [dy, setDy] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const touch = useRef<{ y: number; x: number } | null>(null);
+  const swallow = useRef(false);
   useEffect(() => {
     if (live) setLabel(live);
   }, [live]);
+
+  function onTouchStart(e: React.TouchEvent) {
+    touch.current = { y: e.touches[0].clientY, x: e.touches[0].clientX };
+    setDragging(true);
+  }
+  function onTouchMove(e: React.TouchEvent) {
+    if (!touch.current) return;
+    setDy(e.touches[0].clientY - touch.current.y);
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (!touch.current) return;
+    const next = e.changedTouches[0].clientY - touch.current.y;
+    const dx = e.changedTouches[0].clientX - touch.current.x;
+    touch.current = null;
+    setDragging(false);
+    setDy(0);
+    if (Math.abs(dx) > Math.abs(next) && Math.abs(dx) > 28) return;
+    if (next > 48) {
+      swallow.current = true;
+      clearSelection();
+      return;
+    }
+    if (next < -40) {
+      swallow.current = true;
+      onInquire();
+    }
+  }
+
+  function tap(fn: () => void) {
+    return () => {
+      if (swallow.current) {
+        swallow.current = false;
+        return;
+      }
+      fn();
+    };
+  }
+
   return (
     <div
       className="tl-pick absolute inset-x-0 bottom-0 z-20"
       data-open={open ? "true" : "false"}
+      data-dragging={dragging ? "true" : "false"}
       aria-hidden={!open}
+      style={{ ["--pick-dy" as string]: `${Math.max(0, dy)}px` }}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={() => {
+        touch.current = null;
+        setDragging(false);
+        setDy(0);
+      }}
     >
       <div className="tl-pick-bar bg-surface pb-[env(safe-area-inset-bottom)]">
-        <div className="relative flex h-14 items-center justify-center px-14">
+        <button
+          type="button"
+          onClick={tap(onInquire)}
+          disabled={!open}
+          className="flex w-full flex-col items-center pt-1.5"
+          aria-label={t(locale, "reception")}
+        >
+          <span className="h-1 w-10 rounded-full bg-lamp/55" aria-hidden />
+        </button>
+        <div className="relative flex h-12 items-center px-2 pr-[max(0.35rem,env(safe-area-inset-right))]">
           <button
             type="button"
-            onClick={onInquire}
+            onClick={tap(onInquire)}
             disabled={!open}
-            className="min-h-11 max-w-full truncate px-2 font-display text-[0.95rem] font-medium tracking-tight text-ink"
+            className="min-h-11 min-w-0 flex-1 truncate px-2 text-left font-display text-[0.95rem] font-medium tracking-tight text-ink"
           >
             <span key={label} className="tl-pick-ref">
               {label}
             </span>
+          </button>
+          <button
+            type="button"
+            onClick={tap(onInquire)}
+            disabled={!open}
+            className="mr-0.5 inline-flex min-h-11 items-center gap-0.5 rounded-sm px-2 text-2xs font-semibold tracking-[0.14em] text-lamp uppercase"
+          >
+            {t(locale, "reception")}
+            <ChevronUp size={14} strokeWidth={2} />
             {noted ? (
               <span className="sr-only">. {t(locale, "deskNotes")}</span>
             ) : null}
           </button>
           <button
             type="button"
-            onClick={clearSelection}
+            onClick={tap(clearSelection)}
             disabled={!open}
             aria-label={t(locale, "clearSelection")}
-            className="absolute top-1/2 right-[max(0.35rem,env(safe-area-inset-right))] flex size-11 -translate-y-1/2 items-center justify-center rounded-full text-muted transition-[color,transform,background-color] duration-150 ease-out hover:bg-lamp/10 hover:text-ink active:scale-90"
+            className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted transition-[color,transform,background-color] duration-150 ease-out hover:bg-lamp/10 hover:text-ink active:scale-90"
           >
             <X size={18} strokeWidth={1.75} />
           </button>

@@ -218,67 +218,74 @@
 .tl-verse {
   border-radius: 2px;
   scroll-margin-top: 1.25rem;
-  text-decoration: underline dotted;
-  text-decoration-color: transparent;
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 0.22em;
   background-color: transparent;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
   transition:
-    background-color var(--motion-medium) var(--ease-smooth-out),
-    text-decoration-color var(--motion-slow) var(--ease-smooth-out);
+    background-color var(--motion-quick) var(--ease-smooth-out),
+    box-shadow var(--motion-medium) var(--ease-smooth-out);
 }
 
 @media (hover: hover) {
   .tl-verse:hover {
-    background-color: color-mix(in oklab, var(--color-ink) 5%, transparent);
+    background-color: color-mix(in oklab, var(--color-ink) 4%, transparent);
   }
   .dark .tl-verse:hover {
-    background-color: color-mix(in oklab, var(--color-gold) 12%, transparent);
+    background-color: color-mix(in oklab, var(--color-gold) 8%, transparent);
   }
 }
 
 .tl-verse:active {
-  background-color: color-mix(in oklab, var(--color-lamp) 8%, transparent);
+  background-color: color-mix(in oklab, var(--color-lamp) 7%, transparent);
 }
 
-.tl-verse[aria-selected="true"] {
-  background-color: color-mix(in oklab, var(--color-lamp) 10%, transparent);
-  text-decoration-color: var(--color-lamp);
-}
-
-.dark .tl-verse[aria-selected="true"] {
-  background-color: color-mix(in oklab, var(--color-lamp) 16%, transparent);
-}
-
-.tl-first-verse[aria-selected="true"],
 .tl-first-verse:hover,
 .tl-first-verse:active {
   background-color: transparent;
-  text-decoration-color: transparent;
 }
 
-.tl-verse-ink {
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  text-decoration: underline dotted;
-  text-decoration-color: transparent;
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 0.22em;
-  background-color: transparent;
-  transition:
-    background-color var(--motion-medium) var(--ease-smooth-out),
-    text-decoration-color var(--motion-slow) var(--ease-smooth-out);
+.tl-verse[data-range-start="true"]::before,
+.tl-verse[data-range-end="true"]::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 0.92em;
+  border-radius: 1px;
+  background: var(--color-lamp);
+  box-shadow: 0 0 10px 1px color-mix(in oklab, var(--color-lamp) 65%, transparent);
+  vertical-align: -0.08em;
+  opacity: 0;
+  animation: tl-lamp-in var(--motion-medium) var(--ease-smooth-out) forwards;
 }
 
-.tl-first-verse[aria-selected="true"] .tl-verse-ink {
-  background-color: color-mix(in oklab, var(--color-lamp) 10%, transparent);
-  text-decoration-color: var(--color-lamp);
+.tl-verse[data-range-start="true"]::before {
+  margin-right: 0.38em;
 }
 
-.dark .tl-first-verse[aria-selected="true"] .tl-verse-ink {
-  background-color: color-mix(in oklab, var(--color-lamp) 16%, transparent);
+.tl-verse[data-range-end="true"]::after {
+  margin-left: 0.32em;
+}
+
+.tl-first-verse[data-range-start="true"]::before {
+  position: absolute;
+  left: 0.12em;
+  top: 0.48em;
+  margin: 0;
+}
+
+.tl-verse[data-range-start="true"] .verse-num,
+.tl-verse[data-range-end="true"] .verse-num {
+  color: var(--color-lamp);
+  text-shadow: 0 0 12px color-mix(in oklab, var(--color-lamp) 50%, transparent);
+}
+
+@keyframes tl-lamp-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .tl-quote {
@@ -349,7 +356,7 @@
 }
 
 .tl-sheet-up[data-open="true"] {
-  transform: none;
+  transform: translateY(var(--sheet-dy, 0px));
   opacity: 1;
   pointer-events: auto;
 }
@@ -625,7 +632,7 @@
 }
 
 .tl-back-top[data-nudge="true"] {
-  bottom: max(4.75rem, calc(env(safe-area-inset-bottom) + 4.1rem));
+  bottom: max(5.65rem, calc(env(safe-area-inset-bottom) + 5rem));
 }
 
 .tl-back-top[data-show="true"] {
@@ -657,9 +664,15 @@
 }
 
 .tl-pick[data-open="true"] {
-  transform: none;
+  transform: translateY(var(--pick-dy, 0px));
   opacity: 1;
   pointer-events: auto;
+  touch-action: none;
+}
+
+.tl-pick[data-dragging="true"],
+.tl-sheet-up[data-dragging="true"] {
+  transition: none;
 }
 
 .tl-pick-bar {
@@ -789,6 +802,7 @@
   .tl-hint,
   .tl-pick,
   .tl-pick-ref,
+  .tl-lamp-in,
   .tl-sheet,
   .tl-sheet-up,
   .tl-menu,

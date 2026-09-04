@@ -73,7 +73,7 @@ export function Reader({
 }) {
   const selected = useStudy((s) => s.selectedVerse);
   const selectedEnd = useStudy((s) => s.selectedEndVerse);
-  const pickVerse = useStudy((s) => s.pickVerse);
+  const tapVerse = useStudy((s) => s.tapVerse);
   const setVerse = useStudy((s) => s.setVerse);
   const nextChapter = useStudy((s) => s.nextChapter);
   const prevChapter = useStudy((s) => s.prevChapter);
@@ -276,6 +276,7 @@ export function Reader({
                 {chapter.verses.map((v, i) => {
                   const on = inRange(range, v.verse);
                   const isRangeStart = range != null && v.verse === range.start;
+                  const isRangeEnd = range != null && v.verse === range.end;
                   const noted = notedSet.has(v.verse);
                   const drop = i === 0 ? splitDropCap(v.text) : null;
                   return (
@@ -303,7 +304,7 @@ export function Reader({
                           if (e.shiftKey) e.preventDefault();
                         }}
                         onClick={() => {
-                          pickVerse(v.verse);
+                          tapVerse(v.verse, { ifTooLong: "jump" });
                         }}
                         onKeyDown={(e) => {
                           if (e.key !== "Enter" && e.key !== " ") return;
@@ -315,6 +316,7 @@ export function Reader({
                           drop && "tl-first-verse",
                         )}
                         data-range-start={isRangeStart ? "true" : undefined}
+                        data-range-end={isRangeEnd ? "true" : undefined}
                       >
                         {drop ? (
                           <>
