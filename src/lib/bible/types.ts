@@ -28,7 +28,8 @@ export type Tradition =
   | "eastern-patristic"
   | "western-patristic"
   | "scholastic"
-  | "puritan";
+  | "puritan"
+  | "arminian";
 
 export interface SourceCard {
   voice: string;
