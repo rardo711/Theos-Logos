@@ -627,6 +627,99 @@ describe("verse-scoped catalog rows", () => {
     const tokens = tokenize("election romans");
     assert.ok(scoreEntry(chapterPage, tokens, "ROM", 9, [], 11) > 0);
   });
+
+  it("boosts a pericope whose verses cover the inquired verse", () => {
+    const pericope = {
+      id: "calvin-romans-9-10-13",
+      voice: "John Calvin",
+      work: "Commentary on Romans",
+      tradition: "reformed" as const,
+      locus: "Romans 9:10-13",
+      url: "https://ccel.org/ccel/calvin/calcom38/calcom38.xiii.iii.html",
+      tags: ["romans", "calvin"],
+      books: ["ROM"],
+      chapters: [9],
+      verses: [10, 13] as [number, number],
+    };
+    const chapterPage = {
+      id: "henry-romans-9",
+      voice: "Matthew Henry",
+      work: "Commentary on the Whole Bible",
+      tradition: "reformed" as const,
+      locus: "Romans 9",
+      url: "https://ccel.org/ccel/henry/mhc6/mhc6.Rom.x.html",
+      tags: ["romans", "henry"],
+      books: ["ROM"],
+      chapters: [9],
+    };
+    const tokens = tokenize("election romans");
+    assert.ok(
+      scoreEntry(pericope, tokens, "ROM", 9, [], 11) >
+        scoreEntry(chapterPage, tokens, "ROM", 9, [], 11),
+      "verse-true Calvin page must outrank a chapter page",
+    );
+  });
+});
+
+describe("Phase C pericope index", () => {
+  it("pins calvin-rom-9 to Romans 9:1-5 and serves 9:11 from a sibling page", async () => {
+    const { attachWeakNtCatalog } = await import("./catalog-weak-nt.ts");
+    attachWeakNtCatalog();
+    const first = CATALOG.find((r) => r.id === "calvin-rom-9");
+    assert.ok(first, "calvin-rom-9 must remain");
+    assert.deepEqual(first.verses, [1, 5]);
+    assert.match(first.url, /calcom38\.xiii\.i\.html/);
+    const hits = mapCatalog({
+      question: "",
+      bookId: "ROM",
+      chapter: 9,
+      verse: 11,
+      verseText:
+        "though they were not yet born and had done nothing either good or bad, in order that God's purpose of election might continue",
+    });
+    const ids = hits.map((h) => h.id);
+    assert.equal(ids.includes("calvin-rom-9"), false, "9:1-5 cannot answer verse 11");
+    const calvin = hits.find((h) => h.voice === "John Calvin");
+    assert.ok(calvin, `expected a Calvin page for ROM 9:11, got ${ids.join(",")}`);
+    assert.ok(calvin.verses, calvin.id);
+    assert.ok(calvin.verses[0] <= 11 && calvin.verses[1] >= 11, calvin.locus);
+  });
+
+  it("indexes Catena Aurea per chapter for Matthew and Mark, not a reused section", async () => {
+    const { attachWeakNtCatalog } = await import("./catalog-weak-nt.ts");
+    attachWeakNtCatalog();
+    const mat5 = CATALOG.find((r) => r.id === "aquinas-catena-matthew-5");
+    assert.ok(mat5, "Matthew 5 catena chapter is missing");
+    assert.match(mat5.url, /catena1\.ii\.v\.html/);
+    assert.deepEqual(mat5.chapters, [5]);
+    const mrk10 = CATALOG.find((r) => r.id === "aquinas-catena-mark-10");
+    assert.ok(mrk10, "Mark 10 catena chapter is missing");
+    assert.match(mrk10.url, /catena2\.iii\.x\.html/);
+    assert.equal(
+      CATALOG.some((r) => r.id === "aquinas-catena-john-1"),
+      false,
+      "John 1 must not point at the Mark catena",
+    );
+  });
+
+  it("maps Chrysostom Homily 16 to Romans 9 from its opening lemma", async () => {
+    const { attachWeakNtCatalog } = await import("./catalog-weak-nt.ts");
+    attachWeakNtCatalog();
+    const h16 = CATALOG.find((r) => r.id === "chrysostom-rom-h16");
+    assert.ok(h16);
+    assert.ok(h16.chapters?.includes(9), `expected ch 9, got ${h16.chapters}`);
+    const hits = mapCatalog({
+      question: "",
+      bookId: "ROM",
+      chapter: 9,
+      verse: 11,
+      verseText: "God's purpose of election",
+    });
+    assert.ok(
+      hits.some((h) => h.id === "chrysostom-rom-h16"),
+      `expected chrysostom-rom-h16, got ${hits.map((h) => h.id).join(",")}`,
+    );
+  });
 });
 
 describe("New Testament coverage floor", () => {

@@ -498,7 +498,6 @@ const HAND: CatalogEntry[] = [
   e("calvin-john-1", "John Calvin", "Commentary on John", "reformed", "John 1:1–5", "https://ccel.org/ccel/calvin/calcom34/calcom34.vii.i.html", ["word", "logos", "beginning", "john", "calvin"], ["JHN"], [1]),
   e("calvin-john-3", "John Calvin", "Commentary on John", "reformed", "John 3", "https://ccel.org/ccel/calvin/calcom34/calcom34.ix.i.html", ["born", "spirit", "love", "world", "john", "calvin"], ["JHN"], [3]),
   e("henry-john-1", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "John 1", "https://ccel.org/ccel/henry/mhc5/mhc5.John.ii.html", ["word", "beginning", "john", "henry"], ["JHN"], [1]),
-  e("aquinas-catena-john-1", "Thomas Aquinas", "Catena Aurea on John", "catholic", "John 1", "https://www.ccel.org/ccel/aquinas/catena2.ii.i.html", ["word", "logos", "john", "aquinas", "thomas"], ["JHN"], [1]),
   e("athanasius-incarnation", "Athanasius", "On the Incarnation", "patristic", "De Incarnatione", "https://www.newadvent.org/fathers/2802.htm", ["word", "flesh", "incarnation", "made", "athanasius"], ["JHN"], [1]),
   e("origen-john-1", "Origen", "Commentary on John, Book 1", "patristic", "In Joannem 1", "https://www.newadvent.org/fathers/101501.htm", ["word", "logos", "beginning", "origen", "john"], ["JHN"], [1]),
   e("justin-dialogue-logos", "Justin Martyr", "Dialogue with Trypho 55–68", "patristic", "Dial. 55–68", "https://www.newadvent.org/fathers/01285.htm", ["word", "logos", "christ", "justin", "prophecy"], ["JHN"], [1]),
@@ -528,7 +527,7 @@ const HAND: CatalogEntry[] = [
   e("chrysostom-rom-h2", "John Chrysostom", "Homilies on Romans 2", "patristic", "Homily 2", "https://www.newadvent.org/fathers/210202.htm", ["romans", "wrath", "sin", "gentile"], ["ROM"], [1, 2]),
   e("chrysostom-heb-h1", "John Chrysostom", "Homilies on Hebrews 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/240201.htm", ["hebrews", "son", "angels", "word"], ["HEB"], [1]),
   e("calvin-gen-1", "John Calvin", "Commentary on Genesis", "reformed", "Genesis 1", "https://ccel.org/ccel/calvin/calcom01/calcom01.viii.i.html", ["creation", "beginning", "god", "calvin", "genesis"], ["GEN"], [1]),
-  e("calvin-matt-1", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Matthew 1", "https://ccel.org/ccel/calvin/calcom31/calcom31.ii.i.html", ["matthew", "son", "david", "calvin"], ["MAT"], [1]),
+  e("calvin-matt-1", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Matthew 1:1–17", "https://ccel.org/ccel/calvin/calcom31/calcom31.ix.xiv.html", ["matthew", "son", "david", "calvin"], ["MAT"], [1]),
   e("calvin-rom-8", "John Calvin", "Commentary on Romans", "reformed", "Romans 8", "https://ccel.org/ccel/calvin/calcom38/calcom38.xii.i.html", ["spirit", "adoption", "predestination", "romans", "calvin"], ["ROM"], [8]),
   e("calvin-rom-9", "John Calvin", "Commentary on Romans", "reformed", "Romans 9", "https://ccel.org/ccel/calvin/calcom38/calcom38.xiii.i.html", ["election", "reprobation", "mercy", "romans", "calvin"], ["ROM"], [9]),
   e("chrysostom-rom-h16", "John Chrysostom", "Homilies on Romans 16", "patristic", "Homily 16", "https://www.newadvent.org/fathers/210216.htm", ["election", "mercy", "will", "potter", "romans", "chrysostom"], ["ROM"], [9]),
@@ -969,6 +968,9 @@ export function scoreEntry(
     entry.chapters?.includes(chapter)
   ) {
     score += 20;
+  }
+  if (verse != null && entry.verses) {
+    score += 30;
   }
   return score;
 }

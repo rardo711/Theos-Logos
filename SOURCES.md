@@ -186,10 +186,13 @@ request from the allowlisted hosts in `retrieve-net.ts`.
 | John Gill, *Exposition of the Entire Bible* | biblehub.com | `commentaries/gill/{book}/{ch}.htm` | 27 NT books, per chapter |
 | Matthew Poole, *Annotations* | biblehub.com | `commentaries/poole/{book}/{ch}.htm` | 27 NT books, per chapter |
 | J. A. Bengel, *Gnomon* | biblehub.com | `commentaries/bengel/{book}/{ch}.htm` | 27 NT books, per chapter |
-| John Calvin, *Commentaries* | ccel.org | `calvin/calcom{31-45}/...` | Acts, Hebrews, Catholic Epistles per chapter; the rest by hand |
+| Adam Clarke, *Commentary* | biblehub.com | `commentaries/clarke/{book}/{ch}.htm` | 27 NT books, per chapter |
+| John Calvin, *Commentaries* | ccel.org | `calvin/calcom{31-45}/…` pericope pages from each volume `.toc.html` (Harmony of the Evangelists, John, Acts, Romans through Jude). One URL, first book named in the TOC; later gospels sit on `parallels`. | NT except 2–3 John and Revelation |
+| Thomas Aquinas, *Catena Aurea* | ccel.org | `aquinas/catena1.ii.{roman}.html` (Matthew), `catena2.iii.{roman}.html` (Mark), one page per chapter. Luke (`catena3`) and John (`catena4`) 404 on CCEL as of 2026-09-04. | Matthew, Mark |
+| John Chrysostom, NT homilies | newadvent.org | per-homily pages; chapter/verse from each homily's opening lemma, end inferred from the next homily. Galatians is one page per chapter. Works whose pages open with unreferenced scripture (most of John, 1 Corinthians, Hebrews) are not guessed. | Matthew, Romans, Acts, Galatians–Philemon; John / 1–2 Corinthians / Hebrews only where a lemma is printed |
 | John Wesley, *Explanatory Notes* | godrules.net | `wesley/wesleyrev{ch}.htm` | Revelation |
 | Geneva Bible notes | biblehub.com | `geneva/revelation/{ch}.htm` | Revelation |
-| Church Fathers | newadvent.org | per-homily and per-treatise pages | hand-indexed |
+| Church Fathers (other) | newadvent.org | per-homily and per-treatise pages | hand-indexed, including Augustine *Sermon on the Mount* books I–II (`16011.htm`, `16012.htm`) |
 
 ### Rules the index enforces
 
@@ -205,8 +208,12 @@ Two tests in `retrieve.test.ts` gate every catalog change:
 
 A row may carry an inclusive `verses` range when it covers one pericope
 rather than a whole chapter; `scoreEntry` then drops it for any verse outside
-that range. CCEL splits Calvin this way, so a chapter-scoped Calvin row lands
-on the wrong page for most of its chapter.
+that range and adds +30 when the inquired verse falls inside it. CCEL splits
+Calvin this way, so a chapter-scoped Calvin row used to land on the first
+pericope (Romans 9:11 fetched Calvin on 9:1–5). The committed files
+`src/lib/reception/data/calvin-ccel-sections.ts`, `catena-chapters.ts`, and
+`chrysostom-homilies.ts` were crawled from live TOCs on 2026-09-04; regenerate
+them with `node scripts/research/build-phase-c-data.mjs`.
 
 ### Verification
 
