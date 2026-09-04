@@ -5,6 +5,14 @@ import type { DeskSynthesis, SourceCard } from "../bible/types.ts";
 // synthesize.test.ts from running at all.
 import { geminiApiKey, generateGeminiJson } from "../ai/gemini.ts";
 import { validateReceptionOutput } from "./retrieve.ts";
+import { longQuotedSpans } from "./quoted.ts";
+
+/**
+ * Below this, a quoted span is a phrase rather than an attributed quotation:
+ * a word from the verse under discussion, a term of art. Above it, the span
+ * has to be found on the desk or in the verse before the reader sees it.
+ */
+const ATTRIBUTABLE_QUOTE = 24;
 
 export type SynthesisResult = DeskSynthesis & { caution?: string };
 
@@ -32,7 +40,7 @@ export function synthesistSystem(locale: Locale): string {
       ? "Write 'answer' in Spanish. Any quoted phrase copied from a card must stay in the source language of that card."
       : "Write 'answer' in English. Any quoted phrase copied from a card must stay in the source language of that card.";
 
-  return `You are a desk librarian for Theos Logos. You synthesize ONLY from the source cards already on the desk. You are not a preacher and you do not invent theology.\n\nSTRICT RULES:\n1. ZERO EXTERNAL MEMORY. Use only the cards in DESK CARDS. Do not recall Church Fathers, Reformers, or doctrines from training data.\n2. Do not claim \"most theologians\" or \"the church teaches\" unless the provided cards actually converge on that point. If they disagree, say they disagree and name the voices.\n3. Every material claim must name at least one card voice from DESK CARDS.\n4. If you include a quotation, it MUST be an exact substring of that card's quote field. Ellipses may only bridge clauses inside that same quote.\n5. Do not scrape the web. Do not add sources that are not on the desk.\n6. Two to five short paragraphs. No homily. No altar call.\n7. ${language}\n8. Return valid JSON only:\n{\n  \"answer\": string,\n  \"cited\": string[],\n  \"quotes\": [{ \"voice\": string, \"quote\": string }]\n}`;
+  return `You are a desk librarian for Theos Logos. You synthesize ONLY from the source cards already on the desk. You are not a preacher and you do not invent theology.\n\nSTRICT RULES:\n1. ZERO EXTERNAL MEMORY. Use only the cards in DESK CARDS. Do not recall Church Fathers, Reformers, or doctrines from training data.\n2. Do not claim \"most theologians\" or \"the church teaches\" unless the provided cards actually converge on that point. If they disagree, say they disagree and name the voices.\n3. Every material claim must name at least one card voice from DESK CARDS.\n4. If you include a quotation, it MUST be an exact substring of that card's quote field, or of the verse text given above. Ellipses may only bridge clauses inside that same quote. Quoting the verse under discussion is allowed and often clearest; quoting anything neither on a card nor in the verse is not.\n5. Do not scrape the web. Do not add sources that are not on the desk.\n6. Two to five short paragraphs. No homily. No altar call.\n7. ${language}\n8. Return valid JSON only:\n{\n  \"answer\": string,\n  \"cited\": string[],\n  \"quotes\": [{ \"voice\": string, \"quote\": string }]\n}`;
 }
 
 export function synthesistUser(opts: {
@@ -64,6 +72,7 @@ export function parseSynthesis(
   raw: string,
   cards: SourceCard[],
   question: string,
+  verseText = "",
 ): DeskSynthesis | null {
   const start = raw.indexOf("{");
   const end = raw.lastIndexOf("}");
@@ -80,8 +89,27 @@ export function parseSynthesis(
     const byVoice = new Map(
       cards.map((c) => [c.voice.trim().toLowerCase(), c] as const),
     );
-    const allQuotes = cards.map((c) => c.quote).join(" \n\n ");
+    // The verse under discussion belongs in the haystack. Quoting the passage
+    // being expounded is not a fabrication, and leaving it out rejected honest
+    // answers to the plainest question a reader can ask of a verse.
+    const grounds = [...cards.map((c) => c.quote), verseText]
+      .filter(Boolean)
+      .join(" \n\n ");
 
+    // What the reader actually sees is `answer`. It was never checked: a
+    // fabricated quotation inside the prose passed as long as the model left
+    // it out of the `quotes` array. Every attributable span in the answer now
+    // has to be found on the desk or in the verse.
+    for (const span of longQuotedSpans(answer, ATTRIBUTABLE_QUOTE)) {
+      if (!validateReceptionOutput({ status: "valid", quote: span }, grounds)) {
+        return null;
+      }
+    }
+
+    // `quotes` is metadata and is never rendered. A single unverifiable entry
+    // here used to discard a sound answer, which is how a correct synthesis
+    // became "could not be verified" on screen. Drop the entry instead; the
+    // prose it would have supported has already been checked above.
     if (Array.isArray(parsed.quotes)) {
       for (const q of parsed.quotes) {
         const quote = String(q.quote ?? "").trim();
@@ -89,9 +117,11 @@ export function parseSynthesis(
         const card = q.voice
           ? byVoice.get(String(q.voice).trim().toLowerCase())
           : undefined;
-        const haystack = card?.quote ?? allQuotes;
+        const haystack = card?.quote ?? grounds;
         if (!validateReceptionOutput({ status: "valid", quote }, haystack)) {
-          return null;
+          console.warn(
+            `[reception] dropped an unverifiable quotes[] entry from ${q.voice ?? "an unnamed voice"}`,
+          );
         }
       }
     }
@@ -157,7 +187,7 @@ export async function synthesizeFromDesk(opts: {
       temperature: 0.1,
       maxOutputTokens: 1400,
     });
-    const parsed = parseSynthesis(raw, opts.cards, question);
+    const parsed = parseSynthesis(raw, opts.cards, question, opts.verseText);
     if (!parsed) {
       return {
         question,
