@@ -56,32 +56,14 @@ function load(): Persisted {
 const THEME_LIGHT = "#fffdf8";
 const THEME_DARK = "#1c1814";
 
-function paintThemeColor(theme: Theme) {
-  const dark =
-    theme === "dark" ||
-    (theme === "auto" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches);
-  const color = dark ? THEME_DARK : THEME_LIGHT;
-  const metas = document.querySelectorAll('meta[name="theme-color"]');
-  if (metas.length === 0) {
-    const el = document.createElement("meta");
-    el.setAttribute("name", "theme-color");
-    el.setAttribute("content", color);
-    document.head.appendChild(el);
-    return;
-  }
-  metas.forEach((m) => m.setAttribute("content", color));
-}
-
 function applyTheme(theme: Theme) {
   const dark =
     theme === "dark" ||
     (theme === "auto" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.classList.toggle("dark", dark);
-  document.documentElement.style.colorScheme =
-    theme === "auto" ? "light dark" : dark ? "dark" : "light";
-  paintThemeColor(theme);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", dark ? THEME_DARK : THEME_LIGHT);
 }
 
 let themeBound = false;
