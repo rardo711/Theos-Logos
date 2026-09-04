@@ -110,6 +110,7 @@ const HUB_VOICES = [
   ["gill", "John Gill", "Exposition of the Entire Bible", "reformed", "gill"],
   ["poole", "Matthew Poole", "Annotations upon the Holy Bible", "puritan", "poole"],
   ["bengel", "Johann Albrecht Bengel", "Gnomon of the New Testament", "lutheran", "bengel"],
+  ["clarke", "Adam Clarke", "Commentary on the Holy Bible", "arminian", "clarke"],
 ] as const;
 
 function generated(have: Set<string>): CatalogEntry[] {
