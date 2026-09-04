@@ -187,16 +187,14 @@ export function renderWebManifest(hostHeader, site = {}) {
       start_url: "/",
       scope: "/",
       display: "standalone",
-      display_override: branded
-        ? ["fullscreen", "standalone", "minimal-ui"]
-        : ["standalone", "minimal-ui"],
+      display_override: ["standalone", "minimal-ui"],
       lang: "en",
       dir: "ltr",
       prefer_related_applications: false,
       background_color: branded ? "#f6f1e8" : "#000000",
+      theme_color: branded ? "#fffdf8" : "#000000",
       icons,
     };
-  if (!branded) manifest.theme_color = "#000000";
   return JSON.stringify(manifest, null, 2);
 }
 
@@ -214,10 +212,7 @@ export function grokPwaHeadTags(appName = DEFAULT_APP_NAME) {
       "apple-mobile-web-app-status-bar-style",
       '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">',
     ],
-    [
-      "theme-color",
-      '<meta name="theme-color" content="#fffdf8" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#1c1814" media="(prefers-color-scheme: dark)">',
-    ],
+    ["theme-color", '<meta name="theme-color" content="#fffdf8">'],
   ];
 }
 

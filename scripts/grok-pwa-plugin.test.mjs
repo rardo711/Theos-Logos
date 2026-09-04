@@ -507,7 +507,7 @@ test("site.json title brands the install name and icons", () => {
   assert.equal(manifest.short_name, "Theos Logos");
   assert.equal(manifest.id, "theos-logos");
   assert.equal(manifest.display, "standalone");
-  assert.equal(manifest.theme_color, "#821111");
+  assert.equal(manifest.theme_color, "#fffdf8");
   assert.ok(manifest.icons.some((i) => i.src === "/icon-192.png" && !i.purpose));
   assert.ok(manifest.icons.some((i) => i.src === "/icon-512.png" && !i.purpose));
   assert.ok(manifest.icons.some((i) => i.purpose === "maskable"));
