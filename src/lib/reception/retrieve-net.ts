@@ -2,7 +2,7 @@ import { type CatalogEntry, mapCatalog } from "./catalog.ts";
 import {
   type FetchedExtract,
   paragraphsFromHtml,
-  pickParagraphs,
+  pickVerseParagraphs,
 } from "./retrieve-html.ts";
 
 const HOSTS = new Set([
@@ -18,8 +18,25 @@ const HOSTS = new Set([
   "www.godrules.net",
 ]);
 
-const FETCH_MS = 7_000;
+const FETCH_MS = 10_000;
 const MAX_BYTES = 180_000;
+/**
+ * New Advent serves whole treatises on one page: the Enchiridion, single books
+ * of the City of God, and each Chrysostom homily. Section 98 of the Enchiridion
+ * sits well past the default cap, so the passage never reached the librarian.
+ */
+const MAX_BYTES_LONG_PAGE = 600_000;
+const LONG_PAGE_HOSTS = new Set(["www.newadvent.org", "newadvent.org"]);
+
+function byteCapFor(url: string): number {
+  try {
+    return LONG_PAGE_HOSTS.has(new URL(url).hostname)
+      ? MAX_BYTES_LONG_PAGE
+      : MAX_BYTES;
+  } catch {
+    return MAX_BYTES;
+  }
+}
 
 function allowed(url: string): boolean {
   try {
@@ -30,7 +47,10 @@ function allowed(url: string): boolean {
 }
 
 async function getPage(url: string): Promise<string | null> {
-  if (!allowed(url)) return null;
+  if (!allowed(url)) {
+    console.warn(`[reception] host not allowed: ${url}`);
+    return null;
+  }
   try {
     const res = await fetch(url, {
       headers: {
@@ -40,11 +60,17 @@ async function getPage(url: string): Promise<string | null> {
       },
       signal: AbortSignal.timeout(FETCH_MS),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn(`[reception] fetch ${res.status} ${url}`);
+      return null;
+    }
     const buf = await res.arrayBuffer();
-    const slice = buf.byteLength > MAX_BYTES ? buf.slice(0, MAX_BYTES) : buf;
+    const cap = byteCapFor(url);
+    const slice = buf.byteLength > cap ? buf.slice(0, cap) : buf;
     return new TextDecoder("utf-8", { fatal: false }).decode(slice);
-  } catch {
+  } catch (err) {
+    const why = err instanceof Error ? err.name : "unknown";
+    console.warn(`[reception] fetch failed (${why}) ${url}`);
     return null;
   }
 }
@@ -52,11 +78,18 @@ async function getPage(url: string): Promise<string | null> {
 export async function fetchEntry(
   entry: CatalogEntry,
   query: string,
+  target?: { chapter?: number; verse?: number | null },
 ): Promise<FetchedExtract | null> {
   for (const url of [entry.url, entry.altUrl].filter(Boolean) as string[]) {
     const html = await getPage(url);
     if (!html) continue;
-    const paras = pickParagraphs(paragraphsFromHtml(html), query, 4);
+    const paras = pickVerseParagraphs(
+      paragraphsFromHtml(html),
+      target?.chapter,
+      target?.verse ?? undefined,
+      query,
+      4,
+    );
     if (!paras.length) continue;
     return { entry, url, paragraphs: paras };
   }
@@ -67,6 +100,7 @@ export async function retrieveExtracts(opts: {
   question: string;
   bookId?: string;
   chapter?: number;
+  verse?: number | null;
   verseText?: string;
   mode?: "reception" | "traditions";
   excludeUrls?: string[];
@@ -82,6 +116,16 @@ export async function retrieveExtracts(opts: {
     (e) => !exclude.has(e.url) && !(e.altUrl && exclude.has(e.altUrl)),
   );
   const take = mapped.slice(0, limit);
-  const found = await Promise.all(take.map((e) => fetchEntry(e, query)));
-  return found.filter((x): x is FetchedExtract => x != null);
+  const found = await Promise.all(
+    take.map((e) =>
+      fetchEntry(e, query, { chapter: opts.chapter, verse: opts.verse }),
+    ),
+  );
+  const extracts = found.filter((x): x is FetchedExtract => x != null);
+  if (take.length && !extracts.length) {
+    console.warn(
+      `[reception] all ${take.length} catalog pages failed to yield extracts`,
+    );
+  }
+  return extracts;
 }

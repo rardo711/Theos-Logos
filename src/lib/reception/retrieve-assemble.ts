@@ -112,7 +112,10 @@ function cardsFromExtracts(extracts: FetchedExtract[]): SourceCard[] {
       paraphrased: false,
       url: ex.url,
       source: "generated",
-      grounded: true,
+      // Not grounded: nothing checked that this paragraph treats the verse.
+      // Only parseRetrieved, which validates the quote against the fetched
+      // chunk, may claim grounding.
+      grounded: false,
     });
     if (cards.length >= 4) break;
   }
@@ -212,6 +215,7 @@ export async function assembleFromSources(opts: {
   question: string;
   bookId?: string;
   chapter?: number;
+  verse?: number | null;
   verseText?: string;
   mode?: "reception" | "traditions";
   focus: string;
@@ -223,36 +227,51 @@ export async function assembleFromSources(opts: {
   const locale: Locale = opts.locale === "es" ? "es" : "en";
   const caution = t(locale, "cautionRetrieved");
   const focused = Boolean(opts.question.trim());
-  const fallback = {
+
+  // Unvalidated page paragraphs. Offered only when the librarian never ran —
+  // no key, or the call failed — and always labelled as unchecked.
+  const unchecked = {
     cards: focused ? [] : cardsFromExtracts(extracts),
-    caution: focused && !geminiApiKey()
-      ? t(locale, "cautionNoKey")
-      : caution,
+    caution: focused ? t(locale, "cautionNoKey") : t(locale, "cautionUnverified"),
   };
 
-  if (!geminiApiKey()) return fallback;
+  if (!geminiApiKey()) {
+    console.warn(
+      `[reception] no GEMINI_API_KEY; returning ${unchecked.cards.length} unchecked extract(s)`,
+    );
+    return unchecked;
+  }
 
+  let text: string;
   try {
-    const text = await generateGeminiJson({
+    text = await generateGeminiJson({
       system: librarianSystem(locale, focused),
       user: extractsPrompt(extracts, opts.focus, locale),
       temperature: 0.0,
       maxOutputTokens: 1600,
     });
-    const cards = parseRetrieved(text, extracts);
-    return {
-      cards: cards.length ? cards : fallback.cards,
-      caution: !cards.length && focused
-        ? (locale === "es"
-            ? "No se encontraron citas en las fuentes primarias recuperadas que respondan directamente a su consulta."
-            : "No direct quotations found in the retrieved primary sources that address this inquiry.")
-        : !cards.length
-          ? (locale === "es"
-              ? "No hay comentarios historicos verificados indexados para este versiculo todavia."
-              : "No verified historical commentary indexed for this verse yet.")
-          : caution,
-    };
-  } catch {
-    return fallback;
+  } catch (err) {
+    console.warn(
+      `[reception] librarian call failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    return unchecked;
   }
+
+  const cards = parseRetrieved(text, extracts);
+  if (cards.length) return { cards, caution };
+
+  // The librarian ran and rejected every chunk as not treating this verse.
+  // That verdict stands: handing back the first paragraph of each page is how
+  // commentary on a neighbouring verse used to reach the desk.
+  console.warn(
+    `[reception] librarian rejected all ${extracts.length} extract(s) for this verse`,
+  );
+  return {
+    cards: [],
+    caution: focused
+      ? locale === "es"
+        ? "No se encontraron citas en las fuentes primarias recuperadas que respondan directamente a su consulta."
+        : "No direct quotations found in the retrieved primary sources that address this inquiry."
+      : t(locale, "cautionNoVerseMatch"),
+  };
 }

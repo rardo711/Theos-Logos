@@ -212,6 +212,78 @@ export function paragraphsFromHtml(html: string): string[] {
   return out;
 }
 
+/**
+ * True when a paragraph announces the target verse. CCEL, New Advent and Bible
+ * Hub print the lemma in a handful of fixed shapes: a leading verse number, a
+ * "Ver./Verse" label, a "v./vv." abbreviation, or a chapter:verse reference.
+ * Ranges ("Ver. 6-13", "9:6-13") count when the target falls inside them.
+ */
+export function paragraphMentionsVerse(
+  text: string,
+  chapter: number,
+  verse: number,
+): boolean {
+  const trimmed = text.trim();
+
+  // "11. Though they were not yet born..." — the lemma opens the paragraph.
+  const lead = /^(\d{1,3})\s*[.:)\]]/.exec(trimmed);
+  if (lead && Number(lead[1]) === verse) return true;
+
+  // "Ver. 11", "Verse 11", "Verses 9-13", "v. 11", "vv. 9-13".
+  const labelled = /\b(?:ver(?:s|se|ses)?|vv?)\.?\s*(\d{1,3})(?:\s*[-\u2013\u2014]\s*(\d{1,3}))?/gi;
+  for (const m of trimmed.matchAll(labelled)) {
+    const start = Number(m[1]);
+    const end = m[2] ? Number(m[2]) : start;
+    if (verse >= start && verse <= Math.max(start, end)) return true;
+  }
+
+  // "9:11" or "9:6-13" — a full chapter:verse reference.
+  const refs = new RegExp(`\\b${chapter}:(\\d{1,3})(?:\\s*[-\\u2013\\u2014]\\s*(\\d{1,3}))?`, "g");
+  for (const m of trimmed.matchAll(refs)) {
+    const start = Number(m[1]);
+    const end = m[2] ? Number(m[2]) : start;
+    if (verse >= start && verse <= Math.max(start, end)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * Paragraph selection that knows which verse it is looking for. A page can
+ * cover a whole chapter (Henry) or a neighbouring pericope (Calvin on CCEL is
+ * split by pericope, so a chapter-level row can land on the wrong page); the
+ * marker bonus keeps the lemma paragraph ahead of a merely word-similar one.
+ * Falls back to plain token scoring when no paragraph names the verse.
+ */
+export function pickVerseParagraphs(
+  paragraphs: string[],
+  chapter: number | undefined,
+  verse: number | undefined,
+  query: string,
+  limit = 4,
+): string[] {
+  if (chapter == null || verse == null) {
+    return pickParagraphs(paragraphs, query, limit);
+  }
+  const tokens = tokenize(query);
+  const hits = paragraphs
+    .map((p) => {
+      if (isBoilerplate(p) || !isSubstantiveQuote(p)) return { p, score: 0 };
+      const lower = p.toLowerCase();
+      let score = 0;
+      for (const t of tokens) if (lower.includes(t)) score += 1;
+      if (paragraphMentionsVerse(p, chapter, verse)) score += 6;
+      return { p, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((x) => x.p);
+
+  if (hits.length) return hits;
+  return pickParagraphs(paragraphs, query, limit);
+}
+
 export function pickParagraphs(
   paragraphs: string[],
   query: string,

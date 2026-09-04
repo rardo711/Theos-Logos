@@ -5,6 +5,8 @@ import {
   htmlToText,
   paragraphsFromHtml,
   pickParagraphs,
+  pickVerseParagraphs,
+  paragraphMentionsVerse,
   parseRetrieved,
   validateReceptionOutput,
 } from "./retrieve.ts";
@@ -479,6 +481,55 @@ describe("html extract", () => {
     const paras = pickParagraphs(paragraphsFromHtml(html), "philosophy empty deceit");
     assert.equal(paras.length, 1);
     assert.ok(paras[0].toLowerCase().includes("colossae"));
+  });
+});
+
+describe("verse-anchored paragraph selection", () => {
+  const VERSE_4 =
+    "4. Who are Israelites, etc. Here the reason is now more plainly given, why the destruction of that people caused him so much anguish, namely because they were Israelites.";
+  const VERSE_11 =
+    "11. For the children being not yet born, neither having done any good or evil. The Apostle shows that the election of God is free, and depends on his calling alone, not on works.";
+  const UNRELATED =
+    "The Apostle here anticipates an objection, and the anguish of his mind is such that he would gladly be accursed for the sake of his kindred according to the flesh.";
+
+  it("recognises the lemma shapes these hosts actually print", () => {
+    assert.equal(paragraphMentionsVerse("11. For the children", 9, 11), true);
+    assert.equal(paragraphMentionsVerse("Ver. 11. Though they", 9, 11), true);
+    assert.equal(paragraphMentionsVerse("Verses 9-13 treat election", 9, 11), true);
+    assert.equal(paragraphMentionsVerse("See Romans 9:11 on this", 9, 11), true);
+    assert.equal(paragraphMentionsVerse("Romans 9:6-13 is one argument", 9, 11), true);
+    assert.equal(paragraphMentionsVerse("4. Who are Israelites", 9, 11), false);
+    assert.equal(paragraphMentionsVerse("111 is not a verse here", 9, 11), false);
+  });
+
+  it("puts the target verse ahead of a word-similar neighbour", () => {
+    const picked = pickVerseParagraphs(
+      [VERSE_4, UNRELATED, VERSE_11],
+      9,
+      11,
+      "though they were not yet born purpose of election",
+      2,
+    );
+    assert.equal(picked[0], VERSE_11, "verse 11 lemma must rank first");
+  });
+
+  it("falls back to token scoring when no paragraph names the verse", () => {
+    const picked = pickVerseParagraphs(
+      [VERSE_4, UNRELATED],
+      9,
+      11,
+      "Israelites anguish",
+      2,
+    );
+    assert.ok(picked.length > 0);
+  });
+
+  it("behaves like pickParagraphs when no verse is supplied", () => {
+    const paras = [VERSE_4, VERSE_11, UNRELATED];
+    assert.deepEqual(
+      pickVerseParagraphs(paras, undefined, undefined, "election", 2),
+      pickParagraphs(paras, "election", 2),
+    );
   });
 });
 

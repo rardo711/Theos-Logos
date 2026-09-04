@@ -260,6 +260,8 @@ const curated: Record<string, ReceptionResult> = {
       "patristic",
       "Christ did indeed weep, but it was because He willed to weep. He troubled Himself, because He had the power to be troubled or not to be troubled. He wept to teach men to weep with them that weep, and to show the reality of the human nature He had assumed.",
       "Augustine, In Joannem Tract. 49.19",
+      true,
+      undefined,
       "https://www.newadvent.org/fathers/1701049.htm",
     ),
     card(
@@ -268,6 +270,8 @@ const curated: Record<string, ReceptionResult> = {
       "reformed",
       "Christ does not weep out of an uncontrollable passion, but because He willingly clothes Himself with human affections in order to comfort us. By taking upon Himself our grief and tears, He proves Himself to be our true brother and compassionate high priest.",
       "Calvin, Comm. John 11:35",
+      true,
+      undefined,
       "https://ccel.org/ccel/calvin/calcom34/calcom34.xvii.i.html",
     ),
     card(
@@ -276,6 +280,8 @@ const curated: Record<string, ReceptionResult> = {
       "reformed",
       "Jesus wept. A very short verse, but it affords many useful instructions: that Jesus Christ was really and truly man, subject to the sinless infirmities of our nature; and that He is a compassionate Savior who enters into our sorrows.",
       "Henry, Comm. John 11:35",
+      true,
+      undefined,
       "https://ccel.org/ccel/henry/mhc5/mhc5.John.xii.html",
     ),
     card(
@@ -284,7 +290,6 @@ const curated: Record<string, ReceptionResult> = {
       "patristic",
       "He wept that He might check our immoderate tears; for in weeping He sanctified tears, showing that human nature is not forbidden to mourn, while simultaneously confirming that He who was truly God was also genuinely and fleshly man.",
       "Cyril of Alexandria, In Joannem 7.1",
-      "https://www.ccel.org/ccel/aquinas/catena4.html",
     ),
   ),
   "JHN-14-6": desk(

@@ -132,6 +132,10 @@ const EN = {
     "No public page in the committed index treated this as its subject. The librarian does not quote from memory.",
   cautionRetrieved:
     "Quoted from fetched public pages (New Advent, CCEL, Book of Concord). This set is not closed; a page can mis-transcribe. Verify against the Latin or printed edition before citing.",
+  cautionUnverified:
+    "These extracts were not checked against the verse by the librarian, so they may treat a neighbouring passage. Read them as page context, not as commentary on this verse.",
+  cautionNoVerseMatch:
+    "No fetched page treated this verse as its subject. The librarian will not hand you a paragraph about a different verse.",
 } as const;
 
 const ES: { [K in keyof typeof EN]: string } = {
@@ -265,6 +269,10 @@ const ES: { [K in keyof typeof EN]: string } = {
     "Ninguna página pública del índice trata esto como su tema. El bibliotecario no cita de memoria.",
   cautionRetrieved:
     "Citado de páginas públicas (New Advent, CCEL, Book of Concord). El conjunto no está cerrado; una página puede transcribir mal. Verifique contra el latín o la edición impresa antes de citar.",
+  cautionUnverified:
+    "El bibliotecario no verificó estos extractos contra el versículo, así que pueden tratar un pasaje vecino. Léalos como contexto de la página, no como comentario de este versículo.",
+  cautionNoVerseMatch:
+    "Ninguna página recuperada trata este versículo como su tema. El bibliotecario no le entregará un párrafo sobre otro versículo.",
 };
 
 export type Msg = keyof typeof EN;

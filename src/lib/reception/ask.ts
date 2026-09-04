@@ -68,6 +68,7 @@ async function retrieveForVerse(
     question,
     bookId: data.bookId,
     chapter: data.chapter,
+    verse: data.verse,
     verseText: data.verseText,
     mode: data.mode,
     locale,
@@ -83,7 +84,10 @@ async function retrieveForVerse(
       .join("\n"),
   });
 
-  if (!retrieved?.cards.length) return null;
+  if (!retrieved?.cards.length) {
+    console.warn(`[reception] no cards assembled for ${ref}`);
+    return null;
+  }
   return {
     source: "generated",
     cards: retrieved.cards.map((c) => ({ ...c, source: "generated" as const })),
