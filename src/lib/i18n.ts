@@ -116,6 +116,11 @@ const EN = {
   corpusLettersShort: "Letters",
   corpusRevelation: "Revelation",
   corpusRevelationShort: "Rev",
+  selectPassage: "Select passage",
+  selectPassageDone: "Done",
+  clearSelection: "Clear",
+  rangeTooLong: "A passage can span at most {n} verses.",
+  selectPassageHint: "Tap to extend the passage. Tap an end verse to trim it.",
   orientationHeading: "Orientation",
   orientationReadNext: "Read next",
   orientationCaution:
@@ -258,6 +263,11 @@ const ES: { [K in keyof typeof EN]: string } = {
   corpusLettersShort: "Cartas",
   corpusRevelation: "Apocalipsis",
   corpusRevelationShort: "Apoc",
+  selectPassage: "Seleccionar pasaje",
+  selectPassageDone: "Listo",
+  clearSelection: "Borrar",
+  rangeTooLong: "Un pasaje puede abarcar como máximo {n} versículos.",
+  selectPassageHint: "Toque para extender el pasaje. Toque un extremo para recortarlo.",
   orientationHeading: "Orientación",
   orientationReadNext: "Para leer",
   orientationCaution:

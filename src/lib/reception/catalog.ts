@@ -881,6 +881,7 @@ export function scoreEntry(
   chapter?: number,
   questionTokens?: string[],
   verse?: number | null,
+  verseEnd?: number | null,
 ): number {
   // Declared books that are not the inquired book cannot drown REV / 1JN / 2JN / 3JN / HEB.
   if (bookId && entry.books?.length && !entry.books.includes(bookId)) {
@@ -895,10 +896,13 @@ export function scoreEntry(
     return 0;
   }
   // A pericope page that does not reach the requested verse cannot answer it,
-  // however well its wording happens to overlap.
+  // however well its wording happens to overlap. With a range selected the
+  // test is overlap rather than containment: a page covering 14-18 answers a
+  // selection of 16-20, since the two share verses 16-18.
   if (verse != null && entry.verses) {
     const [start, end] = entry.verses;
-    if (verse < start || verse > end) return 0;
+    const selEnd = verseEnd ?? verse;
+    if (end < verse || start > selEnd) return 0;
   }
   // Book introductions, prefaces, and "Arguments" are scoped to chapter 1 / whole-book overview.
   // They must not match mid-book chapters (> 1).
@@ -974,6 +978,7 @@ export function mapCatalog(opts: {
   bookId?: string;
   chapter?: number;
   verse?: number | null;
+  verseEnd?: number | null;
   verseText?: string;
   mode?: "reception" | "traditions";
   limit?: number;
@@ -994,6 +999,7 @@ export function mapCatalog(opts: {
       opts.chapter,
       questionTokens,
       opts.verse,
+      opts.verseEnd,
     ),
   }))
     .filter((r) => r.score > 0)
@@ -1055,7 +1061,8 @@ export function mapCatalog(opts: {
       if (!e.books?.includes(opts.bookId!)) return false;
       if (opts.verse != null && e.verses) {
         const [start, end] = e.verses;
-        if (opts.verse < start || opts.verse > end) return false;
+        const selEnd = opts.verseEnd ?? opts.verse;
+        if (end < opts.verse || start > selEnd) return false;
       }
       if (opts.chapter == null || !e.chapters?.length) {
         if (opts.chapter != null && opts.chapter > 1 && isBookIntro(e)) return false;

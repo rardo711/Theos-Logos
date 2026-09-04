@@ -261,10 +261,15 @@ export function pickVerseParagraphs(
   verse: number | undefined,
   query: string,
   limit = 4,
+  verseEnd?: number | null,
 ): string[] {
   if (chapter == null || verse == null) {
     return pickParagraphs(paragraphs, query, limit);
   }
+  // With a range selected, a paragraph naming any verse in it is on target.
+  // Scoring only the first verse would rank commentary on 9:15 below an
+  // unrelated paragraph when the reader had selected 9:14-16.
+  const last = Math.max(verse, verseEnd ?? verse);
   const tokens = tokenize(query);
   const hits = paragraphs
     .map((p) => {
@@ -272,7 +277,12 @@ export function pickVerseParagraphs(
       const lower = p.toLowerCase();
       let score = 0;
       for (const t of tokens) if (lower.includes(t)) score += 1;
-      if (paragraphMentionsVerse(p, chapter, verse)) score += 6;
+      for (let v = verse; v <= last; v++) {
+        if (paragraphMentionsVerse(p, chapter, v)) {
+          score += 6;
+          break;
+        }
+      }
       return { p, score };
     })
     .filter((x) => x.score > 0)

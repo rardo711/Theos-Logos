@@ -8,6 +8,7 @@ import { attachWeakNtCatalog } from "./catalog-weak-nt";
 import { additionalSourceCards } from "./notes";
 import { synthesizeFromDesk } from "./synthesize";
 import { orientForVerse } from "./orient";
+import { formatReference } from "@/lib/bible/reference";
 import type { ReceptionResult, SourceCard } from "@/lib/bible/types";
 
 attachWeakNtCatalog();
@@ -17,6 +18,8 @@ type AskInput = {
   bookName: string;
   chapter: number;
   verse: number | null;
+  /** End of a contiguous selection. null for a single verse. */
+  verseEnd?: number | null;
   verseText: string;
   passage: string;
   question?: string;
@@ -31,9 +34,7 @@ type AskInput = {
 };
 
 function refOf(data: AskInput): string {
-  return data.verse != null
-    ? `${data.bookName} ${data.chapter}:${data.verse}`
-    : `${data.bookName} ${data.chapter}`;
+  return formatReference(data.bookName, data.chapter, data.verse, data.verseEnd);
 }
 
 /**
@@ -90,6 +91,7 @@ async function retrieveForVerse(
     bookId: data.bookId,
     chapter: data.chapter,
     verse: data.verse,
+    verseEnd: data.verseEnd,
     verseText: data.verseText,
     mode: data.mode,
     locale,
@@ -121,7 +123,7 @@ export const askReception = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<ReceptionResult> => {
     const locale: Locale = data.locale === "es" ? "es" : "en";
     const question = data.question?.trim() ?? "";
-    const ready = getCurated(data.bookId, data.chapter, data.verse);
+    const ready = getCurated(data.bookId, data.chapter, data.verse, data.verseEnd);
 
     if (!question) {
       if (ready && ready.cards.length > 0) {
@@ -187,7 +189,7 @@ export const gatherCommentaries = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<ReceptionResult> => {
     attachWeakNtCatalog();
     const locale: Locale = data.locale === "es" ? "es" : "en";
-    const ready = getCurated(data.bookId, data.chapter, data.verse);
+    const ready = getCurated(data.bookId, data.chapter, data.verse, data.verseEnd);
     const retrieved = await retrieveForVerse(
       {
         ...data,
@@ -250,6 +252,7 @@ export const synthesizeFromCards = createServerFn({ method: "POST" })
       bookName: string;
       chapter: number;
       verse: number | null;
+      verseEnd?: number | null;
       verseText: string;
       question?: string;
       locale?: Locale;
@@ -258,10 +261,12 @@ export const synthesizeFromCards = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const locale: Locale = data.locale === "es" ? "es" : "en";
-    const reference =
-      data.verse != null
-        ? `${data.bookName} ${data.chapter}:${data.verse}`
-        : `${data.bookName} ${data.chapter}`;
+    const reference = formatReference(
+      data.bookName,
+      data.chapter,
+      data.verse,
+      data.verseEnd,
+    );
     return synthesizeFromDesk({
       reference,
       verseText: data.verseText,

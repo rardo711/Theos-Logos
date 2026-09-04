@@ -217,6 +217,7 @@ export async function assembleFromSources(opts: {
   bookId?: string;
   chapter?: number;
   verse?: number | null;
+  verseEnd?: number | null;
   verseText?: string;
   mode?: "reception" | "traditions";
   focus: string;

@@ -3740,10 +3740,70 @@ export function getCuratedCardsForChapter(
   return cards;
 }
 
+/**
+ * Cards for a contiguous range, as one locus rather than a union of verses.
+ *
+ * Most of the collapsing is free: getCuratedCardsForVerse redirects a verse to
+ * its pericope's canonical verse, so a range sitting inside one pericope
+ * returns exactly what that single verse returns. The dedupe below uses the
+ * same voice+citation signature that function already uses, so a card reached
+ * from three different verses of the same pericope is still one card.
+ *
+ * What is not free is a range that spans pericopes: without a cap, Calvin can
+ * arrive three or four times, once per pericope page, and bury the other
+ * voices. Two per voice keeps a range from crowding out the breadth that makes
+ * the desk worth reading.
+ */
+const MAX_CARDS_PER_VOICE_IN_RANGE = 2;
+const MAX_CARDS_IN_RANGE = 10;
+
+export function getCuratedCardsForRange(
+  bookId: string,
+  chapter: number,
+  start: number,
+  end: number,
+): SourceCard[] {
+  if (end <= start) return getCuratedCardsForVerse(bookId, chapter, start);
+
+  // Collect once, in verse order, deduped on the same signature
+  // getCuratedCardsForVerse uses, so a card reached from three verses of one
+  // pericope is one card here too.
+  const seen = new Set<string>();
+  const collected: SourceCard[] = [];
+  for (let v = start; v <= end; v++) {
+    for (const card of getCuratedCardsForVerse(bookId, chapter, v)) {
+      const sig = `${card.voice}\0${card.citation}`;
+      if (seen.has(sig)) continue;
+      seen.add(sig);
+      collected.push(card);
+    }
+  }
+
+  // Breadth before depth. Taking the first ten in verse order would spend the
+  // whole panel on the voices that happen to comment early in the passage and
+  // drop the traditions that answer later in it, which is the opposite of what
+  // this desk is for. Every voice gets its first card before any voice gets a
+  // second.
+  const perVoice = new Map<string, number>();
+  const picked: SourceCard[] = [];
+  for (let pass = 1; pass <= MAX_CARDS_PER_VOICE_IN_RANGE; pass++) {
+    for (const card of collected) {
+      if (picked.length >= MAX_CARDS_IN_RANGE) return picked;
+      if (picked.includes(card)) continue;
+      const voiceKey = card.voice.trim().toLowerCase();
+      if ((perVoice.get(voiceKey) ?? 0) >= pass) continue;
+      perVoice.set(voiceKey, pass);
+      picked.push(card);
+    }
+  }
+  return picked;
+}
+
 export function getCurated(
   bookId: string,
   chapter: number,
   verse: number | null,
+  verseEnd?: number | null,
 ): ReceptionResult | null {
   if (verse == null) {
     const chapterCards = getCuratedCardsForChapter(bookId, chapter);
@@ -3757,7 +3817,10 @@ export function getCurated(
     return null;
   }
 
-  const cards = getCuratedCardsForVerse(bookId, chapter, verse);
+  const cards =
+    verseEnd != null && verseEnd > verse
+      ? getCuratedCardsForRange(bookId, chapter, verse, verseEnd)
+      : getCuratedCardsForVerse(bookId, chapter, verse);
   if (cards.length > 0) {
     return {
       source: "curated",
