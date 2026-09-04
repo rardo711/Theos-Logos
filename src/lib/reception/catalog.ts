@@ -19,7 +19,13 @@ export interface ReceptionSource {
     verseByVerse: boolean;
   };
   license: "public-domain";
-  sourceUrl: string;
+  /**
+   * Public page for the edition. Omitted when no public-domain edition has
+   * been verified: the desk prints no link rather than a wrong one.
+   */
+  sourceUrl?: string;
+  /** Provenance caveat for the docs. Not shown in the reader. */
+  sourceNote?: string;
 }
 
 export const RECEPTION_SOURCES: ReceptionSource[] = [
@@ -101,7 +107,8 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
       verseByVerse: true,
     },
     license: "public-domain",
-    sourceUrl: "https://ccel.org/ccel/luther/good_works/good_works.ii.html",
+    sourceNote:
+      "Wochenpredigten uber Matth. 5-7 (WA 32), preached 1530-32. No verified public page: the CCEL path good_works.ii.html is the 1520 Treatise on Good Works, a different work, and is deliberately not linked. The 1892 Charles A. Hay translation is public domain in print; the LW 21 rendering is not.",
   },
   {
     id: "poole-annotations-matthew",
@@ -129,7 +136,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "medieval",
     tradition: "scholastic",
     coverage: {
-      book: "Mark",
+      book: "MRK",
       chapters: Array.from({ length: 16 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -145,7 +152,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "reformation",
     tradition: "reformed",
     coverage: {
-      book: "Mark",
+      book: "MRK",
       chapters: Array.from({ length: 16 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -161,7 +168,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "puritan",
     tradition: "reformed",
     coverage: {
-      book: "Mark",
+      book: "MRK",
       chapters: Array.from({ length: 16 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -178,7 +185,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "patristic",
     tradition: "eastern-patristic",
     coverage: {
-      book: "Luke",
+      book: "LUK",
       chapters: Array.from({ length: 24 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -195,7 +202,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "patristic",
     tradition: "western-patristic",
     coverage: {
-      book: "Luke",
+      book: "LUK",
       chapters: Array.from({ length: 24 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -211,7 +218,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "medieval",
     tradition: "scholastic",
     coverage: {
-      book: "Luke",
+      book: "LUK",
       chapters: Array.from({ length: 24 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -227,7 +234,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "reformation",
     tradition: "reformed",
     coverage: {
-      book: "Luke",
+      book: "LUK",
       chapters: Array.from({ length: 24 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -243,7 +250,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "reformation",
     tradition: "lutheran",
     coverage: {
-      book: "Luke",
+      book: "LUK",
       chapters: [1],
       verseByVerse: true,
     },
@@ -259,7 +266,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "puritan",
     tradition: "reformed",
     coverage: {
-      book: "Luke",
+      book: "LUK",
       chapters: Array.from({ length: 24 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -276,7 +283,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "patristic",
     tradition: "eastern-patristic",
     coverage: {
-      book: "John",
+      book: "JHN",
       chapters: Array.from({ length: 21 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -292,7 +299,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "patristic",
     tradition: "western-patristic",
     coverage: {
-      book: "John",
+      book: "JHN",
       chapters: Array.from({ length: 21 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -308,7 +315,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "medieval",
     tradition: "scholastic",
     coverage: {
-      book: "John",
+      book: "JHN",
       chapters: Array.from({ length: 21 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -324,7 +331,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "reformation",
     tradition: "reformed",
     coverage: {
-      book: "John",
+      book: "JHN",
       chapters: Array.from({ length: 21 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -340,7 +347,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "reformation",
     tradition: "lutheran",
     coverage: {
-      book: "John",
+      book: "JHN",
       chapters: [1, 2, 3, 4, 6, 7, 8],
       verseByVerse: true,
     },
@@ -356,7 +363,7 @@ export const RECEPTION_SOURCES: ReceptionSource[] = [
     era: "puritan",
     tradition: "reformed",
     coverage: {
-      book: "John",
+      book: "JHN",
       chapters: Array.from({ length: 21 }, (_, i) => i + 1),
       verseByVerse: true,
     },
@@ -413,60 +420,24 @@ const HAND: CatalogEntry[] = [
 
   // Synoptics / Hebrews / Genesis / Romans
   e("chrysostom-matt-h1", "John Chrysostom", "Homilies on Matthew 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/200101.htm", ["matthew", "son", "david", "gospel"], ["MAT"], [1]),
-  e("chrysostom-matt-h4", "John Chrysostom", "Homilies on Matthew (Homily 4)", "eastern-patristic", "Homily 4", "https://www.ccel.org/ccel/schaff/npnf110.html", ["jesus", "save", "sins", "virgin", "immanuel", "matthew"], ["MAT"], [1]),
-  e("chrysostom-matt-h15", "John Chrysostom", "Homilies on Matthew (Homily 15)", "eastern-patristic", "Homily 15", "https://www.ccel.org/ccel/schaff/npnf110.html", ["beatitudes", "poor", "spirit", "humility", "matthew"], ["MAT"], [5]),
-  e("chrysostom-matt-h54", "John Chrysostom", "Homilies on Matthew (Homily 54)", "eastern-patristic", "Homily 54", "https://www.ccel.org/ccel/schaff/npnf110.html", ["rock", "peter", "church", "confession", "matthew"], ["MAT"], [16]),
-  e("chrysostom-matt-h90", "John Chrysostom", "Homilies on Matthew (Homily 90)", "eastern-patristic", "Homily 90", "https://www.ccel.org/ccel/schaff/npnf110.html", ["commission", "disciples", "baptize", "authority", "omnipresence", "matthew"], ["MAT"], [28]),
-  e("augustine-sermon-mount-1", "Augustine of Hippo", "Our Lord's Sermon on the Mount", "western-patristic", "De Sermone Domini 1", "https://www.ccel.org/ccel/schaff/npnf106.html", ["beatitudes", "poor", "spirit", "law", "fulfill", "grace", "matthew"], ["MAT"], [5, 6, 7]),
-  e("aquinas-catena-matt-1", "Thomas Aquinas", "Catena Aurea on Matthew 1", "scholastic", "Catena Aurea Matt 1", "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html", ["virgin", "immanuel", "jerome", "augustine", "matthew"], ["MAT"], [1]),
-  e("aquinas-catena-matt-5", "Thomas Aquinas", "Catena Aurea on Matthew 5", "scholastic", "Catena Aurea Matt 5", "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html", ["beatitudes", "poor", "spirit", "law", "fulfill", "matthew"], ["MAT"], [5]),
-  e("aquinas-catena-matt-16", "Thomas Aquinas", "Catena Aurea on Matthew 16", "scholastic", "Catena Aurea Matt 16", "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html", ["rock", "peter", "church", "confession", "matthew"], ["MAT"], [16]),
-  e("aquinas-catena-matt-28", "Thomas Aquinas", "Catena Aurea on Matthew 28", "scholastic", "Catena Aurea Matt 28", "https://www.ccel.org/ccel/aquinas/catena1.ii.xi.html", ["commission", "nations", "trinity", "authority", "matthew"], ["MAT"], [28]),
-  e("calvin-matt-5", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Matthew 5", "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html", ["beatitudes", "poor", "spirit", "law", "gospel", "matthew"], ["MAT"], [5]),
-  e("calvin-matt-16", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Matthew 16", "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html", ["rock", "peter", "confession", "foundation", "matthew"], ["MAT"], [16]),
-  e("calvin-matt-28", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Matthew 28", "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html", ["commission", "dominion", "baptize", "sacrament", "matthew"], ["MAT"], [28]),
-  e("luther-sermon-mount-5", "Martin Luther", "Commentary on the Sermon on the Mount", "lutheran", "Sermon on Mount Matt 5", "https://ccel.org/ccel/luther/good_works/good_works.ii.html", ["poor", "spirit", "faith", "law", "fulfill", "matthew"], ["MAT"], [5, 6, 7]),
-  e("poole-annotations-matt-1", "Matthew Poole", "Annotations upon the Holy Bible", "puritan", "Annotations Matt 1", "https://www.ccel.org/ccel/poole/annotations.html", ["jesus", "savior", "immanuel", "matthew"], ["MAT"], [1]),
-  e("poole-annotations-matt-5", "Matthew Poole", "Annotations upon the Holy Bible", "puritan", "Annotations Matt 5", "https://www.ccel.org/ccel/poole/annotations.html", ["beatitudes", "poor", "law", "fulfill", "matthew"], ["MAT"], [5]),
-  e("poole-annotations-matt-16", "Matthew Poole", "Annotations upon the Holy Bible", "puritan", "Annotations Matt 16", "https://www.ccel.org/ccel/poole/annotations.html", ["rock", "peter", "church", "confession", "matthew"], ["MAT"], [16]),
-  e("poole-annotations-matt-28", "Matthew Poole", "Annotations upon the Holy Bible", "puritan", "Annotations Matt 28", "https://www.ccel.org/ccel/poole/annotations.html", ["commission", "nations", "presence", "matthew"], ["MAT"], [28]),
 
   // Mark
-  e("aquinas-catena-mark-10", "Thomas Aquinas", "Catena Aurea on Mark 10", "scholastic", "Catena Aurea Mark 10:45", "https://www.ccel.org/ccel/aquinas/catena2.iii.iv.html", ["ransom", "servant", "minister", "many", "mark"], ["MRK"], [10]),
-  e("calvin-mark-10", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Mark 10:45", "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html", ["ransom", "atonement", "substitution", "redemption", "mark"], ["MRK"], [10]),
-  e("poole-mark-10", "Matthew Poole", "Annotations upon the Holy Bible: Mark", "puritan", "Annotations Mark 10:45", "https://www.ccel.org/ccel/poole/annotations.html", ["ransom", "satisfaction", "justice", "mark"], ["MRK"], [10]),
-  e("aquinas-catena-mark-15", "Thomas Aquinas", "Catena Aurea on Mark 15", "scholastic", "Catena Aurea Mark 15:34", "https://www.ccel.org/ccel/aquinas/catena2.iii.iv.html", ["forsaken", "cross", "bede", "passion", "mark"], ["MRK"], [15]),
-  e("calvin-mark-15", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Mark 15:34", "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html", ["forsaken", "cross", "judgment", "substitution", "mark"], ["MRK"], [15]),
-  e("poole-mark-15", "Matthew Poole", "Annotations upon the Holy Bible: Mark", "puritan", "Annotations Mark 15:34", "https://www.ccel.org/ccel/poole/annotations.html", ["forsaken", "cross", "curse", "wrath", "mark"], ["MRK"], [15]),
 
   // Luke
-  e("ambrose-luke-1", "Ambrose of Milan", "Exposition of the Holy Gospel according to Saint Luke", "patristic", "Expos. Evang. Lucam 2.19", "https://www.ccel.org/ccel/schaff/npnf210.html", ["magnificat", "mary", "soul", "rejoice", "grace", "luke"], ["LUK"], [1]),
   e("luther-magnificat-1", "Martin Luther", "Exposition of the Magnificat (1521)", "lutheran", "The Magnificat (1521)", "https://www.ccel.org/ccel/luther/magnificat.html", ["magnificat", "mary", "lowliness", "mercy", "grace", "luke"], ["LUK"], [1]),
-  e("calvin-luke-1", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Luke 1:46–55", "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html", ["magnificat", "mary", "election", "mercy", "luke"], ["LUK"], [1]),
-  e("poole-luke-1", "Matthew Poole", "Annotations: Luke", "puritan", "Annotations Luke 1:46–48", "https://www.ccel.org/ccel/poole/annotations.html", ["magnificat", "savior", "lowliness", "luke"], ["LUK"], [1]),
   e("cyril-luke-18", "Cyril of Alexandria", "Commentary on the Gospel of Saint Luke", "patristic", "Homily 120 on Luke", "https://www.ccel.org/ccel/pearse/morefathers/files/cyril_on_luke_13_sermons_135_145.htm", ["pharisee", "publican", "pride", "humility", "justified", "luke"], ["LUK"], [18]),
-  e("calvin-luke-18", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Luke 18:13–14", "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html", ["pharisee", "tax collector", "justification", "faith", "mercy", "luke"], ["LUK"], [18]),
-  e("aquinas-catena-luke-18", "Thomas Aquinas", "Catena Aurea on Luke 18", "scholastic", "Catena Aurea Luke 18:13–14", "https://www.ccel.org/ccel/aquinas/catena3.html", ["pharisee", "publican", "contrition", "augustine", "luke"], ["LUK"], [18]),
-  e("poole-luke-18", "Matthew Poole", "Annotations: Luke", "puritan", "Annotations Luke 18:13–14", "https://www.ccel.org/ccel/poole/annotations.html", ["pharisee", "publican", "justified", "sinner", "mercy", "luke"], ["LUK"], [18]),
-  e("aquinas-catena-luke-23", "Thomas Aquinas", "Catena Aurea on Luke 23", "scholastic", "Catena Aurea Luke 23:42–43", "https://www.ccel.org/ccel/aquinas/catena3.html", ["thief", "paradise", "cross", "chrysostom", "faith", "luke"], ["LUK"], [23]),
-  e("calvin-luke-23", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Luke 23:42–43", "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html", ["thief", "paradise", "justification", "faith", "grace", "luke"], ["LUK"], [23]),
-  e("ambrose-luke-23", "Ambrose of Milan", "Exposition of the Holy Gospel according to Saint Luke", "patristic", "Expos. Evang. Lucam 10.121", "https://www.ccel.org/ccel/schaff/npnf210.html", ["thief", "paradise", "kingdom", "life", "luke"], ["LUK"], [23]),
-  e("poole-luke-23", "Matthew Poole", "Annotations: Luke", "puritan", "Annotations Luke 23:42–43", "https://www.ccel.org/ccel/poole/annotations.html", ["thief", "paradise", "repentance", "mercy", "luke"], ["LUK"], [23]),
 
   // John additions
   e("calvin-john-6", "John Calvin", "Commentary on John 6", "reformed", "John 6:44", "https://ccel.org/ccel/calvin/calcom34/calcom34.xii.vii.html", ["draw", "father", "faith", "regeneration", "john"], ["JHN"], [6]),
-  e("aquinas-catena-john-6", "Thomas Aquinas", "Catena Aurea on John 6", "scholastic", "Catena Aurea John 6:44", "https://www.ccel.org/ccel/aquinas/catena4.html", ["draw", "father", "resurrection", "chrysostom", "john"], ["JHN"], [6]),
   e("calvin-john-10", "John Calvin", "Commentary on John 10", "reformed", "John 10:11–15", "https://ccel.org/ccel/calvin/calcom34/calcom34.xvi.iii.html", ["shepherd", "sheep", "hireling", "life", "wolf", "john"], ["JHN"], [10]),
   e("augustine-john-tr46", "Augustine of Hippo", "Tractates on the Gospel of John 46", "patristic", "Tractate 46", "https://www.newadvent.org/fathers/1701046.htm", ["shepherd", "door", "sheep", "life", "wolf", "hireling", "john"], ["JHN"], [10]),
   e("chrysostom-john-h59", "John Chrysostom", "Homilies on the Gospel of Saint John 59", "patristic", "Homily 59", "https://www.newadvent.org/fathers/240159.htm", ["shepherd", "door", "sheep", "pastor", "john"], ["JHN"], [10]),
   e("calvin-john-11", "John Calvin", "Commentary on John 11", "reformed", "John 11:33–37", "https://ccel.org/ccel/calvin/calcom34/calcom34.xvii.i.html", ["wept", "lazarus", "tears", "humanity", "compassion", "john"], ["JHN"], [11]),
   e("augustine-john-tr49", "Augustine of Hippo", "Tractates on the Gospel of John 49", "patristic", "Tractate 49", "https://www.newadvent.org/fathers/1701049.htm", ["wept", "lazarus", "tears", "resurrection", "humanity", "john"], ["JHN"], [11]),
   e("calvin-john-14", "John Calvin", "Commentary on John 14", "reformed", "John 14:6", "https://ccel.org/ccel/calvin/calcom35/calcom35.iv.i.html", ["way", "truth", "life", "father", "mediator", "john"], ["JHN"], [14]),
-  e("aquinas-catena-john-14", "Thomas Aquinas", "Catena Aurea on John 14", "scholastic", "Catena Aurea John 14:6", "https://www.ccel.org/ccel/aquinas/catena4.html", ["way", "truth", "life", "augustine", "divinity", "humanity", "john"], ["JHN"], [14]),
   e("augustine-john-tr69", "Augustine of Hippo", "Tractates on the Gospel of John 69", "patristic", "Tractate 69", "https://www.newadvent.org/fathers/1701069.htm", ["way", "truth", "life", "walk", "john"], ["JHN"], [14]),
   e("calvin-john-19", "John Calvin", "Commentary on John 19", "reformed", "John 19:30", "https://ccel.org/ccel/calvin/calcom35/calcom35.ix.vii.html", ["finished", "redemption", "sacrifice", "cross", "satisfaction", "john"], ["JHN"], [19]),
   e("augustine-john-tr119", "Augustine of Hippo", "Tractates on the Gospel of John 119", "patristic", "Tractate 119", "https://www.newadvent.org/fathers/1701119.htm", ["finished", "fulfilled", "prophecy", "cross", "john"], ["JHN"], [19]),
-  e("aquinas-catena-john-19", "Thomas Aquinas", "Catena Aurea on John 19", "scholastic", "Catena Aurea John 19:30", "https://www.ccel.org/ccel/aquinas/catena4.html", ["finished", "chrysostom", "victory", "cross", "john"], ["JHN"], [19]),
   e("chrysostom-rom-h1", "John Chrysostom", "Homilies on Romans 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/210201.htm", ["romans", "gospel", "paul", "faith"], ["ROM"], [1]),
   e("chrysostom-rom-h2", "John Chrysostom", "Homilies on Romans 2", "patristic", "Homily 2", "https://www.newadvent.org/fathers/210202.htm", ["romans", "wrath", "sin", "gentile"], ["ROM"], [1, 2]),
   e("chrysostom-heb-h1", "John Chrysostom", "Homilies on Hebrews 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/240201.htm", ["hebrews", "son", "angels", "word"], ["HEB"], [1]),
@@ -477,7 +448,6 @@ const HAND: CatalogEntry[] = [
   e("chrysostom-rom-h16", "John Chrysostom", "Homilies on Romans 16", "patristic", "Homily 16", "https://www.newadvent.org/fathers/210216.htm", ["election", "mercy", "will", "potter", "romans", "chrysostom"], ["ROM"], [9]),
   e("augustine-enchiridion-rom9", "Augustine", "Enchiridion", "patristic", "Enchiridion 98", "https://www.newadvent.org/fathers/1302.htm", ["mercy", "will", "romans", "predestination", "augustine"], ["ROM"], [9]),
   e("henry-gen-1", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Genesis 1", "https://ccel.org/ccel/henry/mhc1/mhc1.Gen.ii.html", ["creation", "beginning", "genesis", "henry"], ["GEN"], [1]),
-  e("henry-rom-9", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Romans 9", "https://ccel.org/ccel/henry/mhc5/mhc5.Rom.ix.html", ["election", "mercy", "romans", "henry"], ["ROM"], [9]),
   e("basil-hexaemeron-1", "Basil of Caesarea", "Hexaemeron, Homily 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/32011.htm", ["creation", "beginning", "genesis", "basil"], ["GEN"], [1]),
 
   // Trinity, Christology, Spirit
@@ -507,7 +477,6 @@ const HAND: CatalogEntry[] = [
   e("augustine-spirit-letter", "Augustine", "On the Spirit and the Letter", "patristic", "De spiritu et littera", "https://www.newadvent.org/fathers/1502.htm", ["grace", "law", "letter", "spirit", "sin", "justification"]),
   e("augustine-nature-grace", "Augustine", "On Nature and Grace", "patristic", "De natura et gratia", "https://www.newadvent.org/fathers/1503.htm", ["grace", "nature", "sin", "pelagius", "augustine"]),
   e("augustine-grace-freewill", "Augustine", "On Grace and Free Will", "patristic", "De gratia et libero arbitrio", "https://www.newadvent.org/fathers/1510.htm", ["grace", "will", "free", "sin", "augustine"]),
-  e("augustine-enchiridion", "Augustine", "Enchiridion", "patristic", "Enchiridion", "https://www.newadvent.org/fathers/1302.htm", ["faith", "hope", "love", "sin", "grace", "augustine"]),
   e("aquinas-st-doctrine", "Thomas Aquinas", "Summa Theologiae I q.1", "catholic", "ST I q.1", "https://www.newadvent.org/summa/1001.htm", ["sacred", "doctrine", "theology", "aquinas", "thomas"]),
   e("aquinas-st-god", "Thomas Aquinas", "Summa Theologiae I q.2", "catholic", "ST I q.2", "https://www.newadvent.org/summa/1002.htm", ["god", "existence", "proofs", "aquinas", "thomas"]),
   e("aquinas-st-names", "Thomas Aquinas", "Summa Theologiae I q.13", "catholic", "ST I q.13", "https://www.newadvent.org/summa/1013.htm", ["names", "god", "analogy", "aquinas", "thomas"]),
@@ -550,7 +519,6 @@ const HAND: CatalogEntry[] = [
   // NT book floor — Calvin + Henry Arguments/intros (fallback only; chapter pages below treat the verse as subject)
   e("calvin-matthew", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom31/calcom31.viii.html", ["matthew", "gospel", "calvin"], ["MAT"]),
   e("henry-matthew", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Matthew intro", "https://ccel.org/ccel/henry/mhc5/mhc5.Matt.i.html", ["matthew", "gospel", "henry"], ["MAT"]),
-  e("chrysostom-matthew", "John Chrysostom", "Homilies on Matthew 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/200101.htm", ["matthew", "gospel", "chrysostom"], ["MAT"], [1]),
 
   e("calvin-mark", "John Calvin", "Commentary on a Harmony of the Evangelists", "reformed", "Mark 1:1–6", "https://ccel.org/ccel/calvin/calcom31/calcom31.ix.xxvii.html", ["mark", "gospel", "calvin"], ["MRK"], [1]),
   e("henry-mark", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Mark intro", "https://ccel.org/ccel/henry/mhc5/mhc5.Mark.i.html", ["mark", "gospel", "henry"], ["MRK"]),
@@ -560,7 +528,6 @@ const HAND: CatalogEntry[] = [
 
   e("calvin-john", "John Calvin", "Commentary on John", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom34/calcom34.vi.html", ["john", "gospel", "calvin"], ["JHN"]),
   e("henry-john", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "John intro", "https://ccel.org/ccel/henry/mhc5/mhc5.John.i.html", ["john", "gospel", "henry"], ["JHN"]),
-  e("chrysostom-john", "John Chrysostom", "Homilies on John 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/240101.htm", ["john", "gospel", "chrysostom"], ["JHN"], [1]),
 
   e("calvin-acts", "John Calvin", "Commentary on Acts", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom36/calcom36.vii.html", ["acts", "apostles", "calvin"], ["ACT"]),
   e("henry-acts", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Acts intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Acts.i.html", ["acts", "apostles", "henry"], ["ACT"]),
@@ -568,7 +535,6 @@ const HAND: CatalogEntry[] = [
 
   e("calvin-romans", "John Calvin", "Commentary on Romans", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom38/calcom38.iv.html", ["romans", "paul", "calvin"], ["ROM"]),
   e("henry-romans", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Romans intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Rom.i.html", ["romans", "paul", "henry"], ["ROM"]),
-  e("chrysostom-romans", "John Chrysostom", "Homilies on Romans 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/210201.htm", ["romans", "paul", "chrysostom"], ["ROM"], [1]),
 
   e("calvin-1corinthians", "John Calvin", "Commentary on 1 Corinthians", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom39/calcom39.vii.html", ["corinthians", "paul", "calvin"], ["1CO"]),
   e("henry-1corinthians", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "1 Corinthians intro", "https://ccel.org/ccel/henry/mhc6/mhc6.iCor.i.html", ["corinthians", "paul", "henry"], ["1CO"]),
@@ -620,7 +586,6 @@ const HAND: CatalogEntry[] = [
 
   e("calvin-hebrews", "John Calvin", "Commentary on Hebrews", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom44/calcom44.vi.html", ["hebrews", "calvin"], ["HEB"]),
   e("henry-hebrews", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Hebrews intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Heb.i.html", ["hebrews", "henry"], ["HEB"]),
-  e("chrysostom-hebrews", "John Chrysostom", "Homilies on Hebrews 1", "patristic", "Homily 1", "https://www.newadvent.org/fathers/240201.htm", ["hebrews", "chrysostom"], ["HEB"], [1]),
 
   e("calvin-james", "John Calvin", "Commentary on James", "reformed", "Argument", "https://ccel.org/ccel/calvin/calcom45/calcom45.vi.i.html", ["james", "calvin"], ["JAS"]),
   e("henry-james", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "James intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Jam.i.html", ["james", "henry"], ["JAS"]),
@@ -642,7 +607,6 @@ const HAND: CatalogEntry[] = [
   e("henry-jude", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Jude intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Ju.i.html", ["jude", "henry"], ["JUD"]),
 
   e("henry-revelation", "Matthew Henry", "Commentary on the Whole Bible", "reformed", "Revelation intro", "https://ccel.org/ccel/henry/mhc6/mhc6.Rev.i.html", ["revelation", "henry"], ["REV"]),
-  e("victorinus-revelation", "Victorinus", "Commentary on the Apocalypse", "patristic", "In Apocalypsin", "https://www.newadvent.org/fathers/0712.htm", ["revelation", "apocalypse", "victorinus"], ["REV"], [1]),
 
 
   // NT chapter pages — Arguments/intros are not enough; inquire needs CHAPTER public pages

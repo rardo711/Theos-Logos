@@ -18,6 +18,38 @@ describe("primary-source mapping", () => {
     assert.equal(new Set(ids).size, ids.length);
   });
 
+  it("never indexes one page under two ids", async () => {
+    const { attachWeakNtCatalog } = await import("./catalog-weak-nt.ts");
+    attachWeakNtCatalog();
+    const byUrl = new Map<string, string[]>();
+    for (const row of CATALOG) {
+      byUrl.set(row.url, [...(byUrl.get(row.url) ?? []), row.id]);
+    }
+    const dupes = [...byUrl.entries()].filter(([, ids]) => ids.length > 1);
+    assert.deepEqual(
+      dupes.map(([url, ids]) => `${url} <- ${ids.join(", ")}`),
+      [],
+      "one page per row: a duplicate URL burns a fetch slot on a page already read",
+    );
+  });
+
+  it("never indexes a volume index or title page", async () => {
+    const { attachWeakNtCatalog } = await import("./catalog-weak-nt.ts");
+    attachWeakNtCatalog();
+    // These shapes are tables of contents, not commentary on any verse.
+    const INDEX_PAGE = [
+      /\/schaff\/npnf\d+\.html$/,
+      /\/aquinas\/catena\d+\.html$/,
+      /\/poole\/annotations\.html$/,
+      /\/calcom\d+\/calcom\d+\.i\.html$/,
+      /\/luther\/good_works\//,
+    ];
+    const offenders = CATALOG.filter((row) =>
+      INDEX_PAGE.some((re) => re.test(row.url)),
+    ).map((row) => `${row.id} -> ${row.url}`);
+    assert.deepEqual(offenders, []);
+  });
+
   it("maps Aquinas + predestination to ST I q.23", () => {
     const hits = mapCatalog({
       question: "what did Aquinas say about predestination",
@@ -598,7 +630,7 @@ describe("matthew reception desk", () => {
 describe("mark reception desk", () => {
   it("provides Scholastic and Reformed sources for Mark", async () => {
     const { RECEPTION_SOURCES } = await import("./catalog.ts");
-    const mrkSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "Mark");
+    const mrkSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "MRK");
     assert.ok(mrkSources.length >= 3, `found ${mrkSources.length} Mark sources`);
 
     const ids = new Set(mrkSources.map((s) => s.id));
@@ -633,7 +665,7 @@ describe("mark reception desk", () => {
 describe("luke reception desk", () => {
   it("provides Patristic, Scholastic, and Reformed sources for Luke", async () => {
     const { RECEPTION_SOURCES } = await import("./catalog.ts");
-    const lukSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "Luke");
+    const lukSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "LUK");
     assert.ok(lukSources.length >= 6, `found ${lukSources.length} Luke sources`);
 
     const ids = new Set(lukSources.map((s) => s.id));
@@ -689,7 +721,7 @@ describe("luke reception desk", () => {
 describe("john reception desk", () => {
   it("provides Patristic, Scholastic, and Reformed sources for John", async () => {
     const { RECEPTION_SOURCES } = await import("./catalog.ts");
-    const jhnSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "John");
+    const jhnSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "JHN");
     assert.ok(jhnSources.length >= 6, `found ${jhnSources.length} John sources`);
 
     const ids = new Set(jhnSources.map((s) => s.id));
@@ -1004,7 +1036,7 @@ describe("systemic boilerplate and landing page rejection", () => {
     assert.ok(ids.includes("chrysostom-rom-h16"), "Must match Chrysostom Homily 16 on Romans 9");
     assert.ok(ids.includes("augustine-enchiridion-rom9"), "Must match Augustine Enchiridion 98 on Romans 9:16");
     assert.ok(ids.includes("calvin-rom-9"), "Must match Calvin Romans 9");
-    assert.ok(ids.includes("henry-rom-9") || ids.includes("henry-romans-9"), "Must match Matthew Henry Romans 9");
+    assert.ok(ids.includes("henry-romans-9"), "Must match Matthew Henry Romans 9");
   });
 
   it("serves verified historical curated cards for Romans 9:16", async () => {
