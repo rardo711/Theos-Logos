@@ -97,7 +97,8 @@ interface StudyState extends Persisted {
   setVerse: (verse: number | null) => void;
   setSelectMode: (on: boolean) => void;
   /** Applies the select-mode tap rules. Returns "too-long" when the tap was refused. */
-  tapVerse: (verse: number) => "too-long" | null;
+  tapVerse: (verse: number, opts?: { ifTooLong?: "refuse" | "jump" }) =>
+    "too-long" | null;
   clearSelection: () => void;
   setTheme: (theme: Theme) => void;
   setFontSize: (n: number) => void;
@@ -208,13 +209,13 @@ export const useStudy = create<StudyState>((set, get) => ({
   },
   setVerse: (verse) => set({ selectedVerse: verse, selectedEndVerse: null }),
   setSelectMode: (selectMode) => set({ selectMode }),
-  tapVerse: (verse) => {
+  tapVerse: (verse, opts) => {
     const { selectedVerse, selectedEndVerse } = get();
     const current =
       selectedVerse == null
         ? null
         : { start: selectedVerse, end: selectedEndVerse ?? selectedVerse };
-    const outcome = applyVerseTap(current, verse);
+    const outcome = applyVerseTap(current, verse, opts);
     if (outcome.refused) return outcome.refused;
     set({
       selectedVerse: outcome.range?.start ?? null,

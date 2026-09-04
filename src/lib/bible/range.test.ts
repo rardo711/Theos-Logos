@@ -62,6 +62,15 @@ describe("applyVerseTap", () => {
     assert.equal(rangeLength(out.range!), MAX_RANGE_VERSES);
   });
 
+  it("jumps to the far verse when asked instead of refusing", () => {
+    const long = r(1, MAX_RANGE_VERSES);
+    const out = applyVerseTap(long, MAX_RANGE_VERSES + 5, {
+      ifTooLong: "jump",
+    });
+    assert.equal(out.refused, undefined);
+    assert.deepEqual(out.range, r(MAX_RANGE_VERSES + 5, MAX_RANGE_VERSES + 5));
+  });
+
   it("refuses a downward extension past the cap too", () => {
     const out = applyVerseTap(r(20, 20 + MAX_RANGE_VERSES - 1), 1);
     assert.equal(out.refused, "too-long");

@@ -53,8 +53,8 @@ export function rangeVerses(range: VerseRange): number[] {
 }
 
 /**
- * The whole selection grammar for select mode. Returns the range after the
- * tap, or null when the tap cleared the selection.
+ * The whole selection grammar. Returns the range after the tap, or null when
+ * the tap cleared the selection.
  *
  *   nothing selected      -> select that verse alone
  *   tap below the range   -> extend down to it
@@ -63,25 +63,38 @@ export function rangeVerses(range: VerseRange): number[] {
  *   tap the first verse   -> drop it, range starts one later
  *   tap the last verse    -> drop it, range ends one earlier
  *   tap inside the range  -> collapse to that verse alone
- */
+ *
+ * A tap that would grow the range past MAX_RANGE_VERSES is refused by default.
+ * Pass `{ ifTooLong: "jump" }` to treat that tap as a new single-verse
+ * selection instead -- that is the phone grammar, so a far tap is a jump, not
+ * a dead control.
 export function applyVerseTap(
   range: VerseRange | null,
   verse: number,
+  opts?: { ifTooLong?: "refuse" | "jump" },
 ): TapOutcome {
   if (range == null) return { range: { start: verse, end: verse } };
 
+  const jump = opts?.ifTooLong === "jump";
+
   if (verse < range.start) {
     const next = { start: verse, end: range.end };
-    return rangeLength(next) > MAX_RANGE_VERSES
-      ? { range, refused: "too-long" }
-      : { range: next };
+    if (rangeLength(next) > MAX_RANGE_VERSES) {
+      return jump
+        ? { range: { start: verse, end: verse } }
+        : { range, refused: "too-long" };
+    }
+    return { range: next };
   }
 
   if (verse > range.end) {
     const next = { start: range.start, end: verse };
-    return rangeLength(next) > MAX_RANGE_VERSES
-      ? { range, refused: "too-long" }
-      : { range: next };
+    if (rangeLength(next) > MAX_RANGE_VERSES) {
+      return jump
+        ? { range: { start: verse, end: verse } }
+        : { range, refused: "too-long" };
+    }
+    return { range: next };
   }
 
   // Inside the range from here down.

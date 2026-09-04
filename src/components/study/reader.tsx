@@ -326,19 +326,18 @@ export function Reader({
                         onMouseDown={(e) => {
                           if (e.shiftKey) e.preventDefault();
                         }}
-                        onClick={(e) => {
-                          if (selectMode || e.shiftKey) {
-                            const refused = tapVerse(v.verse);
-                            if (refused) setRangeNotice(refused);
-                            else setRangeNotice(null);
+                        onClick={() => {
+                          const refused = tapVerse(v.verse, {
+                            ifTooLong: selectMode ? "refuse" : "jump",
+                          });
+                          if (refused) {
+                            setRangeNotice(refused);
                             return;
                           }
-                          if (on) {
-                            setVerse(null);
+                          setRangeNotice(null);
+                          if (useStudy.getState().selectedVerse == null) {
                             setReceptionOpen(false);
-                            return;
                           }
-                          setVerse(v.verse);
                         }}
                         onKeyDown={(e) => {
                           if (e.key !== "Enter" && e.key !== " ") return;
