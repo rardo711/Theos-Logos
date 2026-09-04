@@ -324,6 +324,41 @@ and that no card carries "Grounded Extract" unless Gemini validated it.
 
 ---
 
+## 7a. Execution status — 2026-09-04
+
+Done and pushed on `claude/matthew-commentaries-integration-yar4t8`:
+
+- **Phase A** complete (A1–A4). A5 confirmed by the user: the key is set in
+  Vercel, so the screenshot's card came from the rejection-override path,
+  not from a missing key.
+- **Phase B** complete (B1–B5).
+- **Phase C**: C1 (script written, cannot be run here), C3 (verses range),
+  C4 (no change needed), C5 (seven books added, URLs unverified).
+- **Phase D**: Romans 1–11 seeded, 111 entries over 40 pericopes.
+- **Phase E** complete.
+
+Blocked on network egress, for a session that can reach the hosts:
+
+- **C2** Calvin per-pericope sections. Needs the CCEL volume TOCs. This is
+  the fix that makes a chapter-scoped Calvin row land on the right page; the
+  `verses` field and the scorer gate are already in place waiting for the data.
+- **C6** Bible Hub per-verse pages. Fetch `romans/9-11.htm` first and record
+  the heading markup before writing any splitter.
+- **C7** Chrysostom homily-to-chapter tables. The New Advent URL pattern is
+  already proven by working rows; what is missing is the homily-to-chapter map,
+  which must come from each homily's opening lemma, not from guesswork.
+- **C8** Augustine, *Sermon on the Mount*, as two New Advent book pages.
+- **C9** Catena Aurea per-chapter rows from the CCEL TOC.
+- **Verification** of the seven new Bible Hub book slugs added in C5.
+
+First thing that session should run: `npm run verify:urls`.
+
+Remaining Phase D books, in the order given in §5: 1 Corinthians 11–15,
+Galatians 2–3, Ephesians 1–2, Philippians 2, Colossians 1, Hebrews, James,
+1 Peter, 1 John, Revelation, then the Gospels, Acts, and the rest.
+
+---
+
 ## 8. Things examined and deliberately left alone
 
 - `src/lib/auth/middleware.ts` — no importer, but it is the documented auth
