@@ -1,5 +1,8 @@
 import type { Tradition } from "../bible/types.ts";
 import { CATALOG, type CatalogEntry } from "./catalog.ts";
+import { CALVIN_CCEL_SECTIONS } from "./data/calvin-ccel-sections.ts";
+import { CATENA_CHAPTERS } from "./data/catena-chapters.ts";
+import { CHRYSOSTOM_HOMILIES } from "./data/chrysostom-homilies.ts";
 
 // package.json has sideEffects: false. A bare `import "./catalog-weak-nt"`
 // is dropped from the Vercel server bundle. ask.ts must call attachWeakNtCatalog().
@@ -14,15 +17,10 @@ function e(
   tags: string[],
   books?: string[],
   chapters?: number[],
+  verses?: [number, number],
 ): CatalogEntry {
-  return { id, voice, work, tradition, locus, url, tags, books, chapters };
+  return { id, voice, work, tradition, locus, url, tags, books, chapters, verses };
 }
-
-const ROMAN = [
-  "", "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x",
-  "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx",
-  "xxi", "xxii", "xxiii", "xxiv", "xxv", "xxvi", "xxvii", "xxviii", "xxix",
-] as const;
 
 const REV_CHAPTERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
@@ -57,22 +55,85 @@ const HAND: CatalogEntry[] = [
   e("augustine-civdei-20-rev", "Augustine", "City of God 20", "patristic", "De civitate Dei 20", "https://www.newadvent.org/fathers/120120.htm", ["revelation", "millennium", "thousand", "augustine"], ["REV"], [20]),
 ];
 
-const CALVIN_CATHOLIC_CHAPTERS: Array<[string, string, string, number, string]> = [
-  ["calvin-james-2", "James", "JAS", 2, "calcom45.vi.iii.i.html"],
-  ["calvin-james-3", "James", "JAS", 3, "calcom45.vi.iv.i.html"],
-  ["calvin-james-4", "James", "JAS", 4, "calcom45.vi.v.i.html"],
-  ["calvin-james-5", "James", "JAS", 5, "calcom45.vi.vi.i.html"],
-  ["calvin-1peter-2", "1 Peter", "1PE", 2, "calcom45.iv.iii.i.html"],
-  ["calvin-1peter-3", "1 Peter", "1PE", 3, "calcom45.iv.iv.i.html"],
-  ["calvin-1peter-4", "1 Peter", "1PE", 4, "calcom45.iv.v.i.html"],
-  ["calvin-1peter-5", "1 Peter", "1PE", 5, "calcom45.iv.vi.i.html"],
-  ["calvin-2peter-2", "2 Peter", "2PE", 2, "calcom45.vii.iii.i.html"],
-  ["calvin-2peter-3", "2 Peter", "2PE", 3, "calcom45.vii.iv.i.html"],
-  ["calvin-1john-2", "1 John", "1JN", 2, "calcom45.v.iii.i.html"],
-  ["calvin-1john-3", "1 John", "1JN", 3, "calcom45.v.iv.i.html"],
-  ["calvin-1john-4", "1 John", "1JN", 4, "calcom45.v.v.i.html"],
-  ["calvin-1john-5", "1 John", "1JN", 5, "calcom45.v.vi.i.html"],
-];
+const BOOK_STEM: Record<string, string> = {
+  MAT: "matthew",
+  MRK: "mark",
+  LUK: "luke",
+  JHN: "john",
+  ACT: "acts",
+  ROM: "romans",
+  "1CO": "1corinthians",
+  "2CO": "2corinthians",
+  GAL: "galatians",
+  EPH: "ephesians",
+  PHP: "philippians",
+  COL: "colossians",
+  "1TH": "1thessalonians",
+  "2TH": "2thessalonians",
+  "1TI": "1timothy",
+  "2TI": "2timothy",
+  TIT: "titus",
+  PHM: "philemon",
+  HEB: "hebrews",
+  JAS: "james",
+  "1PE": "1peter",
+  "2PE": "2peter",
+  "1JN": "1john",
+  "2JN": "2john",
+  "3JN": "3john",
+  JUD: "jude",
+  REV: "revelation",
+};
+
+const BOOK_NAME: Record<string, string> = {
+  MAT: "Matthew",
+  MRK: "Mark",
+  LUK: "Luke",
+  JHN: "John",
+  ACT: "Acts",
+  ROM: "Romans",
+  "1CO": "1 Corinthians",
+  "2CO": "2 Corinthians",
+  GAL: "Galatians",
+  EPH: "Ephesians",
+  PHP: "Philippians",
+  COL: "Colossians",
+  "1TH": "1 Thessalonians",
+  "2TH": "2 Thessalonians",
+  "1TI": "1 Timothy",
+  "2TI": "2 Timothy",
+  TIT: "Titus",
+  PHM: "Philemon",
+  HEB: "Hebrews",
+  JAS: "James",
+  "1PE": "1 Peter",
+  "2PE": "2 Peter",
+  "1JN": "1 John",
+  "2JN": "2 John",
+  "3JN": "3 John",
+  JUD: "Jude",
+  REV: "Revelation",
+};
+
+const CHRYS_SHORT: Record<string, string> = {
+  MAT: "matt",
+  JHN: "john",
+  ROM: "rom",
+  "1CO": "1corinthians",
+  "2CO": "2corinthians",
+  GAL: "galatians",
+  EPH: "ephesians",
+  PHP: "philippians",
+  COL: "col",
+  "1TH": "1thessalonians",
+  "2TH": "2thessalonians",
+  "1TI": "1timothy",
+  "2TI": "2timothy",
+  TIT: "titus",
+  PHM: "philemon",
+  HEB: "heb",
+  ACT: "acts",
+};
 
 const WEAK_NT_HUB = [
   // Gospels, Romans and the Corinthian letters. Before this they had only the
@@ -113,34 +174,28 @@ const HUB_VOICES = [
   ["clarke", "Adam Clarke", "Commentary on the Holy Bible", "arminian", "clarke"],
 ] as const;
 
-function generated(have: Set<string>): CatalogEntry[] {
+function bookTag(name: string): string {
+  return name.toLowerCase().replace(/^\d+\s+/, "");
+}
+
+function calvinWork(book: string): string {
+  if (book === "MAT" || book === "MRK" || book === "LUK") {
+    return "Commentary on a Harmony of the Evangelists";
+  }
+  return `Commentary on ${BOOK_NAME[book] ?? book}`;
+}
+
+/** Collapse www / directory variants so one page cannot enter under two strings. */
+function canonUrl(url: string): string {
+  return url
+    .replace(/^https:\/\/www\./i, "https://")
+    .replace(/\/$/, "")
+    .replace(/\/calvin\/(calcom\d+)\.([^/]+\.html)$/i, "/calvin/$1/$1.$2")
+    .replace(/\/aquinas\/(catena\d+)\/\1\./i, "/aquinas/$1.");
+}
+
+function hubAndRevelation(have: Set<string>): CatalogEntry[] {
   const out: CatalogEntry[] = [];
-  for (const [id, name, bookId, ch, file] of CALVIN_CATHOLIC_CHAPTERS) {
-    if (have.has(id)) continue;
-    out.push(
-      e(id, "John Calvin", `Commentary on ${name}`, "reformed", `${name} ${ch}`, `https://ccel.org/ccel/calvin/calcom45/${file}`, [name.toLowerCase().replace(/^\\d+\\s+/, ""), "calvin"], [bookId], [ch]),
-    );
-  }
-  for (let ch = 1; ch <= 13; ch++) {
-    const id = `calvin-hebrews-${ch}`;
-    if (have.has(id)) continue;
-    const file = ROMAN[ch + 6];
-    if (!file) continue;
-    out.push(e(id, "John Calvin", "Commentary on Hebrews", "reformed", `Hebrews ${ch}`, `https://ccel.org/ccel/calvin/calcom44/calcom44.${file}.i.html`, ["hebrews", "calvin"], ["HEB"], [ch]));
-  }
-  for (let ch = 1; ch <= 28; ch++) {
-    const id = `calvin-acts-${ch}`;
-    if (have.has(id)) continue;
-    if (ch <= 13) {
-      const file = ROMAN[ch + 7];
-      if (!file) continue;
-      out.push(e(id, "John Calvin", "Commentary on Acts", "reformed", `Acts ${ch}`, `https://ccel.org/ccel/calvin/calcom36/calcom36.${file}.i.html`, ["acts", "calvin", "apostles"], ["ACT"], [ch]));
-    } else {
-      const file = ROMAN[ch - 12];
-      if (!file) continue;
-      out.push(e(id, "John Calvin", "Commentary on Acts", "reformed", `Acts ${ch}`, `https://ccel.org/ccel/calvin/calcom37/calcom37.${file}.i.html`, ["acts", "calvin", "apostles"], ["ACT"], [ch]));
-    }
-  }
   // Revelation extras first so Wesley / Geneva are not crowded out by three Hub voices.
   for (const ch of REV_CHAPTERS) {
     const wesleyId = `wesley-revelation-${ch}`;
@@ -177,7 +232,7 @@ function generated(have: Set<string>): CatalogEntry[] {
     }
   }
   for (const [slug, bookId, name, chapters] of WEAK_NT_HUB) {
-    const tag = name.toLowerCase().replace(/^\\d+\\s+/, "");
+    const tag = bookTag(name);
     for (const [stem, voice, work, tradition, voiceTag] of HUB_VOICES) {
       for (let ch = 1; ch <= chapters; ch++) {
         const id = `${stem}-${slug.replace(/_/g, "")}-${ch}`;
@@ -191,12 +246,137 @@ function generated(have: Set<string>): CatalogEntry[] {
   return out;
 }
 
+function calvinCcelSections(have: Set<string>, byUrl: Map<string, CatalogEntry>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const sec of CALVIN_CCEL_SECTIONS) {
+    const existing = byUrl.get(canonUrl(sec.url));
+    if (existing) {
+      const hit = existing.books?.includes(sec.book)
+        ? sec
+        : sec.parallels.find((p) => existing.books?.includes(p.book));
+      if (hit && !existing.verses) {
+        existing.verses = [hit.start, hit.end];
+        existing.locus = hit.locus;
+      }
+      continue;
+    }
+    const stem = BOOK_STEM[sec.book];
+    if (!stem) continue;
+    const id =
+      sec.start === sec.end
+        ? `calvin-${stem}-${sec.chapter}-${sec.start}`
+        : `calvin-${stem}-${sec.chapter}-${sec.start}-${sec.end}`;
+    if (have.has(id)) continue;
+    out.push(
+      e(
+        id,
+        "John Calvin",
+        calvinWork(sec.book),
+        "reformed",
+        sec.locus,
+        sec.url,
+        [bookTag(BOOK_NAME[sec.book] ?? stem), "calvin"],
+        [sec.book],
+        [sec.chapter],
+        [sec.start, sec.end],
+      ),
+    );
+  }
+  return out;
+}
+
+function catenaChapters(have: Set<string>, byUrl: Map<string, CatalogEntry>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const ch of CATENA_CHAPTERS) {
+    if (byUrl.has(canonUrl(ch.url))) continue;
+    const stem = BOOK_STEM[ch.book];
+    if (!stem) continue;
+    const id = `aquinas-catena-${stem}-${ch.chapter}`;
+    if (have.has(id)) continue;
+    out.push(
+      e(
+        id,
+        "Thomas Aquinas",
+        `Catena Aurea on ${BOOK_NAME[ch.book]}`,
+        "catholic",
+        ch.locus,
+        ch.url,
+        [bookTag(BOOK_NAME[ch.book] ?? stem), "aquinas", "thomas", "catena"],
+        [ch.book],
+        [ch.chapter],
+      ),
+    );
+  }
+  return out;
+}
+
+function chrysostomHomilies(have: Set<string>, byUrl: Map<string, CatalogEntry>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const h of CHRYSOSTOM_HOMILIES) {
+    const existing = byUrl.get(canonUrl(h.url));
+    if (existing) {
+      if (!existing.verses && h.verses) existing.verses = h.verses;
+      if (h.chapters.length && existing.books?.includes(h.book)) {
+        existing.chapters = h.chapters;
+      }
+      if (h.locus && existing.locus.toLowerCase().startsWith("homily") && h.locus.includes(":")) {
+        existing.locus = h.locus;
+      }
+      continue;
+    }
+    const short = CHRYS_SHORT[h.book] ?? BOOK_STEM[h.book];
+    if (!short) continue;
+    const id =
+      h.kind === "chapter"
+        ? `chrysostom-${BOOK_STEM[h.book]}-${h.homily}`
+        : `chrysostom-${short}-h${h.homily}`;
+    if (have.has(id)) continue;
+    out.push(
+      e(
+        id,
+        "John Chrysostom",
+        h.work,
+        "patristic",
+        h.locus,
+        h.url,
+        [bookTag(BOOK_NAME[h.book] ?? short), "chrysostom"],
+        [h.book],
+        h.chapters,
+        h.verses,
+      ),
+    );
+  }
+  return out;
+}
+
 /** Append weak-NT pointers onto the shared CATALOG array. mapCatalog reads CATALOG at call time. */
 export function attachWeakNtCatalog(): void {
   const have = new Set(CATALOG.map((row) => row.id));
-  for (const row of [...HAND, ...generated(have)]) {
+  const byUrl = new Map<string, CatalogEntry>();
+  for (const row of CATALOG) {
+    const key = canonUrl(row.url);
+    if (!byUrl.has(key)) byUrl.set(key, row);
+  }
+  for (const row of HAND) {
     if (have.has(row.id)) continue;
+    const key = canonUrl(row.url);
+    if (byUrl.has(key)) continue;
     CATALOG.push(row);
     have.add(row.id);
+    byUrl.set(key, row);
+  }
+  const incoming = [
+    ...calvinCcelSections(have, byUrl),
+    ...catenaChapters(have, byUrl),
+    ...chrysostomHomilies(have, byUrl),
+    ...hubAndRevelation(have),
+  ];
+  for (const row of incoming) {
+    if (have.has(row.id)) continue;
+    const key = canonUrl(row.url);
+    if (byUrl.has(key)) continue;
+    CATALOG.push(row);
+    have.add(row.id);
+    byUrl.set(key, row);
   }
 }
