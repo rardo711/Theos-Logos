@@ -88,7 +88,7 @@ export function TypeMenu() {
           </button>
         </div>
         <p
-          className="mb-4 border-l-[3px] border-oxblood py-1 pl-3 font-serif text-ink italic"
+          className="tl-quote mb-4 py-1 pl-3 font-serif text-ink italic"
           style={{ fontSize: Math.min(fontSize, 22) }}
         >
           {locale === "es"
@@ -99,7 +99,7 @@ export function TypeMenu() {
           <button
             type="button"
             onClick={() => setFontSize(20)}
-            className="mb-4 block text-2xs font-medium tracking-wide text-oxblood uppercase hover:underline"
+            className="mb-4 block text-2xs font-medium tracking-wide text-lamp uppercase hover:underline"
           >
             {t(locale, "defaultSize")}
           </button>

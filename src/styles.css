@@ -142,7 +142,7 @@
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--color-oxblood) 22%, transparent);
+    background: color-mix(in oklab, var(--color-lamp) 22%, transparent);
   }
 }
 
@@ -196,6 +196,37 @@
   height: 2px;
   background: var(--color-oxblood);
   pointer-events: none;
+}
+
+.tl-verse {
+  border-radius: var(--radius-xs);
+  transition:
+    background-color var(--motion-fast) var(--ease-smooth-out),
+    box-shadow var(--motion-fast) var(--ease-smooth-out);
+}
+
+.tl-verse:hover {
+  background: color-mix(in oklab, var(--color-ink) 5%, transparent);
+}
+
+.tl-verse[aria-current="true"] {
+  background: color-mix(in oklab, var(--color-ink) 8%, transparent);
+}
+
+.tl-verse[data-range-start="true"] {
+  box-shadow: inset 2px 0 0 0 var(--color-lamp);
+}
+
+.dark .tl-verse:hover {
+  background: color-mix(in oklab, var(--color-gold) 12%, transparent);
+}
+
+.dark .tl-verse[aria-current="true"] {
+  background: var(--color-lamp-soft);
+}
+
+.tl-quote {
+  border-left: 2px solid var(--color-lamp);
 }
 
 .tl-shell {
@@ -619,7 +650,7 @@
 }
 
 .tl-search-mark {
-  background: color-mix(in oklab, var(--color-oxblood) 18%, transparent);
+  background: color-mix(in oklab, var(--color-lamp) 18%, transparent);
   color: inherit;
   font-style: inherit;
   padding: 0 0.1em;

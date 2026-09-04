@@ -163,12 +163,12 @@ export function Reader({
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.5 overflow-hidden bg-rule"
         >
-          <span className="tl-progress block h-full bg-oxblood" />
+          <span className="tl-progress block h-full bg-lamp" />
         </div>
       ) : null}
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 bottom-0 left-0 z-[1] w-px bg-oxblood/30"
+        className="pointer-events-none absolute top-0 bottom-0 left-0 z-[1] w-px bg-lamp/30"
       />
       <div
         ref={scrollRef}
@@ -205,13 +205,13 @@ export function Reader({
         <div className="mx-auto max-w-[42rem] px-5 pt-6 pb-36 sm:px-10 sm:pt-12">
           {loading && !chapter ? (
             <div className="space-y-4" aria-busy>
-              <div className="mx-auto h-3 w-28 rounded-sm bg-oxblood/15" />
-              <div className="mx-auto h-10 w-44 rounded-sm bg-oxblood/20" />
+              <div className="mx-auto h-3 w-28 rounded-sm bg-lamp/15" />
+              <div className="mx-auto h-10 w-44 rounded-sm bg-lamp/20" />
               <div className="mt-10 space-y-3">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-4 rounded-sm bg-oxblood/10"
+                    className="h-4 rounded-sm bg-lamp/10"
                     style={{ width: `${80 - (i % 3) * 12}%` }}
                   />
                 ))}
@@ -238,7 +238,7 @@ export function Reader({
                 </p>
                 <div className="mt-5 flex items-center justify-center gap-2">
                   <span className="h-px w-10 bg-rule" />
-                  <span className="size-1.5 rounded-full bg-oxblood/70" />
+                  <span className="size-1.5 rounded-full bg-lamp/70" />
                   <span className="h-px w-10 bg-rule" />
                 </div>
               </header>
@@ -260,8 +260,8 @@ export function Reader({
                           className={cn(
                             "flex min-h-10 w-full items-baseline gap-2 rounded-xs px-1 text-left text-sm transition-colors duration-150 ease-out",
                             selected === s.verse
-                              ? "font-medium text-oxblood"
-                              : "text-ink hover:text-oxblood",
+                              ? "font-medium text-lamp"
+                              : "text-ink hover:text-lamp",
                           )}
                         >
                           <span className="w-6 shrink-0 font-serif text-xs text-faint tabular-nums">
@@ -352,15 +352,10 @@ export function Reader({
                           e.currentTarget.click();
                         }}
                         className={cn(
-                          "cursor-pointer rounded-xs transition-colors duration-200",
+                          "tl-verse cursor-pointer",
                           drop && "tl-first-verse",
-                          on ? "bg-oxblood-soft" : "hover:bg-oxblood-soft/55",
-                          // The bar marks where the passage begins, so a range
-                          // reads as one block rather than as several selected
-                          // verses that happen to be adjacent.
-                          isRangeStart &&
-                            "shadow-[inset_3px_0_0_0_var(--color-oxblood)]",
                         )}
+                        data-range-start={isRangeStart ? "true" : undefined}
                       >
                         {drop ? (
                           <span className="tl-drop">{drop.letter}</span>
@@ -424,7 +419,7 @@ export function Reader({
                     href="https://www.esv.org/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-2xs font-semibold tracking-wide text-oxblood uppercase hover:underline"
+                    className="text-2xs font-semibold tracking-wide text-lamp uppercase hover:underline"
                   >
                     {t(locale, "esvSite")}
                   </a>

@@ -378,7 +378,7 @@ export function ReceptionPanel({
               aria-pressed={selectMode}
               className={cn(
                 "text-2xs font-semibold tracking-[0.14em] uppercase",
-                selectMode ? "text-oxblood" : "text-faint hover:text-muted",
+                selectMode ? "text-lamp" : "text-faint hover:text-muted",
               )}
             >
               {selectMode
@@ -466,7 +466,7 @@ export function ReceptionPanel({
                     <button
                       type="button"
                       onClick={handleClearChapterGenerated}
-                      className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-2xs font-medium text-muted hover:bg-oxblood-soft hover:text-oxblood transition-colors"
+                      className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-2xs font-medium text-muted hover:bg-lamp-soft hover:text-lamp transition-colors"
                       title={t(locale, "clearChapterGenerated")}
                     >
                       <Trash2 size={11} />
@@ -488,8 +488,8 @@ export function ReceptionPanel({
                         className={cn(
                           "min-h-11 rounded-md border px-3 text-sm font-semibold transition-colors",
                           isGenOnly
-                            ? "border-dashed border-rule bg-surface/80 text-ink hover:border-oxblood hover:text-oxblood"
-                            : "border-rule bg-surface text-ink hover:border-oxblood hover:text-oxblood",
+                            ? "border-dashed border-rule bg-surface/80 text-ink hover:border-lamp hover:text-lamp"
+                            : "border-rule bg-surface text-ink hover:border-lamp hover:text-lamp",
                         )}
                         title={isGenOnly ? t(locale, "generatedBadge") : t(locale, "curatedBadge")}
                       >
@@ -508,7 +508,7 @@ export function ReceptionPanel({
         ) : (
           <>
             {verse ? (
-              <p className="mb-5 border-l-[3px] border-oxblood pl-3 font-serif text-base leading-relaxed text-ink italic">
+              <p className="tl-quote mb-5 pl-3 font-serif text-base leading-relaxed text-ink italic">
                 {verse.text}
               </p>
             ) : null}
@@ -527,8 +527,8 @@ export function ReceptionPanel({
                       className={cn(
                         "rounded-full border px-3 py-1.5 text-sm",
                         lexicon?.word.toLowerCase() === w.toLowerCase()
-                          ? "border-oxblood bg-oxblood-soft text-oxblood"
-                          : "border-rule bg-surface text-ink hover:border-oxblood hover:text-oxblood",
+                          ? "border-lamp bg-lamp-soft text-lamp"
+                          : "border-rule bg-surface text-ink hover:border-lamp hover:text-lamp",
                       )}
                     >
                       {w}
@@ -579,7 +579,7 @@ export function ReceptionPanel({
             </div>
             {loading && loadingKind === "commentaries" ? (
               <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
-                <Loader2 size={14} className="animate-spin text-oxblood" />
+                <Loader2 size={14} className="animate-spin text-lamp" />
                 {t(locale, "consulting")}
               </p>
             ) : null}
@@ -602,7 +602,7 @@ export function ReceptionPanel({
                     <button
                       type="button"
                       onClick={handleRemoveAllGenerated}
-                      className="inline-flex items-center gap-1 rounded-sm px-2 py-1 text-2xs font-medium tracking-wide text-muted hover:bg-oxblood-soft hover:text-oxblood transition-colors"
+                      className="inline-flex items-center gap-1 rounded-sm px-2 py-1 text-2xs font-medium tracking-wide text-muted hover:bg-lamp-soft hover:text-lamp transition-colors"
                       title={
                         hasCuratedForVerse
                           ? t(locale, "resetToDeskNotes")
@@ -701,7 +701,7 @@ export function ReceptionPanel({
                   {loading ? (
                     <Loader2
                       size={13}
-                      className="animate-spin text-oxblood"
+                      className="animate-spin text-lamp"
                       aria-label={t(locale, "consultingShort")}
                     />
                   ) : null}
@@ -752,7 +752,7 @@ export function ReceptionPanel({
 
             {loading && loadingKind === "inquire" ? (
               <p className="mt-4 mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
-                <Loader2 size={14} className="animate-spin text-oxblood" />
+                <Loader2 size={14} className="animate-spin text-lamp" />
                 {t(locale, "synthesizing")}
               </p>
             ) : null}
@@ -803,7 +803,7 @@ export function VerseHint({
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div className="tl-hint pointer-events-auto flex items-center gap-1 rounded-md border border-rule bg-surface px-1.5 py-1 shadow-soft">
-        <span className="px-2.5 font-serif text-sm font-medium text-oxblood tabular-nums">
+        <span className="px-2.5 font-serif text-sm font-medium text-lamp tabular-nums">
           {selected}
         </span>
         <button

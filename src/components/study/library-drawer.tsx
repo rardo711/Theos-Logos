@@ -288,7 +288,7 @@ export function LibraryDrawer() {
                 ) : (
                   <>
                     {headline}{" "}
-                    <span className="text-oxblood tabular-nums">{chapter}</span>
+                    <span className="text-lamp tabular-nums">{chapter}</span>
                   </>
                 )}
               </p>
@@ -431,7 +431,7 @@ export function LibraryDrawer() {
                   <button
                     type="button"
                     onClick={() => setPicking("books")}
-                    className="text-sm text-oxblood transition-opacity duration-150 hover:opacity-80"
+                    className="text-sm text-lamp transition-opacity duration-150 hover:opacity-80"
                   >
                     {t(locale, "anotherBook")}
                   </button>
@@ -502,7 +502,7 @@ export function LibraryDrawer() {
                               "relative z-10 min-h-10 shrink-0 snap-start rounded-sm px-2.5 text-2xs tracking-[0.12em] uppercase transition-[color,transform] duration-150 ease-out active:scale-[0.96]",
                               on
                                 ? "font-semibold text-lamp"
-                                : "text-muted hover:text-oxblood",
+                                : "text-muted hover:text-lamp",
                             )}
                           >
                             {corpusLabel(locale, c.key, "short")}
@@ -528,7 +528,7 @@ export function LibraryDrawer() {
               >
                 {hits.length > 0 || searchingText ? (
                   <section className="scroll-mt-2 px-2 pt-4">
-                    <h3 className="mb-1 flex items-baseline justify-between border-b border-rule px-1 pb-1 text-2xs font-semibold tracking-[0.16em] text-oxblood uppercase">
+                    <h3 className="mb-1 flex items-baseline justify-between border-b border-rule px-1 pb-1 text-2xs font-semibold tracking-[0.16em] text-lamp uppercase">
                       <span>{t(locale, "verseHits")}</span>
                       <span className="font-serif font-normal tracking-normal text-faint normal-case">
                         {searchingText ? (
@@ -555,7 +555,7 @@ export function LibraryDrawer() {
                               }
                               className="flex min-h-11 w-full flex-col items-start gap-0.5 rounded-sm px-2 py-2 text-left transition-[background-color,transform] duration-150 ease-out hover:bg-surface active:scale-[0.99]"
                             >
-                              <span className="text-2xs font-semibold tracking-wide text-oxblood uppercase">
+                              <span className="text-2xs font-semibold tracking-wide text-lamp uppercase">
                                 {hit.bookName} {hit.chapter}:{hit.verse}
                               </span>
                               <span className="font-serif text-sm leading-snug text-ink">
