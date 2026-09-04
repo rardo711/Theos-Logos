@@ -70,6 +70,7 @@
   --motion-y-medium: 12px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --sheet-peek: 5.75rem;
+  --sheet-mid: min(42dvh, 22rem);
   --pick-stack: var(--sheet-peek);
   --read-bottom: max(1.25rem, var(--safe-bottom));
 }
@@ -440,13 +441,19 @@
   touch-action: none;
 }
 
-.tl-sheet-up[data-state="open"] {
-  transform: translateY(var(--sheet-drag, 0px));
+.tl-sheet-up[data-state="mid"] {
+  transform: translateY(calc(100% - var(--sheet-mid) + var(--sheet-drag, 0px)));
   pointer-events: auto;
 }
 
-.tl-sheet-up[data-state="open"] [data-sheet-chrome] {
+.tl-sheet-up[data-state="mid"] [data-sheet-chrome],
+.tl-sheet-up[data-state="full"] [data-sheet-chrome] {
   touch-action: none;
+}
+
+.tl-sheet-up[data-state="full"] {
+  transform: translateY(var(--sheet-drag, 0px));
+  pointer-events: auto;
 }
 
 .tl-sheet-up[data-dragging="true"] {

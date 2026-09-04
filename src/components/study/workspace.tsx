@@ -50,6 +50,8 @@ export function StudyWorkspace() {
   const setTypeOpen = useStudy((s) => s.setTypeOpen);
   const receptionOpen = useStudy((s) => s.receptionOpen);
   const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
+  const receptionFull = useStudy((s) => s.receptionFull);
+  const setReceptionFull = useStudy((s) => s.setReceptionFull);
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const setReceptionPinned = useStudy((s) => s.setReceptionPinned);
   const setVerse = useStudy((s) => s.setVerse);
@@ -64,9 +66,9 @@ export function StudyWorkspace() {
   const [hydrated, setHydrated] = useState(false);
   const [wideDesk, setWideDesk] = useState(false);
   const [sheetShown, setSheetShown] = useState(false);
-  const [sheetState, setSheetState] = useState<"hidden" | "peek" | "open">(
-    "hidden",
-  );
+  const [sheetState, setSheetState] = useState<
+    "hidden" | "peek" | "mid" | "full"
+  >("hidden");
   const [sheetDrag, setSheetDrag] = useState(0);
   const [sheetDragging, setSheetDragging] = useState(false);
   const sheetRef = useRef<HTMLElement>(null);
@@ -110,13 +112,15 @@ export function StudyWorkspace() {
   }, [fontSize]);
 
   const docked = receptionPinned && wideDesk && receptionOpen;
-  const want: "hidden" | "peek" | "open" = docked
+  const want: "hidden" | "peek" | "mid" | "full" = docked
     ? "hidden"
-    : receptionOpen
-      ? "open"
-      : selectedVerse != null
-        ? "peek"
-        : "hidden";
+    : selectedVerse == null
+      ? "hidden"
+      : receptionFull
+        ? "full"
+        : receptionOpen
+          ? "mid"
+          : "peek";
 
   useEffect(() => {
     if (want === "hidden") {
@@ -159,6 +163,15 @@ export function StudyWorkspace() {
   }, [sheetShown, locale, selectedVerse, selectedEndVerse]);
 
   useEffect(() => {
+    const root = document.documentElement;
+    if (sheetState === "mid") {
+      root.style.setProperty("--pick-stack", "var(--sheet-mid)");
+    } else {
+      root.style.setProperty("--pick-stack", "var(--sheet-peek)");
+    }
+  }, [sheetState]);
+
+  useEffect(() => {
     const el = sheetRef.current;
     if (!el || sheetState === "hidden") return;
     let startY = 0;
@@ -175,27 +188,40 @@ export function StudyWorkspace() {
       const delta = e.touches[0].clientY - startY;
       const scroller = el.querySelector(".tl-scroll") as HTMLElement | null;
       const atTop = !scroller || scroller.scrollTop <= 1;
-      const chrome = (e.target as HTMLElement | null)?.closest?.(
+      const onChrome = (e.target as HTMLElement | null)?.closest?.(
         "[data-sheet-chrome]",
       );
       const mode = sheetStateRef.current;
+      const H = el.offsetHeight;
+      const peekH =
+        (
+          el.querySelector("[data-sheet-chrome]") as HTMLElement | null
+        )?.offsetHeight ?? 92;
+      const midPx = Math.min(H * 0.42, 22 * 16);
       if (mode === "peek") {
         pulling = true;
-        const chrome = el.querySelector(
-          "[data-sheet-chrome]",
-        ) as HTMLElement | null;
-        const rise = Math.max(80, el.offsetHeight - (chrome?.offsetHeight ?? 92));
-        dy = Math.min(Math.max(delta, -rise), el.offsetHeight * 0.45);
+        dy = Math.min(Math.max(delta, -(H - peekH)), H * 0.4);
         setSheetDragging(true);
         setSheetDrag(dy);
         if (Math.abs(delta) > 6) e.preventDefault();
         return;
       }
-      if (delta > 0 && (atTop || chrome)) {
+      if (mode === "mid") {
+        if (onChrome || atTop) {
+          pulling = true;
+          const up = -(H - midPx);
+          dy = Math.min(Math.max(delta, up), midPx - peekH + 48);
+          setSheetDragging(true);
+          setSheetDrag(dy);
+          if (Math.abs(delta) > 6) e.preventDefault();
+        }
+        return;
+      }
+      if (delta > 0 && (atTop || onChrome)) {
         pulling = true;
-        dy = delta;
+        dy = Math.min(delta, H * 0.92);
         setSheetDragging(true);
-        setSheetDrag(delta);
+        setSheetDrag(dy);
         if (delta > 6) e.preventDefault();
       } else if (pulling && delta <= 0) {
         dy = 0;
@@ -205,18 +231,36 @@ export function StudyWorkspace() {
     const finish = () => {
       const v = dy / Math.max(performance.now() - startT, 1);
       const mode = sheetStateRef.current;
+      const H = el.offsetHeight;
       setSheetDragging(false);
       if (!pulling) {
         dy = 0;
         return;
       }
       if (mode === "peek") {
-        if (dy < -36 || v < -0.4) setReceptionOpen(true);
-        else if (dy > 40 || v > 0.45) clearSelection();
-        else setSheetDrag(0);
-      } else if (dy > 48 || v > 0.5) {
-        setReceptionPinned(false);
+        if (dy < -H * 0.36 || v < -1.1) {
+          setReceptionFull(true);
+        } else if (dy < -36 || v < -0.4) {
+          setReceptionOpen(true);
+        } else if (dy > 40 || v > 0.45) {
+          clearSelection();
+        } else {
+          setSheetDrag(0);
+        }
+      } else if (mode === "mid") {
+        if (dy < -48 || v < -0.45) {
+          setReceptionFull(true);
+        } else if (dy > 48 || v > 0.45) {
+          setReceptionFull(false);
+          setReceptionOpen(false);
+        } else {
+          setSheetDrag(0);
+        }
+      } else if (dy > H * 0.38 || v > 1.0) {
+        setReceptionFull(false);
         setReceptionOpen(false);
+      } else if (dy > 48 || v > 0.5) {
+        setReceptionFull(false);
       } else {
         setSheetDrag(0);
       }
@@ -237,6 +281,7 @@ export function StudyWorkspace() {
     sheetState,
     sheetShown,
     setReceptionOpen,
+    setReceptionFull,
     setReceptionPinned,
     clearSelection,
   ]);
@@ -369,6 +414,7 @@ export function StudyWorkspace() {
 
   function closeReception() {
     setReceptionPinned(false);
+    setReceptionFull(false);
     setReceptionOpen(false);
   }
 
@@ -400,21 +446,21 @@ export function StudyWorkspace() {
         ) : null}
 
         {sheetShown ? (
-          <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-end xl:hidden">
+          <div className="pointer-events-none absolute inset-0 z-20 xl:hidden">
             <div
-              className="tl-dim min-h-0 flex-1"
-              data-open={sheetState === "open" ? "true" : "false"}
+              className="tl-dim absolute inset-0"
+              data-open={sheetState === "full" ? "true" : "false"}
               aria-hidden
               style={{
                 ["--dim-o" as string]:
-                  sheetState === "open"
-                    ? String(Math.max(0, 1 - Math.max(0, sheetDrag) / 320))
+                  sheetState === "full"
+                    ? String(Math.max(0, 1 - Math.max(0, sheetDrag) / 420))
                     : "0",
               }}
             />
             <aside
               ref={sheetRef}
-              className="tl-sheet-up flex h-[min(72dvh,42rem)] w-full flex-col overflow-hidden rounded-t-2xl border-t border-rule bg-surface shadow-soft md:mx-auto md:h-[min(68dvh,46rem)] md:w-[min(40rem,100%)]"
+              className="tl-sheet-up absolute inset-x-0 bottom-0 flex h-full w-full flex-col overflow-hidden rounded-t-2xl border-t border-rule bg-surface shadow-soft md:mx-auto md:w-[min(40rem,100%)]"
               data-state={sheetState}
               data-dragging={sheetDragging ? "true" : "false"}
               style={{
@@ -426,7 +472,9 @@ export function StudyWorkspace() {
                   chapter={shownChapter}
                   onClose={closeReception}
                   sheet
-                  expanded={sheetState === "open"}
+                  detent={
+                    sheetState === "hidden" ? "peek" : sheetState
+                  }
                 />
               </div>
             </aside>

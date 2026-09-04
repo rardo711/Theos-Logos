@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, Loader2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Maximize2, Minimize2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
 import { gatherCommentaries, synthesizeFromCards } from "@/lib/reception/ask";
 import {
   additionalSourceCards,
@@ -58,12 +58,12 @@ export function ReceptionPanel({
   chapter,
   onClose,
   sheet,
-  expanded,
+  detent = "full",
 }: {
   chapter: Chapter | null;
   onClose?: () => void;
   sheet?: boolean;
-  expanded?: boolean;
+  detent?: "peek" | "mid" | "full";
 }) {
   const selectedVerse = useStudy((s) => s.selectedVerse);
   const selectedEndVerse = useStudy((s) => s.selectedEndVerse);
@@ -75,6 +75,7 @@ export function ReceptionPanel({
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const setReceptionPinned = useStudy((s) => s.setReceptionPinned);
   const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
+  const setReceptionFull = useStudy((s) => s.setReceptionFull);
   const clearSelection = useStudy((s) => s.clearSelection);
   const locale = useStudy((s) => s.locale);
   const [question, setQuestion] = useState("");
@@ -374,9 +375,9 @@ export function ReceptionPanel({
     <div className={cn("flex h-full min-h-0 flex-col", sheet ? "bg-surface" : "bg-paper")}>
       <div
         data-sheet-chrome
-        className={cn("shrink-0", sheet && !expanded && "cursor-pointer")}
+        className={cn("shrink-0", sheet && detent === "peek" && "cursor-pointer")}
         onClick={
-          sheet && !expanded ? () => setReceptionOpen(true) : undefined
+          sheet && detent === "peek" ? () => setReceptionOpen(true) : undefined
         }
       >
         {sheet ? (
@@ -391,7 +392,7 @@ export function ReceptionPanel({
         <header
           className={cn(
             "relative z-10 flex items-start justify-between gap-3 px-5",
-            expanded || !sheet ? "border-b border-rule py-3" : "pb-3",
+            detent !== "peek" || !sheet ? "border-b border-rule py-3" : "pb-3",
           )}
         >
           <div className="min-w-0 pt-1">
@@ -427,16 +428,43 @@ export function ReceptionPanel({
                 <PanelRight size={18} />
               )}
             </button>
+            {sheet ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (detent === "peek") setReceptionOpen(true);
+                  else if (detent === "mid") setReceptionFull(true);
+                  else setReceptionFull(false);
+                }}
+                className="flex size-11 items-center justify-center rounded-md text-lamp hover:bg-paper hover:text-ink"
+                aria-label={
+                  detent === "full"
+                    ? t(locale, "midReception")
+                    : detent === "mid"
+                      ? t(locale, "fullReception")
+                      : t(locale, "raiseReception")
+                }
+              >
+                {detent === "full" ? (
+                  <Minimize2 size={18} strokeWidth={1.75} />
+                ) : detent === "mid" ? (
+                  <Maximize2 size={18} strokeWidth={1.75} />
+                ) : (
+                  <ChevronUp size={18} strokeWidth={1.75} />
+                )}
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                if (sheet && expanded) {
-                  onClose?.();
+                if (sheet && detent === "peek") {
+                  clearSelection();
                   return;
                 }
                 if (sheet) {
-                  clearSelection();
+                  onClose?.();
                   return;
                 }
                 setReceptionPinned(false);
@@ -444,7 +472,7 @@ export function ReceptionPanel({
               }}
               className="flex size-11 items-center justify-center rounded-md text-muted hover:bg-paper hover:text-ink"
               aria-label={
-                sheet && !expanded
+                sheet && detent === "peek"
                   ? t(locale, "clearSelection")
                   : t(locale, "closeReception")
               }
@@ -457,7 +485,7 @@ export function ReceptionPanel({
 
       <div
         className="tl-scroll min-h-0 flex-1 overflow-y-auto px-5 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
-        aria-hidden={sheet && !expanded}
+        aria-hidden={sheet && detent === "peek"}
       >
         {!disclaimerSeen ? (
           <div className="mb-4 rounded-lg border border-rule bg-surface p-3 shadow-soft">

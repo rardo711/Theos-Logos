@@ -78,7 +78,7 @@ export function Reader({
   const nextChapter = useStudy((s) => s.nextChapter);
   const prevChapter = useStudy((s) => s.prevChapter);
   const notesRev = useStudy((s) => s.notesRev);
-  const receptionOpen = useStudy((s) => s.receptionOpen);
+  const receptionFull = useStudy((s) => s.receptionFull);
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const locale = useStudy((s) => s.locale);
   const bookId = useStudy((s) => s.bookId);
@@ -101,7 +101,7 @@ export function Reader({
   const nextDest = neighbor(bookId, chapterNum, 1);
   const sections = chapter?.verses.filter((v) => v.title) ?? [];
   const hintUp =
-    selected != null && !receptionOpen && !receptionPinned;
+    selected != null && !receptionFull && !receptionPinned;
   const notedSet = useMemo(
     () =>
       chapter

@@ -111,6 +111,7 @@ interface StudyState extends Persisted {
   libraryTab: LibraryTab;
   typeOpen: boolean;
   receptionOpen: boolean;
+  receptionFull: boolean;
   notesRev: number;
   setBook: (bookId: string, chapter?: number) => void;
   setChapter: (chapter: number) => void;
@@ -131,6 +132,7 @@ interface StudyState extends Persisted {
   setLibraryOpen: (open: boolean, tab?: LibraryTab) => void;
   setTypeOpen: (open: boolean) => void;
   setReceptionOpen: (open: boolean) => void;
+  setReceptionFull: (full: boolean) => void;
   setReceptionPinned: (pinned: boolean) => void;
   touchNotes: () => void;
   dismissDisclaimer: () => void;
@@ -168,6 +170,7 @@ export const useStudy = create<StudyState>((set, get) => ({
   libraryTab: "chapters",
   typeOpen: false,
   receptionOpen: false,
+  receptionFull: false,
   receptionPinned: false,
   notesRev: 0,
   hydrate: () => {
@@ -185,6 +188,7 @@ export const useStudy = create<StudyState>((set, get) => ({
       selectedVerse: null,
       selectedEndVerse: null,
       receptionOpen: get().receptionPinned ? get().receptionOpen : false,
+      receptionFull: false,
     });
     persist(get());
   },
@@ -195,6 +199,7 @@ export const useStudy = create<StudyState>((set, get) => ({
       selectedVerse: null,
       selectedEndVerse: null,
       receptionOpen: get().receptionPinned ? get().receptionOpen : false,
+      receptionFull: false,
     });
     persist(get());
   },
@@ -206,6 +211,7 @@ export const useStudy = create<StudyState>((set, get) => ({
       selectedVerse: verse ?? null,
       selectedEndVerse: null,
       receptionOpen: get().receptionPinned ? get().receptionOpen : false,
+      receptionFull: false,
     });
     persist(get());
   },
@@ -272,6 +278,7 @@ export const useStudy = create<StudyState>((set, get) => ({
       selectedEndVerse: null,
       selectMode: false,
       receptionOpen: pinned ? get().receptionOpen : false,
+      receptionFull: pinned ? get().receptionFull : false,
     });
   },
   setTheme: (theme) => {
@@ -299,7 +306,16 @@ export const useStudy = create<StudyState>((set, get) => ({
       typeOpen,
       libraryOpen: typeOpen ? false : get().libraryOpen,
     }),
-  setReceptionOpen: (receptionOpen) => set({ receptionOpen }),
+  setReceptionOpen: (receptionOpen) =>
+    set({
+      receptionOpen,
+      receptionFull: receptionOpen ? get().receptionFull : false,
+    }),
+  setReceptionFull: (receptionFull) =>
+    set({
+      receptionFull,
+      receptionOpen: receptionFull ? true : get().receptionOpen,
+    }),
   setReceptionPinned: (receptionPinned) => {
     set({
       receptionPinned,

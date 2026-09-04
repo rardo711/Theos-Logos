@@ -55,6 +55,9 @@ const EN = {
   collapseSources: "Collapse sources",
   keepSources: "Keep sources beside scripture",
   closeReception: "Close reception",
+  raiseReception: "Raise the desk",
+  fullReception: "Full screen",
+  midReception: "Lower desk",
   disclaimer:
     "A research desk, not a teacher. Scripture first. Sources must be named. Take what you find to your church.",
   understood: "Understood",
@@ -204,6 +207,9 @@ const ES: { [K in keyof typeof EN]: string } = {
   collapseSources: "Recoger las fuentes",
   keepSources: "Dejar las fuentes junto a la Escritura",
   closeReception: "Cerrar recepción",
+  raiseReception: "Subir el escritorio",
+  fullReception: "Pantalla completa",
+  midReception: "Bajar el escritorio",
   disclaimer:
     "Un escritorio de investigación, no un maestro. La Escritura primero. Las fuentes deben nombrarse. Lleve lo que halle a su iglesia.",
   understood: "Entendido",
