@@ -263,18 +263,28 @@ export function StudyWorkspace() {
 
         {receptionOpen && !docked ? (
           <>
-            <div className="absolute inset-0 z-20 flex flex-col md:hidden">
-              <div className="relative h-[34%] min-h-32 overflow-hidden border-b border-rule bg-paper">
-                <Reader
-                  compact
-                  chapter={shownChapter}
-                  loading={waitingOnFetch}
-                  error={null}
-                />
-              </div>
-              <div className="relative min-h-0 flex-1 bg-paper">
-                <ReceptionPanel chapter={shownChapter} onClose={closeReception} />
-              </div>
+            <div className="absolute inset-0 z-20 flex flex-col justify-end md:hidden">
+              <button
+                type="button"
+                className="tl-dim min-h-0 flex-1"
+                data-open="true"
+                aria-label={t(locale, "closeReception")}
+                onClick={closeReception}
+              />
+              <aside className="tl-sheet-up flex h-[min(72dvh,42rem)] w-full flex-col rounded-t-xl border-t border-rule bg-paper shadow-soft">
+                <div
+                  className="flex shrink-0 justify-center pt-2 pb-1"
+                  aria-hidden
+                >
+                  <span className="h-1 w-10 rounded-full bg-faint/70" />
+                </div>
+                <div className="min-h-0 flex-1">
+                  <ReceptionPanel
+                    chapter={shownChapter}
+                    onClose={closeReception}
+                  />
+                </div>
+              </aside>
             </div>
 
             <div className="absolute inset-0 z-20 hidden md:flex">

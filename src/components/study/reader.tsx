@@ -77,6 +77,7 @@ export function Reader({
   const selected = useStudy((s) => s.selectedVerse);
   const selectedEnd = useStudy((s) => s.selectedEndVerse);
   const selectMode = useStudy((s) => s.selectMode);
+  const setSelectMode = useStudy((s) => s.setSelectMode);
   const tapVerse = useStudy((s) => s.tapVerse);
   const setVerse = useStudy((s) => s.setVerse);
   const nextChapter = useStudy((s) => s.nextChapter);
@@ -167,7 +168,7 @@ export function Reader({
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col">
+    <div className="tl-desk absolute inset-0">
       {loading ? (
         <div
           aria-hidden
@@ -178,7 +179,7 @@ export function Reader({
       ) : null}
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 bottom-0 left-0 z-[1] w-px bg-lamp/30"
+        className="pointer-events-none absolute top-0 bottom-0 left-0 z-[1] w-px bg-lamp/30 max-sm:hidden"
       />
       {chapter && !loading && !compact ? (
         <VerseSelector
@@ -187,6 +188,8 @@ export function Reader({
           selectedEnd={selectedEnd}
           noted={notedSet}
           layout="rail"
+          selectMode={selectMode}
+          onToggleSelect={() => setSelectMode(!selectMode)}
           label={t(locale, "verses")}
           onPick={(n, extend) => {
             if (extend || selectMode) {
@@ -205,7 +208,7 @@ export function Reader({
       ) : null}
       <div
         ref={scrollRef}
-        className="tl-scroll relative min-h-0 flex-1 overflow-y-auto"
+        className="tl-scroll tl-desk-scroll relative min-h-0 flex-1 overflow-y-auto"
         onScroll={(e) => {
           updateShowTop(e.currentTarget);
         }}
@@ -235,7 +238,7 @@ export function Reader({
           }
         }}
       >
-        <div className="mx-auto max-w-[42rem] px-5 pt-6 pb-36 sm:px-10 sm:pt-12">
+        <div className="mx-auto max-w-[42rem] pt-6 pb-28 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-10 sm:pt-12 sm:pb-36">
           {loading && !chapter ? (
             <div className="space-y-4" aria-busy>
               <div className="mx-auto h-3 w-28 rounded-sm bg-lamp/15" />

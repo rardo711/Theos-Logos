@@ -805,7 +805,7 @@ export function VerseHint({
   const locale = useStudy((s) => s.locale);
   if (selected == null || receptionOpen || receptionPinned) return null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))] max-sm:pb-[max(4.35rem,calc(env(safe-area-inset-bottom)+3.6rem))]">
       <div className="tl-hint pointer-events-auto flex items-center gap-1 rounded-md border border-rule bg-surface px-1.5 py-1 shadow-soft">
         <span className="px-2.5 font-serif text-sm font-medium text-lamp tabular-nums">
           {selected}

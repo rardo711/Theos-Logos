@@ -41,7 +41,7 @@ export function TypeMenu() {
         onClick={() => setOpen(false)}
       />
       <div
-        className="tl-menu absolute top-[calc(100%+6px)] left-0 z-50 w-72 rounded-lg border border-rule bg-surface p-4 shadow-soft"
+        className="tl-menu fixed inset-x-0 bottom-0 z-50 w-full overflow-hidden rounded-t-xl border-t border-rule bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-soft sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-[calc(100%+6px)] sm:left-0 sm:w-72 sm:rounded-lg sm:border sm:pb-4"
         data-open="true"
         role="dialog"
         aria-label={t(locale, "theDesk")}

@@ -280,7 +280,7 @@ export function LibraryDrawer({ verseCount = 0 }: { verseCount?: number }) {
         data-open={open ? "true" : "false"}
         className="tl-drawer relative z-10 flex h-full w-full max-w-md flex-col bg-paper shadow-soft sm:border-r sm:border-rule"
       >
-        <header className="border-b border-rule bg-surface px-4 pt-3 pb-3">
+        <header className="border-b border-rule bg-surface px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-2xs font-semibold tracking-[0.18em] text-faint uppercase">
