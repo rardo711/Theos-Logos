@@ -1,0 +1,40 @@
+name: Reception source research
+
+# Manual only. This fetches ~150-250 pages across five sites in one run and
+# opens a PR with what it found; it is not something that should fire on a
+# schedule or on every push without someone deciding to look at the result.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check existing catalog URLs still resolve
+        run: node --experimental-strip-types scripts/verify-catalog-urls.mjs
+        continue-on-error: true
+
+      - name: Run source discovery scanners
+        run: node scripts/research/run-all.mjs
+
+      - name: Open a PR with the findings
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "research: source discovery run"
+          branch: research/source-discovery
+          delete-branch: true
+          add-paths: scripts/research/output/**
+          title: "Source discovery: CCEL, New Advent, Bible Hub, Godrules, StudyLight"
+          body-path: scripts/research/output/SUMMARY.md
+          labels: reception-research

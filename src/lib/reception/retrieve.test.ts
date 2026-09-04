@@ -5,6 +5,8 @@ import {
   htmlToText,
   paragraphsFromHtml,
   pickParagraphs,
+  pickVerseParagraphs,
+  paragraphMentionsVerse,
   parseRetrieved,
   validateReceptionOutput,
 } from "./retrieve.ts";
@@ -14,6 +16,38 @@ describe("primary-source mapping", () => {
     assert.ok(CATALOG.length >= 60, `catalog is ${CATALOG.length}`);
     const ids = CATALOG.map((e) => e.id);
     assert.equal(new Set(ids).size, ids.length);
+  });
+
+  it("never indexes one page under two ids", async () => {
+    const { attachWeakNtCatalog } = await import("./catalog-weak-nt.ts");
+    attachWeakNtCatalog();
+    const byUrl = new Map<string, string[]>();
+    for (const row of CATALOG) {
+      byUrl.set(row.url, [...(byUrl.get(row.url) ?? []), row.id]);
+    }
+    const dupes = [...byUrl.entries()].filter(([, ids]) => ids.length > 1);
+    assert.deepEqual(
+      dupes.map(([url, ids]) => `${url} <- ${ids.join(", ")}`),
+      [],
+      "one page per row: a duplicate URL burns a fetch slot on a page already read",
+    );
+  });
+
+  it("never indexes a volume index or title page", async () => {
+    const { attachWeakNtCatalog } = await import("./catalog-weak-nt.ts");
+    attachWeakNtCatalog();
+    // These shapes are tables of contents, not commentary on any verse.
+    const INDEX_PAGE = [
+      /\/schaff\/npnf\d+\.html$/,
+      /\/aquinas\/catena\d+\.html$/,
+      /\/poole\/annotations\.html$/,
+      /\/calcom\d+\/calcom\d+\.i\.html$/,
+      /\/luther\/good_works\//,
+    ];
+    const offenders = CATALOG.filter((row) =>
+      INDEX_PAGE.some((re) => re.test(row.url)),
+    ).map((row) => `${row.id} -> ${row.url}`);
+    assert.deepEqual(offenders, []);
   });
 
   it("maps Aquinas + predestination to ST I q.23", () => {
@@ -482,6 +516,177 @@ describe("html extract", () => {
   });
 });
 
+describe("romans reception desk", () => {
+  it("covers every chapter of Romans 1-11 with named traditions", async () => {
+    const { CURATED_ENTRIES } = await import("./curated.ts");
+    const rom = CURATED_ENTRIES.filter((e) => e.verseRef.startsWith("ROM."));
+    const chapters = new Set(rom.map((e) => Number(e.verseRef.split(".")[1])));
+    for (let ch = 1; ch <= 11; ch++) {
+      assert.ok(chapters.has(ch), `Romans ${ch} has no curated entry`);
+    }
+  });
+
+  it("gives Romans 9:11 four traditions, not one verdict", async () => {
+    const { getCurated } = await import("./curated.ts");
+    const result = getCurated("ROM", 9, 11);
+    assert.ok(result, "Romans 9:11 must have curated cards");
+    const traditions = new Set(result.cards.map((c) => c.tradition));
+    assert.ok(traditions.has("western-patristic"), "Augustine");
+    assert.ok(traditions.has("eastern-patristic"), "Chrysostom");
+    assert.ok(traditions.has("reformed"), "Calvin");
+    assert.ok(traditions.has("scholastic"), "Aquinas");
+  });
+
+  it("resolves a verse inside a pericope to its canonical entry", async () => {
+    const { getCurated } = await import("./curated.ts");
+    const canonical = getCurated("ROM", 9, 11);
+    const neighbour = getCurated("ROM", 9, 13);
+    assert.ok(neighbour, "Romans 9:13 should fall back to the pericope");
+    assert.equal(neighbour.cards.length, canonical?.cards.length);
+  });
+
+  it("marks composed excerpts as paraphrase and links no volume index", async () => {
+    const { CURATED_ENTRIES, curatedEntryToCard } = await import("./curated.ts");
+    const verbatimClaims = CURATED_ENTRIES.filter(
+      (e) => curatedEntryToCard(e).paraphrased === false,
+    );
+    assert.deepEqual(
+      verbatimClaims.map((e) => e.verseRef),
+      [],
+      "a curated excerpt may claim verbatim only when transcribed from the page",
+    );
+    const INDEX_PAGE = [
+      /\/schaff\/npnf\d+\.html$/,
+      /\/aquinas\/catena\d+\.html$/,
+      /\/poole\/annotations\.html$/,
+      /\/calcom\d+\/calcom\d+\.i\.html$/,
+      /\/luther\/good_works\//,
+    ];
+    const badLinks = CURATED_ENTRIES.filter(
+      (e) => e.url && INDEX_PAGE.some((re) => re.test(e.url!)),
+    ).map((e) => `${e.verseRef} -> ${e.url}`);
+    assert.deepEqual(badLinks, []);
+  });
+});
+
+describe("verse-scoped catalog rows", () => {
+  it("drops a pericope page that does not reach the verse", () => {
+    const pericope = {
+      id: "calvin-rom-9-1",
+      voice: "John Calvin",
+      work: "Commentary on Romans",
+      tradition: "reformed" as const,
+      locus: "Romans 9:1-5",
+      url: "https://ccel.org/ccel/calvin/calcom38/calcom38.xiii.i.html",
+      tags: ["romans", "calvin"],
+      books: ["ROM"],
+      chapters: [9],
+      verses: [1, 5] as [number, number],
+    };
+    const tokens = tokenize("election purpose romans");
+    assert.ok(scoreEntry(pericope, tokens, "ROM", 9, [], 4) > 0, "verse 4 is on this page");
+    assert.equal(scoreEntry(pericope, tokens, "ROM", 9, [], 11), 0, "verse 11 is not");
+    assert.ok(scoreEntry(pericope, tokens, "ROM", 9, [], null) > 0, "no verse: chapter rules apply");
+  });
+
+  it("leaves chapter-level rows alone", () => {
+    const chapterPage = {
+      id: "henry-romans-9",
+      voice: "Matthew Henry",
+      work: "Commentary on the Whole Bible",
+      tradition: "reformed" as const,
+      locus: "Romans 9",
+      url: "https://ccel.org/ccel/henry/mhc6/mhc6.Rom.x.html",
+      tags: ["romans", "henry"],
+      books: ["ROM"],
+      chapters: [9],
+    };
+    const tokens = tokenize("election romans");
+    assert.ok(scoreEntry(chapterPage, tokens, "ROM", 9, [], 11) > 0);
+  });
+});
+
+describe("New Testament coverage floor", () => {
+  const MID_CHAPTER: Array<[string, number]> = [
+    ["MAT", 5], ["MRK", 10], ["LUK", 15], ["JHN", 6], ["ACT", 17], ["ROM", 9],
+    ["1CO", 13], ["2CO", 5], ["GAL", 3], ["EPH", 2], ["PHP", 2], ["COL", 2],
+    ["1TH", 4], ["2TH", 2], ["1TI", 2], ["2TI", 3], ["TIT", 2], ["PHM", 1],
+    ["HEB", 11], ["JAS", 2], ["1PE", 2], ["2PE", 3], ["1JN", 4], ["2JN", 1],
+    ["3JN", 1], ["JUD", 1], ["REV", 20],
+  ];
+
+  it("maps every NT book to at least three same-book pages mid-book", async () => {
+    const { attachWeakNtCatalog } = await import("./catalog-weak-nt.ts");
+    attachWeakNtCatalog();
+    const thin: string[] = [];
+    for (const [bookId, chapter] of MID_CHAPTER) {
+      const hits = mapCatalog({
+        question: "",
+        bookId,
+        chapter,
+        verse: 1,
+        verseText: "",
+        mode: "reception",
+        limit: 7,
+      });
+      const sameBook = hits.filter((h) => (h.books ?? []).includes(bookId));
+      if (sameBook.length < 3) {
+        thin.push(`${bookId} ${chapter}: ${sameBook.length} (${hits.map((h) => h.id).join(", ")})`);
+      }
+    }
+    assert.deepEqual(thin, []);
+  });
+});
+
+describe("verse-anchored paragraph selection", () => {
+  const VERSE_4 =
+    "4. Who are Israelites, etc. Here the reason is now more plainly given, why the destruction of that people caused him so much anguish, namely because they were Israelites.";
+  const VERSE_11 =
+    "11. For the children being not yet born, neither having done any good or evil. The Apostle shows that the election of God is free, and depends on his calling alone, not on works.";
+  const UNRELATED =
+    "The Apostle here anticipates an objection, and the anguish of his mind is such that he would gladly be accursed for the sake of his kindred according to the flesh.";
+
+  it("recognises the lemma shapes these hosts actually print", () => {
+    assert.equal(paragraphMentionsVerse("11. For the children", 9, 11), true);
+    assert.equal(paragraphMentionsVerse("Ver. 11. Though they", 9, 11), true);
+    assert.equal(paragraphMentionsVerse("Verses 9-13 treat election", 9, 11), true);
+    assert.equal(paragraphMentionsVerse("See Romans 9:11 on this", 9, 11), true);
+    assert.equal(paragraphMentionsVerse("Romans 9:6-13 is one argument", 9, 11), true);
+    assert.equal(paragraphMentionsVerse("4. Who are Israelites", 9, 11), false);
+    assert.equal(paragraphMentionsVerse("111 is not a verse here", 9, 11), false);
+  });
+
+  it("puts the target verse ahead of a word-similar neighbour", () => {
+    const picked = pickVerseParagraphs(
+      [VERSE_4, UNRELATED, VERSE_11],
+      9,
+      11,
+      "though they were not yet born purpose of election",
+      2,
+    );
+    assert.equal(picked[0], VERSE_11, "verse 11 lemma must rank first");
+  });
+
+  it("falls back to token scoring when no paragraph names the verse", () => {
+    const picked = pickVerseParagraphs(
+      [VERSE_4, UNRELATED],
+      9,
+      11,
+      "Israelites anguish",
+      2,
+    );
+    assert.ok(picked.length > 0);
+  });
+
+  it("behaves like pickParagraphs when no verse is supplied", () => {
+    const paras = [VERSE_4, VERSE_11, UNRELATED];
+    assert.deepEqual(
+      pickVerseParagraphs(paras, undefined, undefined, "election", 2),
+      pickParagraphs(paras, "election", 2),
+    );
+  });
+});
+
 describe("retrieved JSON", () => {
   it("keeps url on a valid card", () => {
     const cards = parseRetrieved(
@@ -547,7 +752,7 @@ describe("matthew reception desk", () => {
 describe("mark reception desk", () => {
   it("provides Scholastic and Reformed sources for Mark", async () => {
     const { RECEPTION_SOURCES } = await import("./catalog.ts");
-    const mrkSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "Mark");
+    const mrkSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "MRK");
     assert.ok(mrkSources.length >= 3, `found ${mrkSources.length} Mark sources`);
 
     const ids = new Set(mrkSources.map((s) => s.id));
@@ -582,7 +787,7 @@ describe("mark reception desk", () => {
 describe("luke reception desk", () => {
   it("provides Patristic, Scholastic, and Reformed sources for Luke", async () => {
     const { RECEPTION_SOURCES } = await import("./catalog.ts");
-    const lukSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "Luke");
+    const lukSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "LUK");
     assert.ok(lukSources.length >= 6, `found ${lukSources.length} Luke sources`);
 
     const ids = new Set(lukSources.map((s) => s.id));
@@ -638,7 +843,7 @@ describe("luke reception desk", () => {
 describe("john reception desk", () => {
   it("provides Patristic, Scholastic, and Reformed sources for John", async () => {
     const { RECEPTION_SOURCES } = await import("./catalog.ts");
-    const jhnSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "John");
+    const jhnSources = RECEPTION_SOURCES.filter((s) => s.coverage.book === "JHN");
     assert.ok(jhnSources.length >= 6, `found ${jhnSources.length} John sources`);
 
     const ids = new Set(jhnSources.map((s) => s.id));
@@ -953,7 +1158,7 @@ describe("systemic boilerplate and landing page rejection", () => {
     assert.ok(ids.includes("chrysostom-rom-h16"), "Must match Chrysostom Homily 16 on Romans 9");
     assert.ok(ids.includes("augustine-enchiridion-rom9"), "Must match Augustine Enchiridion 98 on Romans 9:16");
     assert.ok(ids.includes("calvin-rom-9"), "Must match Calvin Romans 9");
-    assert.ok(ids.includes("henry-rom-9") || ids.includes("henry-romans-9"), "Must match Matthew Henry Romans 9");
+    assert.ok(ids.includes("henry-romans-9"), "Must match Matthew Henry Romans 9");
   });
 
   it("serves verified historical curated cards for Romans 9:16", async () => {

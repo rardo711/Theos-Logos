@@ -75,6 +75,15 @@ const CALVIN_CATHOLIC_CHAPTERS: Array<[string, string, string, number, string]> 
 ];
 
 const WEAK_NT_HUB = [
+  // Gospels, Romans and the Corinthian letters. Before this they had only the
+  // Matthew Henry chapter pages, so 1 Corinthians 13 mapped to a single row.
+  ["matthew", "MAT", "Matthew", 28],
+  ["mark", "MRK", "Mark", 16],
+  ["luke", "LUK", "Luke", 24],
+  ["john", "JHN", "John", 21],
+  ["romans", "ROM", "Romans", 16],
+  ["1_corinthians", "1CO", "1 Corinthians", 16],
+  ["2_corinthians", "2CO", "2 Corinthians", 13],
   ["james", "JAS", "James", 5],
   ["1_peter", "1PE", "1 Peter", 5],
   ["2_peter", "2PE", "2 Peter", 3],

@@ -8,6 +8,8 @@ export {
   isSubstantiveQuote,
   paragraphsFromHtml,
   pickParagraphs,
+  pickVerseParagraphs,
+  paragraphMentionsVerse,
 } from "./retrieve-html.ts";
 export { fetchEntry, retrieveExtracts } from "./retrieve-net.ts";
 export {

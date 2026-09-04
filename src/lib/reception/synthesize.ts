@@ -1,7 +1,10 @@
-import type { Locale } from "@/lib/bible/books";
-import type { DeskSynthesis, SourceCard } from "@/lib/bible/types";
-import { geminiApiKey, generateGeminiJson } from "@/lib/ai/gemini";
-import { validateReceptionOutput } from "./retrieve";
+import type { Locale } from "../bible/books.ts";
+import type { DeskSynthesis, SourceCard } from "../bible/types.ts";
+// Relative, not "@/lib/...": this is a value import, and the alias is a Vite
+// resolution that node --experimental-strip-types does not apply, which kept
+// synthesize.test.ts from running at all.
+import { geminiApiKey, generateGeminiJson } from "../ai/gemini.ts";
+import { validateReceptionOutput } from "./retrieve.ts";
 
 export type SynthesisResult = DeskSynthesis & { caution?: string };
 
