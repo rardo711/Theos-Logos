@@ -4,10 +4,12 @@ import type { Locale } from "@/lib/bible/books";
 import { t } from "@/lib/i18n";
 import { getCurated, findEstablishedSources } from "./curated";
 import { assembleFromSources } from "./retrieve";
-import "./catalog-weak-nt";
+import { attachWeakNtCatalog } from "./catalog-weak-nt";
 import { additionalSourceCards } from "./notes";
 import { synthesizeFromDesk } from "./synthesize";
 import type { ReceptionResult, SourceCard } from "@/lib/bible/types";
+
+attachWeakNtCatalog();
 
 type AskInput = {
   bookId: string;
@@ -37,6 +39,7 @@ async function retrieveForVerse(
   data: AskInput,
   question: string,
 ): Promise<ReceptionResult | null> {
+  attachWeakNtCatalog();
   const locale: Locale = data.locale === "es" ? "es" : "en";
   const ref = refOf(data);
   const langLine =
@@ -153,6 +156,7 @@ export const askReception = createServerFn({ method: "POST" })
 export const gatherCommentaries = createServerFn({ method: "POST" })
   .validator((input: AskInput) => input)
   .handler(async ({ data }): Promise<ReceptionResult> => {
+    attachWeakNtCatalog();
     const locale: Locale = data.locale === "es" ? "es" : "en";
     const ready = getCurated(data.bookId, data.chapter, data.verse);
     const retrieved = await retrieveForVerse(
