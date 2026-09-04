@@ -815,6 +815,7 @@ export function VerseHint({
   const clearSelection = useStudy((s) => s.clearSelection);
   const open =
     selected != null && !receptionOpen && !receptionPinned && !heldBack;
+  const exit = heldBack || receptionOpen ? "up" : "down";
   const live =
     selected == null
       ? ""
@@ -829,14 +830,25 @@ export function VerseHint({
   const [dragging, setDragging] = useState(false);
   const touch = useRef<{ y: number; x: number; t: number } | null>(null);
   const swallow = useRef(false);
+  const opened = useRef(false);
   useEffect(() => {
     if (live) setLabel(live);
   }, [live]);
   useEffect(() => {
-    if (open) setDy(0);
+    if (open) {
+      setDy(0);
+      opened.current = false;
+    }
   }, [open]);
 
+  function lift() {
+    opened.current = true;
+    swallow.current = true;
+    onInquire();
+  }
+
   function onTouchStart(e: React.TouchEvent) {
+    opened.current = false;
     touch.current = {
       y: e.touches[0].clientY,
       x: e.touches[0].clientX,
@@ -845,17 +857,22 @@ export function VerseHint({
     setDragging(true);
   }
   function onTouchMove(e: React.TouchEvent) {
-    if (!touch.current) return;
-    setDy(e.touches[0].clientY - touch.current.y);
+    if (!touch.current || opened.current) return;
+    const next = e.touches[0].clientY - touch.current.y;
+    const dx = e.touches[0].clientX - touch.current.x;
+    setDy(next);
+    if (Math.abs(dx) > Math.abs(next) && Math.abs(dx) > 24) return;
+    const v = next / Math.max(performance.now() - touch.current.t, 1);
+    if (next < -14 || v < -0.22) lift();
   }
   function onTouchEnd(e: React.TouchEvent) {
     if (!touch.current) return;
     const next = e.changedTouches[0].clientY - touch.current.y;
     const dx = e.changedTouches[0].clientX - touch.current.x;
-    const dt = Math.max(performance.now() - touch.current.t, 1);
-    const v = next / dt;
+    const v = next / Math.max(performance.now() - touch.current.t, 1);
     touch.current = null;
     setDragging(false);
+    if (opened.current) return;
     if (Math.abs(dx) > Math.abs(next) && Math.abs(dx) > 28) {
       setDy(0);
       return;
@@ -865,10 +882,8 @@ export function VerseHint({
       clearSelection();
       return;
     }
-    if (next < -28 || v < -0.4) {
-      swallow.current = true;
-      setDy(0);
-      onInquire();
+    if (next < -14 || v < -0.22) {
+      lift();
       return;
     }
     setDy(0);
@@ -888,9 +903,10 @@ export function VerseHint({
     <div
       className="tl-pick absolute inset-x-0 bottom-0 z-20"
       data-open={open ? "true" : "false"}
+      data-exit={exit}
       data-dragging={dragging ? "true" : "false"}
       aria-hidden={!open}
-      style={{ ["--pick-dy" as string]: `${Math.max(0, dy)}px` }}
+      style={{ ["--pick-dy" as string]: `${dy}px` }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}

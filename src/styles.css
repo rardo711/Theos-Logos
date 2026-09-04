@@ -63,6 +63,7 @@
   --motion-medium: 350ms;
   --motion-slow: 400ms;
   --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --motion-scale-menu: 0.97;
   --motion-y-small: 6px;
@@ -378,11 +379,11 @@
 
 .tl-sheet-up {
   transform: translateY(100%);
-  opacity: 0.4;
+  opacity: 0.55;
   pointer-events: none;
   transition:
-    transform 420ms var(--ease-smooth-out),
-    opacity var(--motion-medium) var(--ease-smooth-out);
+    transform 260ms var(--ease-snap),
+    opacity 180ms var(--ease-smooth-out);
 }
 
 .tl-sheet-up[data-open="true"] {
@@ -689,8 +690,8 @@
   opacity: 0;
   pointer-events: none;
   transition:
-    transform 420ms var(--ease-smooth-out),
-    opacity var(--motion-medium) var(--ease-smooth-out);
+    transform 260ms var(--ease-snap),
+    opacity 180ms var(--ease-smooth-out);
 }
 
 .tl-pick[data-open="true"] {
@@ -698,6 +699,11 @@
   opacity: 1;
   pointer-events: auto;
   touch-action: none;
+}
+
+.tl-pick[data-open="false"][data-exit="up"] {
+  transform: translateY(-28px);
+  opacity: 0;
 }
 
 .tl-pick[data-dragging="true"],

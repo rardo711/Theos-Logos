@@ -95,17 +95,11 @@ export function StudyWorkspace() {
   useEffect(() => {
     if (sheetWanted) {
       setSheetShown(true);
-      let inner = 0;
-      const outer = requestAnimationFrame(() => {
-        inner = requestAnimationFrame(() => setSheetOpen(true));
-      });
-      return () => {
-        cancelAnimationFrame(outer);
-        cancelAnimationFrame(inner);
-      };
+      const id = requestAnimationFrame(() => setSheetOpen(true));
+      return () => cancelAnimationFrame(id);
     }
     setSheetOpen(false);
-    const t = window.setTimeout(() => setSheetShown(false), 420);
+    const t = window.setTimeout(() => setSheetShown(false), 280);
     return () => window.clearTimeout(t);
   }, [sheetWanted]);
 
