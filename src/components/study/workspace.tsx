@@ -374,7 +374,7 @@ export function StudyWorkspace() {
 
         {sheetShown ? (
           <>
-            <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-end md:hidden">
+            <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-end xl:hidden">
               <div
                 className="tl-dim min-h-0 flex-1"
                 data-open={sheetOpen ? "true" : "false"}
@@ -388,7 +388,7 @@ export function StudyWorkspace() {
               />
               <aside
                 ref={sheetRef}
-                className="tl-sheet-up flex h-[min(72dvh,42rem)] w-full flex-col rounded-t-xl border-t border-rule bg-paper shadow-soft"
+                className="tl-sheet-up flex h-[min(72dvh,42rem)] w-full flex-col rounded-t-xl border-t border-rule bg-paper shadow-soft md:mx-auto md:h-[min(68dvh,46rem)] md:w-[min(40rem,100%)] md:rounded-t-2xl"
                 data-open={sheetOpen ? "true" : "false"}
                 data-peeking={peeking ? "true" : "false"}
                 data-dragging={
@@ -421,7 +421,7 @@ export function StudyWorkspace() {
               </aside>
             </div>
 
-            <div className="pointer-events-none absolute inset-0 z-20 hidden md:flex">
+            <div className="pointer-events-none absolute inset-0 z-20 hidden xl:flex">
               <button
                 type="button"
                 className="tl-dim min-w-0 flex-1"
