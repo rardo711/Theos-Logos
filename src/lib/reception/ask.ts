@@ -7,6 +7,7 @@ import { assembleFromSources } from "./retrieve";
 import { attachWeakNtCatalog } from "./catalog-weak-nt";
 import { additionalSourceCards } from "./notes";
 import { synthesizeFromDesk } from "./synthesize";
+import { orientForVerse } from "./orient";
 import type { ReceptionResult, SourceCard } from "@/lib/bible/types";
 
 attachWeakNtCatalog();
@@ -33,6 +34,26 @@ function refOf(data: AskInput): string {
   return data.verse != null
     ? `${data.bookName} ${data.chapter}:${data.verse}`
     : `${data.bookName} ${data.chapter}`;
+}
+
+/**
+ * Attaches orientation to a result the desk could not source. Only fires on an
+ * empty card set: with even one fetched quotation on the desk the reader has a
+ * primary source in front of them, and orientation would compete with it.
+ */
+async function withOrientation(
+  result: ReceptionResult,
+  data: AskInput,
+  question: string,
+): Promise<ReceptionResult> {
+  if (result.cards.length) return result;
+  const orientation = await orientForVerse({
+    reference: refOf(data),
+    verseText: data.verseText,
+    question,
+    locale: data.locale === "es" ? "es" : "en",
+  });
+  return orientation ? { ...result, orientation } : result;
 }
 
 async function retrieveForVerse(
@@ -146,14 +167,18 @@ export const askReception = createServerFn({ method: "POST" })
     }
 
     const ref = refOf(data);
-    return {
-      source: "generated",
-      cards: [],
-      caution:
-        locale === "es"
-          ? `No se encontraron fuentes primarias en el catálogo que respondan directamente a '${question}' para ${ref}. Intente reformular su consulta o seleccionar un versículo relacionado.`
-          : `No established historic sources in the desk catalog directly address '${question}' for ${ref}. Try refining your inquiry or selecting a related verse.`,
-    };
+    return withOrientation(
+      {
+        source: "generated",
+        cards: [],
+        caution:
+          locale === "es"
+            ? `No se encontraron fuentes primarias en el catálogo que respondan directamente a '${question}' para ${ref}. Intente reformular su consulta o seleccionar un versículo relacionado.`
+            : `No established historic sources in the desk catalog directly address '${question}' for ${ref}. Try refining your inquiry or selecting a related verse.`,
+      },
+      data,
+      question,
+    );
   });
 
 /** Retrieval only: curated cards plus catalog extracts for this verse. */
@@ -205,14 +230,18 @@ export const gatherCommentaries = createServerFn({ method: "POST" })
       };
     }
 
-    return {
-      source: "generated",
-      cards: [],
-      caution:
-        locale === "es"
-          ? `No hay comentarios históricos indexados todavía para ${refOf(data)}.`
-          : `No indexed historic commentaries yet for ${refOf(data)}.`,
-    };
+    return withOrientation(
+      {
+        source: "generated",
+        cards: [],
+        caution:
+          locale === "es"
+            ? `No hay comentarios históricos indexados todavía para ${refOf(data)}.`
+            : `No indexed historic commentaries yet for ${refOf(data)}.`,
+      },
+      data,
+      "",
+    );
   });
 
 export const synthesizeFromCards = createServerFn({ method: "POST" })

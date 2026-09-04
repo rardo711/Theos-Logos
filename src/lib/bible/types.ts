@@ -51,11 +51,27 @@ export interface DeskSynthesis {
   cited: string[];
 }
 
+/**
+ * Orientation shown when the desk retrieved little or nothing for a verse.
+ * Nothing here was fetched, so nothing here is a quotation: it names the
+ * interpretive question and where to go read, and it never speaks in a
+ * historical figure's voice. See orient.ts for the rules this must satisfy.
+ */
+export interface DeskOrientation {
+  /** The interpretive question the verse has actually raised. No verdict. */
+  question: string;
+  /** Where traditions divide, each stated in that tradition's own categories. */
+  divides: Array<{ tradition: string; position: string }>;
+  /** Works to go read. Names only — no invented section numbers or URLs. */
+  readNext: string[];
+}
+
 export interface ReceptionResult {
   cards: SourceCard[];
   caution?: string;
   source: "curated" | "generated";
   synthesis?: DeskSynthesis;
+  orientation?: DeskOrientation;
 }
 
 export interface LexiconResult {

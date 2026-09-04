@@ -116,6 +116,10 @@ const EN = {
   corpusLettersShort: "Letters",
   corpusRevelation: "Revelation",
   corpusRevelationShort: "Rev",
+  orientationHeading: "Orientation",
+  orientationReadNext: "Read next",
+  orientationCaution:
+    "Generated orientation, not a source. Nothing here was fetched and nothing here is a quotation; it names the question and where to read. Verify against the works themselves.",
   tradPatristic: "Patristic",
   tradEasternPatristic: "Eastern Patristic",
   tradWesternPatristic: "Western Patristic",
@@ -254,6 +258,10 @@ const ES: { [K in keyof typeof EN]: string } = {
   corpusLettersShort: "Cartas",
   corpusRevelation: "Apocalipsis",
   corpusRevelationShort: "Apoc",
+  orientationHeading: "Orientación",
+  orientationReadNext: "Para leer",
+  orientationCaution:
+    "Orientación generada, no una fuente. Nada de esto fue recuperado ni es una cita; nombra la cuestión y dónde leer. Verifique con las obras mismas.",
   tradPatristic: "Patrística",
   tradEasternPatristic: "Patrística Oriental",
   tradWesternPatristic: "Patrística Occidental",

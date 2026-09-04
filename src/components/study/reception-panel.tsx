@@ -562,6 +562,38 @@ export function ReceptionPanel({
               <p className="mb-4 text-sm text-muted italic">{localizeCaution(result.caution, locale)}</p>
             ) : null}
 
+            {result?.orientation ? (
+              <div className="mb-4 border-l-2 border-rule pl-3">
+                <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
+                  {t(locale, "orientationHeading")}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-ink">
+                  {result.orientation.question}
+                </p>
+                {result.orientation.divides.length ? (
+                  <dl className="mt-3 space-y-2">
+                    {result.orientation.divides.map((d) => (
+                      <div key={d.tradition}>
+                        <dt className="text-2xs font-semibold tracking-wide text-faint uppercase">
+                          {d.tradition}
+                        </dt>
+                        <dd className="text-sm leading-relaxed text-muted">{d.position}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : null}
+                {result.orientation.readNext.length ? (
+                  <p className="mt-3 text-xs text-muted">
+                    <span className="font-semibold">{t(locale, "orientationReadNext")}: </span>
+                    {result.orientation.readNext.join(" · ")}
+                  </p>
+                ) : null}
+                <p className="pt-2 text-2xs leading-relaxed text-faint italic">
+                  {t(locale, "orientationCaution")}
+                </p>
+              </div>
+            ) : null}
+
             {!result?.cards.length && !loading ? (
               <p className="mb-4 text-sm leading-relaxed text-muted">
                 {t(locale, "noNotesInquire")}
