@@ -32,7 +32,7 @@
     "typecheck": "tsc --noEmit",
     "check:auth": "node scripts/check-auth-invariant.mjs",
     "verify:urls": "node --experimental-strip-types scripts/verify-catalog-urls.mjs",
-    "test": "node --test 'scripts/**/*.test.mjs' && node --experimental-strip-types --test src/lib/app-data/app-data.test.ts src/lib/auth/gate-identity.test.ts src/lib/bible/esv.test.ts src/lib/bible/bolls.test.ts src/lib/bible/search.test.ts src/lib/i18n.test.ts src/lib/i18n-sources.test.ts src/lib/lexicon/lexicon.test.ts src/lib/ai/gemini.test.ts src/lib/reception/retrieve.test.ts src/lib/reception/synthesize.test.ts src/lib/reception/orient.test.ts src/lib/reception/cache.test.ts src/lib/bible/range.test.ts src/lib/reception/curated-range.test.ts",
+    "test": "node --experimental-strip-types --test 'scripts/**/*.test.mjs' src/lib/app-data/app-data.test.ts src/lib/auth/gate-identity.test.ts src/lib/bible/esv.test.ts src/lib/bible/bolls.test.ts src/lib/bible/search.test.ts src/lib/i18n.test.ts src/lib/i18n-sources.test.ts src/lib/lexicon/lexicon.test.ts src/lib/ai/gemini.test.ts src/lib/reception/retrieve.test.ts src/lib/reception/synthesize.test.ts src/lib/reception/orient.test.ts src/lib/reception/cache.test.ts src/lib/bible/range.test.ts src/lib/reception/curated-range.test.ts",
     "lint": "eslint .",
     "format": "prettier --write ."
   },

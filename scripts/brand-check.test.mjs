@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -305,7 +305,20 @@ test("cli: a non-game with a compliant card passes", () => {
 
 const readDoc = (rel) => readFileSync(join(TEMPLATE_ROOT, rel), "utf8");
 
-test("SKILL.md and AGENTS.md name the marker path and bound this script uses", () => {
+/**
+ * `.grok/` is gitignored except for app-env.json, so the og skill's own docs
+ * are never present in a clone or in CI -- only in a workspace where the Grok
+ * tooling installed them. These tests pin prose in those docs to constants in
+ * this repo, which is worth doing where the docs exist and is not a failure of
+ * this repository where they do not. Skipping keeps the suite honest: a check
+ * that can never pass in CI teaches people to ignore a red run.
+ */
+const OG_SKILL_DIR = join(TEMPLATE_ROOT, ".grok/skills/og");
+const noOgSkill = existsSync(OG_SKILL_DIR)
+  ? false
+  : "the og skill is not installed in this workspace (.grok/ is gitignored)";
+
+test("SKILL.md and AGENTS.md name the marker path and bound this script uses", { skip: noOgSkill }, () => {
   // Prose wraps, so the minute count may straddle a line break.
   const bound = new RegExp(`${OG_PENDING_MAX_AGE_MS / 60_000}\\s+minutes`);
   for (const rel of [".grok/skills/og/SKILL.md", "AGENTS.md"]) {
@@ -343,7 +356,7 @@ function prohibitionSection({ rel, label, from, until }) {
   return (from + (end === -1 ? rest : rest.slice(0, end))).replace(/[`*]/g, "").replace(/\s+/g, " ");
 }
 
-test("the sections that own the brand-task prohibition never affirm a wait", () => {
+test("the sections that own the brand-task prohibition never affirm a wait", { skip: noOgSkill }, () => {
   // Pinned on the shape of the prohibition, not on a negation being somewhere
   // nearby: "So: wait_tasks before the final verify, but never get_task_output"
   // keeps a negation in the sentence while instructing exactly the wait.
@@ -362,7 +375,7 @@ test("the sections that own the brand-task prohibition never affirm a wait", () 
   }
 });
 
-test("SKILL.md tells the pass to self-check with the flag this CLI accepts", () => {
+test("SKILL.md tells the pass to self-check with the flag this CLI accepts", { skip: noOgSkill }, () => {
   const skill = readDoc(".grok/skills/og/SKILL.md");
   const invocations = skill.match(/node scripts\/brand-check\.mjs[^\n`]*/g) ?? [];
   assert.ok(invocations.length > 0);
