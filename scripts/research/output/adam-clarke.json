@@ -1,0 +1,34 @@
+{
+  "voice": "Adam Clarke",
+  "generatedAt": "2026-09-04T10:53:50.571Z",
+  "bibleHub": {
+    "host": "biblehub.com",
+    "found": true,
+    "url": "https://biblehub.com/commentaries/clarke/romans/9.htm",
+    "headings": []
+  },
+  "ccel": {
+    "host": "ccel.org",
+    "found": false,
+    "tried": [
+      "https://ccel.org/ccel/clarke/commentary",
+      "https://ccel.org/ccel/clarke/commentary.html",
+      "https://ccel.org/ccel/clarke/commentary/commentary.html"
+    ]
+  },
+  "godrules": {
+    "host": "godrules.net",
+    "checked": [
+      {
+        "url": "https://www.godrules.net/library/clarke/clarkerom9.htm",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "url": "https://www.godrules.net/library/clarke/clarke1.htm",
+        "status": 404,
+        "ok": false
+      }
+    ]
+  }
+}

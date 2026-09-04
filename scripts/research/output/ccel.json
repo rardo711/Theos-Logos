@@ -1,0 +1,412 @@
+{
+  "host": "ccel.org",
+  "generatedAt": "2026-09-04T10:54:11.249Z",
+  "calvin": [
+    {
+      "volume": "calcom31",
+      "label": "Harmony of the Evangelists, vol. 1",
+      "books": [
+        "MAT",
+        "MRK",
+        "LUK"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom31.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom31/calcom31.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom31/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom32",
+      "label": "Harmony of the Evangelists, vol. 2",
+      "books": [
+        "MAT",
+        "MRK",
+        "LUK"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom32.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom32/calcom32.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom32/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom33",
+      "label": "Harmony of the Evangelists, vol. 3",
+      "books": [
+        "MAT",
+        "MRK",
+        "LUK"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom33.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom33/calcom33.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom33/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom34",
+      "label": "John, vol. 1",
+      "books": [
+        "JHN"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom34.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom34/calcom34.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom34/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom35",
+      "label": "John, vol. 2",
+      "books": [
+        "JHN"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom35.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom35/calcom35.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom35/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom36",
+      "label": "Acts, vol. 1",
+      "books": [
+        "ACT"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom36.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom36/calcom36.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom36/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom37",
+      "label": "Acts, vol. 2",
+      "books": [
+        "ACT"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom37.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom37/calcom37.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom37/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom38",
+      "label": "Romans",
+      "books": [
+        "ROM"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom38.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom38/calcom38.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom38/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom39",
+      "label": "1 Corinthians",
+      "books": [
+        "1CO"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom39.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom39/calcom39.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom39/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom40",
+      "label": "2 Corinthians",
+      "books": [
+        "2CO"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom40.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom40/calcom40.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom40/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom41",
+      "label": "Galatians and Ephesians",
+      "books": [
+        "GAL",
+        "EPH"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom41.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom41/calcom41.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom41/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom42",
+      "label": "Philippians, Colossians, Thessalonians",
+      "books": [
+        "PHP",
+        "COL",
+        "1TH",
+        "2TH"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom42.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom42/calcom42.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom42/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom43",
+      "label": "Timothy, Titus, Philemon",
+      "books": [
+        "1TI",
+        "2TI",
+        "TIT",
+        "PHM"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom43.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom43/calcom43.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom43/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom44",
+      "label": "Hebrews",
+      "books": [
+        "HEB"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom44.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom44/calcom44.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom44/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "calcom45",
+      "label": "Catholic Epistles",
+      "books": [
+        "JAS",
+        "1PE",
+        "2PE",
+        "1JN"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://ccel.org/ccel/calvin/calcom45.html",
+      "sectionCount": 2,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom45/calcom45.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        },
+        {
+          "url": "https://ccel.org/ccel/calvin/calcom45/Page_Index.html",
+          "anchorText": "Portable Network Graphics",
+          "parsed": null
+        }
+      ]
+    }
+  ],
+  "catena": [
+    {
+      "volume": "catena1",
+      "label": "Catena Aurea on Matthew",
+      "books": [
+        "MAT"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://www.ccel.org/ccel/aquinas/catena1.html",
+      "sectionCount": 1,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/aquinas/catena1/catena1.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "catena2",
+      "label": "Catena Aurea on Mark",
+      "books": [
+        "MRK"
+      ],
+      "status": "root-found",
+      "rootUrl": "https://www.ccel.org/ccel/aquinas/catena2.html",
+      "sectionCount": 1,
+      "sections": [
+        {
+          "url": "https://ccel.org/ccel/aquinas/catena2/catena2.i.html",
+          "anchorText": "Read Online",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "volume": "catena3",
+      "label": "Catena Aurea on Luke",
+      "books": [
+        "LUK"
+      ],
+      "status": "no-root-found",
+      "triedRoots": [
+        "https://www.ccel.org/ccel/aquinas/catena3.html"
+      ],
+      "sections": []
+    },
+    {
+      "volume": "catena4",
+      "label": "Catena Aurea on John",
+      "books": [
+        "JHN"
+      ],
+      "status": "no-root-found",
+      "triedRoots": [
+        "https://www.ccel.org/ccel/aquinas/catena4.html"
+      ],
+      "sections": []
+    }
+  ]
+}

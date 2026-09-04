@@ -1,0 +1,138 @@
+{
+  "host": "godrules.net",
+  "generatedAt": "2026-09-04T10:53:50.571Z",
+  "existingRevelationRows": [
+    {
+      "chapter": 1,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev1.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 2,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev2.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 3,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev3.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 4,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev4.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 5,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev5.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 6,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev6.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 7,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev7.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 8,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev8.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 9,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev9.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 10,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev10.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 11,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev11.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 12,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev12.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 13,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev13.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 14,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev14.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 15,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev15.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 16,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev16.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 17,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev17.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 18,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev18.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 19,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev19.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 20,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev20.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 21,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev21.htm",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "chapter": 22,
+      "url": "https://www.godrules.net/library/wesley/wesleyrev22.htm",
+      "status": 200,
+      "ok": true
+    }
+  ]
+}

@@ -1,0 +1,2323 @@
+{
+  "host": "newadvent.org",
+  "generatedAt": "2026-09-04T10:53:50.571Z",
+  "chrysostomNumeric": [
+    {
+      "work": "Chrysostom: Homilies on Matthew",
+      "books": [
+        "MAT"
+      ],
+      "method": "numeric-extrapolation",
+      "homilies": [
+        {
+          "homily": 1,
+          "url": "https://www.newadvent.org/fathers/200101.htm",
+          "heading": "CHURCH FATHERS: Homily 1 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 2,
+          "url": "https://www.newadvent.org/fathers/200102.htm",
+          "heading": "CHURCH FATHERS: Homily 2 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 3,
+          "url": "https://www.newadvent.org/fathers/200103.htm",
+          "heading": "CHURCH FATHERS: Homily 3 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 4,
+          "url": "https://www.newadvent.org/fathers/200104.htm",
+          "heading": "CHURCH FATHERS: Homily 4 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 5,
+          "url": "https://www.newadvent.org/fathers/200105.htm",
+          "heading": "CHURCH FATHERS: Homily 5 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 6,
+          "url": "https://www.newadvent.org/fathers/200106.htm",
+          "heading": "CHURCH FATHERS: Homily 6 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 7,
+          "url": "https://www.newadvent.org/fathers/200107.htm",
+          "heading": "CHURCH FATHERS: Homily 7 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 8,
+          "url": "https://www.newadvent.org/fathers/200108.htm",
+          "heading": "CHURCH FATHERS: Homily 8 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 9,
+          "url": "https://www.newadvent.org/fathers/200109.htm",
+          "heading": "CHURCH FATHERS: Homily 9 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 10,
+          "url": "https://www.newadvent.org/fathers/200110.htm",
+          "heading": "CHURCH FATHERS: Homily 10 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 11,
+          "url": "https://www.newadvent.org/fathers/200111.htm",
+          "heading": "CHURCH FATHERS: Homily 11 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 12,
+          "url": "https://www.newadvent.org/fathers/200112.htm",
+          "heading": "CHURCH FATHERS: Homily 12 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 13,
+          "url": "https://www.newadvent.org/fathers/200113.htm",
+          "heading": "CHURCH FATHERS: Homily 13 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 14,
+          "url": "https://www.newadvent.org/fathers/200114.htm",
+          "heading": "CHURCH FATHERS: Homily 14 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 15,
+          "url": "https://www.newadvent.org/fathers/200115.htm",
+          "heading": "CHURCH FATHERS: Homily 15 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 16,
+          "url": "https://www.newadvent.org/fathers/200116.htm",
+          "heading": "CHURCH FATHERS: Homily 16 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 17,
+          "url": "https://www.newadvent.org/fathers/200117.htm",
+          "heading": "CHURCH FATHERS: Homily 17 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 18,
+          "url": "https://www.newadvent.org/fathers/200118.htm",
+          "heading": "CHURCH FATHERS: Homily 18 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 19,
+          "url": "https://www.newadvent.org/fathers/200119.htm",
+          "heading": "CHURCH FATHERS: Homily 19 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 20,
+          "url": "https://www.newadvent.org/fathers/200120.htm",
+          "heading": "CHURCH FATHERS: Homily 20 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 21,
+          "url": "https://www.newadvent.org/fathers/200121.htm",
+          "heading": "CHURCH FATHERS: Homily 21 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 22,
+          "url": "https://www.newadvent.org/fathers/200122.htm",
+          "heading": "CHURCH FATHERS: Homily 22 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 23,
+          "url": "https://www.newadvent.org/fathers/200123.htm",
+          "heading": "CHURCH FATHERS: Homily 23 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 24,
+          "url": "https://www.newadvent.org/fathers/200124.htm",
+          "heading": "CHURCH FATHERS: Homily 24 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 25,
+          "url": "https://www.newadvent.org/fathers/200125.htm",
+          "heading": "CHURCH FATHERS: Homily 25 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 26,
+          "url": "https://www.newadvent.org/fathers/200126.htm",
+          "heading": "CHURCH FATHERS: Homily 26 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 27,
+          "url": "https://www.newadvent.org/fathers/200127.htm",
+          "heading": "CHURCH FATHERS: Homily 27 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 28,
+          "url": "https://www.newadvent.org/fathers/200128.htm",
+          "heading": "CHURCH FATHERS: Homily 28 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 29,
+          "url": "https://www.newadvent.org/fathers/200129.htm",
+          "heading": "CHURCH FATHERS: Homily 29 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 30,
+          "url": "https://www.newadvent.org/fathers/200130.htm",
+          "heading": "CHURCH FATHERS: Homily 30 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 31,
+          "url": "https://www.newadvent.org/fathers/200131.htm",
+          "heading": "CHURCH FATHERS: Homily 31 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 32,
+          "url": "https://www.newadvent.org/fathers/200132.htm",
+          "heading": "CHURCH FATHERS: Homily 32 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 33,
+          "url": "https://www.newadvent.org/fathers/200133.htm",
+          "heading": "CHURCH FATHERS: Homily 33 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 34,
+          "url": "https://www.newadvent.org/fathers/200134.htm",
+          "heading": "CHURCH FATHERS: Homily 34 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 35,
+          "url": "https://www.newadvent.org/fathers/200135.htm",
+          "heading": "CHURCH FATHERS: Homily 35 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 36,
+          "url": "https://www.newadvent.org/fathers/200136.htm",
+          "heading": "CHURCH FATHERS: Homily 36 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 37,
+          "url": "https://www.newadvent.org/fathers/200137.htm",
+          "heading": "CHURCH FATHERS: Homily 37 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 38,
+          "url": "https://www.newadvent.org/fathers/200138.htm",
+          "heading": "CHURCH FATHERS: Homily 38 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 39,
+          "url": "https://www.newadvent.org/fathers/200139.htm",
+          "heading": "CHURCH FATHERS: Homily 39 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 40,
+          "url": "https://www.newadvent.org/fathers/200140.htm",
+          "heading": "CHURCH FATHERS: Homily 40 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 41,
+          "url": "https://www.newadvent.org/fathers/200141.htm",
+          "heading": "CHURCH FATHERS: Homily 41 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 42,
+          "url": "https://www.newadvent.org/fathers/200142.htm",
+          "heading": "CHURCH FATHERS: Homily 42 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 43,
+          "url": "https://www.newadvent.org/fathers/200143.htm",
+          "heading": "CHURCH FATHERS: Homily 43 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 44,
+          "url": "https://www.newadvent.org/fathers/200144.htm",
+          "heading": "CHURCH FATHERS: Homily 44 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 45,
+          "url": "https://www.newadvent.org/fathers/200145.htm",
+          "heading": "CHURCH FATHERS: Homily 45 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 46,
+          "url": "https://www.newadvent.org/fathers/200146.htm",
+          "heading": "CHURCH FATHERS: Homily 46 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 47,
+          "url": "https://www.newadvent.org/fathers/200147.htm",
+          "heading": "CHURCH FATHERS: Homily 47 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 48,
+          "url": "https://www.newadvent.org/fathers/200148.htm",
+          "heading": "CHURCH FATHERS: Homily 48 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 49,
+          "url": "https://www.newadvent.org/fathers/200149.htm",
+          "heading": "CHURCH FATHERS: Homily 49 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 50,
+          "url": "https://www.newadvent.org/fathers/200150.htm",
+          "heading": "CHURCH FATHERS: Homily 50 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 51,
+          "url": "https://www.newadvent.org/fathers/200151.htm",
+          "heading": "CHURCH FATHERS: Homily 51 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 52,
+          "url": "https://www.newadvent.org/fathers/200152.htm",
+          "heading": "CHURCH FATHERS: Homily 52 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 53,
+          "url": "https://www.newadvent.org/fathers/200153.htm",
+          "heading": "CHURCH FATHERS: Homily 53 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 54,
+          "url": "https://www.newadvent.org/fathers/200154.htm",
+          "heading": "CHURCH FATHERS: Homily 54 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 55,
+          "url": "https://www.newadvent.org/fathers/200155.htm",
+          "heading": "CHURCH FATHERS: Homily 55 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 56,
+          "url": "https://www.newadvent.org/fathers/200156.htm",
+          "heading": "CHURCH FATHERS: Homily 56 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 57,
+          "url": "https://www.newadvent.org/fathers/200157.htm",
+          "heading": "CHURCH FATHERS: Homily 57 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 58,
+          "url": "https://www.newadvent.org/fathers/200158.htm",
+          "heading": "CHURCH FATHERS: Homily 58 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 59,
+          "url": "https://www.newadvent.org/fathers/200159.htm",
+          "heading": "CHURCH FATHERS: Homily 59 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 60,
+          "url": "https://www.newadvent.org/fathers/200160.htm",
+          "heading": "CHURCH FATHERS: Homily 60 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 61,
+          "url": "https://www.newadvent.org/fathers/200161.htm",
+          "heading": "CHURCH FATHERS: Homily 61 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 62,
+          "url": "https://www.newadvent.org/fathers/200162.htm",
+          "heading": "CHURCH FATHERS: Homily 62 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 63,
+          "url": "https://www.newadvent.org/fathers/200163.htm",
+          "heading": "CHURCH FATHERS: Homily 63 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 64,
+          "url": "https://www.newadvent.org/fathers/200164.htm",
+          "heading": "CHURCH FATHERS: Homily 64 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 65,
+          "url": "https://www.newadvent.org/fathers/200165.htm",
+          "heading": "CHURCH FATHERS: Homily 65 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 66,
+          "url": "https://www.newadvent.org/fathers/200166.htm",
+          "heading": "CHURCH FATHERS: Homily 66 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 67,
+          "url": "https://www.newadvent.org/fathers/200167.htm",
+          "heading": "CHURCH FATHERS: Homily 67 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 68,
+          "url": "https://www.newadvent.org/fathers/200168.htm",
+          "heading": "CHURCH FATHERS: Homily 68 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 69,
+          "url": "https://www.newadvent.org/fathers/200169.htm",
+          "heading": "CHURCH FATHERS: Homily 69 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 70,
+          "url": "https://www.newadvent.org/fathers/200170.htm",
+          "heading": "CHURCH FATHERS: Homily 70 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 71,
+          "url": "https://www.newadvent.org/fathers/200171.htm",
+          "heading": "CHURCH FATHERS: Homily 71 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 72,
+          "url": "https://www.newadvent.org/fathers/200172.htm",
+          "heading": "CHURCH FATHERS: Homily 72 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 73,
+          "url": "https://www.newadvent.org/fathers/200173.htm",
+          "heading": "CHURCH FATHERS: Homily 73 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 74,
+          "url": "https://www.newadvent.org/fathers/200174.htm",
+          "heading": "CHURCH FATHERS: Homily 74 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 75,
+          "url": "https://www.newadvent.org/fathers/200175.htm",
+          "heading": "CHURCH FATHERS: Homily 75 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 76,
+          "url": "https://www.newadvent.org/fathers/200176.htm",
+          "heading": "CHURCH FATHERS: Homily 76 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 77,
+          "url": "https://www.newadvent.org/fathers/200177.htm",
+          "heading": "CHURCH FATHERS: Homily 77 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 78,
+          "url": "https://www.newadvent.org/fathers/200178.htm",
+          "heading": "CHURCH FATHERS: Homily 78 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 79,
+          "url": "https://www.newadvent.org/fathers/200179.htm",
+          "heading": "CHURCH FATHERS: Homily 79 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 80,
+          "url": "https://www.newadvent.org/fathers/200180.htm",
+          "heading": "CHURCH FATHERS: Homily 80 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 81,
+          "url": "https://www.newadvent.org/fathers/200181.htm",
+          "heading": "CHURCH FATHERS: Homily 81 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 82,
+          "url": "https://www.newadvent.org/fathers/200182.htm",
+          "heading": "CHURCH FATHERS: Homily 82 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 83,
+          "url": "https://www.newadvent.org/fathers/200183.htm",
+          "heading": "CHURCH FATHERS: Homily 83 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 84,
+          "url": "https://www.newadvent.org/fathers/200184.htm",
+          "heading": "CHURCH FATHERS: Homily 84 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 85,
+          "url": "https://www.newadvent.org/fathers/200185.htm",
+          "heading": "CHURCH FATHERS: Homily 85 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 86,
+          "url": "https://www.newadvent.org/fathers/200186.htm",
+          "heading": "CHURCH FATHERS: Homily 86 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 87,
+          "url": "https://www.newadvent.org/fathers/200187.htm",
+          "heading": "CHURCH FATHERS: Homily 87 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 88,
+          "url": "https://www.newadvent.org/fathers/200188.htm",
+          "heading": "CHURCH FATHERS: Homily 88 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 89,
+          "url": "https://www.newadvent.org/fathers/200189.htm",
+          "heading": "CHURCH FATHERS: Homily 89 on Matthew (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 90,
+          "url": "https://www.newadvent.org/fathers/200190.htm",
+          "heading": "CHURCH FATHERS: Homily 90 on Matthew (Chrysostom)",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "work": "Chrysostom: Homilies on John",
+      "books": [
+        "JHN"
+      ],
+      "method": "numeric-extrapolation",
+      "homilies": [
+        {
+          "homily": 1,
+          "url": "https://www.newadvent.org/fathers/240101.htm",
+          "heading": "CHURCH FATHERS: Homily 1 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 2,
+          "url": "https://www.newadvent.org/fathers/240102.htm",
+          "heading": "CHURCH FATHERS: Homily 2 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 3,
+          "url": "https://www.newadvent.org/fathers/240103.htm",
+          "heading": "CHURCH FATHERS: Homily 3 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 4,
+          "url": "https://www.newadvent.org/fathers/240104.htm",
+          "heading": "CHURCH FATHERS: Homily 4 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 5,
+          "url": "https://www.newadvent.org/fathers/240105.htm",
+          "heading": "CHURCH FATHERS: Homily 5 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 6,
+          "url": "https://www.newadvent.org/fathers/240106.htm",
+          "heading": "CHURCH FATHERS: Homily 6 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 7,
+          "url": "https://www.newadvent.org/fathers/240107.htm",
+          "heading": "CHURCH FATHERS: Homily 7 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 8,
+          "url": "https://www.newadvent.org/fathers/240108.htm",
+          "heading": "CHURCH FATHERS: Homily 8 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 9,
+          "url": "https://www.newadvent.org/fathers/240109.htm",
+          "heading": "CHURCH FATHERS: Homily 9 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 10,
+          "url": "https://www.newadvent.org/fathers/240110.htm",
+          "heading": "CHURCH FATHERS: Homily 10 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 11,
+          "url": "https://www.newadvent.org/fathers/240111.htm",
+          "heading": "CHURCH FATHERS: Homily 11 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 12,
+          "url": "https://www.newadvent.org/fathers/240112.htm",
+          "heading": "CHURCH FATHERS: Homily 12 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 13,
+          "url": "https://www.newadvent.org/fathers/240113.htm",
+          "heading": "CHURCH FATHERS: Homily 13 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 14,
+          "url": "https://www.newadvent.org/fathers/240114.htm",
+          "heading": "CHURCH FATHERS: Homily 14 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 15,
+          "url": "https://www.newadvent.org/fathers/240115.htm",
+          "heading": "CHURCH FATHERS: Homily 15 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 16,
+          "url": "https://www.newadvent.org/fathers/240116.htm",
+          "heading": "CHURCH FATHERS: Homily 16 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 17,
+          "url": "https://www.newadvent.org/fathers/240117.htm",
+          "heading": "CHURCH FATHERS: Homily 17 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 18,
+          "url": "https://www.newadvent.org/fathers/240118.htm",
+          "heading": "CHURCH FATHERS: Homily 18 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 19,
+          "url": "https://www.newadvent.org/fathers/240119.htm",
+          "heading": "CHURCH FATHERS: Homily 19 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 20,
+          "url": "https://www.newadvent.org/fathers/240120.htm",
+          "heading": "CHURCH FATHERS: Homily 20 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 21,
+          "url": "https://www.newadvent.org/fathers/240121.htm",
+          "heading": "CHURCH FATHERS: Homily 21 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 22,
+          "url": "https://www.newadvent.org/fathers/240122.htm",
+          "heading": "CHURCH FATHERS: Homily 22 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 23,
+          "url": "https://www.newadvent.org/fathers/240123.htm",
+          "heading": "CHURCH FATHERS: Homily 23 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 24,
+          "url": "https://www.newadvent.org/fathers/240124.htm",
+          "heading": "CHURCH FATHERS: Homily 24 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 25,
+          "url": "https://www.newadvent.org/fathers/240125.htm",
+          "heading": "CHURCH FATHERS: Homily 25 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 26,
+          "url": "https://www.newadvent.org/fathers/240126.htm",
+          "heading": "CHURCH FATHERS: Homily 26 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 27,
+          "url": "https://www.newadvent.org/fathers/240127.htm",
+          "heading": "CHURCH FATHERS: Homily 27 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 28,
+          "url": "https://www.newadvent.org/fathers/240128.htm",
+          "heading": "CHURCH FATHERS: Homily 28 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 29,
+          "url": "https://www.newadvent.org/fathers/240129.htm",
+          "heading": "CHURCH FATHERS: Homily 29 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 30,
+          "url": "https://www.newadvent.org/fathers/240130.htm",
+          "heading": "CHURCH FATHERS: Homily 30 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 31,
+          "url": "https://www.newadvent.org/fathers/240131.htm",
+          "heading": "CHURCH FATHERS: Homily 31 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 32,
+          "url": "https://www.newadvent.org/fathers/240132.htm",
+          "heading": "CHURCH FATHERS: Homily 32 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 33,
+          "url": "https://www.newadvent.org/fathers/240133.htm",
+          "heading": "CHURCH FATHERS: Homily 33 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 34,
+          "url": "https://www.newadvent.org/fathers/240134.htm",
+          "heading": "CHURCH FATHERS: Homily 34 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 35,
+          "url": "https://www.newadvent.org/fathers/240135.htm",
+          "heading": "CHURCH FATHERS: Homily 35 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 36,
+          "url": "https://www.newadvent.org/fathers/240136.htm",
+          "heading": "CHURCH FATHERS: Homily 36 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 37,
+          "url": "https://www.newadvent.org/fathers/240137.htm",
+          "heading": "CHURCH FATHERS: Homily 37 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 38,
+          "url": "https://www.newadvent.org/fathers/240138.htm",
+          "heading": "CHURCH FATHERS: Homily 38 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 39,
+          "url": "https://www.newadvent.org/fathers/240139.htm",
+          "heading": "CHURCH FATHERS: Homily 39 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 40,
+          "url": "https://www.newadvent.org/fathers/240140.htm",
+          "heading": "CHURCH FATHERS: Homily 40 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 41,
+          "url": "https://www.newadvent.org/fathers/240141.htm",
+          "heading": "CHURCH FATHERS: Homily 41 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 42,
+          "url": "https://www.newadvent.org/fathers/240142.htm",
+          "heading": "CHURCH FATHERS: Homily 42 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 43,
+          "url": "https://www.newadvent.org/fathers/240143.htm",
+          "heading": "CHURCH FATHERS: Homily 43 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 44,
+          "url": "https://www.newadvent.org/fathers/240144.htm",
+          "heading": "CHURCH FATHERS: Homily 44 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 45,
+          "url": "https://www.newadvent.org/fathers/240145.htm",
+          "heading": "CHURCH FATHERS: Homily 45 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 46,
+          "url": "https://www.newadvent.org/fathers/240146.htm",
+          "heading": "CHURCH FATHERS: Homily 46 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 47,
+          "url": "https://www.newadvent.org/fathers/240147.htm",
+          "heading": "CHURCH FATHERS: Homily 47 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 48,
+          "url": "https://www.newadvent.org/fathers/240148.htm",
+          "heading": "CHURCH FATHERS: Homily 48 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 49,
+          "url": "https://www.newadvent.org/fathers/240149.htm",
+          "heading": "CHURCH FATHERS: Homily 49 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 50,
+          "url": "https://www.newadvent.org/fathers/240150.htm",
+          "heading": "CHURCH FATHERS: Homily 50 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 51,
+          "url": "https://www.newadvent.org/fathers/240151.htm",
+          "heading": "CHURCH FATHERS: Homily 51 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 52,
+          "url": "https://www.newadvent.org/fathers/240152.htm",
+          "heading": "CHURCH FATHERS: Homily 52 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 53,
+          "url": "https://www.newadvent.org/fathers/240153.htm",
+          "heading": "CHURCH FATHERS: Homily 53 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 54,
+          "url": "https://www.newadvent.org/fathers/240154.htm",
+          "heading": "CHURCH FATHERS: Homily 54 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 55,
+          "url": "https://www.newadvent.org/fathers/240155.htm",
+          "heading": "CHURCH FATHERS: Homily 55 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 56,
+          "url": "https://www.newadvent.org/fathers/240156.htm",
+          "heading": "CHURCH FATHERS: Homily 56 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 57,
+          "url": "https://www.newadvent.org/fathers/240157.htm",
+          "heading": "CHURCH FATHERS: Homily 57 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 58,
+          "url": "https://www.newadvent.org/fathers/240158.htm",
+          "heading": "CHURCH FATHERS: Homily 58 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 59,
+          "url": "https://www.newadvent.org/fathers/240159.htm",
+          "heading": "CHURCH FATHERS: Homily 59 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 60,
+          "url": "https://www.newadvent.org/fathers/240160.htm",
+          "heading": "CHURCH FATHERS: Homily 60 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 61,
+          "url": "https://www.newadvent.org/fathers/240161.htm",
+          "heading": "CHURCH FATHERS: Homily 61 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 62,
+          "url": "https://www.newadvent.org/fathers/240162.htm",
+          "heading": "CHURCH FATHERS: Homily 62 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 63,
+          "url": "https://www.newadvent.org/fathers/240163.htm",
+          "heading": "CHURCH FATHERS: Homily 63 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 64,
+          "url": "https://www.newadvent.org/fathers/240164.htm",
+          "heading": "CHURCH FATHERS: Homily 64 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 65,
+          "url": "https://www.newadvent.org/fathers/240165.htm",
+          "heading": "CHURCH FATHERS: Homily 65 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 66,
+          "url": "https://www.newadvent.org/fathers/240166.htm",
+          "heading": "CHURCH FATHERS: Homily 66 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 67,
+          "url": "https://www.newadvent.org/fathers/240167.htm",
+          "heading": "CHURCH FATHERS: Homily 67 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 68,
+          "url": "https://www.newadvent.org/fathers/240168.htm",
+          "heading": "CHURCH FATHERS: Homily 68 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 69,
+          "url": "https://www.newadvent.org/fathers/240169.htm",
+          "heading": "CHURCH FATHERS: Homily 69 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 70,
+          "url": "https://www.newadvent.org/fathers/240170.htm",
+          "heading": "CHURCH FATHERS: Homily 70 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 71,
+          "url": "https://www.newadvent.org/fathers/240171.htm",
+          "heading": "CHURCH FATHERS: Homily 71 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 72,
+          "url": "https://www.newadvent.org/fathers/240172.htm",
+          "heading": "CHURCH FATHERS: Homily 72 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 73,
+          "url": "https://www.newadvent.org/fathers/240173.htm",
+          "heading": "CHURCH FATHERS: Homily 73 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 74,
+          "url": "https://www.newadvent.org/fathers/240174.htm",
+          "heading": "CHURCH FATHERS: Homily 74 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 75,
+          "url": "https://www.newadvent.org/fathers/240175.htm",
+          "heading": "CHURCH FATHERS: Homily 75 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 76,
+          "url": "https://www.newadvent.org/fathers/240176.htm",
+          "heading": "CHURCH FATHERS: Homily 76 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 77,
+          "url": "https://www.newadvent.org/fathers/240177.htm",
+          "heading": "CHURCH FATHERS: Homily 77 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 78,
+          "url": "https://www.newadvent.org/fathers/240178.htm",
+          "heading": "CHURCH FATHERS: Homily 78 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 79,
+          "url": "https://www.newadvent.org/fathers/240179.htm",
+          "heading": "CHURCH FATHERS: Homily 79 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 80,
+          "url": "https://www.newadvent.org/fathers/240180.htm",
+          "heading": "CHURCH FATHERS: Homily 80 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 81,
+          "url": "https://www.newadvent.org/fathers/240181.htm",
+          "heading": "CHURCH FATHERS: Homily 81 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 82,
+          "url": "https://www.newadvent.org/fathers/240182.htm",
+          "heading": "CHURCH FATHERS: Homily 82 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 83,
+          "url": "https://www.newadvent.org/fathers/240183.htm",
+          "heading": "CHURCH FATHERS: Homily 83 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 84,
+          "url": "https://www.newadvent.org/fathers/240184.htm",
+          "heading": "CHURCH FATHERS: Homily 84 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 85,
+          "url": "https://www.newadvent.org/fathers/240185.htm",
+          "heading": "CHURCH FATHERS: Homily 85 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 86,
+          "url": "https://www.newadvent.org/fathers/240186.htm",
+          "heading": "CHURCH FATHERS: Homily 86 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 87,
+          "url": "https://www.newadvent.org/fathers/240187.htm",
+          "heading": "CHURCH FATHERS: Homily 87 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 88,
+          "url": "https://www.newadvent.org/fathers/240188.htm",
+          "heading": "CHURCH FATHERS: Homily 88 on the Gospel of John (Chrysostom)",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "work": "Chrysostom: Homilies on Romans",
+      "books": [
+        "ROM"
+      ],
+      "method": "numeric-extrapolation",
+      "homilies": [
+        {
+          "homily": 1,
+          "url": "https://www.newadvent.org/fathers/210201.htm",
+          "heading": "CHURCH FATHERS: Homily 1 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 2,
+          "url": "https://www.newadvent.org/fathers/210202.htm",
+          "heading": "CHURCH FATHERS: Homily 2 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 3,
+          "url": "https://www.newadvent.org/fathers/210203.htm",
+          "heading": "CHURCH FATHERS: Homily 3 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 4,
+          "url": "https://www.newadvent.org/fathers/210204.htm",
+          "heading": "CHURCH FATHERS: Homily 4 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 5,
+          "url": "https://www.newadvent.org/fathers/210205.htm",
+          "heading": "CHURCH FATHERS: Homily 5 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 6,
+          "url": "https://www.newadvent.org/fathers/210206.htm",
+          "heading": "CHURCH FATHERS: Homily 6 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 7,
+          "url": "https://www.newadvent.org/fathers/210207.htm",
+          "heading": "CHURCH FATHERS: Homily 7 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 8,
+          "url": "https://www.newadvent.org/fathers/210208.htm",
+          "heading": "CHURCH FATHERS: Homily 8 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 9,
+          "url": "https://www.newadvent.org/fathers/210209.htm",
+          "heading": "CHURCH FATHERS: Homily 9 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 10,
+          "url": "https://www.newadvent.org/fathers/210210.htm",
+          "heading": "CHURCH FATHERS: Homily 10 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 11,
+          "url": "https://www.newadvent.org/fathers/210211.htm",
+          "heading": "CHURCH FATHERS: Homily 11 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 12,
+          "url": "https://www.newadvent.org/fathers/210212.htm",
+          "heading": "CHURCH FATHERS: Homily 12 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 13,
+          "url": "https://www.newadvent.org/fathers/210213.htm",
+          "heading": "CHURCH FATHERS: Homily 13 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 14,
+          "url": "https://www.newadvent.org/fathers/210214.htm",
+          "heading": "CHURCH FATHERS: Homily 14 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 15,
+          "url": "https://www.newadvent.org/fathers/210215.htm",
+          "heading": "CHURCH FATHERS: Homily 15 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 16,
+          "url": "https://www.newadvent.org/fathers/210216.htm",
+          "heading": "CHURCH FATHERS: Homily 16 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 17,
+          "url": "https://www.newadvent.org/fathers/210217.htm",
+          "heading": "CHURCH FATHERS: Homily 17 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 18,
+          "url": "https://www.newadvent.org/fathers/210218.htm",
+          "heading": "CHURCH FATHERS: Homily 18 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 19,
+          "url": "https://www.newadvent.org/fathers/210219.htm",
+          "heading": "CHURCH FATHERS: Homily 19 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 20,
+          "url": "https://www.newadvent.org/fathers/210220.htm",
+          "heading": "CHURCH FATHERS: Homily 20 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 21,
+          "url": "https://www.newadvent.org/fathers/210221.htm",
+          "heading": "CHURCH FATHERS: Homily 21 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 22,
+          "url": "https://www.newadvent.org/fathers/210222.htm",
+          "heading": "CHURCH FATHERS: Homily 22 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 23,
+          "url": "https://www.newadvent.org/fathers/210223.htm",
+          "heading": "CHURCH FATHERS: Homily 23 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 24,
+          "url": "https://www.newadvent.org/fathers/210224.htm",
+          "heading": "CHURCH FATHERS: Homily 24 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 25,
+          "url": "https://www.newadvent.org/fathers/210225.htm",
+          "heading": "CHURCH FATHERS: Homily 25 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 26,
+          "url": "https://www.newadvent.org/fathers/210226.htm",
+          "heading": "CHURCH FATHERS: Homily 26 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 27,
+          "url": "https://www.newadvent.org/fathers/210227.htm",
+          "heading": "CHURCH FATHERS: Homily 27 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 28,
+          "url": "https://www.newadvent.org/fathers/210228.htm",
+          "heading": "CHURCH FATHERS: Homily 28 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 29,
+          "url": "https://www.newadvent.org/fathers/210229.htm",
+          "heading": "CHURCH FATHERS: Homily 29 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 30,
+          "url": "https://www.newadvent.org/fathers/210230.htm",
+          "heading": "CHURCH FATHERS: Homily 30 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 31,
+          "url": "https://www.newadvent.org/fathers/210231.htm",
+          "heading": "CHURCH FATHERS: Homily 31 on Romans (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 32,
+          "url": "https://www.newadvent.org/fathers/210232.htm",
+          "heading": "CHURCH FATHERS: Homily 32 on Romans (Chrysostom)",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "work": "Chrysostom: Homilies on 1 Corinthians",
+      "books": [
+        "1CO"
+      ],
+      "method": "numeric-extrapolation",
+      "homilies": [
+        {
+          "homily": 1,
+          "url": "https://www.newadvent.org/fathers/220101.htm",
+          "heading": "CHURCH FATHERS: Homily 1 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 2,
+          "url": "https://www.newadvent.org/fathers/220102.htm",
+          "heading": "CHURCH FATHERS: Homily 2 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 3,
+          "url": "https://www.newadvent.org/fathers/220103.htm",
+          "heading": "CHURCH FATHERS: Homily 3 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 4,
+          "url": "https://www.newadvent.org/fathers/220104.htm",
+          "heading": "CHURCH FATHERS: Homily 4 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 5,
+          "url": "https://www.newadvent.org/fathers/220105.htm",
+          "heading": "CHURCH FATHERS: Homily 5 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 6,
+          "url": "https://www.newadvent.org/fathers/220106.htm",
+          "heading": "CHURCH FATHERS: Homily 6 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 7,
+          "url": "https://www.newadvent.org/fathers/220107.htm",
+          "heading": "CHURCH FATHERS: Homily 7 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 8,
+          "url": "https://www.newadvent.org/fathers/220108.htm",
+          "heading": "CHURCH FATHERS: Homily 8 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 9,
+          "url": "https://www.newadvent.org/fathers/220109.htm",
+          "heading": "CHURCH FATHERS: Homily 9 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 10,
+          "url": "https://www.newadvent.org/fathers/220110.htm",
+          "heading": "CHURCH FATHERS: Homily 10 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 11,
+          "url": "https://www.newadvent.org/fathers/220111.htm",
+          "heading": "CHURCH FATHERS: Homily 11 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 12,
+          "url": "https://www.newadvent.org/fathers/220112.htm",
+          "heading": "CHURCH FATHERS: Homily 12 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 13,
+          "url": "https://www.newadvent.org/fathers/220113.htm",
+          "heading": "CHURCH FATHERS: Homily 13 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 14,
+          "url": "https://www.newadvent.org/fathers/220114.htm",
+          "heading": "CHURCH FATHERS: Homily 14 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 15,
+          "url": "https://www.newadvent.org/fathers/220115.htm",
+          "heading": "CHURCH FATHERS: Homily 15 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 16,
+          "url": "https://www.newadvent.org/fathers/220116.htm",
+          "heading": "CHURCH FATHERS: Homily 16 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 17,
+          "url": "https://www.newadvent.org/fathers/220117.htm",
+          "heading": "CHURCH FATHERS: Homily 17 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 18,
+          "url": "https://www.newadvent.org/fathers/220118.htm",
+          "heading": "CHURCH FATHERS: Homily 18 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 19,
+          "url": "https://www.newadvent.org/fathers/220119.htm",
+          "heading": "CHURCH FATHERS: Homily 19 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 20,
+          "url": "https://www.newadvent.org/fathers/220120.htm",
+          "heading": "CHURCH FATHERS: Homily 20 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 21,
+          "url": "https://www.newadvent.org/fathers/220121.htm",
+          "heading": "CHURCH FATHERS: Homily 21 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 22,
+          "url": "https://www.newadvent.org/fathers/220122.htm",
+          "heading": "CHURCH FATHERS: Homily 22 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 23,
+          "url": "https://www.newadvent.org/fathers/220123.htm",
+          "heading": "CHURCH FATHERS: Homily 23 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 24,
+          "url": "https://www.newadvent.org/fathers/220124.htm",
+          "heading": "CHURCH FATHERS: Homily 24 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 25,
+          "url": "https://www.newadvent.org/fathers/220125.htm",
+          "heading": "CHURCH FATHERS: Homily 25 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 26,
+          "url": "https://www.newadvent.org/fathers/220126.htm",
+          "heading": "CHURCH FATHERS: Homily 26 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 27,
+          "url": "https://www.newadvent.org/fathers/220127.htm",
+          "heading": "CHURCH FATHERS: Homily 27 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 28,
+          "url": "https://www.newadvent.org/fathers/220128.htm",
+          "heading": "CHURCH FATHERS: Homily 28 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 29,
+          "url": "https://www.newadvent.org/fathers/220129.htm",
+          "heading": "CHURCH FATHERS: Homily 29 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 30,
+          "url": "https://www.newadvent.org/fathers/220130.htm",
+          "heading": "CHURCH FATHERS: Homily 30 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 31,
+          "url": "https://www.newadvent.org/fathers/220131.htm",
+          "heading": "CHURCH FATHERS: Homily 31 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 32,
+          "url": "https://www.newadvent.org/fathers/220132.htm",
+          "heading": "CHURCH FATHERS: Homily 32 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 33,
+          "url": "https://www.newadvent.org/fathers/220133.htm",
+          "heading": "CHURCH FATHERS: Homily 33 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 34,
+          "url": "https://www.newadvent.org/fathers/220134.htm",
+          "heading": "CHURCH FATHERS: Homily 34 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 35,
+          "url": "https://www.newadvent.org/fathers/220135.htm",
+          "heading": "CHURCH FATHERS: Homily 35 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 36,
+          "url": "https://www.newadvent.org/fathers/220136.htm",
+          "heading": "CHURCH FATHERS: Homily 36 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 37,
+          "url": "https://www.newadvent.org/fathers/220137.htm",
+          "heading": "CHURCH FATHERS: Homily 37 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 38,
+          "url": "https://www.newadvent.org/fathers/220138.htm",
+          "heading": "CHURCH FATHERS: Homily 38 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 39,
+          "url": "https://www.newadvent.org/fathers/220139.htm",
+          "heading": "CHURCH FATHERS: Homily 39 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 40,
+          "url": "https://www.newadvent.org/fathers/220140.htm",
+          "heading": "CHURCH FATHERS: Homily 40 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 41,
+          "url": "https://www.newadvent.org/fathers/220141.htm",
+          "heading": "CHURCH FATHERS: Homily 41 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 42,
+          "url": "https://www.newadvent.org/fathers/220142.htm",
+          "heading": "CHURCH FATHERS: Homily 42 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 43,
+          "url": "https://www.newadvent.org/fathers/220143.htm",
+          "heading": "CHURCH FATHERS: Homily 43 on First Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 44,
+          "url": "https://www.newadvent.org/fathers/220144.htm",
+          "heading": "CHURCH FATHERS: Homily 44 on First Corinthians (Chrysostom)",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "work": "Chrysostom: Homilies on 2 Corinthians",
+      "books": [
+        "2CO"
+      ],
+      "method": "numeric-extrapolation",
+      "homilies": [
+        {
+          "homily": 1,
+          "url": "https://www.newadvent.org/fathers/220201.htm",
+          "heading": "CHURCH FATHERS: Homily 1 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 2,
+          "url": "https://www.newadvent.org/fathers/220202.htm",
+          "heading": "CHURCH FATHERS: Homily 2 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 3,
+          "url": "https://www.newadvent.org/fathers/220203.htm",
+          "heading": "CHURCH FATHERS: Homily 3 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 4,
+          "url": "https://www.newadvent.org/fathers/220204.htm",
+          "heading": "CHURCH FATHERS: Homily 4 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 5,
+          "url": "https://www.newadvent.org/fathers/220205.htm",
+          "heading": "CHURCH FATHERS: Homily 5 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 6,
+          "url": "https://www.newadvent.org/fathers/220206.htm",
+          "heading": "CHURCH FATHERS: Homily 6 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 7,
+          "url": "https://www.newadvent.org/fathers/220207.htm",
+          "heading": "CHURCH FATHERS: Homily 7 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 8,
+          "url": "https://www.newadvent.org/fathers/220208.htm",
+          "heading": "CHURCH FATHERS: Homily 8 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 9,
+          "url": "https://www.newadvent.org/fathers/220209.htm",
+          "heading": "CHURCH FATHERS: Homily 9 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 10,
+          "url": "https://www.newadvent.org/fathers/220210.htm",
+          "heading": "CHURCH FATHERS: Homily 10 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 11,
+          "url": "https://www.newadvent.org/fathers/220211.htm",
+          "heading": "CHURCH FATHERS: Homily 11 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 12,
+          "url": "https://www.newadvent.org/fathers/220212.htm",
+          "heading": "CHURCH FATHERS: Homily 12 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 13,
+          "url": "https://www.newadvent.org/fathers/220213.htm",
+          "heading": "CHURCH FATHERS: Homily 13 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 14,
+          "url": "https://www.newadvent.org/fathers/220214.htm",
+          "heading": "CHURCH FATHERS: Homily 14 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 15,
+          "url": "https://www.newadvent.org/fathers/220215.htm",
+          "heading": "CHURCH FATHERS: Homily 15 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 16,
+          "url": "https://www.newadvent.org/fathers/220216.htm",
+          "heading": "CHURCH FATHERS: Homily 16 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 17,
+          "url": "https://www.newadvent.org/fathers/220217.htm",
+          "heading": "CHURCH FATHERS: Homily 17 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 18,
+          "url": "https://www.newadvent.org/fathers/220218.htm",
+          "heading": "CHURCH FATHERS: Homily 18 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 19,
+          "url": "https://www.newadvent.org/fathers/220219.htm",
+          "heading": "CHURCH FATHERS: Homily 19 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 20,
+          "url": "https://www.newadvent.org/fathers/220220.htm",
+          "heading": "CHURCH FATHERS: Homily 20 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 21,
+          "url": "https://www.newadvent.org/fathers/220221.htm",
+          "heading": "CHURCH FATHERS: Homily 21 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 22,
+          "url": "https://www.newadvent.org/fathers/220222.htm",
+          "heading": "CHURCH FATHERS: Homily 22 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 23,
+          "url": "https://www.newadvent.org/fathers/220223.htm",
+          "heading": "CHURCH FATHERS: Homily 23 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 24,
+          "url": "https://www.newadvent.org/fathers/220224.htm",
+          "heading": "CHURCH FATHERS: Homily 24 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 25,
+          "url": "https://www.newadvent.org/fathers/220225.htm",
+          "heading": "CHURCH FATHERS: Homily 25 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 26,
+          "url": "https://www.newadvent.org/fathers/220226.htm",
+          "heading": "CHURCH FATHERS: Homily 26 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 27,
+          "url": "https://www.newadvent.org/fathers/220227.htm",
+          "heading": "CHURCH FATHERS: Homily 27 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 28,
+          "url": "https://www.newadvent.org/fathers/220228.htm",
+          "heading": "CHURCH FATHERS: Homily 28 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 29,
+          "url": "https://www.newadvent.org/fathers/220229.htm",
+          "heading": "CHURCH FATHERS: Homily 29 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 30,
+          "url": "https://www.newadvent.org/fathers/220230.htm",
+          "heading": "CHURCH FATHERS: Homily 30 on Second Corinthians (Chrysostom)",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "work": "Chrysostom: Homilies on Hebrews",
+      "books": [
+        "HEB"
+      ],
+      "method": "numeric-extrapolation",
+      "homilies": [
+        {
+          "homily": 1,
+          "url": "https://www.newadvent.org/fathers/240201.htm",
+          "heading": "CHURCH FATHERS: Homily 1 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 2,
+          "url": "https://www.newadvent.org/fathers/240202.htm",
+          "heading": "CHURCH FATHERS: Homily 2 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 3,
+          "url": "https://www.newadvent.org/fathers/240203.htm",
+          "heading": "CHURCH FATHERS: Homily 3 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 4,
+          "url": "https://www.newadvent.org/fathers/240204.htm",
+          "heading": "CHURCH FATHERS: Homily 4 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 5,
+          "url": "https://www.newadvent.org/fathers/240205.htm",
+          "heading": "CHURCH FATHERS: Homily 5 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 6,
+          "url": "https://www.newadvent.org/fathers/240206.htm",
+          "heading": "CHURCH FATHERS: Homily 6 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 7,
+          "url": "https://www.newadvent.org/fathers/240207.htm",
+          "heading": "CHURCH FATHERS: Homily 7 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 8,
+          "url": "https://www.newadvent.org/fathers/240208.htm",
+          "heading": "CHURCH FATHERS: Homily 8 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 9,
+          "url": "https://www.newadvent.org/fathers/240209.htm",
+          "heading": "CHURCH FATHERS: Homily 9 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 10,
+          "url": "https://www.newadvent.org/fathers/240210.htm",
+          "heading": "CHURCH FATHERS: Homily 10 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 11,
+          "url": "https://www.newadvent.org/fathers/240211.htm",
+          "heading": "CHURCH FATHERS: Homily 11 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 12,
+          "url": "https://www.newadvent.org/fathers/240212.htm",
+          "heading": "CHURCH FATHERS: Homily 12 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 13,
+          "url": "https://www.newadvent.org/fathers/240213.htm",
+          "heading": "CHURCH FATHERS: Homily 13 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 14,
+          "url": "https://www.newadvent.org/fathers/240214.htm",
+          "heading": "CHURCH FATHERS: Homily 14 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 15,
+          "url": "https://www.newadvent.org/fathers/240215.htm",
+          "heading": "CHURCH FATHERS: Homily 15 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 16,
+          "url": "https://www.newadvent.org/fathers/240216.htm",
+          "heading": "CHURCH FATHERS: Homily 16 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 17,
+          "url": "https://www.newadvent.org/fathers/240217.htm",
+          "heading": "CHURCH FATHERS: Homily 17 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 18,
+          "url": "https://www.newadvent.org/fathers/240218.htm",
+          "heading": "CHURCH FATHERS: Homily 18 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 19,
+          "url": "https://www.newadvent.org/fathers/240219.htm",
+          "heading": "CHURCH FATHERS: Homily 19 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 20,
+          "url": "https://www.newadvent.org/fathers/240220.htm",
+          "heading": "CHURCH FATHERS: Homily 20 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 21,
+          "url": "https://www.newadvent.org/fathers/240221.htm",
+          "heading": "CHURCH FATHERS: Homily 21 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 22,
+          "url": "https://www.newadvent.org/fathers/240222.htm",
+          "heading": "CHURCH FATHERS: Homily 22 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 23,
+          "url": "https://www.newadvent.org/fathers/240223.htm",
+          "heading": "CHURCH FATHERS: Homily 23 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 24,
+          "url": "https://www.newadvent.org/fathers/240224.htm",
+          "heading": "CHURCH FATHERS: Homily 24 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 25,
+          "url": "https://www.newadvent.org/fathers/240225.htm",
+          "heading": "CHURCH FATHERS: Homily 25 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 26,
+          "url": "https://www.newadvent.org/fathers/240226.htm",
+          "heading": "CHURCH FATHERS: Homily 26 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 27,
+          "url": "https://www.newadvent.org/fathers/240227.htm",
+          "heading": "CHURCH FATHERS: Homily 27 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 28,
+          "url": "https://www.newadvent.org/fathers/240228.htm",
+          "heading": "CHURCH FATHERS: Homily 28 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 29,
+          "url": "https://www.newadvent.org/fathers/240229.htm",
+          "heading": "CHURCH FATHERS: Homily 29 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 30,
+          "url": "https://www.newadvent.org/fathers/240230.htm",
+          "heading": "CHURCH FATHERS: Homily 30 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 31,
+          "url": "https://www.newadvent.org/fathers/240231.htm",
+          "heading": "CHURCH FATHERS: Homily 31 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 32,
+          "url": "https://www.newadvent.org/fathers/240232.htm",
+          "heading": "CHURCH FATHERS: Homily 32 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 33,
+          "url": "https://www.newadvent.org/fathers/240233.htm",
+          "heading": "CHURCH FATHERS: Homily 33 on Hebrews (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 34,
+          "url": "https://www.newadvent.org/fathers/240234.htm",
+          "heading": "CHURCH FATHERS: Homily 34 on Hebrews (Chrysostom)",
+          "parsed": null
+        }
+      ]
+    },
+    {
+      "work": "Chrysostom: Homilies on Acts",
+      "books": [
+        "ACT"
+      ],
+      "method": "numeric-extrapolation",
+      "homilies": [
+        {
+          "homily": 1,
+          "url": "https://www.newadvent.org/fathers/210101.htm",
+          "heading": "CHURCH FATHERS: Homily 1 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 2,
+          "url": "https://www.newadvent.org/fathers/210102.htm",
+          "heading": "CHURCH FATHERS: Homily 2 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 3,
+          "url": "https://www.newadvent.org/fathers/210103.htm",
+          "heading": "CHURCH FATHERS: Homily 3 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 4,
+          "url": "https://www.newadvent.org/fathers/210104.htm",
+          "heading": "CHURCH FATHERS: Homily 4 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 5,
+          "url": "https://www.newadvent.org/fathers/210105.htm",
+          "heading": "CHURCH FATHERS: Homily 5 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 6,
+          "url": "https://www.newadvent.org/fathers/210106.htm",
+          "heading": "CHURCH FATHERS: Homily 6 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 7,
+          "url": "https://www.newadvent.org/fathers/210107.htm",
+          "heading": "CHURCH FATHERS: Homily 7 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 8,
+          "url": "https://www.newadvent.org/fathers/210108.htm",
+          "heading": "CHURCH FATHERS: Homily 8 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 9,
+          "url": "https://www.newadvent.org/fathers/210109.htm",
+          "heading": "CHURCH FATHERS: Homily 9 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 10,
+          "url": "https://www.newadvent.org/fathers/210110.htm",
+          "heading": "CHURCH FATHERS: Homily 10 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 11,
+          "url": "https://www.newadvent.org/fathers/210111.htm",
+          "heading": "CHURCH FATHERS: Homily 11 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 12,
+          "url": "https://www.newadvent.org/fathers/210112.htm",
+          "heading": "CHURCH FATHERS: Homily 12 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 13,
+          "url": "https://www.newadvent.org/fathers/210113.htm",
+          "heading": "CHURCH FATHERS: Homily 13 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 14,
+          "url": "https://www.newadvent.org/fathers/210114.htm",
+          "heading": "CHURCH FATHERS: Homily 14 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 15,
+          "url": "https://www.newadvent.org/fathers/210115.htm",
+          "heading": "CHURCH FATHERS: Homily 15 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 16,
+          "url": "https://www.newadvent.org/fathers/210116.htm",
+          "heading": "CHURCH FATHERS: Homily 16 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 17,
+          "url": "https://www.newadvent.org/fathers/210117.htm",
+          "heading": "CHURCH FATHERS: Homily 17 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 18,
+          "url": "https://www.newadvent.org/fathers/210118.htm",
+          "heading": "CHURCH FATHERS: Homily 18 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 19,
+          "url": "https://www.newadvent.org/fathers/210119.htm",
+          "heading": "CHURCH FATHERS: Homily 19 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 20,
+          "url": "https://www.newadvent.org/fathers/210120.htm",
+          "heading": "CHURCH FATHERS: Homily 20 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 21,
+          "url": "https://www.newadvent.org/fathers/210121.htm",
+          "heading": "CHURCH FATHERS: Homily 21 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 22,
+          "url": "https://www.newadvent.org/fathers/210122.htm",
+          "heading": "CHURCH FATHERS: Homily 22 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 23,
+          "url": "https://www.newadvent.org/fathers/210123.htm",
+          "heading": "CHURCH FATHERS: Homily 23 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 24,
+          "url": "https://www.newadvent.org/fathers/210124.htm",
+          "heading": "CHURCH FATHERS: Homily 24 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 25,
+          "url": "https://www.newadvent.org/fathers/210125.htm",
+          "heading": "CHURCH FATHERS: Homily 25 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 26,
+          "url": "https://www.newadvent.org/fathers/210126.htm",
+          "heading": "CHURCH FATHERS: Homily 26 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 27,
+          "url": "https://www.newadvent.org/fathers/210127.htm",
+          "heading": "CHURCH FATHERS: Homily 27 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 28,
+          "url": "https://www.newadvent.org/fathers/210128.htm",
+          "heading": "CHURCH FATHERS: Homily 28 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 29,
+          "url": "https://www.newadvent.org/fathers/210129.htm",
+          "heading": "CHURCH FATHERS: Homily 29 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 30,
+          "url": "https://www.newadvent.org/fathers/210130.htm",
+          "heading": "CHURCH FATHERS: Homily 30 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 31,
+          "url": "https://www.newadvent.org/fathers/210131.htm",
+          "heading": "CHURCH FATHERS: Homily 31 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 32,
+          "url": "https://www.newadvent.org/fathers/210132.htm",
+          "heading": "CHURCH FATHERS: Homily 32 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 33,
+          "url": "https://www.newadvent.org/fathers/210133.htm",
+          "heading": "CHURCH FATHERS: Homily 33 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 34,
+          "url": "https://www.newadvent.org/fathers/210134.htm",
+          "heading": "CHURCH FATHERS: Homily 34 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 35,
+          "url": "https://www.newadvent.org/fathers/210135.htm",
+          "heading": "CHURCH FATHERS: Homily 35 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 36,
+          "url": "https://www.newadvent.org/fathers/210136.htm",
+          "heading": "CHURCH FATHERS: Homily 36 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 37,
+          "url": "https://www.newadvent.org/fathers/210137.htm",
+          "heading": "CHURCH FATHERS: Homily 37 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 38,
+          "url": "https://www.newadvent.org/fathers/210138.htm",
+          "heading": "CHURCH FATHERS: Homily 38 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 39,
+          "url": "https://www.newadvent.org/fathers/210139.htm",
+          "heading": "CHURCH FATHERS: Homily 39 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 40,
+          "url": "https://www.newadvent.org/fathers/210140.htm",
+          "heading": "CHURCH FATHERS: Homily 40 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 41,
+          "url": "https://www.newadvent.org/fathers/210141.htm",
+          "heading": "CHURCH FATHERS: Homily 41 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 42,
+          "url": "https://www.newadvent.org/fathers/210142.htm",
+          "heading": "CHURCH FATHERS: Homily 42 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 43,
+          "url": "https://www.newadvent.org/fathers/210143.htm",
+          "heading": "CHURCH FATHERS: Homily 43 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 44,
+          "url": "https://www.newadvent.org/fathers/210144.htm",
+          "heading": "CHURCH FATHERS: Homily 44 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 45,
+          "url": "https://www.newadvent.org/fathers/210145.htm",
+          "heading": "CHURCH FATHERS: Homily 45 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 46,
+          "url": "https://www.newadvent.org/fathers/210146.htm",
+          "heading": "CHURCH FATHERS: Homily 46 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 47,
+          "url": "https://www.newadvent.org/fathers/210147.htm",
+          "heading": "CHURCH FATHERS: Homily 47 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 48,
+          "url": "https://www.newadvent.org/fathers/210148.htm",
+          "heading": "CHURCH FATHERS: Homily 48 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 49,
+          "url": "https://www.newadvent.org/fathers/210149.htm",
+          "heading": "CHURCH FATHERS: Homily 49 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 50,
+          "url": "https://www.newadvent.org/fathers/210150.htm",
+          "heading": "CHURCH FATHERS: Homily 50 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 51,
+          "url": "https://www.newadvent.org/fathers/210151.htm",
+          "heading": "CHURCH FATHERS: Homily 51 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 52,
+          "url": "https://www.newadvent.org/fathers/210152.htm",
+          "heading": "CHURCH FATHERS: Homily 52 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 53,
+          "url": "https://www.newadvent.org/fathers/210153.htm",
+          "heading": "CHURCH FATHERS: Homily 53 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 54,
+          "url": "https://www.newadvent.org/fathers/210154.htm",
+          "heading": "CHURCH FATHERS: Homily 54 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        },
+        {
+          "homily": 55,
+          "url": "https://www.newadvent.org/fathers/210155.htm",
+          "heading": "CHURCH FATHERS: Homily 55 on the Acts of the Apostles (Chrysostom)",
+          "parsed": null
+        }
+      ]
+    }
+  ],
+  "chrysostomFromIndex": {
+    "status": "ok",
+    "indexUrl": "https://www.newadvent.org/fathers/",
+    "matchedLinks": 0,
+    "works": []
+  },
+  "augustineSermonOnTheMount": {
+    "host": "newadvent.org",
+    "candidatesChecked": 26,
+    "hits": [
+      {
+        "url": "https://www.newadvent.org/fathers/1601.htm",
+        "title": "CHURCH FATHERS: On the Sermon on the Mount (Augustine)"
+      }
+    ]
+  }
+}
