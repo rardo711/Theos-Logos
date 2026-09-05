@@ -92,34 +92,67 @@ export function extractsPrompt(
   return [focus, localeLine, "", ...blocks].join("\n\n");
 }
 
+function cardFromExtract(ex: FetchedExtract): SourceCard | null {
+  const validPara = ex.paragraphs.find(
+    (p) =>
+      !isBoilerplate(p) &&
+      isSubstantiveQuote(p) &&
+      !isEmbeddedScripture(p),
+  );
+  if (!validPara) return null;
+  const quote = truncateAtSentence(validPara, 520);
+  return {
+    voice: ex.entry.voice,
+    work: ex.entry.work,
+    tradition: ex.entry.tradition,
+    quote,
+    citation: `${ex.entry.locus} \u00b7 ${ex.url}`,
+    paraphrased: false,
+    url: ex.url,
+    source: "generated",
+    // Not grounded: nothing checked that this paragraph treats the verse.
+    // Only parseRetrieved, which validates the quote against the fetched
+    // chunk, may claim grounding.
+    grounded: false,
+  };
+}
+
 function cardsFromExtracts(extracts: FetchedExtract[]): SourceCard[] {
   const cards: SourceCard[] = [];
   for (const ex of extracts) {
-    const validPara = ex.paragraphs.find(
-      (p) =>
-        !isBoilerplate(p) &&
-        isSubstantiveQuote(p) &&
-        !isEmbeddedScripture(p),
-    );
-    if (!validPara) continue;
-    const quote = truncateAtSentence(validPara, 520);
-    cards.push({
-      voice: ex.entry.voice,
-      work: ex.entry.work,
-      tradition: ex.entry.tradition,
-      quote,
-      citation: `${ex.entry.locus} \u00b7 ${ex.url}`,
-      paraphrased: false,
-      url: ex.url,
-      source: "generated",
-      // Not grounded: nothing checked that this paragraph treats the verse.
-      // Only parseRetrieved, which validates the quote against the fetched
-      // chunk, may claim grounding.
-      grounded: false,
-    });
+    const card = cardFromExtract(ex);
+    if (!card) continue;
+    cards.push(card);
     if (cards.length >= 4) break;
   }
   return cards;
+}
+
+const RESERVED_ID_PREFIXES = ["gill-", "geneva-", "lange-"] as const;
+
+function isReservedExtract(ex: FetchedExtract): boolean {
+  return RESERVED_ID_PREFIXES.some((p) => ex.entry.id.startsWith(p));
+}
+
+function cardCoversExtract(card: SourceCard, ex: FetchedExtract): boolean {
+  if (card.voice === ex.entry.voice) return true;
+  if (!card.url) return false;
+  return card.url === ex.url || card.url === ex.entry.url || card.url === ex.entry.altUrl;
+}
+
+/** Keep reserved first-wave voices on the card set after Gemini or the 4-card extract cap. */
+export function ensureReservedCards(
+  cards: SourceCard[],
+  extracts: FetchedExtract[],
+): SourceCard[] {
+  const out = cards.slice();
+  for (const ex of extracts) {
+    if (!isReservedExtract(ex)) continue;
+    if (out.some((c) => cardCoversExtract(c, ex))) continue;
+    const card = cardFromExtract(ex);
+    if (card) out.push(card);
+  }
+  return out;
 }
 
 const TRADITIONS = new Set<Tradition>([
@@ -232,8 +265,11 @@ export async function assembleFromSources(opts: {
 
   // Unvalidated page paragraphs. Offered only when the librarian never ran —
   // no key, or the call failed — and always labelled as unchecked.
+  const withReserved = (cards: SourceCard[]) =>
+    focused ? cards : ensureReservedCards(cards, extracts);
+
   const unchecked = {
-    cards: focused ? [] : cardsFromExtracts(extracts),
+    cards: focused ? [] : withReserved(cardsFromExtracts(extracts)),
     caution: focused ? t(locale, "cautionNoKey") : t(locale, "cautionUnverified"),
   };
 
@@ -259,7 +295,7 @@ export async function assembleFromSources(opts: {
     return unchecked;
   }
 
-  const cards = parseRetrieved(text, extracts);
+  const cards = withReserved(parseRetrieved(text, extracts));
   if (cards.length) return { cards, caution };
 
   // The librarian ran and rejected every chunk as not treating this verse.

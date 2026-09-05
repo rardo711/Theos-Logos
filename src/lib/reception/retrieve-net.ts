@@ -28,9 +28,9 @@ const MAX_BYTES = 180_000;
  * sits well past the default cap, so the passage never reached the librarian.
  */
 const MAX_BYTES_LONG_PAGE = 600_000;
-const LONG_PAGE_HOSTS = new Set(["www.newadvent.org", "newadvent.org"]);
+const LONG_PAGE_HOSTS = new Set(["www.newadvent.org", "newadvent.org", "biblehub.com", "www.biblehub.com"]);
 
-function byteCapFor(url: string): number {
+export function byteCapFor(url: string): number {
   try {
     return LONG_PAGE_HOSTS.has(new URL(url).hostname)
       ? MAX_BYTES_LONG_PAGE

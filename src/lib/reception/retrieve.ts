@@ -11,11 +11,12 @@ export {
   pickVerseParagraphs,
   paragraphMentionsVerse,
 } from "./retrieve-html.ts";
-export { fetchEntry, retrieveExtracts } from "./retrieve-net.ts";
+export { fetchEntry, retrieveExtracts, byteCapFor } from "./retrieve-net.ts";
 export {
   validateReceptionOutput,
   extractsPrompt,
   parseRetrieved,
   RETRIEVAL_CAUTION,
   assembleFromSources,
+  ensureReservedCards,
 } from "./retrieve-assemble.ts";

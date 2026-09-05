@@ -8,6 +8,8 @@ import {
   pickVerseParagraphs,
   paragraphMentionsVerse,
   parseRetrieved,
+  byteCapFor,
+  ensureReservedCards,
   validateReceptionOutput,
 } from "./retrieve.ts";
 
@@ -1393,5 +1395,123 @@ describe("systemic boilerplate and landing page rejection", () => {
     assert.ok(voices.includes("John Chrysostom"));
     assert.ok(voices.includes("John Calvin"));
     assert.ok(voices.includes("Matthew Henry"));
+  });
+});
+describe("reserved seats survive to cards", () => {
+  it("gives BibleHub the long-page byte cap", () => {
+    assert.equal(byteCapFor("https://biblehub.com/commentaries/lange/matthew/5.htm"), 600_000);
+    assert.equal(byteCapFor("https://www.biblehub.com/commentaries/lange/romans/8.htm"), 600_000);
+    assert.equal(byteCapFor("https://biblehub.com/commentaries/gill/john/3.htm"), 600_000);
+    assert.equal(byteCapFor("https://www.newadvent.org/fathers/1302.htm"), 600_000);
+    assert.equal(byteCapFor("https://ccel.org/ccel/calvin/calcom38.iv.html"), 180_000);
+    assert.equal(byteCapFor("https://www.ccel.org/ccel/calvin/calcom38.iv.html"), 180_000);
+  });
+
+  it("appends a missing reserved extract after a 4-card stack dropped it", () => {
+    const para = (who: string, verse: string) =>
+      `${who} on the verse: ${verse} is the first foundation, not a passing mention of the word in an objection.`;
+    const entry = (
+      id: string,
+      voice: string,
+      url: string,
+    ) => ({
+      id,
+      voice,
+      work: "Commentary",
+      tradition: "reformed" as const,
+      locus: "Matthew 5",
+      url,
+      tags: ["matthew"],
+      books: ["MAT"],
+      chapters: [5],
+    });
+    const extracts = [
+      {
+        entry: entry("chrysostom-matthew-15", "John Chrysostom", "https://www.newadvent.org/fathers/200115.htm"),
+        url: "https://www.newadvent.org/fathers/200115.htm",
+        paragraphs: [para("Chrysostom", "Blessed are the poor in spirit")],
+      },
+      {
+        entry: entry("aquinas-catena-matt5", "Thomas Aquinas", "https://www.ccel.org/ccel/aquinas/catena1.ii.html"),
+        url: "https://www.ccel.org/ccel/aquinas/catena1.ii.html",
+        paragraphs: [para("Aquinas", "Blessed are the poor in spirit")],
+      },
+      {
+        entry: entry("gill-matthew-5", "John Gill", "https://biblehub.com/commentaries/gill/matthew/5.htm"),
+        url: "https://biblehub.com/commentaries/gill/matthew/5.htm",
+        paragraphs: [para("Gill", "Blessed are the poor in spirit")],
+      },
+      {
+        entry: entry("geneva-matthew-5", "Geneva Bible", "https://biblehub.com/commentaries/gsb/matthew/5.htm"),
+        url: "https://biblehub.com/commentaries/gsb/matthew/5.htm",
+        paragraphs: [para("Geneva", "Blessed are the poor in spirit")],
+      },
+      {
+        entry: entry("lange-matthew-5", "John Peter Lange", "https://biblehub.com/commentaries/lange/matthew/5.htm"),
+        url: "https://biblehub.com/commentaries/lange/matthew/5.htm",
+        paragraphs: [para("Lange", "Blessed are the poor in spirit")],
+      },
+    ];
+    const cards = [
+      {
+        voice: "John Chrysostom",
+        work: "Homilies",
+        tradition: "eastern-patristic" as const,
+        quote: para("Chrysostom", "Blessed are the poor in spirit"),
+        citation: "Homily 15",
+        url: extracts[0].url,
+        source: "generated" as const,
+        grounded: true,
+      },
+      {
+        voice: "Thomas Aquinas",
+        work: "Catena",
+        tradition: "scholastic" as const,
+        quote: para("Aquinas", "Blessed are the poor in spirit"),
+        citation: "Catena Aurea",
+        url: extracts[1].url,
+        source: "generated" as const,
+        grounded: true,
+      },
+      {
+        voice: "John Gill",
+        work: "Exposition",
+        tradition: "reformed" as const,
+        quote: para("Gill", "Blessed are the poor in spirit"),
+        citation: "Matthew 5",
+        url: extracts[2].url,
+        source: "generated" as const,
+        grounded: true,
+      },
+      {
+        voice: "Geneva Bible",
+        work: "Notes",
+        tradition: "reformed" as const,
+        quote: para("Geneva", "Blessed are the poor in spirit"),
+        citation: "Matthew 5",
+        url: extracts[3].url,
+        source: "generated" as const,
+        grounded: true,
+      },
+    ];
+    const filled = ensureReservedCards(cards, extracts);
+    assert.equal(filled.length, 5);
+    assert.ok(filled.some((c) => c.voice === "John Peter Lange"));
+    const lange = filled.find((c) => c.voice === "John Peter Lange");
+    assert.ok(lange);
+    assert.equal(lange.url, "https://biblehub.com/commentaries/lange/matthew/5.htm");
+    assert.ok(lange.quote.includes("Lange on the verse"));
+    assert.equal(lange.grounded, false);
+    assert.equal(lange.paraphrased, false);
+
+    const already = ensureReservedCards(filled, extracts);
+    assert.equal(already.length, 5, "must not duplicate a reserved voice already on the desk");
+
+    const missingGill = cards.filter((c) => c.voice !== "John Gill");
+    const withGill = ensureReservedCards(missingGill, extracts);
+    assert.ok(withGill.some((c) => c.voice === "John Gill"));
+    assert.ok(withGill.some((c) => c.voice === "John Peter Lange"));
+    const gill = withGill.find((c) => c.voice === "John Gill");
+    assert.ok(gill?.quote.includes("Gill on the verse"));
   });
 });
