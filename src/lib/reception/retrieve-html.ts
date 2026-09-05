@@ -154,13 +154,20 @@ export function truncateAtSentence(text: string, maxLen = 520): string {
   const trimmed = text.trim();
   if (trimmed.length <= maxLen) return trimmed;
 
+  // Prefer a cut in the upper half of the window. Gill's BibleHub notes open
+  // with "lemma...." then one short sentence and a long semicolon run; an
+  // early period must not collapse a 7k-char note to ~120 chars when the cap
+  // is 2200 (paragraphsFromHtml keep-long path).
+  const preferFrom = Math.max(120, Math.floor(maxLen * 0.5));
+
   const sentenceMatches = Array.from(trimmed.matchAll(/[.!?](?=\s|$)/g));
   let bestCut = -1;
+  let earlyCut = -1;
   for (const m of sentenceMatches) {
     const end = (m.index ?? 0) + 1;
-    if (end <= maxLen && end >= 120) {
-      bestCut = end;
-    }
+    if (end > maxLen) continue;
+    if (end >= preferFrom) bestCut = end;
+    else if (end >= 120) earlyCut = end;
   }
 
   if (bestCut > 0) {
@@ -170,7 +177,7 @@ export function truncateAtSentence(text: string, maxLen = 520): string {
   const clauseMatches = Array.from(trimmed.matchAll(/[;:][\s]/g));
   for (const m of clauseMatches) {
     const end = (m.index ?? 0) + 1;
-    if (end <= maxLen && end >= 120) {
+    if (end <= maxLen && end >= preferFrom) {
       bestCut = end;
     }
   }
@@ -179,6 +186,14 @@ export function truncateAtSentence(text: string, maxLen = 520): string {
   }
 
   const lastSpace = trimmed.lastIndexOf(" ", maxLen);
+  if (lastSpace > preferFrom) {
+    return trimmed.slice(0, lastSpace).trim() + "\u2026";
+  }
+
+  if (earlyCut > 0) {
+    return trimmed.slice(0, earlyCut).trim();
+  }
+
   if (lastSpace > 60) {
     return trimmed.slice(0, lastSpace).trim() + "\u2026";
   }
@@ -201,9 +216,12 @@ export function paragraphsFromHtml(html: string): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   for (const chunk of chunks) {
-    const text = htmlToText(chunk);
-    if (text.length < 80 || text.length > 2200) continue;
-    if (isBoilerplate(text) || !isSubstantiveQuote(text)) continue;
+    let text = htmlToText(chunk);
+    if (text.length < 80) continue;
+    if (text.length > 2200) {
+      text = truncateAtSentence(text, 2200);
+    }
+    if (text.length < 80 || isBoilerplate(text) || !isSubstantiveQuote(text)) continue;
     const key = text.slice(0, 80).toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -249,6 +267,26 @@ export function paragraphMentionsVerse(
 }
 
 /**
+ * BibleHub Gill notes open "Lemma text,.... Commentary…". When the lemma
+ * matches the verse query and real commentary follows the ellipsis, treat
+ * that paragraph as on-target (same weight as a Ver./ch:vs marker).
+ */
+export function paragraphIsGillLemmaNote(text: string, query: string): boolean {
+  if (!query.trim()) return false;
+  const trimmed = text.trim();
+  const m = /^(.{15,220}?),\.{3,}(?=\s)/.exec(trimmed);
+  if (!m) return false;
+  const after = trimmed.slice(m[0].length).trim();
+  if (after.length < 40) return false;
+  const lemmaToks = tokenize(m[1]);
+  const qToks = new Set(tokenize(query));
+  if (lemmaToks.length < 3 || qToks.size < 2) return false;
+  let hits = 0;
+  for (const t of lemmaToks) if (qToks.has(t)) hits += 1;
+  return hits >= Math.min(3, lemmaToks.length);
+}
+
+/**
  * Paragraph selection that knows which verse it is looking for. A page can
  * cover a whole chapter (Henry) or a neighbouring pericope (Calvin on CCEL is
  * split by pericope, so a chapter-level row can land on the wrong page); the
@@ -283,6 +321,7 @@ export function pickVerseParagraphs(
           break;
         }
       }
+      if (paragraphIsGillLemmaNote(p, query)) score += 6;
       return { p, score };
     })
     .filter((x) => x.score > 0)

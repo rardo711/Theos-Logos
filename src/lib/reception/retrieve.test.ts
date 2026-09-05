@@ -590,6 +590,36 @@ describe("html extract", () => {
     assert.equal(paras.length, 1);
     assert.ok(paras[0].toLowerCase().includes("colossae"));
   });
+
+  it("truncates long Gill verse notes instead of dropping them", () => {
+    const lemma =
+      "Blessed are the poor in spirit, for theirs is the kingdom of heaven.";
+    // One continuous <p> longer than 2200 chars — the BibleHub Gill shape that
+    // used to vanish entirely under the hard length drop.
+    const body =
+      lemma +
+      " " +
+      "Not the poor in purse, but the poor in spirit; such as are sensible of their spiritual poverty, ".repeat(
+        30,
+      );
+    assert.ok(body.length > 2200, `fixture length ${body.length}`);
+    const html = `<p>${body}</p>`;
+    const paras = paragraphsFromHtml(html);
+    assert.equal(paras.length, 1, "long paragraph must be kept (truncated)");
+    assert.ok(paras[0].length <= 2200);
+    assert.ok(paras[0].startsWith("Blessed are the poor in spirit"));
+    const picked = pickVerseParagraphs(
+      paras,
+      5,
+      3,
+      "Blessed are the poor in spirit...",
+    );
+    assert.ok(picked.length >= 1);
+    assert.ok(
+      picked[0].toLowerCase().includes("poor in spirit"),
+      "pickVerseParagraphs must still hit the truncated Gill note",
+    );
+  });
 });
 
 describe("romans reception desk", () => {

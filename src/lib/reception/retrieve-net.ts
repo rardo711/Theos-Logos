@@ -77,12 +77,34 @@ async function getPage(url: string): Promise<string | null> {
   }
 }
 
+function isSacredTextsHost(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return (
+      host === "archive.sacred-texts.com" ||
+      host === "www.archive.sacred-texts.com"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function urlsForEntry(entry: CatalogEntry): string[] {
+  const primary = entry.url;
+  const alt = entry.altUrl;
+  // Vercel egress always 403s sacred-texts; BibleHub alt is the live path.
+  if (alt && isSacredTextsHost(primary)) {
+    return [alt, primary];
+  }
+  return [primary, alt].filter(Boolean) as string[];
+}
+
 export async function fetchEntry(
   entry: CatalogEntry,
   query: string,
   target?: { chapter?: number; verse?: number | null; verseEnd?: number | null },
 ): Promise<FetchedExtract | null> {
-  for (const url of [entry.url, entry.altUrl].filter(Boolean) as string[]) {
+  for (const url of urlsForEntry(entry)) {
     const html = await getPage(url);
     if (!html) continue;
     const paras = pickVerseParagraphs(
