@@ -492,31 +492,67 @@ describe("NT chapter-1 mapping", () => {
     assert.ok(scoreEntry(calvinJohn, tokens, "JHN", 1) > 0);
   });
 
-  it("empty Inquire on Rom 8 / John 3 / Matt 5 includes a first-wave voice", () => {
-    const WAVE = /^(gill|geneva|poole|jfb|lange)-/;
+  it("empty Inquire limit 7 on Rom 8 / Matt 5 / John 3 includes Gill, Geneva, AND Lange", async () => {
+    const { attachWeakNtCatalog } = await import("./catalog-weak-nt.ts");
+    attachWeakNtCatalog();
+    const beatitude =
+      "Blessed are the poor in spirit: for theirs is the kingdom of heaven";
     const cases = [
-      { bookId: "ROM" as const, chapter: 8, book: "ROM" },
-      { bookId: "JHN" as const, chapter: 3, book: "JHN" },
-      { bookId: "MAT" as const, chapter: 5, book: "MAT" },
+      {
+        bookId: "ROM" as const,
+        chapter: 8,
+        verse: 28 as number | undefined,
+        verseText: "And we know that all things work together for good",
+      },
+      {
+        bookId: "MAT" as const,
+        chapter: 5,
+        verse: 3 as number | undefined,
+        verseText: beatitude,
+      },
+      {
+        bookId: "JHN" as const,
+        chapter: 3,
+        verse: 16 as number | undefined,
+        verseText: "For God so loved the world, that he gave his only begotten Son",
+      },
     ];
     for (const c of cases) {
       const hits = mapCatalog({
         question: "",
         bookId: c.bookId,
         chapter: c.chapter,
+        verse: c.verse,
+        verseText: c.verseText,
+        limit: 7,
       });
       const ids = hits.map((h) => h.id);
-      const wave = hits.find(
-        (h) =>
-          WAVE.test(h.id) &&
-          (h.books?.includes(c.book) ?? false) &&
-          (h.chapters?.includes(c.chapter) ?? false),
-      );
-      assert.ok(
-        wave,
-        `expected gill/geneva/poole/jfb/lange for ${c.bookId} ${c.chapter}, got ${ids.join(",")}`,
-      );
+      for (const prefix of ["gill-", "geneva-", "lange-"] as const) {
+        assert.ok(
+          ids.some(
+            (id) =>
+              id.startsWith(prefix) &&
+              hits.some(
+                (h) =>
+                  h.id === id &&
+                  (h.books?.includes(c.bookId) ?? false) &&
+                  (h.chapters?.includes(c.chapter) ?? false),
+              ),
+          ),
+          `expected ${prefix}* for ${c.bookId} ${c.chapter}, got ${ids.join(",")}`,
+        );
+      }
     }
+  });
+
+  it("Gill and Geneva chapter pages keep sacred-texts primary with BibleHub altUrl", () => {
+    const gill = CATALOG.find((e) => e.id === "gill-matthew-5");
+    const geneva = CATALOG.find((e) => e.id === "geneva-matthew-5");
+    assert.ok(gill && geneva);
+    assert.match(gill.url, /archive\.sacred-texts\.com\/bib\/cmt\/gill\//);
+    assert.match(geneva.url, /archive\.sacred-texts\.com\/bib\/cmt\/geneva\//);
+    assert.equal(gill.altUrl, "https://biblehub.com/commentaries/gill/matthew/5.htm");
+    assert.equal(geneva.altUrl, "https://biblehub.com/commentaries/gsb/matthew/5.htm");
   });
 
   it("scores Gill/Geneva same-book > 0 and wrong-book Gill at 0", () => {

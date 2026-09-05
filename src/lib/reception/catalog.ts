@@ -880,24 +880,24 @@ function pad3(n: number): string {
 
 function gillNtChapters(have: Set<string>): CatalogEntry[] {
   const out: CatalogEntry[] = [];
-  for (const [stem, bookId, name, chapters, code] of WAVE1_NT) {
+  for (const [stem, bookId, name, chapters, code, hub] of WAVE1_NT) {
     const tag = name.toLowerCase().replace(/^\d+\s+/, "");
     for (let ch = 1; ch <= chapters; ch++) {
       const id = `gill-${stem}-${ch}`;
       if (have.has(id)) continue;
-      out.push(
-        e(
-          id,
-          "John Gill",
-          "Exposition of the Old and New Testament",
-          "reformed",
-          `${name} ${ch}`,
-          `https://archive.sacred-texts.com/bib/cmt/gill/${code}${pad3(ch)}.htm`,
-          [tag, "gill", "baptist"],
-          [bookId],
-          [ch],
-        ),
+      const entry = e(
+        id,
+        "John Gill",
+        "Exposition of the Old and New Testament",
+        "reformed",
+        `${name} ${ch}`,
+        `https://archive.sacred-texts.com/bib/cmt/gill/${code}${pad3(ch)}.htm`,
+        [tag, "gill", "baptist"],
+        [bookId],
+        [ch],
       );
+      entry.altUrl = `https://biblehub.com/commentaries/gill/${hub}/${ch}.htm`;
+      out.push(entry);
     }
   }
   return out;
@@ -905,24 +905,24 @@ function gillNtChapters(have: Set<string>): CatalogEntry[] {
 
 function genevaNtChapters(have: Set<string>): CatalogEntry[] {
   const out: CatalogEntry[] = [];
-  for (const [stem, bookId, name, chapters, code] of WAVE1_NT) {
+  for (const [stem, bookId, name, chapters, code, hub] of WAVE1_NT) {
     const tag = name.toLowerCase().replace(/^\d+\s+/, "");
     for (let ch = 1; ch <= chapters; ch++) {
       const id = `geneva-${stem}-${ch}`;
       if (have.has(id)) continue;
-      out.push(
-        e(
-          id,
-          "Geneva Bible",
-          "1599 Geneva Bible Notes",
-          "reformed",
-          `${name} ${ch}`,
-          `https://archive.sacred-texts.com/bib/cmt/geneva/${code}${pad3(ch)}.htm`,
-          [tag, "geneva"],
-          [bookId],
-          [ch],
-        ),
+      const entry = e(
+        id,
+        "Geneva Bible",
+        "1599 Geneva Bible Notes",
+        "reformed",
+        `${name} ${ch}`,
+        `https://archive.sacred-texts.com/bib/cmt/geneva/${code}${pad3(ch)}.htm`,
+        [tag, "geneva"],
+        [bookId],
+        [ch],
       );
+      entry.altUrl = `https://biblehub.com/commentaries/gsb/${hub}/${ch}.htm`;
+      out.push(entry);
     }
   }
   return out;
@@ -1210,13 +1210,87 @@ export function mapCatalog(opts: {
 
   // Chapter pages first so Argument/intro rows are not the only hit.
   // One page per voice here so three Calvin slices cannot crowd Henry out.
+  // At desk limits (>=7: empty Inquire / focused), reserve Gill/Geneva/Lange
+  // then interleave remaining first-wave with the rest so those three cannot
+  // be starved. Default mapCatalog(limit 5) keeps score order for Henry/Calvin tests.
   if (hasChapterPage) {
-    for (const r of ranked) {
-      if (!chapterMatch(r.entry)) continue;
-      if (picked.length >= limit) break;
-      if (voices.has(r.entry.voice)) continue;
-      voices.add(r.entry.voice);
-      picked.push(r.entry);
+    const WAVE1_RE = /^(gill|geneva|poole|jfb|lange)-/;
+    const RESERVED = ["gill-", "geneva-", "lange-"] as const;
+    const chapterRanked = ranked.filter((r) => chapterMatch(r.entry));
+    const deskLimit = limit >= 7 && Boolean(opts.bookId) && opts.chapter != null;
+    if (deskLimit) {
+      for (const prefix of RESERVED) {
+        if (picked.length >= limit) break;
+        const hit = chapterRanked.find(
+          (r) => r.entry.id.startsWith(prefix) && !voices.has(r.entry.voice),
+        );
+        if (!hit) continue;
+        voices.add(hit.entry.voice);
+        picked.push(hit.entry);
+      }
+      const remaining = chapterRanked.filter(
+        (r) => !picked.some((e) => e.id === r.entry.id),
+      );
+      const wave1 = remaining.filter((r) => WAVE1_RE.test(r.entry.id));
+      const rest = remaining.filter((r) => !WAVE1_RE.test(r.entry.id));
+      let iRest = 0;
+      let iWave = 0;
+      let takeRest = true;
+      while (
+        picked.length < limit &&
+        (iRest < rest.length || iWave < wave1.length)
+      ) {
+        const pool = takeRest ? rest : wave1;
+        let i = takeRest ? iRest : iWave;
+        let added = false;
+        while (i < pool.length) {
+          const r = pool[i++];
+          if (voices.has(r.entry.voice)) continue;
+          voices.add(r.entry.voice);
+          picked.push(r.entry);
+          added = true;
+          break;
+        }
+        if (takeRest) iRest = i;
+        else iWave = i;
+        if (!added) {
+          takeRest = !takeRest;
+          continue;
+        }
+        takeRest = !takeRest;
+      }
+      for (const prefix of RESERVED) {
+        if (picked.some((e) => e.id.startsWith(prefix))) continue;
+        const miss = chapterRanked.find(
+          (r) => r.entry.id.startsWith(prefix) && r.score > 0,
+        );
+        if (!miss) continue;
+        if (picked.length < limit && !voices.has(miss.entry.voice)) {
+          voices.add(miss.entry.voice);
+          picked.push(miss.entry);
+          continue;
+        }
+        let replaceAt = -1;
+        for (let i = picked.length - 1; i >= 0; i--) {
+          const e = picked[i];
+          if (WAVE1_RE.test(e.id)) continue;
+          if (RESERVED.some((p) => e.id.startsWith(p))) continue;
+          if (e.voice === miss.entry.voice) continue;
+          replaceAt = i;
+          break;
+        }
+        if (replaceAt < 0) continue;
+        voices.delete(picked[replaceAt].voice);
+        voices.add(miss.entry.voice);
+        picked[replaceAt] = miss.entry;
+      }
+    } else {
+      for (const r of chapterRanked) {
+        if (picked.length >= limit) break;
+        if (voices.has(r.entry.voice)) continue;
+        voices.add(r.entry.voice);
+        picked.push(r.entry);
+      }
     }
   }
   // Same-book pages next so unbooked "christ/god" treatises cannot drown Colossians.
