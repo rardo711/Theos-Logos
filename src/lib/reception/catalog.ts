@@ -843,9 +843,182 @@ function henryNtChapters(have: Set<string>): CatalogEntry[] {
   return out;
 }
 
+/** Sacred-texts / BibleHub NT book rows: stem, bookId, display name, chapters, sacred code, biblehub slug. */
+const WAVE1_NT = [
+  ["matthew", "MAT", "Matthew", 28, "mat", "matthew"],
+  ["mark", "MRK", "Mark", 16, "mar", "mark"],
+  ["luke", "LUK", "Luke", 24, "luk", "luke"],
+  ["john", "JHN", "John", 21, "joh", "john"],
+  ["acts", "ACT", "Acts", 28, "act", "acts"],
+  ["romans", "ROM", "Romans", 16, "rom", "romans"],
+  ["1corinthians", "1CO", "1 Corinthians", 16, "co1", "1_corinthians"],
+  ["2corinthians", "2CO", "2 Corinthians", 13, "co2", "2_corinthians"],
+  ["galatians", "GAL", "Galatians", 6, "gal", "galatians"],
+  ["ephesians", "EPH", "Ephesians", 6, "eph", "ephesians"],
+  ["philippians", "PHP", "Philippians", 4, "phi", "philippians"],
+  ["colossians", "COL", "Colossians", 4, "col", "colossians"],
+  ["1thessalonians", "1TH", "1 Thessalonians", 5, "th1", "1_thessalonians"],
+  ["2thessalonians", "2TH", "2 Thessalonians", 3, "th2", "2_thessalonians"],
+  ["1timothy", "1TI", "1 Timothy", 6, "ti1", "1_timothy"],
+  ["2timothy", "2TI", "2 Timothy", 4, "ti2", "2_timothy"],
+  ["titus", "TIT", "Titus", 3, "tit", "titus"],
+  ["philemon", "PHM", "Philemon", 1, "phm", "philemon"],
+  ["hebrews", "HEB", "Hebrews", 13, "heb", "hebrews"],
+  ["james", "JAS", "James", 5, "jam", "james"],
+  ["1peter", "1PE", "1 Peter", 5, "pe1", "1_peter"],
+  ["2peter", "2PE", "2 Peter", 3, "pe2", "2_peter"],
+  ["1john", "1JN", "1 John", 5, "jo1", "1_john"],
+  ["2john", "2JN", "2 John", 1, "jo2", "2_john"],
+  ["3john", "3JN", "3 John", 1, "jo3", "3_john"],
+  ["jude", "JUD", "Jude", 1, "jde", "jude"],
+  ["revelation", "REV", "Revelation", 22, "rev", "revelation"],
+] as const;
+
+function pad3(n: number): string {
+  return String(n).padStart(3, "0");
+}
+
+function gillNtChapters(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, code] of WAVE1_NT) {
+    const tag = name.toLowerCase().replace(/^\d+\s+/, "");
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `gill-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      out.push(
+        e(
+          id,
+          "John Gill",
+          "Exposition of the Old and New Testament",
+          "reformed",
+          `${name} ${ch}`,
+          `https://archive.sacred-texts.com/bib/cmt/gill/${code}${pad3(ch)}.htm`,
+          [tag, "gill", "baptist"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+function genevaNtChapters(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, code] of WAVE1_NT) {
+    const tag = name.toLowerCase().replace(/^\d+\s+/, "");
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `geneva-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      out.push(
+        e(
+          id,
+          "Geneva Bible",
+          "1599 Geneva Bible Notes",
+          "reformed",
+          `${name} ${ch}`,
+          `https://archive.sacred-texts.com/bib/cmt/geneva/${code}${pad3(ch)}.htm`,
+          [tag, "geneva"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+function pooleNtChapters(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, , hub] of WAVE1_NT) {
+    const tag = name.toLowerCase().replace(/^\d+\s+/, "");
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `poole-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      out.push(
+        e(
+          id,
+          "Matthew Poole",
+          "Annotations upon the Holy Bible",
+          "reformed",
+          `${name} ${ch}`,
+          `https://biblehub.com/commentaries/poole/${hub}/${ch}.htm`,
+          [tag, "poole"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+function jfbNtChapters(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, code, hub] of WAVE1_NT) {
+    const tag = name.toLowerCase().replace(/^\d+\s+/, "");
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `jfb-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      const entry = e(
+        id,
+        "Jamieson-Fausset-Brown",
+        "Commentary Critical and Explanatory on the Whole Bible",
+        "reformed",
+        `${name} ${ch}`,
+        `https://archive.sacred-texts.com/bib/cmt/jfb/${code}${pad3(ch)}.htm`,
+        [tag, "jfb"],
+        [bookId],
+        [ch],
+      );
+      entry.altUrl = `https://biblehub.com/commentaries/jfb/${hub}/${ch}.htm`;
+      out.push(entry);
+    }
+  }
+  return out;
+}
+
+function langeNtChapters(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, , hub] of WAVE1_NT) {
+    const tag = name.toLowerCase().replace(/^\d+\s+/, "");
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `lange-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      out.push(
+        e(
+          id,
+          "John Peter Lange",
+          "Commentary on the Holy Scriptures",
+          "reformed",
+          `${name} ${ch}`,
+          `https://biblehub.com/commentaries/lange/${hub}/${ch}.htm`,
+          [tag, "lange"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
 export const CATALOG: CatalogEntry[] = (() => {
   const have = new Set(HAND.map((x) => x.id));
-  return [...HAND, ...henryNtChapters(have)];
+  const out = [...HAND];
+  for (const gen of [
+    henryNtChapters,
+    gillNtChapters,
+    genevaNtChapters,
+    pooleNtChapters,
+    jfbNtChapters,
+    langeNtChapters,
+  ]) {
+    const more = gen(have);
+    for (const x of more) have.add(x.id);
+    out.push(...more);
+  }
+  return out;
 })();
 
 const STOP = new Set([

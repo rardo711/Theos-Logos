@@ -491,6 +491,46 @@ describe("NT chapter-1 mapping", () => {
     assert.equal(scoreEntry(calvinJohn, tokens, "1JN", 1), 0);
     assert.ok(scoreEntry(calvinJohn, tokens, "JHN", 1) > 0);
   });
+
+  it("empty Inquire on Rom 8 / John 3 / Matt 5 includes a first-wave voice", () => {
+    const WAVE = /^(gill|geneva|poole|jfb|lange)-/;
+    const cases = [
+      { bookId: "ROM" as const, chapter: 8, book: "ROM" },
+      { bookId: "JHN" as const, chapter: 3, book: "JHN" },
+      { bookId: "MAT" as const, chapter: 5, book: "MAT" },
+    ];
+    for (const c of cases) {
+      const hits = mapCatalog({
+        question: "",
+        bookId: c.bookId,
+        chapter: c.chapter,
+      });
+      const ids = hits.map((h) => h.id);
+      const wave = hits.find(
+        (h) =>
+          WAVE.test(h.id) &&
+          (h.books?.includes(c.book) ?? false) &&
+          (h.chapters?.includes(c.chapter) ?? false),
+      );
+      assert.ok(
+        wave,
+        `expected gill/geneva/poole/jfb/lange for ${c.bookId} ${c.chapter}, got ${ids.join(",")}`,
+      );
+    }
+  });
+
+  it("scores Gill/Geneva same-book > 0 and wrong-book Gill at 0", () => {
+    const gillRom = CATALOG.find((e) => e.id === "gill-romans-8");
+    const genevaRom = CATALOG.find((e) => e.id === "geneva-romans-8");
+    const gillJohn = CATALOG.find((e) => e.id.startsWith("gill-john-"));
+    assert.ok(gillRom, "gill-romans-8 in CATALOG");
+    assert.ok(genevaRom, "geneva-romans-8 in CATALOG");
+    assert.ok(gillJohn, "gill-john-* in CATALOG");
+    const tokens = tokenize("spirit adoption sons heirs");
+    assert.ok(scoreEntry(gillRom, tokens, "ROM", 8) > 0);
+    assert.ok(scoreEntry(genevaRom, tokens, "ROM", 8) > 0);
+    assert.equal(scoreEntry(gillJohn, tokens, "ROM", 8), 0);
+  });
 });
 
 describe("html extract", () => {
@@ -1289,4 +1329,3 @@ describe("systemic boilerplate and landing page rejection", () => {
     assert.ok(voices.includes("Matthew Henry"));
   });
 });
-

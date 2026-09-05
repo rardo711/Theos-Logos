@@ -16,6 +16,8 @@ const HOSTS = new Set([
   "www.biblehub.com",
   "godrules.net",
   "www.godrules.net",
+  "archive.sacred-texts.com",
+  "www.archive.sacred-texts.com",
 ]);
 
 const FETCH_MS = 10_000;
