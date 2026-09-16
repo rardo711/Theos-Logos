@@ -3,11 +3,21 @@
  * Hierarchy: Sentido → Glosa hero → Lema/Morfología → Dominio → Strong footer → attribution.
  * Body text = UBS source fields only. Logo untouched. Chip tap never Gemini.
  */
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { SpanishLexiconResult } from "@/lib/lexicon/spanish";
 
 const LABEL =
   "text-[0.6875rem] font-medium tracking-[0.14em] text-faint uppercase";
+
+/** BibleHub Greek Strong's deep link (strip leading zeros: G3956 → 3956). */
+export function strongsBibleHubHref(strongs: string): string {
+  const m = String(strongs ?? "")
+    .toUpperCase()
+    .match(/G0*(\d+)/);
+  const n = m?.[1] ?? String(strongs ?? "").replace(/^G0*/i, "");
+  return `https://biblehub.com/greek/${n}.htm`;
+}
 
 export function SpanishGlossCard({
   entry,
@@ -15,15 +25,18 @@ export function SpanishGlossCard({
   className,
 }: {
   entry: SpanishLexiconResult;
-  /** Tap Strong pill — deeper Strong / same-card re-focus. */
+  /** Optional secondary: in-app Strong re-focus (pill primary action is external link). */
   onStrong?: (strongs: string) => void;
   className?: string;
 }) {
+  const [sensesOpen, setSensesOpen] = useState(false);
   const strongs = entry.strongsAll.length ? entry.strongsAll : [entry.strongs];
   const visible = strongs.slice(0, 2);
   const overflow = strongs.length - visible.length;
   const domain = entry.domains[0];
   const subdomain = entry.subdomains[0];
+  const related = entry.senses.filter((_, i) => i !== entry.selectedSenseIndex);
+  const relatedCount = entry.relatedSenseCount;
 
   return (
     <article
@@ -81,39 +94,85 @@ export function SpanishGlossCard({
         </p>
       ) : null}
 
-      {entry.entryCode || entry.relatedSenseCount > 0 ? (
-        <p className="mt-1 text-[0.65rem] text-faint">
-          {entry.entryCode ? (
-            <span className="tabular-nums">{entry.entryCode}</span>
-          ) : null}
-          {entry.entryCode && entry.relatedSenseCount > 0 ? " · " : null}
-          {entry.relatedSenseCount > 0
-            ? `${entry.relatedSenseCount} sentido${entry.relatedSenseCount === 1 ? "" : "s"} más`
-            : null}
-        </p>
+      {entry.entryCode ? (
+        <p className="mt-1 text-[0.65rem] tabular-nums text-faint">{entry.entryCode}</p>
       ) : null}
 
-      {/* 4. Hairline + Strong footer pills (max 2 + N) */}
+      {/* N sentidos más — expand other UBS LEXMeanings; primary sense stays hero */}
+      {relatedCount > 0 ? (
+        <div className="mt-2" data-related-senses>
+          <button
+            type="button"
+            className="tl-sentidos-mas text-[0.75rem] font-medium text-gold hover:underline"
+            aria-expanded={sensesOpen}
+            onClick={() => setSensesOpen((o) => !o)}
+          >
+            {sensesOpen
+              ? "Ocultar sentidos"
+              : `${relatedCount} sentido${relatedCount === 1 ? "" : "s"} más`}
+          </button>
+          {sensesOpen ? (
+            <ul className="tl-related-senses mt-2 space-y-2.5 border-l-2 border-gold/25 pl-3">
+              {related.map((sense, i) => {
+                const d = sense.domains[0];
+                const s = sense.subdomains[0];
+                return (
+                  <li
+                    key={sense.entryCode || `rel-${i}`}
+                    className="text-[0.8125rem] leading-snug text-ink"
+                    data-sense-code={sense.entryCode || undefined}
+                  >
+                    {sense.definitionShort ? (
+                      <p className="text-ink">{sense.definitionShort}</p>
+                    ) : null}
+                    {sense.glosses.length > 0 ? (
+                      <p className="mt-0.5 text-muted">
+                        {sense.glosses.join(" · ")}
+                      </p>
+                    ) : null}
+                    {d || s ? (
+                      <p className="mt-0.5 text-[0.6875rem] text-faint">
+                        {[d, s].filter(Boolean).join(" · ")}
+                        {sense.entryCode ? (
+                          <span className="ml-1.5 tabular-nums opacity-80">
+                            {sense.entryCode}
+                          </span>
+                        ) : null}
+                      </p>
+                    ) : sense.entryCode ? (
+                      <p className="mt-0.5 text-[0.6875rem] tabular-nums text-faint">
+                        {sense.entryCode}
+                      </p>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* 4. Hairline + Strong footer pills (max 2 + N) — gold, open BibleHub */}
       <div className="tl-gloss-hairline mt-3 pt-2.5">
         <div className="flex flex-nowrap items-center gap-2 overflow-hidden">
           {visible.map((id) => (
-            <button
+            <a
               key={id}
-              type="button"
+              href={strongsBibleHubHref(id)}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => onStrong?.(id)}
               className={cn(
-                "tl-strong-pill border",
-                id === entry.strongs
-                  ? "border-oxblood/35 bg-oxblood-soft text-oxblood"
-                  : "border-rule bg-surface text-ink hover:border-oxblood/35 hover:text-oxblood",
+                "tl-strong-pill tl-strong-pill--gold border border-gold/40 bg-gold-soft text-gold",
+                "hover:border-gold/60 hover:brightness-[0.98]",
               )}
-              aria-label={`Strong ${id}`}
+              aria-label={`Strong ${id} (abre en pestaña nueva)`}
             >
               <span className="font-medium tabular-nums">{id}</span>
               <span className="text-[0.625rem] font-semibold tracking-[0.12em] uppercase opacity-80">
                 Strong
               </span>
-            </button>
+            </a>
           ))}
           {overflow > 0 ? (
             <span className="shrink-0 text-[0.6875rem] text-faint">
