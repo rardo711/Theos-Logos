@@ -18,13 +18,20 @@ import {
 } from "@/lib/reception/notes";
 import { getCurated, hasCurated } from "@/lib/reception/curated";
 import { getCached, removeCached, saveCached } from "@/lib/reception/cache";
-import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
+import { hasLexiconChip, isOtReference, lookupWordNow } from "@/lib/lexicon/stepbible";
 import {
   hasSpanishLexiconChip,
   lookupSpanishByStrongs,
   lookupSpanishWordNow,
   type SpanishLexiconResult,
 } from "@/lib/lexicon/spanish";
+import {
+  hasEnglishLexiconChip,
+  lookupEnglishByStrongs,
+  lookupEnglishWordNow,
+  type EnglishLexiconResult,
+} from "@/lib/lexicon/english";
+import { EnglishGlossCard } from "./english-gloss-card";
 import { formatReference } from "@/lib/bible/reference";
 import { bookName, getBook } from "@/lib/bible/books";
 import { t } from "@/lib/i18n";
@@ -70,7 +77,8 @@ function wordChips(
     const hit =
       locale === "es"
         ? hasSpanishLexiconChip(w)
-        : hasLexiconChip(w, reference);
+        : hasLexiconChip(w, reference) ||
+          (!isOtReference(reference) && hasEnglishLexiconChip(w));
     if (!hit) continue;
     out.push(w);
     if (out.length >= 8) break;
@@ -116,6 +124,8 @@ export function ReceptionPanel({
   const [lexicon, setLexicon] = useState<LexiconResult | null>(null);
   const [spanishLexicon, setSpanishLexicon] =
     useState<SpanishLexiconResult | null>(null);
+  const [englishLexicon, setEnglishLexicon] =
+    useState<EnglishLexiconResult | null>(null);
   /** Bump after clearing ES cache so curated desks re-run NMT. */
   const [curatedNmtKick, setCuratedNmtKick] = useState(0);
 
@@ -169,6 +179,7 @@ export function ReceptionPanel({
   useEffect(() => {
     setLexicon(null);
     setSpanishLexicon(null);
+    setEnglishLexicon(null);
     setError(null);
     setQuestion("");
     setAimOpen(false);
@@ -267,6 +278,7 @@ export function ReceptionPanel({
     setError(null);
     setLexicon(null);
     setSpanishLexicon(null);
+    setEnglishLexicon(null);
     setSynthesis(null);
     try {
       const data = await gatherCommentaries({
@@ -358,6 +370,7 @@ export function ReceptionPanel({
     setError(null);
     setLexicon(null);
     setSpanishLexicon(null);
+    setEnglishLexicon(null);
     try {
       const data = await synthesizeFromCards({
         data: {
@@ -396,17 +409,36 @@ export function ReceptionPanel({
     setError(null);
     if (locale === "es") {
       setLexicon(null);
+      setEnglishLexicon(null);
       setSpanishLexicon(lookupSpanishWordNow(word, reference));
       return;
     }
     setSpanishLexicon(null);
+    // UBS English NT lexicon first (NT Greek only); Abbott-Smith fallback.
+    const enHit = !isOtReference(reference)
+      ? lookupEnglishWordNow(word, reference)
+      : null;
+    if (enHit) {
+      setLexicon(null);
+      setEnglishLexicon(enHit);
+      return;
+    }
+    setEnglishLexicon(null);
     setLexicon(lookupWordNow(word, reference));
   }
 
   function runSpanishStrong(strongs: string) {
     setError(null);
     setLexicon(null);
+    setEnglishLexicon(null);
     setSpanishLexicon(lookupSpanishByStrongs(strongs, reference));
+  }
+
+  function runEnglishStrong(strongs: string) {
+    setError(null);
+    setLexicon(null);
+    setSpanishLexicon(null);
+    setEnglishLexicon(lookupEnglishByStrongs(strongs, reference));
   }
 
   const hasGeneratedCards = useMemo(() => {
@@ -774,7 +806,9 @@ export function ReceptionPanel({
                       className={cn(
                         "rounded-full border px-3 py-1.5 text-sm",
                         lexicon?.word.toLowerCase() === w.toLowerCase() ||
-                          spanishLexicon?.word.toLowerCase() === w.toLowerCase()
+                          spanishLexicon?.word.toLowerCase() ===
+                            w.toLowerCase() ||
+                          englishLexicon?.word.toLowerCase() === w.toLowerCase()
                           ? "border-lamp bg-lamp-soft text-lamp"
                           : "border-rule bg-surface text-ink hover:border-lamp hover:text-lamp",
                       )}
@@ -794,6 +828,18 @@ export function ReceptionPanel({
                 <SpanishGlossCard
                   entry={spanishLexicon}
                   onStrong={runSpanishStrong}
+                />
+              </div>
+            ) : null}
+
+            {locale !== "es" && englishLexicon ? (
+              <div
+                key={`${englishLexicon.strongs}:${englishLexicon.entryCode}:${englishLexicon.gloss}`}
+                className="tl-gloss-crossfade"
+              >
+                <EnglishGlossCard
+                  entry={englishLexicon}
+                  onStrong={runEnglishStrong}
                 />
               </div>
             ) : null}

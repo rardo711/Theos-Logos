@@ -2,6 +2,15 @@
 
 **Grok: start here.** Repo `HANDOFF.md` on `scholar-desk` (BUGS-PLAN.md retired 2026-09-16 — all items verified fixed on prod).
 
+## English UBS lexicon — NT-wide (2026-09-16) — PREVIEW ONLY (branch `lexicon-en-ubs`)
+- **Ask:** EN lexicon felt underwhelming vs ES (Rardo in Colossians). Same UBS treatment for all NT.
+- **Data:** `UBSGreekNTDic-v1.1-en.JSON` → `src/lib/lexicon/data/english.json` (10,844 Strong's keyed, CC BY-SA 4.0); `eng.tsv` secondary (lexicon|ubs-dict only, no llm). Importer: `scripts/import-ubs-en-lexicon.mjs` (mirrors ES importer; local-only, not at Vercel build).
+- **Lookup:** `src/lib/lexicon/english.ts` mirrors `spanish.ts` — verse-scoped sense pick via LEXReferences (SIL BBBCCCVVV), Louw-Nida domains, entry codes. NT Greek only; OT Hebrew stays BDB/Abbott-Smith path.
+- **UI:** `EnglishGlossCard` mirrors `SpanishGlossCard` (Sense → Gloss hero → Lemma/Morphology → Domain → gold Strong pills → attribution). Panel tries UBS-EN first on EN locale, falls back to old Abbott-Smith card.
+- **Tests:** `english.test.ts` — 10 pass (G3056 Jn 1:1 → “Word” 33.100 verse-scoped; G25 Rom 8:28 → “to love”; G746 Jn 1:1 → 67.65; G4416 Col 1:15 → “firstborn”).
+- Full suite 469/474 (1 pre-existing migration-plan failure, unchanged); tsc 3 pre-existing errors, unchanged; `npm run build` OK.
+- **NO promote.** Preview-only until Rardo QC.
+
 ## Reception card QC — verse-ref spam + ES book names (2026-09-16 ~02:15 ET) — PREVIEW ONLY
 - **Bug 1:** GENERADA bodies (e.g. Kretzmann on Juan 1:4) showed concatenated “John 1:1 John 1:2 …” spam. **QC:** `isMostlyVerseRefs` in `retrieve-html.ts` — high density of named book+ch:v tokens (EN+ES) or bare ch:v spam with little prose → `isSubstantiveQuote` false → reject/drop (EN and ES). Never ship spam cards.
 - **Bug 2:** Geneva/Lange ES bodies still had “John 1:4” / “1 John 1:1” because NMT `protect` leaves verse refs intact. **`localizeBookNamesInBody`** (i18n-sources; uses `BIBLE_BOOKS` + `bookName(…,"es")` + extras Song of Songs/Psalm/Apocalypse) rewrites EN book names in quote/note/bridge after NMT and in `localizeCard` display; protects Greek/Hebrew/URLs and voice phrases like “John Calvin”. EN locale unchanged.
