@@ -10,6 +10,10 @@ import { synthesizeFromDesk } from "./synthesize";
 import { orientForVerse } from "./orient";
 import { formatReference } from "@/lib/bible/reference";
 import type { ReceptionResult, SourceCard } from "@/lib/bible/types";
+import {
+  translateGeneratedReception,
+  translateSynthesisQuotes,
+} from "@/lib/translate/generated";
 
 attachWeakNtCatalog();
 
@@ -36,6 +40,24 @@ type AskInput = {
 function refOf(data: AskInput): string {
   return formatReference(data.bookName, data.chapter, data.verse, data.verseEnd);
 }
+
+/** NMT for generated cards only when locale=es. Curated/catalog untouched. */
+async function maybeTranslateGenerated(
+  result: ReceptionResult,
+  data: AskInput,
+): Promise<ReceptionResult> {
+  const locale: Locale = data.locale === "es" ? "es" : "en";
+  if (locale !== "es") return result;
+  const hasGenerated = result.cards.some((c) => c.source === "generated");
+  if (!hasGenerated && !result.synthesis) return result;
+  return translateGeneratedReception(result, {
+    locale,
+    verseTextEn: data.verseText,
+    // Reader already loads RV1960 when locale=es; verseText on the wire is Spanish.
+    verseTextEs: data.verseText,
+  });
+}
+
 
 /**
  * Attaches orientation to a result the desk could not source. Only fires on an
@@ -156,7 +178,7 @@ export const askReception = createServerFn({ method: "POST" })
     }
 
     const retrieved = await retrieveForVerse(data, question);
-    if (retrieved?.cards.length) return retrieved;
+    if (retrieved?.cards.length) return maybeTranslateGenerated(retrieved, data);
 
     if (ready && ready.cards.length > 0) return ready;
 
@@ -213,7 +235,7 @@ export const gatherCommentaries = createServerFn({ method: "POST" })
     const cards = [...prior, ...added];
 
     if (cards.length) {
-      return {
+      const result: ReceptionResult = {
         source: added.length ? "generated" : "curated",
         cards,
         caution: added.length
@@ -222,6 +244,7 @@ export const gatherCommentaries = createServerFn({ method: "POST" })
             ? "Fuentes primarias verificadas para este versículo."
             : "Verified historic primary sources for this verse.",
       };
+      return maybeTranslateGenerated(result, data);
     }
 
     if (!geminiApiKey()) {
@@ -267,11 +290,25 @@ export const synthesizeFromCards = createServerFn({ method: "POST" })
       data.verse,
       data.verseEnd,
     );
-    return synthesizeFromDesk({
+    const synthesis = await synthesizeFromDesk({
       reference,
       verseText: data.verseText,
       question: data.question ?? "",
       cards: data.cards ?? [],
       locale,
     });
+    if (locale !== "es") return synthesis;
+    const localized = await translateSynthesisQuotes(
+      {
+        question: synthesis.question,
+        answer: synthesis.answer,
+        cited: synthesis.cited,
+      },
+      {
+        locale,
+        verseTextEn: data.verseText,
+        verseTextEs: data.verseText,
+      },
+    );
+    return { ...synthesis, ...localized };
   });

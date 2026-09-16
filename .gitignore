@@ -28,3 +28,6 @@ scripts/.cache/
 # Local test runs of the research scanners; CI force-adds this path when a
 # real run finds something (see .github/workflows/reception-source-research.yml).
 scripts/research/output/
+
+# Translation NMT cache (local/preview)
+.data/

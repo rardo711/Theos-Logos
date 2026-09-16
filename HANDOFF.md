@@ -1,6 +1,17 @@
-# Theos Logos — living handoff (updated 2026-09-16 ~01:25 ET)
+# Theos Logos — living handoff (updated 2026-09-16 ~01:30 ET)
 
 **Grok: start here.** Repo `HANDOFF.md` + `BUGS-PLAN.md` on `scholar-desk`.
+
+## Spanish NMT for AI-generated commentary (2026-09-16) — PREVIEW ONLY
+- **Scope:** generated Inquire/reception cards + synthesis quote spans when `locale=es`. Catalog PD voices untouched.
+- **Engine:** Google Cloud Translation NMT. Env: `GOOGLE_TRANSLATE_API_KEY` and/or `GOOGLE_APPLICATION_CREDENTIALS` (server only).
+- **Cache:** memory + `.data/translation-cache/` + Neon `translation_cache` when `DATABASE_URL` set; key = content hash + `google-nmt` + locale.
+- **Protect:** verse refs, Greek/Hebrew, Strong’s, URLs, voice/work via `notranslate` HTML.
+- **Scripture:** reader already uses RV1960; pure verse quotes prefer `verseTextEs` over MT when EN verse is known.
+- **QC:** `TRANSLATE-QC.md`. Tests: `src/lib/translate/*.test.ts` (mocked API).
+- **NO promote.** Live translate on preview requires GCP key on Vercel (Chief/Rardo).
+- SHA / preview URL: fill after push + Vercel READY.
+
 
 ## Spanish gloss card polish — sentidos más + gold Strong (2026-09-16 ~01:25 ET) — PREVIEW ONLY
 - **Expand:** when `relatedSenseCount > 0`, control “N sentidos más” (Spanish chrome); tap expands other UBS LEXMeanings (DefinitionShort + Glosses + Domain/SubDomain); collapse via “Ocultar sentidos”. Verse-selected sense stays Sentido/Glosa hero.
