@@ -14,6 +14,12 @@ import {
 import { getCurated, hasCurated } from "@/lib/reception/curated";
 import { removeCached, saveCached } from "@/lib/reception/cache";
 import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
+import {
+  hasSpanishLexiconChip,
+  lookupSpanishByStrongs,
+  lookupSpanishWordNow,
+  type SpanishLexiconResult,
+} from "@/lib/lexicon/spanish";
 import { formatReference } from "@/lib/bible/reference";
 import { bookName, getBook } from "@/lib/bible/books";
 import { t } from "@/lib/i18n";
@@ -26,6 +32,7 @@ import type { Chapter, DeskSynthesis, LexiconResult, ReceptionResult, SourceCard
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 import { SourceCard } from "./source-card";
+import { SpanishGlossCard } from "./spanish-gloss-card";
 
 const STOP = new Set([
   "the", "and", "of", "to", "a", "in", "that", "is", "was", "he", "for", "it",
@@ -39,7 +46,11 @@ const STOP = new Set([
   "era", "muy", "sin", "sobre", "entre", "hasta", "desde",
 ]);
 
-function wordChips(text: string, reference: string): string[] {
+function wordChips(
+  text: string,
+  reference: string,
+  locale: "en" | "es",
+): string[] {
   const words = text
     .replace(/[“”‘’]/g, "")
     .split(/[^\p{L}-]+/u)
@@ -51,7 +62,11 @@ function wordChips(text: string, reference: string): string[] {
     const key = w.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    if (!hasLexiconChip(w, reference)) continue;
+    const hit =
+      locale === "es"
+        ? hasSpanishLexiconChip(w)
+        : hasLexiconChip(w, reference);
+    if (!hit) continue;
     out.push(w);
     if (out.length >= 8) break;
   }
@@ -94,6 +109,8 @@ export function ReceptionPanel({
   const resultRef = useRef<ReceptionResult | null>(null);
   resultRef.current = result;
   const [lexicon, setLexicon] = useState<LexiconResult | null>(null);
+  const [spanishLexicon, setSpanishLexicon] =
+    useState<SpanishLexiconResult | null>(null);
 
   const verse = chapter?.verses.find((v) => v.verse === selectedVerse) ?? null;
   const highlighted = useMemo(() => {
@@ -131,11 +148,11 @@ export function ReceptionPanel({
   const chips = useMemo(
     () =>
       selectionText
-        ? wordChips(selectionText, reference)
+        ? wordChips(selectionText, reference, locale)
         : verse
-          ? wordChips(verse.text, reference)
+          ? wordChips(verse.text, reference, locale)
           : [],
-    [selectionText, verse, reference],
+    [selectionText, verse, reference, locale],
   );
   const marked = useMemo(
     () => (chapter ? markedVerses(chapter.bookId, chapter.chapter) : []),
@@ -144,6 +161,7 @@ export function ReceptionPanel({
 
   useEffect(() => {
     setLexicon(null);
+    setSpanishLexicon(null);
     setError(null);
     setQuestion("");
     setAimOpen(false);
@@ -172,6 +190,7 @@ export function ReceptionPanel({
     setLoadingKind("commentaries");
     setError(null);
     setLexicon(null);
+    setSpanishLexicon(null);
     setSynthesis(null);
     try {
       const data = await gatherCommentaries({
@@ -247,6 +266,7 @@ export function ReceptionPanel({
     setLoadingKind("inquire");
     setError(null);
     setLexicon(null);
+    setSpanishLexicon(null);
     try {
       const data = await synthesizeFromCards({
         data: {
@@ -283,7 +303,19 @@ export function ReceptionPanel({
 
   function runLexicon(word: string) {
     setError(null);
+    if (locale === "es") {
+      setLexicon(null);
+      setSpanishLexicon(lookupSpanishWordNow(word, reference));
+      return;
+    }
+    setSpanishLexicon(null);
     setLexicon(lookupWordNow(word, reference));
+  }
+
+  function runSpanishStrong(strongs: string) {
+    setError(null);
+    setLexicon(null);
+    setSpanishLexicon(lookupSpanishByStrongs(strongs));
   }
 
   const hasGeneratedCards = useMemo(() => {
@@ -640,7 +672,8 @@ export function ReceptionPanel({
                       onClick={() => runLexicon(w)}
                       className={cn(
                         "rounded-full border px-3 py-1.5 text-sm",
-                        lexicon?.word.toLowerCase() === w.toLowerCase()
+                        lexicon?.word.toLowerCase() === w.toLowerCase() ||
+                          spanishLexicon?.word.toLowerCase() === w.toLowerCase()
                           ? "border-lamp bg-lamp-soft text-lamp"
                           : "border-rule bg-surface text-ink hover:border-lamp hover:text-lamp",
                       )}
@@ -652,7 +685,14 @@ export function ReceptionPanel({
               </div>
             ) : null}
 
-            {lexicon ? (
+            {locale === "es" && spanishLexicon ? (
+              <SpanishGlossCard
+                entry={spanishLexicon}
+                onStrong={runSpanishStrong}
+              />
+            ) : null}
+
+            {locale !== "es" && lexicon ? (
               <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
                 <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
                   {[lexicon.language, lexicon.strongs]

@@ -110,6 +110,13 @@ Used by the *Across the Traditions* sections so that each tradition is represent
 - The standard academic Greek NT lexicon. Commercial work; AI approximates its methodology and entry structure.
 - [Publisher](https://press.uchicago.edu/)
 
+
+**UBS Greek NT Dictionary (Spanish)** — United Bible Societies. CC BY-SA 4.0.
+- Committed compact lookup: `src/lib/lexicon/data/spanish.json` (Strong’s → Spanish glosses / DefinitionShort / domains).
+- Upstream: [ubsicap/ubs-open-license](https://github.com/ubsicap/ubs-open-license) (`UBSGreekNTDic-v1.0-es.JSON`).
+- Secondary short glosses: bcv-commons/strongs `spa.tsv` filtered to lexicon / ubs-dict rows only (no LLM fill in v1).
+- See `ATTRIBUTION.md`. Rebuild: `node scripts/import-ubs-es-lexicon.mjs` (not at Vercel build).
+
 **Thayer's Greek Lexicon** — Thayer, J.H. *A Greek-English Lexicon of the New Testament*. 1889. Public domain.
 - Available at [CCEL](https://ccel.org/ccel/thayer/greek) and [BibleHub](https://biblehub.com/lexicon/)
 
