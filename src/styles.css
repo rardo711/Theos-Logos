@@ -63,6 +63,14 @@
   --motion-medium: 350ms;
   --motion-slow: 400ms;
   --motion-drawer: 500ms;
+  /* Shared Reception + gloss sheet tokens (Design motion brief) */
+  --motion-sheet-enter: 250ms;
+  --motion-sheet-exit: 220ms;
+  --motion-sheet-crossfade: 160ms;
+  --ease-sheet-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-sheet-exit: cubic-bezier(0.4, 0, 1, 1);
+  --sheet-enter-y: 16%;
+  --dim-sheet: 0.36;
   --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -481,8 +489,22 @@ html.dark .tl-shell {
   opacity: var(--dim-o, 0.25);
 }
 
+/* Reception / gloss sheet veil — 32–40% desk ink, synced to sheet enter/exit */
+.tl-dim[data-sheet="true"] {
+  background: color-mix(in oklab, #1c1917 calc(var(--dim-sheet) * 100%), transparent);
+  transition: opacity var(--motion-sheet-exit) var(--ease-sheet-exit);
+}
+
+.tl-dim[data-sheet="true"][data-open="true"] {
+  transition: opacity var(--motion-sheet-enter) var(--ease-sheet-enter);
+}
+
 .dark .tl-dim {
   background: color-mix(in oklab, #000 52%, transparent);
+}
+
+.dark .tl-dim[data-sheet="true"] {
+  background: color-mix(in oklab, #000 calc(var(--dim-sheet) * 100%), transparent);
 }
 
 .tl-drawer {
@@ -499,18 +521,23 @@ html.dark .tl-shell {
 }
 
 .tl-sheet {
-  transform: translateX(28px);
+  /* xl Reception side panel — same enter/exit vocabulary as bottom sheet */
+  transform: translateX(18px);
   opacity: 0;
   pointer-events: none;
+  will-change: transform, opacity;
   transition:
-    transform var(--motion-drawer) var(--ease-smooth-out),
-    opacity var(--motion-drawer) var(--ease-smooth-out);
+    transform var(--motion-sheet-exit) var(--ease-sheet-exit),
+    opacity var(--motion-sheet-exit) var(--ease-sheet-exit);
 }
 
 .tl-sheet[data-open="true"] {
   transform: none;
   opacity: 1;
   pointer-events: auto;
+  transition:
+    transform var(--motion-sheet-enter) var(--ease-sheet-enter),
+    opacity var(--motion-sheet-enter) var(--ease-sheet-enter);
 }
 
 .tl-sheet-up {
@@ -521,21 +548,33 @@ html.dark .tl-shell {
   transform: translateY(
     calc(var(--sheet-slide, 0px) + max(0px, var(--sheet-drag, 0px)))
   );
+  opacity: 1;
   pointer-events: none;
   background: var(--color-surface);
+  border-top-left-radius: 1.125rem; /* 18px — within 16–20 */
+  border-top-right-radius: 1.125rem;
+  will-change: transform, opacity;
   transition:
-    transform 280ms var(--ease-snap),
-    height 280ms var(--ease-snap);
+    transform var(--motion-sheet-enter) var(--ease-sheet-enter),
+    height var(--motion-sheet-enter) var(--ease-sheet-enter),
+    opacity var(--motion-sheet-enter) var(--ease-sheet-enter);
 }
 
 .tl-sheet-up[data-state="hidden"] {
   --sheet-h: var(--sheet-peek);
-  --sheet-slide: 110%;
+  /* Short travel (~16%) + fade — not a full-screen fling (BUG-6 spirit) */
+  --sheet-slide: var(--sheet-enter-y);
+  opacity: 0;
+  transition:
+    transform var(--motion-sheet-exit) var(--ease-sheet-exit),
+    height var(--motion-sheet-exit) var(--ease-sheet-exit),
+    opacity var(--motion-sheet-exit) var(--ease-sheet-exit);
 }
 
 .tl-sheet-up[data-state="peek"] {
   --sheet-h: var(--sheet-peek);
   --sheet-slide: 0px;
+  opacity: 1;
   pointer-events: auto;
   touch-action: none;
 }
@@ -543,6 +582,7 @@ html.dark .tl-shell {
 .tl-sheet-up[data-state="mid"] {
   --sheet-h: var(--sheet-mid);
   --sheet-slide: 0px;
+  opacity: 1;
   pointer-events: auto;
   touch-action: pan-y;
 }
@@ -550,6 +590,7 @@ html.dark .tl-shell {
 .tl-sheet-up[data-state="full"] {
   --sheet-h: calc(100% - var(--sheet-full-gap));
   --sheet-slide: 0px;
+  opacity: 1;
   pointer-events: auto;
   touch-action: pan-y;
   box-shadow: 0 -18px 40px color-mix(in oklab, #1c1917 14%, transparent);
@@ -566,6 +607,54 @@ html.dark .tl-shell {
 
 .tl-sheet-up[data-dragging="true"] {
   transition: none;
+}
+
+/* In-place gloss ↔ reception content swap (150–180ms) */
+.tl-gloss-crossfade {
+  animation: tl-gloss-xfade var(--motion-sheet-crossfade) var(--ease-sheet-enter) both;
+}
+
+@keyframes tl-gloss-xfade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Spanish gloss desk-slip polish */
+.tl-gloss-slip {
+  padding: 1rem 1.125rem 1.25rem;
+}
+
+.tl-gloss-hairline {
+  border-top: 1px solid color-mix(in oklab, var(--color-gold) 15%, transparent);
+}
+
+.dark .tl-gloss-hairline {
+  border-top-color: color-mix(in oklab, var(--color-gold) 18%, transparent);
+}
+
+.tl-strong-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 1.875rem; /* 30px — within 28–32 */
+  padding-inline: 0.6875rem; /* ~11px */
+  border-radius: 9999px;
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 500;
+  transition:
+    transform var(--motion-micro) ease-out,
+    opacity var(--motion-micro) ease-out,
+    border-color var(--motion-quick) ease-out,
+    color var(--motion-quick) ease-out,
+    background-color var(--motion-quick) ease-out;
+}
+
+.tl-strong-pill:active {
+  transform: scale(0.96);
 }
 
 .tl-menu {
@@ -1221,11 +1310,34 @@ html.dark .tl-shell {
   .tl-pick-ref,
   .tl-lamp-in,
   .tl-drawer,
-  .tl-sheet,
-  .tl-sheet-up,
   .tl-menu,
   .tl-title-swap,
   .tl-pane[data-enter="true"] .tl-canon-section {
     animation: none;
+  }
+
+  /* Sheet system: fade only ≤150ms, no slide (Design motion brief) */
+  .tl-dim[data-sheet="true"],
+  .tl-sheet,
+  .tl-sheet-up,
+  .tl-gloss-crossfade {
+    transition-duration: 150ms !important;
+    transition-timing-function: ease !important;
+  }
+
+  .tl-sheet,
+  .tl-sheet-up {
+    transition-property: opacity !important;
+    transform: none !important;
+  }
+
+  .tl-sheet-up[data-state="hidden"] {
+    --sheet-slide: 0px !important;
+    opacity: 0 !important;
+  }
+
+  .tl-gloss-crossfade {
+    animation: none !important;
+    transition: opacity 150ms ease !important;
   }
 }

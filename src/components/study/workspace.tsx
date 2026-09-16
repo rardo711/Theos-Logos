@@ -130,7 +130,7 @@ export function StudyWorkspace() {
     if (want === "hidden") {
       setSheetState("hidden");
       setSheetDrag(0);
-      const t = window.setTimeout(() => setSheetShown(false), 320);
+      const t = window.setTimeout(() => setSheetShown(false), 280);
       return () => window.clearTimeout(t);
     }
     setSheetShown(true);
@@ -163,7 +163,7 @@ export function StudyWorkspace() {
       };
     }
     setDeskOpen(false);
-    const t = window.setTimeout(() => setDeskShown(false), 520);
+    const t = window.setTimeout(() => setDeskShown(false), 280);
     return () => window.clearTimeout(t);
   }, [receptionOpen, docked]);
 
@@ -457,20 +457,31 @@ export function StudyWorkspace() {
 
         {sheetShown ? (
           <div className="pointer-events-none absolute inset-0 z-20 xl:hidden">
-            <div
+            <button
+              type="button"
               className="tl-dim absolute inset-0"
-              data-open={sheetState === "full" ? "true" : "false"}
-              aria-hidden
+              data-sheet="true"
+              data-open={
+                sheetState === "mid" || sheetState === "full" ? "true" : "false"
+              }
+              aria-label={t(locale, "closeReception")}
+              tabIndex={
+                sheetState === "mid" || sheetState === "full" ? 0 : -1
+              }
+              onClick={() => {
+                /* BUG-8: tap outside dismisses — same exit path as ✕ */
+                closeReception();
+              }}
               style={{
                 ["--dim-o" as string]:
-                  sheetState === "full"
+                  sheetState === "mid" || sheetState === "full"
                     ? String(Math.max(0, 1 - Math.max(0, sheetDrag) / 420))
                     : "0",
               }}
             />
             <aside
               ref={sheetRef}
-              className="tl-sheet-up absolute inset-x-0 bottom-0 flex w-full flex-col overflow-hidden rounded-t-2xl border-t border-rule bg-surface shadow-soft md:mx-auto md:w-[min(40rem,100%)]"
+              className="tl-sheet-up absolute inset-x-0 bottom-0 flex w-full flex-col overflow-hidden border-t border-rule bg-surface shadow-soft md:mx-auto md:w-[min(40rem,100%)]"
               data-state={sheetState}
               data-dragging={sheetDragging ? "true" : "false"}
               style={{
@@ -496,6 +507,7 @@ export function StudyWorkspace() {
             <button
               type="button"
               className="tl-dim min-w-0 flex-1"
+              data-sheet="true"
               data-open={deskOpen ? "true" : "false"}
               aria-label={t(locale, "closeReception")}
               tabIndex={deskOpen ? 0 : -1}

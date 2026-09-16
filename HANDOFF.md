@@ -2,6 +2,15 @@
 
 **Grok: start here.** Repo `HANDOFF.md` + `BUGS-PLAN.md` on `scholar-desk`.
 
+## Reception + gloss sheet motion/polish (2026-09-15 ~22:10 ET) — PREVIEW ONLY
+- Design brief `LOOK-BRIEF-gloss-reception-motion-v1.md` on `scholar-desk` (content hierarchy unchanged).
+- Shared sheet tokens: enter ~250ms slide+fade ease-out; exit ~220ms slide+fade ease-in; no bounce.
+- Backdrop dim 36% (`data-sheet`); tap outside dismisses (BUG-8) — same path as ✕.
+- Gloss slip spacing/type polish; Glosa still largest; quiet gold hairline; Strong pills 30px, max 2+N.
+- In-place gloss crossfade ~160ms; prefers-reduced-motion → fade only ≤150ms, no slide.
+- Logo / seal / icons untouched. **NO promote.**
+- SHA / preview URL: fill after push + Vercel READY.
+
 ## Production (LIVE)
 - SHA `d18ba5c` · https://theos-logos-official.vercel.app · dpl `dpl_7ZgVQAckC5QiHX4EP5ZdaAUZ31nV`
 - Wave-5B + BUG-11 + catalogs live. **NO promote from previews without Rardo go.**

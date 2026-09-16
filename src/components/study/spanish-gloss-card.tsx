@@ -1,5 +1,5 @@
 /**
- * Spanish gloss-first desk slip (Design brief v1).
+ * Spanish gloss-first desk slip (Design brief v1 + motion/polish).
  * Hierarchy: Sentido → Glosa hero → Lema/Morfología → Dominio → Strong footer → attribution.
  * Body text = UBS source fields only. Logo untouched. Chip tap never Gemini.
  */
@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import type { SpanishLexiconResult } from "@/lib/lexicon/spanish";
 
 const LABEL =
-  "text-2xs font-semibold tracking-[0.14em] text-faint uppercase";
+  "text-[0.6875rem] font-medium tracking-[0.14em] text-faint uppercase";
 
 export function SpanishGlossCard({
   entry,
@@ -28,7 +28,7 @@ export function SpanishGlossCard({
   return (
     <article
       className={cn(
-        "mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft",
+        "tl-gloss-slip mb-5 rounded-[0.875rem] border border-rule bg-surface shadow-soft",
         className,
       )}
       data-spanish-gloss-card
@@ -37,32 +37,36 @@ export function SpanishGlossCard({
       {/* 1. Sentido en este versículo */}
       <p className={LABEL}>Sentido en este versículo</p>
       {entry.sentido ? (
-        <p className="mt-1 text-sm leading-relaxed text-ink">{entry.sentido}</p>
+        <p className="mt-1 text-[0.9375rem] leading-[1.35] text-ink">
+          {entry.sentido}
+        </p>
       ) : (
-        <p className="mt-1 text-sm text-muted italic">Sin definición breve.</p>
+        <p className="mt-1 text-[0.9375rem] text-muted italic">
+          Sin definición breve.
+        </p>
       )}
 
-      {/* 2. Glosa hero */}
-      <p className={cn(LABEL, "mt-4")}>Glosa</p>
-      <p className="font-display mt-1 text-2xl font-semibold leading-snug text-ink">
+      {/* 2. Glosa hero — visual king */}
+      <p className={cn(LABEL, "mt-3")}>Glosa</p>
+      <p className="font-display mt-1 text-[1.375rem] font-semibold leading-snug text-ink">
         {entry.gloss || "—"}
       </p>
       {entry.glossExtras.length > 0 ? (
-        <p className="mt-1 text-sm text-muted">
+        <p className="mt-1 text-[0.8125rem] leading-snug text-muted">
           {entry.glossExtras.join(" · ")}
         </p>
       ) : null}
 
       {/* 3. Lema + Morfología */}
-      <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+      <div className="mt-2.5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
         {entry.lemma ? (
-          <p className="text-sm text-ink">
+          <p className="text-[0.8125rem] text-ink">
             <span className={cn(LABEL, "mr-2")}>Lema</span>
-            <span className="font-serif italic">{entry.lemma}</span>
+            <span className="font-serif text-[0.875rem] italic">{entry.lemma}</span>
           </p>
         ) : null}
         {entry.pos.length > 0 ? (
-          <p className="text-sm text-ink">
+          <p className="text-[0.75rem] text-ink">
             <span className={cn(LABEL, "mr-2")}>Morfología</span>
             <span className="text-muted">{entry.pos.join(" · ")}</span>
           </p>
@@ -71,7 +75,7 @@ export function SpanishGlossCard({
 
       {/* Dominio + SubDominio — tertiary, never above gloss; source strings only */}
       {domain || subdomain ? (
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-1.5 text-[0.75rem] text-muted">
           <span className={cn(LABEL, "mr-2")}>Dominio</span>
           {[domain, subdomain].filter(Boolean).join(" · ")}
         </p>
@@ -89,34 +93,36 @@ export function SpanishGlossCard({
         </p>
       ) : null}
 
-      {/* 4. Hairline + Strong footer pills */}
-      <div className="mt-4 border-t border-rule pt-3">
-        <div className="flex flex-wrap items-center gap-2">
+      {/* 4. Hairline + Strong footer pills (max 2 + N) */}
+      <div className="tl-gloss-hairline mt-3 pt-2.5">
+        <div className="flex flex-nowrap items-center gap-2 overflow-hidden">
           {visible.map((id) => (
             <button
               key={id}
               type="button"
               onClick={() => onStrong?.(id)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm",
+                "tl-strong-pill border",
                 id === entry.strongs
-                  ? "border-lamp bg-lamp-soft text-lamp"
-                  : "border-rule bg-surface text-ink hover:border-lamp hover:text-lamp",
+                  ? "border-oxblood/35 bg-oxblood-soft text-oxblood"
+                  : "border-rule bg-surface text-ink hover:border-oxblood/35 hover:text-oxblood",
               )}
               aria-label={`Strong ${id}`}
             >
               <span className="font-medium tabular-nums">{id}</span>
-              <span className="text-2xs font-semibold tracking-[0.12em] uppercase opacity-80">
+              <span className="text-[0.625rem] font-semibold tracking-[0.12em] uppercase opacity-80">
                 Strong
               </span>
             </button>
           ))}
           {overflow > 0 ? (
-            <span className="text-2xs text-faint">+{overflow}</span>
+            <span className="shrink-0 text-[0.6875rem] text-faint">
+              +{overflow}
+            </span>
           ) : null}
         </div>
         {/* 5. Micro attribution */}
-        <p className="mt-2 text-[0.65rem] leading-snug text-faint">
+        <p className="mt-2 text-[0.625rem] leading-snug text-faint">
           {entry.attribution}
         </p>
       </div>

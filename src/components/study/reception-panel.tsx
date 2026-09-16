@@ -433,7 +433,7 @@ export function ReceptionPanel({
             className="flex cursor-grab justify-center pt-3 pb-1 active:cursor-grabbing"
             aria-hidden
           >
-            <span className="h-1 w-10 rounded-full bg-lamp/50" />
+            <span className="h-1 w-10 rounded-full bg-faint/55" />
           </div>
         ) : null}
         <header
@@ -686,10 +686,15 @@ export function ReceptionPanel({
             ) : null}
 
             {locale === "es" && spanishLexicon ? (
-              <SpanishGlossCard
-                entry={spanishLexicon}
-                onStrong={runSpanishStrong}
-              />
+              <div
+                key={`${spanishLexicon.strongs}:${spanishLexicon.entryCode}:${spanishLexicon.gloss}`}
+                className="tl-gloss-crossfade"
+              >
+                <SpanishGlossCard
+                  entry={spanishLexicon}
+                  onStrong={runSpanishStrong}
+                />
+              </div>
             ) : null}
 
             {locale !== "es" && lexicon ? (
