@@ -7,7 +7,7 @@
 - **NMT scope:** when `locale=es`, Google NMT translates **generated + curated/catalog** card bodies (quote / note / contextBridge). Voice/work/citations via notranslate + i18n-sources. Do not MT Scripture when RV1960 already on desk. Same durable cache (hash + engine + locale).
 - **Locale switch:** client desk cache `theos-logos-reception-v2` keyed by verse **and** locale; open sheet reloads on locale change — EN shows English source (no sticky ES). Tests: `locale-switch.test.ts`, `midvash.test.ts`, updated `generated.test.ts`.
 - **Out of scope:** onboarding ES v3 (untouched). **NO promote.**
-- SHA `TBD` · preview TBD after deploy
+- SHA `5db3b13` · preview https://theos-logos-official-puotazd7a-castanedag2001-1468.vercel.app · dpl `dpl_GdoFxvGsFqe8wRL7nMjCinGxZ3qA`
 - Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 
 ## Spanish onboarding refine v3 (2026-09-16 ~01:45 ET) — PREVIEW ONLY
