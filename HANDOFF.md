@@ -1,6 +1,18 @@
-# Theos Logos — living handoff (updated 2026-09-16 ~01:30 ET)
+# Theos Logos — living handoff (updated 2026-09-16 ~01:45 ET)
 
 **Grok: start here.** Repo `HANDOFF.md` + `BUGS-PLAN.md` on `scholar-desk`.
+
+## Spanish onboarding refine v3 (2026-09-16 ~01:45 ET) — PREVIEW ONLY
+- **Brief:** `LOOK-BRIEF-first-run-onboarding-es-v3.md` (builds on v2 structure/motion).
+- **ES path:** clearer instructional copy — Abrir un versículo → Toca una palabra (Glosa / Strong oro) → Recepción y comentarios → Ya puedes empezar / **Empezar**.
+- **Español card sub:** **Escritura, glosas y Recepción** (language gate still first; live prod seal).
+- **Glossary:** Glosa / Strong / Recepción / «N sentidos más» — Strong never “Fuerte”.
+- **Persist:** `ONBOARDING_VERSION = "3"` — v2 completers re-see once; then durable skip.
+- **EN screens:** v2 EN kept; shared chrome (Español card sub) matches.
+- **Motion:** v2 calm desk tokens (280–320ms language crossfade; 300ms pager).
+- **NO promote.**
+- SHA `4fa1124` · preview https://theos-logos-official-o3r2hj52z-castanedag2001-1468.vercel.app · dpl `dpl_FJtcxV4kf1m9XzUmhtiVVQBB46tL`
+- Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 
 ## Spanish NMT for AI-generated commentary (2026-09-16) — PREVIEW ONLY
 - **Scope:** generated Inquire/reception cards + synthesis quote spans when `locale=es`. Catalog PD voices untouched.
