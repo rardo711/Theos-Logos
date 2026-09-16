@@ -7,7 +7,8 @@
 - **Strong pills:** desk-gold (`tl-strong-pill--gold` / `--color-gold`); max 2 + overflow; each opens BibleHub `https://biblehub.com/greek/{n}.htm` in a **new tab** (strip leading zeros). No in-repo UBS viewer deep-link — UBS attribution footer kept.
 - **Acceptance:** Juan 1:3 *todas* / G3956 → sense 59.23 totality; “6 sentidos más” expandable.
 - Hierarchy / logo / verse-sense pick unchanged. **NO promote.**
-- SHA / preview URL: fill after push + Vercel READY.
+- SHA `c2f9f0f` · preview https://theos-logos-official-2exww3ecn-castanedag2001-1468.vercel.app · dpl `dpl_5bAzNx6cXYAq9M6BUtqUozofA2sH`
+- Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 
 ## Reception + gloss sheet motion/polish (2026-09-15 ~22:10 ET) — PREVIEW ONLY
 - Design brief `LOOK-BRIEF-gloss-reception-motion-v1.md` on `scholar-desk` (content hierarchy unchanged).
