@@ -15,7 +15,9 @@
  *    contains "ubs-dict". LLM-only rows are excluded from v1.
  * 3. spa short gloss (sg) is attached when present; used as hero gloss only
  *    when a UBS sense has no Glosses.
- * 4. Domains / POS come from UBS BaseForms / LEXMeanings (inline).
+ * 4. Domains / SubDomains / LEXEntryCode / verse-level LEXReferences (SIL
+ *    BBBCCCVVV) are retained per sense for verse-aware sense pick.
+ * 5. Domains / POS come from UBS BaseForms / LEXMeanings (inline).
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
@@ -89,6 +91,12 @@ async function loadText(localName, url) {
   }
 }
 
+/** SIL/UBS verse key BBBCCCVVV (9 digits) from a full LEXReferences token. */
+function silVerseKey(ref) {
+  const s = String(ref ?? "").replace(/\D/g, "");
+  return s.length >= 9 ? s.slice(0, 9) : "";
+}
+
 function parseUbs(entries) {
   /** @type {Record<string, object>} */
   const by = {};
@@ -107,7 +115,21 @@ function parseUbs(entries) {
           .map((d) => d?.Domain)
           .filter(Boolean)
           .slice(0, 2)
-          .map((d) => String(d).slice(0, 60));
+          .map((d) => String(d).slice(0, 80));
+        const subdomains = (lm.LEXSubDomains || [])
+          .map((d) => d?.Domain)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((d) => String(d).slice(0, 120));
+        const code = lm.LEXEntryCode != null ? String(lm.LEXEntryCode).slice(0, 16) : "";
+        // Verse-level SIL prefixes (BBBCCCVVV) for sense-by-verse fidelity.
+        const rv = [
+          ...new Set(
+            (lm.LEXReferences || [])
+              .map(silVerseKey)
+              .filter(Boolean),
+          ),
+        ];
         for (const sense of lm.LEXSenses || []) {
           if ((sense.LanguageCode || "es") !== "es") continue;
           const glosses = (sense.Glosses || [])
@@ -121,6 +143,9 @@ function parseUbs(entries) {
             g: glosses,
             d: dshort,
             ...(domains.length ? { dom: domains } : {}),
+            ...(subdomains.length ? { sub: subdomains } : {}),
+            ...(code ? { code } : {}),
+            ...(rv.length ? { rv } : {}),
           });
         }
       }
@@ -230,7 +255,7 @@ async function main() {
     source:
       "https://github.com/ubsicap/ubs-open-license/tree/main/dictionaries/greek",
     merge:
-      "PRIMARY UBS ES by Strong's; SECONDARY spa.tsv (lexicon|ubs-dict only, no llm); sg short label / gap fill.",
+      "PRIMARY UBS ES by Strong's; per-sense rv (SIL BBBCCCVVV), code, dom/sub; SECONDARY spa.tsv (lexicon|ubs-dict only, no llm); sg short / gap fill.",
     by,
     byGloss,
   };

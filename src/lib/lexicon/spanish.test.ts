@@ -4,6 +4,7 @@ import {
   hasSpanishLexiconChip,
   lookupSpanishByStrongs,
   lookupSpanishWordNow,
+  referenceToSilVerseKey,
   spanishAttribution,
 } from "./spanish.ts";
 
@@ -38,7 +39,6 @@ describe("spanish UBS lexicon", () => {
   it("excludes llm-only path: Abadón keeps UBS lexicon gloss not llm-only short", () => {
     const hit = lookupSpanishByStrongs("G3");
     assert.ok(hit);
-    // UBS primary gloss (not the bare llm "Abadón" alone as sole sense without UBS)
     assert.equal(hit?.source, "ubs");
     assert.match(hit?.gloss ?? "", /Abadón/i);
     assert.match(hit?.sentido ?? "", /ángel|infierno|Destructor|hebreo/i);
@@ -47,6 +47,50 @@ describe("spanish UBS lexicon", () => {
   it("spa short gloss is attached but hero comes from UBS Glosses", () => {
     const hit = lookupSpanishByStrongs("G3056");
     assert.equal(hit?.shortGloss, "palabra");
-    assert.equal(hit?.gloss, "palabra"); // UBS first gloss
+    assert.equal(hit?.gloss, "palabra");
+  });
+
+  it("maps Juan/John 1:1 to SIL verse key 043001001", () => {
+    assert.equal(referenceToSilVerseKey("Juan 1:1"), "043001001");
+    assert.equal(referenceToSilVerseKey("John 1:1"), "043001001");
+    assert.equal(referenceToSilVerseKey("Juan 1:1-3"), "043001001");
+  });
+
+  it("G746 + John 1:1 selects UBS 67.65 Tiempo / principio (not 68.1 Aspecto)", () => {
+    const hit = lookupSpanishByStrongs("G746", "Juan 1:1");
+    assert.ok(hit);
+    assert.equal(hit?.strongs, "G746");
+    assert.equal(hit?.entryCode, "67.65");
+    assert.equal(hit?.gloss, "principio");
+    assert.ok(hit?.glossExtras.includes("comenzar"));
+    assert.match(
+      hit?.sentido ?? "",
+      /punto de tiempo que indica el principio de una duración/i,
+    );
+    assert.equal(hit?.domains[0], "Tiempo");
+    assert.match(hit?.subdomains[0] ?? "", /Principio,\s*Fin/i);
+    assert.equal(hit?.senseMatchedByReference, true);
+    // Without verse context, first UBS meaning is 68.1 Aspecto / empezar
+    const fallback = lookupSpanishByStrongs("G746");
+    assert.equal(fallback?.entryCode, "68.1");
+    assert.equal(fallback?.gloss, "empezar");
+    assert.equal(fallback?.domains[0], "Aspecto");
+  });
+
+  it("tap principio on Juan 1:1 resolves to G746 sense 67.65", () => {
+    const hit = lookupSpanishWordNow("principio", "Juan 1:1");
+    assert.ok(hit);
+    assert.equal(hit?.strongs, "G746");
+    assert.equal(hit?.entryCode, "67.65");
+    assert.equal(hit?.gloss, "principio");
+    assert.equal(hit?.senseMatchedByReference, true);
+  });
+
+  it("Mark 1:1 G746 stays 68.1 Aspecto (empezar), not John Tiempo", () => {
+    const hit = lookupSpanishByStrongs("G746", "Marcos 1:1");
+    assert.equal(hit?.entryCode, "68.1");
+    assert.equal(hit?.gloss, "empezar");
+    assert.equal(hit?.domains[0], "Aspecto");
+    assert.equal(hit?.senseMatchedByReference, true);
   });
 });

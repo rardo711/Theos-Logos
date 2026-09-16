@@ -315,7 +315,7 @@ export function ReceptionPanel({
   function runSpanishStrong(strongs: string) {
     setError(null);
     setLexicon(null);
-    setSpanishLexicon(lookupSpanishByStrongs(strongs));
+    setSpanishLexicon(lookupSpanishByStrongs(strongs, reference));
   }
 
   const hasGeneratedCards = useMemo(() => {

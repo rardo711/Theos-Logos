@@ -17,6 +17,15 @@
 ## Wave-5B — DONE (live)
 See prior HANDOFF table. Banned: Scofield / Darby / Kelly / Bellett / Pink / Stier = 0.
 
+## Spanish lexicon sense fidelity (2026-09-15 ~21:45 ET) — PREVIEW ONLY (await deploy)
+- Improves on Spanish gloss pack `24ef49f` / docs `d569bac`.
+- **Bugfix:** Juan 1:1 *principio* / G746 → UBS **67.65 Tiempo** (Sentido “punto de tiempo que indica el principio de una duración”; Glosa hero **principio**; Dominio Tiempo · Principio/Fin subdomain), not first meaning 68.1 Aspecto / empezar.
+- **Mechanism:** importer keeps per-sense SIL `rv` (BBBCCCVVV), `LEXEntryCode`, Domain/SubDomain; `lookupSpanish*` picks sense by verse ref (fallback = first).
+- **UI:** Dominio shows source Domain · SubDomain; quiet entry-code meta. Hierarchy unchanged. Logo untouched.
+- **Tests:** G746 + Juan 1:1 → 67.65 / principio (also Marcos 1:1 stays 68.1).
+- **NO promote.** No RV1909. No RI grid. Chip tap never Gemini.
+- SHA / preview URL: fill after push + Vercel READY.
+
 ## Spanish lexicon data + gloss card UI (2026-09-15 ~20:45 ET) — PREVIEW READY
 - SHA `24ef49f` · preview https://theos-logos-official-qsre6hnd5-castanedag2001-1468.vercel.app · dpl `dpl_7KJukxZ223Ry2FVfn9qFfZ4ZZmWh`
 - Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app

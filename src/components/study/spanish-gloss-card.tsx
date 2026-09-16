@@ -1,7 +1,7 @@
 /**
  * Spanish gloss-first desk slip (Design brief v1).
- * Hierarchy: Sentido → Glosa hero → Lema/Morfología → Strong footer → attribution.
- * Logo untouched. Chip tap never Gemini.
+ * Hierarchy: Sentido → Glosa hero → Lema/Morfología → Dominio → Strong footer → attribution.
+ * Body text = UBS source fields only. Logo untouched. Chip tap never Gemini.
  */
 import { cn } from "@/lib/utils";
 import type { SpanishLexiconResult } from "@/lib/lexicon/spanish";
@@ -23,6 +23,7 @@ export function SpanishGlossCard({
   const visible = strongs.slice(0, 2);
   const overflow = strongs.length - visible.length;
   const domain = entry.domains[0];
+  const subdomain = entry.subdomains[0];
 
   return (
     <article
@@ -31,6 +32,7 @@ export function SpanishGlossCard({
         className,
       )}
       data-spanish-gloss-card
+      data-entry-code={entry.entryCode || undefined}
     >
       {/* 1. Sentido en este versículo */}
       <p className={LABEL}>Sentido en este versículo</p>
@@ -67,11 +69,23 @@ export function SpanishGlossCard({
         ) : null}
       </div>
 
-      {/* Optional Dominio — tertiary, never above gloss */}
-      {domain ? (
+      {/* Dominio + SubDominio — tertiary, never above gloss; source strings only */}
+      {domain || subdomain ? (
         <p className="mt-2 text-sm text-muted">
           <span className={cn(LABEL, "mr-2")}>Dominio</span>
-          {domain}
+          {[domain, subdomain].filter(Boolean).join(" · ")}
+        </p>
+      ) : null}
+
+      {entry.entryCode || entry.relatedSenseCount > 0 ? (
+        <p className="mt-1 text-[0.65rem] text-faint">
+          {entry.entryCode ? (
+            <span className="tabular-nums">{entry.entryCode}</span>
+          ) : null}
+          {entry.entryCode && entry.relatedSenseCount > 0 ? " · " : null}
+          {entry.relatedSenseCount > 0
+            ? `${entry.relatedSenseCount} sentido${entry.relatedSenseCount === 1 ? "" : "s"} más`
+            : null}
         </p>
       ) : null}
 

@@ -38,7 +38,7 @@ export const askSpanishLexicon = createServerFn({ method: "POST" })
     }) => input,
   )
   .handler(async ({ data }): Promise<SpanishLexiconResult | null> => {
-    if (data.strongs) return lookupSpanishByStrongs(data.strongs);
+    if (data.strongs) return lookupSpanishByStrongs(data.strongs, data.reference);
     if (data.word) return lookupSpanishWordNow(data.word, data.reference);
     return null;
   });
