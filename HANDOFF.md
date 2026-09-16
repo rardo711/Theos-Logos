@@ -9,7 +9,8 @@
 - Gloss slip spacing/type polish; Glosa still largest; quiet gold hairline; Strong pills 30px, max 2+N.
 - In-place gloss crossfade ~160ms; prefers-reduced-motion → fade only ≤150ms, no slide.
 - Logo / seal / icons untouched. **NO promote.**
-- SHA / preview URL: fill after push + Vercel READY.
+- SHA `df6ff9a` · preview https://theos-logos-official-8m6sawe73-castanedag2001-1468.vercel.app · dpl `dpl_HTDMRB8tzEGtb6Wwem32Dx5D4D89`
+- Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 
 ## Production (LIVE)
 - SHA `d18ba5c` · https://theos-logos-official.vercel.app · dpl `dpl_7ZgVQAckC5QiHX4EP5ZdaAUZ31nV`
