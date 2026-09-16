@@ -6,7 +6,9 @@ import type { Chapter } from "@/lib/bible/types";
 import { initPwa, isStandalone, lockSafeTop } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
 import { useStudy } from "@/lib/study-store";
+import { isOnboardingComplete } from "@/lib/onboarding";
 import { LibraryDrawer } from "./library-drawer";
+import { Onboarding } from "./onboarding";
 import { Reader } from "./reader";
 import { ReceptionPanel } from "./reception-panel";
 import { TopBar } from "./top-bar";
@@ -65,6 +67,10 @@ export function StudyWorkspace() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  /** pending until hydrate; then show | done */
+  const [onboarding, setOnboarding] = useState<"pending" | "show" | "done">(
+    "pending",
+  );
   const [wideDesk, setWideDesk] = useState(false);
   const [sheetShown, setSheetShown] = useState(false);
   const [sheetState, setSheetState] = useState<
@@ -83,6 +89,7 @@ export function StudyWorkspace() {
     hydrate();
     setHydrated(true);
     initPwa();
+    setOnboarding(isOnboardingComplete() ? "done" : "show");
   }, [hydrate]);
 
   useEffect(() => {
@@ -435,6 +442,20 @@ export function StudyWorkspace() {
       !chapterFitsLocale(chapter, locale));
   const waitingOnFetch = staleChapter || (loading && chapter == null);
   const shownChapter = waitingOnFetch ? null : chapter;
+
+  if (onboarding === "pending") {
+    return (
+      <div className="tl-shell flex flex-col overflow-hidden bg-paper text-ink" />
+    );
+  }
+
+  if (onboarding === "show") {
+    return (
+      <div className="tl-shell flex flex-col overflow-hidden text-ink">
+        <Onboarding onFinished={() => setOnboarding("done")} />
+      </div>
+    );
+  }
 
   return (
     <div className="tl-shell flex flex-col overflow-hidden text-ink">

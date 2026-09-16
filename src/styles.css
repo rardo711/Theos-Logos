@@ -1288,6 +1288,126 @@ html.dark .tl-shell {
   border-radius: 2px;
 }
 
+
+/* First-run onboarding (Look brief v1) — calm desk motion, no bounce */
+.tl-onboard {
+  background-color: var(--color-paper);
+}
+
+.tl-onboard-wash {
+  background-image:
+    radial-gradient(
+      ellipse at 50% -10%,
+      color-mix(in oklab, var(--color-oxblood) 7%, transparent),
+      transparent 48%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-ink) 2.5%, transparent),
+      transparent 28%
+    );
+}
+
+.tl-onboard-gate-hero {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.tl-onboard-gate-ready {
+  animation: tl-onboard-rise 280ms var(--ease-out) forwards;
+}
+
+.tl-onboard-lang-card {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.tl-onboard-lang-ready {
+  animation: tl-onboard-rise 280ms var(--ease-out) forwards;
+  animation-delay: calc(var(--stagger, 0) * 40ms + 40ms);
+}
+
+.tl-onboard-page {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: tl-onboard-rise 260ms var(--ease-out) forwards;
+}
+
+.tl-onboard-page-fwd {
+  animation-name: tl-onboard-page-in-fwd;
+  animation-duration: 300ms;
+  animation-timing-function: ease-in-out;
+}
+
+.tl-onboard-page-back {
+  animation-name: tl-onboard-page-in-back;
+  animation-duration: 300ms;
+  animation-timing-function: ease-in-out;
+}
+
+.tl-onboard-begin {
+  animation: tl-onboard-cta-pulse 400ms var(--ease-out) 1;
+}
+
+.tl-onboard-exit {
+  animation: tl-onboard-fade-out 240ms var(--ease-sheet-exit) forwards;
+  pointer-events: none;
+}
+
+@keyframes tl-onboard-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tl-onboard-page-in-fwd {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes tl-onboard-page-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes tl-onboard-cta-pulse {
+  0% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0.92;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes tl-onboard-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1339,5 +1459,22 @@ html.dark .tl-shell {
   .tl-gloss-crossfade {
     animation: none !important;
     transition: opacity 150ms ease !important;
+  }
+
+  .tl-onboard-gate-hero,
+  .tl-onboard-lang-card,
+  .tl-onboard-page,
+  .tl-onboard-page-fwd,
+  .tl-onboard-page-back,
+  .tl-onboard-begin,
+  .tl-onboard-exit {
+    animation: none !important;
+    transition: opacity 150ms ease !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .tl-onboard-exit {
+    opacity: 0 !important;
   }
 }
