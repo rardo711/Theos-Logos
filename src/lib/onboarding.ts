@@ -1,9 +1,10 @@
 /**
- * First-run onboarding persistence (Look brief v1).
+ * First-run onboarding persistence (Look brief v2).
  * Locale lives in theos-logos-hybrid via study-store — do not duplicate.
+ * Version bump re-shows intro once for v1 completers.
  */
 
-export const ONBOARDING_VERSION = "1";
+export const ONBOARDING_VERSION = "2";
 
 const VERSION_KEY = "theos-logos.onboarding.version";
 const COMPLETED_AT_KEY = "theos-logos.onboarding.completedAt";

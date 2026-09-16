@@ -1329,7 +1329,7 @@ html.dark .tl-shell {
 }
 
 
-/* First-run onboarding (Look brief v1) — calm desk motion, no bounce */
+/* First-run onboarding (Look brief v2) — smoother crossfade, instructional */
 .tl-onboard {
   background-color: var(--color-paper);
 }
@@ -1338,55 +1338,113 @@ html.dark .tl-shell {
   background-image:
     radial-gradient(
       ellipse at 50% -10%,
-      color-mix(in oklab, var(--color-oxblood) 7%, transparent),
+      color-mix(in oklab, var(--color-oxblood) 5%, transparent),
       transparent 48%
     ),
     linear-gradient(
       180deg,
-      color-mix(in oklab, var(--color-ink) 2.5%, transparent),
+      color-mix(in oklab, var(--color-ink) 2%, transparent),
       transparent 28%
     );
 }
 
+.tl-onboard-logo-hairline,
+.tl-onboard-title-hairline {
+  height: 1px;
+  background: color-mix(in oklab, var(--color-gold) 55%, transparent);
+}
+
+.tl-onboard-gold-line {
+  border-top: 1px solid color-mix(in oklab, var(--color-gold) 28%, transparent);
+}
+
 .tl-onboard-gate-hero {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(8px);
 }
 
 .tl-onboard-gate-ready {
-  animation: tl-onboard-rise 280ms var(--ease-out) forwards;
+  animation: tl-onboard-rise 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.tl-onboard-gate-title,
+.tl-onboard-gate-sub {
+  opacity: 0;
+}
+
+.tl-onboard-gate-ready .tl-onboard-gate-title,
+.tl-onboard-gate-ready .tl-onboard-gate-sub {
+  animation: tl-onboard-fade-up 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 40ms;
 }
 
 .tl-onboard-lang-card {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(8px);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-ink) 8%, transparent);
 }
 
 .tl-onboard-lang-ready {
-  animation: tl-onboard-rise 280ms var(--ease-out) forwards;
+  animation: tl-onboard-rise 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: calc(var(--stagger, 0) * 40ms + 40ms);
+}
+
+.tl-onboard-lang-press {
+  transform: scale(0.985);
+  border-color: color-mix(in oklab, var(--color-oxblood) 55%, transparent);
+  box-shadow:
+    0 2px 8px color-mix(in oklab, var(--color-ink) 8%, transparent),
+    0 0 0 1.5px color-mix(in oklab, var(--color-oxblood) 45%, transparent);
+}
+
+.tl-onboard-gate-out {
+  animation: tl-onboard-fade-out 280ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  pointer-events: none;
+}
+
+.tl-onboard-intro-in {
+  animation: tl-onboard-fade-in 280ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
 .tl-onboard-page {
   opacity: 0;
-  transform: translateY(12px);
-  animation: tl-onboard-rise 260ms var(--ease-out) forwards;
+  animation: tl-onboard-page-in-fwd 300ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
 .tl-onboard-page-fwd {
   animation-name: tl-onboard-page-in-fwd;
   animation-duration: 300ms;
-  animation-timing-function: ease-in-out;
+  animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .tl-onboard-page-back {
   animation-name: tl-onboard-page-in-back;
   animation-duration: 300ms;
-  animation-timing-function: ease-in-out;
+  animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.tl-onboard-dot {
+  width: 6px;
+  height: 6px;
+  transition:
+    width 200ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    background-color 180ms ease,
+    opacity 180ms ease;
+}
+
+.tl-onboard-dot-active {
+  width: 16px;
+  border-radius: 999px;
 }
 
 .tl-onboard-begin {
-  animation: tl-onboard-cta-pulse 400ms var(--ease-out) 1;
+  min-height: 48px;
+  border-radius: 12px;
+  transition: opacity 80ms ease;
+}
+
+.tl-onboard-begin:active {
+  opacity: 0.92;
 }
 
 .tl-onboard-exit {
@@ -1397,7 +1455,7 @@ html.dark .tl-shell {
 @keyframes tl-onboard-rise {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -1405,10 +1463,30 @@ html.dark .tl-shell {
   }
 }
 
+@keyframes tl-onboard-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tl-onboard-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes tl-onboard-page-in-fwd {
   from {
     opacity: 0;
-    transform: translateX(18px);
+    transform: translateX(12px);
   }
   to {
     opacity: 1;
@@ -1419,23 +1497,11 @@ html.dark .tl-shell {
 @keyframes tl-onboard-page-in-back {
   from {
     opacity: 0;
-    transform: translateX(-18px);
+    transform: translateX(-12px);
   }
   to {
     opacity: 1;
     transform: translateX(0);
-  }
-}
-
-@keyframes tl-onboard-cta-pulse {
-  0% {
-    opacity: 1;
-  }
-  45% {
-    opacity: 0.92;
-  }
-  100% {
-    opacity: 1;
   }
 }
 
@@ -1502,7 +1568,11 @@ html.dark .tl-shell {
   }
 
   .tl-onboard-gate-hero,
+  .tl-onboard-gate-title,
+  .tl-onboard-gate-sub,
   .tl-onboard-lang-card,
+  .tl-onboard-gate-out,
+  .tl-onboard-intro-in,
   .tl-onboard-page,
   .tl-onboard-page-fwd,
   .tl-onboard-page-back,
@@ -1514,6 +1584,11 @@ html.dark .tl-shell {
     transform: none !important;
   }
 
+  .tl-onboard-dot {
+    transition: none !important;
+  }
+
+  .tl-onboard-gate-out,
   .tl-onboard-exit {
     opacity: 0 !important;
   }
