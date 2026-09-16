@@ -12,17 +12,21 @@ export function Wordmark({
   const locale = useStudy((s) => s.locale);
   return (
     <span className="flex min-w-0 items-center gap-2.5">
-      <img
-        src="/seal.png"
-        alt=""
-        width={36}
-        height={36}
+      <span
+        aria-hidden
         className={cn(
-          "tl-seal size-9 shrink-0 object-cover",
-          active && "ring-1 ring-oxblood/40",
+          "relative flex size-9 shrink-0 items-center justify-center overflow-hidden bg-oxblood text-oxblood-fg transition-[box-shadow] duration-200 ease-out",
+          active && "ring-1 ring-oxblood/50",
         )}
-        draggable={false}
-      />
+        style={{ borderRadius: 5 }}
+      >
+        <span className="absolute inset-y-0 left-0 w-[5px] bg-black/30" />
+        <span className="absolute inset-y-0 left-[5px] w-px bg-white/20" />
+        <span className="absolute inset-y-1.5 right-0 w-[3px] rounded-l-sm bg-oxblood-fg/85" />
+        <span className="font-display relative ml-px text-xs font-bold leading-none tracking-tight">
+          TL
+        </span>
+      </span>
       <span className={compact ? "hidden min-w-0 text-left sm:block" : "min-w-0 text-left"}>
         <span className="font-display block text-sm font-semibold leading-none tracking-tight text-ink">
           Theos Logos
