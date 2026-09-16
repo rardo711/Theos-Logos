@@ -17,14 +17,16 @@
 ## Wave-5B — DONE (live)
 See prior HANDOFF table. Banned: Scofield / Darby / Kelly / Bellett / Pink / Stier = 0.
 
-## Spanish lexicon data + gloss card UI (2026-09-15 ~20:45 ET) — PREVIEW ONLY
+## Spanish lexicon data + gloss card UI (2026-09-15 ~20:45 ET) — PREVIEW READY
+- SHA `24ef49f` · preview https://theos-logos-official-qsre6hnd5-castanedag2001-1468.vercel.app · dpl `dpl_7KJukxZ223Ry2FVfn9qFfZ4ZZmWh`
+- Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 - **Data:** UBS ES compact `src/lib/lexicon/data/spanish.json` (5312 Strong’s; CC BY-SA 4.0).
 - **Importer:** `scripts/import-ubs-es-lexicon.mjs` (local only — no Vercel-build download).
-- **Secondary:** spa.tsv filtered `lexicon|ubs-dict` only; llm-only excluded (10288 skipped).
-- **Lookup:** `src/lib/lexicon/spanish.ts` — `lookupSpanishByStrongs("G3056")` → palabra/dicho/mensaje…
-- **API:** `askSpanishLexicon` server fn; client sync for chip tap (never Gemini).
-- **UI:** `SpanishGlossCard` on locale=es word-tap (Reception sheet) — Sentido → Glosa hero → Lema/Morfología → Strong footer → UBS attribution. Design brief v1.
+- **Secondary:** spa.tsv filtered `lexicon|ubs-dict` only; llm-only excluded (10288 skipped at import).
+- **Lookup:** `lookupSpanishByStrongs("G3056")` → palabra / dicho / mensaje… + DefinitionShort.
+- **API:** `askSpanishLexicon` + client sync; chip tap never Gemini.
+- **UI:** `SpanishGlossCard` on locale=es Reception word-tap — Sentido → Glosa hero → Lema/Morfología → Strong footer → UBS micro attribution.
 - **Attribution:** `ATTRIBUTION.md` + `SOURCES.md`.
-- **NO promote.** Logo untouched. No RV1909. No RI grid.
-- SHA / preview: see latest scholar-desk push below after deploy.
+- **NO promote.** Logo untouched. No RV1909. No RI grid. Prod freeze unchanged.
+- Smoke: switch locale Español → open NT verse → tap lexicon chip (e.g. palabra) → card shows Glosa largest, Sentido present, Strong footer-only.
 
