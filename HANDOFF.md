@@ -10,7 +10,9 @@
 - **Scripture:** reader already uses RV1960; pure verse quotes prefer `verseTextEs` over MT when EN verse is known.
 - **QC:** `TRANSLATE-QC.md`. Tests: `src/lib/translate/*.test.ts` (mocked API).
 - **NO promote.** Live translate on preview requires GCP key on Vercel (Chief/Rardo).
-- SHA / preview URL: fill after push + Vercel READY.
+- SHA `304f83f` · preview https://theos-logos-official-6bjbmpuw7-castanedag2001-1468.vercel.app · dpl `dpl_HnAQyoaMbuuqkqJ2AH1an1eAXRiS`
+- Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
+- **Note:** Live ES NMT on preview needs `GOOGLE_TRANSLATE_API_KEY` (or credentials) set on Vercel by Chief/Rardo; without it, generated cards stay English (graceful skip).
 
 
 ## Spanish gloss card polish — sentidos más + gold Strong (2026-09-16 ~01:25 ET) — PREVIEW ONLY
@@ -53,7 +55,9 @@ See prior HANDOFF table. Banned: Scofield / Darby / Kelly / Bellett / Pink / Sti
 - **UI:** Dominio shows source Domain · SubDomain; quiet entry-code meta. Hierarchy unchanged. Logo untouched.
 - **Tests:** G746 + Juan 1:1 → 67.65 / principio (also Marcos 1:1 stays 68.1).
 - **NO promote.** No RV1909. No RI grid. Chip tap never Gemini.
-- SHA / preview URL: fill after push + Vercel READY.
+- SHA `304f83f` · preview https://theos-logos-official-6bjbmpuw7-castanedag2001-1468.vercel.app · dpl `dpl_HnAQyoaMbuuqkqJ2AH1an1eAXRiS`
+- Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
+- **Note:** Live ES NMT on preview needs `GOOGLE_TRANSLATE_API_KEY` (or credentials) set on Vercel by Chief/Rardo; without it, generated cards stay English (graceful skip).
 
 ## Spanish lexicon data + gloss card UI (2026-09-15 ~20:45 ET) — PREVIEW READY
 - SHA `24ef49f` · preview https://theos-logos-official-qsre6hnd5-castanedag2001-1468.vercel.app · dpl `dpl_7KJukxZ223Ry2FVfn9qFfZ4ZZmWh`
