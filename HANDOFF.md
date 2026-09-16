@@ -8,7 +8,7 @@
 - **Field missed:** `quote` (and `note` when present; curated `excerpt` maps to `quote`).
 - **Verify:** Juan 1:4–7 curated — Augustine “What was made…” → Spanish body; EN restores English.
 - Keep Midvash Strong, onboarding as-is. **NO promote.**
-- SHA _(pending)_ · preview _(pending)_
+- SHA `0870d46` · preview https://theos-logos-official-bmepyrd1q-castanedag2001-1468.vercel.app · dpl `dpl_8oXfsnZnJRbWW1VaseyGTVsBu4tn`
 - Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 
 ## Midvash Strong + curated NMT + locale switch (2026-09-16 ~01:50 ET) — PREVIEW ONLY
