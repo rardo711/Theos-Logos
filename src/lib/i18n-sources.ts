@@ -145,6 +145,59 @@ function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+
+/** Extra English book forms not identical to BIBLE_BOOKS.name. */
+const EXTRA_BOOK_EN_TO_ES: [string, string][] = [
+  ["Song of Songs", "Cantares"],
+  ["Apocalypse", "Apocalipsis"],
+  ["Psalm", "Salmo"],
+];
+
+const URL_RE = /https?:\/\/[^\s<>"')\]]+/gi;
+const GREEK_RE = /[\u0370-\u03FF\u1F00-\u1FFF]+/g;
+const HEBREW_RE = /[\u0590-\u05FF\uFB1D-\uFB4F]+/g;
+
+/**
+ * Localize English Bible book names inside card bodies when locale=es.
+ * Protects URLs and Greek/Hebrew; longest book names first (1 John before John).
+ * Does not run PHRASE title maps — safe for quote prose / NMT output.
+ */
+export function localizeBookNamesInBody(text: string, locale: Locale): string {
+  if (locale !== "es" || !text) return text;
+
+  const tokens: string[] = [];
+  const stash = (raw: string): string => {
+    const i = tokens.length;
+    tokens.push(raw);
+    return `\u0000P${i}\u0000`;
+  };
+
+  let out = text;
+  // Protect known English voice phrases that contain book-like tokens ("John Calvin").
+  const voices = Object.keys(VOICE_ES).sort((a, b) => b.length - a.length);
+  for (const v of voices) {
+    if (v.length < 4) continue;
+    out = out.split(v).join(stash(v));
+  }
+  out = out.replace(URL_RE, (m) => stash(m));
+  out = out.replace(GREEK_RE, (m) => stash(m));
+  out = out.replace(HEBREW_RE, (m) => stash(m));
+
+  const pairs: [string, string][] = [
+    ...EXTRA_BOOK_EN_TO_ES,
+    ...[...BIBLE_BOOKS]
+      .map((b) => [b.name, bookName(b, "es")] as [string, string])
+      .filter(([en, es]) => en !== es),
+  ].sort((a, b) => b[0].length - a[0].length);
+
+  for (const [en, es] of pairs) {
+    out = out.replace(new RegExp(`\\b${escapeRe(en)}\\b`, "gi"), es);
+  }
+
+  out = out.replace(/\u0000P(\d+)\u0000/g, (_, i) => tokens[Number(i)] ?? "");
+  return out;
+}
+
 export function localizeTitle(text: string, locale: Locale): string {
   if (locale !== "es" || !text) return text;
   let out = text;
@@ -172,9 +225,13 @@ export function localizeCard(card: SourceCard, locale: Locale): SourceCard {
     voice: localizeVoice(card.voice, locale),
     work: localizeTitle(card.work, locale),
     citation: localizeTitle(card.citation, locale),
-    note: card.note ? localizeTitle(card.note, locale) : card.note,
+    // Book names only in quote (not full title maps) so NMT still owns prose.
+    quote: card.quote ? localizeBookNamesInBody(card.quote, locale) : card.quote,
+    note: card.note
+      ? localizeBookNamesInBody(localizeTitle(card.note, locale), locale)
+      : card.note,
     contextBridge: card.contextBridge
-      ? localizeTitle(card.contextBridge, locale)
+      ? localizeBookNamesInBody(localizeTitle(card.contextBridge, locale), locale)
       : card.contextBridge,
   };
 }

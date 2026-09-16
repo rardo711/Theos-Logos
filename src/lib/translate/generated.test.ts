@@ -62,6 +62,18 @@ describe("translateGeneratedCard", () => {
     assert.match(String(outGen.contextBridge), /Esta nota/);
   });
 
+  it("localizes English book names left intact by NMT protect", async () => {
+    const card = gen({
+      quote: "Compare John 1:4 with 1 John 1:1 on the Logos theme.",
+      contextBridge: "Geneva notes Romans 8:28 here.",
+    });
+    const out = await translateGeneratedCard(card, { locale: "es" });
+    assert.match(out.quote, /Juan 1:4/);
+    assert.match(out.quote, /1 Juan 1:1/);
+    assert.doesNotMatch(out.quote, /\bJohn 1:4\b/);
+    assert.match(String(out.contextBridge), /Romanos 8:28/);
+  });
+
   it("also translates curated/catalog card bodies when locale=es", async () => {
     const curated: SourceCard = {
       voice: "John Gill",

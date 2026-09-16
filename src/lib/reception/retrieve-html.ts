@@ -201,8 +201,55 @@ export function truncateAtSentence(text: string, maxLen = 520): string {
   return trimmed.slice(0, maxLen).trim() + "\u2026";
 }
 
+
+/** EN + ES book forms used to detect verse-ref token spam in card bodies. */
+const VERSE_REF_BOOK =
+  "Genesis|G[eé]nesis|Exodus|[EÉ]xodo|Leviticus|Lev[ií]tico|Numbers|N[uú]meros|Deuteronomy|Deuteronomio|Joshua|Josu[eé]|Judges|Jueces|Ruth|Rut|Samuel|Kings|Reyes|Chronicles|Cr[oó]nicas|Ezra|Esdras|Nehemiah|Nehem[ií]as|Esther|Ester|Job|Psalms?|Salmos?|Proverbs|Proverbios|Ecclesiastes|Eclesiast[eé]s|Song of Solomon|Song of Songs|Cantares|Isaiah|Isa[ií]as|Jeremiah|Jerem[ií]as|Lamentations|Lamentaciones|Ezekiel|Ezequiel|Daniel|Hosea|Oseas|Joel|Amos|Am[oó]s|Obadiah|Abd[ií]as|Jonah|Jon[aá]s|Micah|Miqueas|Nahum|Nah[uú]m|Habakkuk|Habacuc|Zephaniah|Sofon[ií]as|Haggai|Hageo|Zechariah|Zacar[ií]as|Malachi|Malaqu[ií]as|Matthew|Mateo|Mark|Marcos|Luke|Lucas|John|Juan|Acts|Hechos|Romans|Romanos|Corinthians|Corintios|Galatians|G[aá]latas|Ephesians|Efesios|Philippians|Filipenses|Colossians|Colosenses|Thessalonians|Tesalonicenses|Timothy|Timoteo|Titus|Tito|Philemon|Filem[oó]n|Hebrews|Hebreos|James|Santiago|Peter|Pedro|Jude|Judas|Revelation|Apocalipsis|Apocalypse";
+
+/** Named book + chapter:verse (optional ordinal prefix, optional verse range). */
+const NAMED_VERSE_REF = new RegExp(
+  String.raw`\b(?:(?:1|2|3)\s+)?(?:${VERSE_REF_BOOK})\.?\s+\d{1,3}\s*:\s*\d{1,3}(?:\s*[-–]\s*\d{1,3})?\b`,
+  "gi",
+);
+
+const BARE_CHAPTER_VERSE = /\b\d{1,3}\s*:\s*\d{1,3}\b/g;
+
+/**
+ * True when a body is mostly concatenated verse-ref tokens
+ * ("John 1:1 John 1:2 …" / "Juan 1:1 Juan 1:2 …") rather than commentary prose.
+ * Used in EN and ES QC so neither locale ships ref-spam GENERADA cards.
+ */
+export function isMostlyVerseRefs(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return true;
+
+  const namedRe = new RegExp(NAMED_VERSE_REF.source, "gi");
+  const bareRe = new RegExp(BARE_CHAPTER_VERSE.source, "g");
+  const named = [...trimmed.matchAll(namedRe)];
+  const bare = [...trimmed.matchAll(bareRe)];
+  if (named.length < 2 && bare.length < 4) return false;
+
+  const refChars = named.reduce((n, m) => n + m[0].length, 0);
+  const prose = trimmed
+    .replace(new RegExp(NAMED_VERSE_REF.source, "gi"), " ")
+    .replace(new RegExp(BARE_CHAPTER_VERSE.source, "g"), " ")
+    .replace(/[|·•,;./\-–—]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const proseWords = prose
+    .split(/\s+/)
+    .filter((w) => w.length > 1 && !/^\d+$/.test(w));
+
+  if (named.length >= 3 && proseWords.length < named.length * 2) return true;
+  if (named.length >= 2 && refChars / trimmed.length >= 0.45) return true;
+  if (named.length >= 3 && prose.length < 40) return true;
+  if (bare.length >= 5 && proseWords.length < 8) return true;
+  return false;
+}
+
 export function isSubstantiveQuote(text: string): boolean {
   if (isBoilerplate(text) || isEmbeddedScripture(text)) return false;
+  if (isMostlyVerseRefs(text)) return false;
   const trimmed = text.trim();
   if (trimmed.length < 15) return false;
   const words = trimmed.split(/\s+/).filter(Boolean);

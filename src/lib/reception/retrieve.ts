@@ -4,6 +4,7 @@ export {
   htmlToText,
   isBoilerplate,
   isEmbeddedScripture,
+  isMostlyVerseRefs,
   truncateAtSentence,
   isSubstantiveQuote,
   paragraphsFromHtml,

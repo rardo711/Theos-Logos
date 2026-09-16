@@ -1699,6 +1699,29 @@ describe("systemic boilerplate and landing page rejection", () => {
     }
   });
 
+  it("rejects concatenated verse-ref spam bodies (EN and ES)", async () => {
+    const { isSubstantiveQuote, isMostlyVerseRefs } = await import("./retrieve.ts");
+
+    const spamEn =
+      "John 1:1 John 1:2 John 1:3 John 1:4 John 1:5 John 1:6 John 1:7";
+    const spamEs =
+      "Juan 1:1 Juan 1:2 Juan 1:3 Juan 1:4 Juan 1:5 Juan 1:6";
+    const mixed =
+      "John 1:1 · John 1:2 · John 1:3 · John 1:4 · Romans 8:28 · Romans 8:29";
+
+    assert.equal(isMostlyVerseRefs(spamEn), true);
+    assert.equal(isMostlyVerseRefs(spamEs), true);
+    assert.equal(isMostlyVerseRefs(mixed), true);
+    assert.equal(isSubstantiveQuote(spamEn), false);
+    assert.equal(isSubstantiveQuote(spamEs), false);
+    assert.equal(isSubstantiveQuote(mixed), false);
+
+    const real =
+      "In Him was life; and the life was the light of men. Cf. John 1:4 for the parallel.";
+    assert.equal(isMostlyVerseRefs(real), false);
+    assert.equal(isSubstantiveQuote(real), true);
+  });
+
   it("filters embedded scripture blocks and truncates quotes at sentence boundaries", async () => {
     const { isEmbeddedScripture, truncateAtSentence } = await import("./retrieve.ts");
 
