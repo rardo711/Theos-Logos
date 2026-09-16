@@ -6,6 +6,11 @@ import {
   lookupSpanishWordNow,
   type SpanishLexiconResult,
 } from "./spanish.ts";
+import {
+  lookupEnglishByStrongs,
+  lookupEnglishWordNow,
+  type EnglishLexiconResult,
+} from "./english.ts";
 
 export const askLexicon = createServerFn({ method: "POST" })
   .validator(
@@ -40,5 +45,20 @@ export const askSpanishLexicon = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<SpanishLexiconResult | null> => {
     if (data.strongs) return lookupSpanishByStrongs(data.strongs, data.reference);
     if (data.word) return lookupSpanishWordNow(data.word, data.reference);
+    return null;
+  });
+
+/** English UBS gloss lookup by Strong's or English surface gloss. Never Gemini. */
+export const askEnglishLexicon = createServerFn({ method: "POST" })
+  .validator(
+    (input: {
+      strongs?: string;
+      word?: string;
+      reference?: string;
+    }) => input,
+  )
+  .handler(async ({ data }): Promise<EnglishLexiconResult | null> => {
+    if (data.strongs) return lookupEnglishByStrongs(data.strongs, data.reference);
+    if (data.word) return lookupEnglishWordNow(data.word, data.reference);
     return null;
   });

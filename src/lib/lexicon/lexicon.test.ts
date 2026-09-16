@@ -9,13 +9,12 @@ import {
 } from "./stepbible.ts";
 
 describe("lexicon chips", () => {
-  it("uses getLocalLexicon first for John 1 Word", () => {
-    const local = getLocalLexicon("Word", "John 1:1");
+  it("John 1 Word is STEPBible G3056 (no global Johannine local leak)", () => {
+    // Johannine student notes no longer apply to every NT tap.
+    assert.equal(getLocalLexicon("Word", "John 1:1"), null);
     const now = lookupWordNow("Word", "John 1:1");
-    assert.ok(local);
-    assert.equal(local?.lemma, "λόγος");
-    assert.equal(local?.strongs, "G3056");
-    assert.equal(now?.gloss, local?.gloss);
+    assert.equal(now?.strongs, "G3056");
+    assert.equal(now?.source, "AS");
   });
 
   it("maps κόσμος to G2889, never G2884", () => {

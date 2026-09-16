@@ -117,6 +117,13 @@ Used by the *Across the Traditions* sections so that each tradition is represent
 - Secondary short glosses: bcv-commons/strongs `spa.tsv` filtered to lexicon / ubs-dict rows only (no LLM fill in v1).
 - See `ATTRIBUTION.md`. Rebuild: `node scripts/import-ubs-es-lexicon.mjs` (not at Vercel build).
 
+**UBS Greek NT Dictionary (English)** — United Bible Societies. CC BY-SA 4.0.
+- Committed compact lookup: `src/lib/lexicon/data/english.json` (Strong’s → English glosses / DefinitionShort / domains / SIL LEXReferences).
+- Upstream: [ubsicap/ubs-open-license](https://github.com/ubsicap/ubs-open-license) (`UBSGreekNTDic-v1.1-en.JSON`).
+- Secondary short glosses: bcv-commons/strongs `eng.tsv` filtered to lexicon / ubs-dict rows only (no LLM fill in v1).
+- locale=en NT word-tap uses this pack (parity with Spanish). OT Hebrew stays STEPBible/BDB.
+- See `ATTRIBUTION.md`. Rebuild: `node scripts/import-ubs-en-lexicon.mjs` (not at Vercel build).
+
 **Thayer's Greek Lexicon** — Thayer, J.H. *A Greek-English Lexicon of the New Testament*. 1889. Public domain.
 - Available at [CCEL](https://ccel.org/ccel/thayer/greek) and [BibleHub](https://biblehub.com/lexicon/)
 

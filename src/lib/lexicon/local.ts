@@ -274,11 +274,12 @@ export function getLocalLexicon(
   const ot = reference && /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Ruth|Samuel|Kings|Chronicles|Ezra|Nehemiah|Esther|Job|Psalm|Proverbs|Ecclesiastes|Song|Isaiah|Jeremiah|Lamentations|Ezekiel|Daniel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi)/i.test(
     reference,
   );
+  // NT: verse-scoped Greek tips only (Rom 8:28 love, Heb 1:1 spoke).
+  // Do NOT apply Johannine student notes to every NT verse, and never fall
+  // through to Hebrew on an NT reference (image/head/fullness chip bug).
   const note =
     (!ot ? refGreekNote(key, reference) : undefined) ??
-    (ot ? HEBREW[key] : undefined) ??
-    GREEK[key] ??
-    HEBREW[key];
+    (ot ? HEBREW[key] : undefined);
   if (!note) return null;
   return { word, ...note };
 }

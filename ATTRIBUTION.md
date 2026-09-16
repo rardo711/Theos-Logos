@@ -21,6 +21,28 @@ Filtered rows from [bcv-commons/strongs](https://huggingface.co/datasets/bcv-com
 `glosses/spa.tsv` where `methods` contains `lexicon` **or** `sources` contains
 `ubs-dict`. LLM-only rows are **not** shipped in v1.
 
-## English lexicon
+## English NT lexicon (UBS)
+
+English gloss data in `src/lib/lexicon/data/english.json` is derived from the
+**UBS Greek New Testament Dictionary (English)** published by the
+United Bible Societies under **CC BY-SA 4.0**.
+
+- Source: https://github.com/ubsicap/ubs-open-license
+- Dictionary JSON: `dictionaries/greek/JSON/UBSGreekNTDic-v1.1-en.JSON`
+- Domains companion (reference): `LexicalDomains-v1.1-en.JSON` (inline domains retained from primary)
+
+This work is a compressed Strong’s-keyed lookup for study on Theos Logos.
+Share-alike and attribution requirements of CC BY-SA 4.0 apply to the UBS
+material. Rebuild via `node scripts/import-ubs-en-lexicon.mjs` (local only —
+not at Vercel build).
+
+### Secondary short glosses (English)
+
+Filtered rows from [bcv-commons/strongs](https://huggingface.co/datasets/bcv-commons/strongs)
+`glosses/eng.tsv` where `methods` contains `lexicon` **or** `sources` contains
+`ubs-dict`. LLM-only rows are **not** shipped in v1.
+
+## English OT / legacy desk pocket
 
 STEPBible / Tyndale House compact JSON — CC BY 4.0 (see `src/lib/lexicon/data/desk.ts`).
+Used for OT Hebrew (BDB) chips; NT Greek word-tap on locale=en uses UBS EN above.

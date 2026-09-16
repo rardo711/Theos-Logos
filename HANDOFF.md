@@ -1,6 +1,20 @@
-# Theos Logos — living handoff (updated 2026-09-16 ~02:15 ET)
+# Theos Logos — living handoff (updated 2026-09-16 ~07:50 ET)
 
 **Grok: start here.** Repo `HANDOFF.md` on `scholar-desk` (BUGS-PLAN.md retired 2026-09-16 — all items verified fixed on prod).
+
+## English NT lexicon parity — UBS EN gloss pack (2026-09-16 ~07:50 ET) — PREVIEW ONLY
+- **Goal:** locale=en NT word-tap matches Spanish UBS robustness (verse-sense, multi-gloss hero, N more senses, gold Strong → Midvash EN).
+- **Data:** compact `src/lib/lexicon/data/english.json` from UBSGreekNTDic-v1.1-en.JSON (CC BY-SA 4.0) + eng.tsv filtered lexicon|ubs-dict (no LLM). Local import only — `node scripts/import-ubs-en-lexicon.mjs` (never at Vercel build).
+- **Lookup:** `english.ts` — `lookupEnglishByStrongs` / verse-sense via SIL BBBCCCVVV / `byGloss` from UBS EN. Do **not** reuse STEPBible glosses.json for NT Greek.
+- **UI:** `EnglishGlossCard` per `LOOK-BRIEF-english-gloss-card-v1.md` — Sense in this verse → Gloss hero → N more senses / Show less → Lemma/Morphology → Domain → gold Strong → Midvash EN → UBS · CC BY-SA. Reuses gloss sheet motion tokens. Logo untouched.
+- **Reception:** locale=en NT → UBS EN path; OT Hebrew stays STEPBible/BDB. Chip tap never Gemini.
+- **Fixes:** NT chip no Hebrew fallback (image/head/fullness); `local.ts` Johannine notes no longer leak to all NT.
+- **Smoke:** Col 1:15 *image* / *firstborn* → UBS EN verse-sense (G1504 / G4416), not Hebrew, not Johannine.
+- **Tests:** `english.test.ts` (G-lookup + verse-sense + NT-not-Hebrew). Attribution: `ATTRIBUTION.md` / `SOURCES.md`.
+- **NO promote.** Live prod logo untouched. No Scofield/Darby.
+- SHA `PENDING` · preview PENDING · dpl PENDING
+- Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
+
 
 ## Reception card QC — verse-ref spam + ES book names (2026-09-16 ~02:15 ET) — PREVIEW ONLY
 - **Bug 1:** GENERADA bodies (e.g. Kretzmann on Juan 1:4) showed concatenated “John 1:1 John 1:2 …” spam. **QC:** `isMostlyVerseRefs` in `retrieve-html.ts` — high density of named book+ch:v tokens (EN+ES) or bare ch:v spam with little prose → `isSubstantiveQuote` false → reject/drop (EN and ES). Never ship spam cards.

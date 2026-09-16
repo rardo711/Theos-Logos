@@ -148,9 +148,16 @@ export function lookupWordNow(
 
   const hits = lookupByEnglishSync(word);
   const ot = isOtReference(reference);
-  const chosen =
-    hits.find((e) => (ot ? e.language === "hebrew" : e.language === "greek")) ||
-    hits[0];
+  // NT with a verse ref: Greek only — never fall through to Hebrew
+  // (image/head/fullness chip bug). OT: Hebrew preferred. Unscoped: Greek then any.
+  let chosen;
+  if (ot) {
+    chosen = hits.find((e) => e.language === "hebrew") || hits[0];
+  } else if (reference) {
+    chosen = hits.find((e) => e.language === "greek") ?? undefined;
+  } else {
+    chosen = hits.find((e) => e.language === "greek") || hits[0];
+  }
   return chosen ? entryToResult(word, chosen) : null;
 }
 
