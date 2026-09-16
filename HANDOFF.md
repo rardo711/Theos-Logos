@@ -1,6 +1,14 @@
-# Theos Logos — living handoff (updated 2026-09-16 ~02:00 ET)
+# Theos Logos — living handoff (updated 2026-09-16 ~02:15 ET)
 
 **Grok: start here.** Repo `HANDOFF.md` + `BUGS-PLAN.md` on `scholar-desk`.
+
+## Reception card QC — verse-ref spam + ES book names (2026-09-16 ~02:15 ET) — PREVIEW ONLY
+- **Bug 1:** GENERADA bodies (e.g. Kretzmann on Juan 1:4) showed concatenated “John 1:1 John 1:2 …” spam. **QC:** `isMostlyVerseRefs` in `retrieve-html.ts` — high density of named book+ch:v tokens (EN+ES) or bare ch:v spam with little prose → `isSubstantiveQuote` false → reject/drop (EN and ES). Never ship spam cards.
+- **Bug 2:** Geneva/Lange ES bodies still had “John 1:4” / “1 John 1:1” because NMT `protect` leaves verse refs intact. **`localizeBookNamesInBody`** (i18n-sources; uses `BIBLE_BOOKS` + `bookName(…,"es")` + extras Song of Songs/Psalm/Apocalypse) rewrites EN book names in quote/note/bridge after NMT and in `localizeCard` display; protects Greek/Hebrew/URLs and voice phrases like “John Calvin”. EN locale unchanged.
+- Verify: Juan 1:4 Reception EN+ES — no verse-ref spam; ES refs use Juan not John.
+- **NO promote.** Out of scope: GENERADA EN flip-back.
+- SHA `a676a90` · preview https://theos-logos-official-lypsv26aj-castanedag2001-1468.vercel.app · dpl `dpl_EwSG2kjkp7oSfPnrn4u4UoyCPTgf`
+- Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 
 ## Curated quote NMT on open (2026-09-16 ~02:00 ET) — PREVIEW ONLY
 - **Bug:** locale=es curated/CURADA cards showed Spanish chrome (Agustín via i18n-sources) but **quote bodies stayed English** — client `getDeskNotes` → `getCurated` never hit server NMT; `localizeCard` skips `quote`. Gather merge also kept prior EN quotes when cites matched.
