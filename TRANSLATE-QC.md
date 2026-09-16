@@ -1,6 +1,8 @@
 # Spanish NMT QC — Reception commentary cards
 
-**Scope:** Inquire / reception **generated** cards **and** curated/catalog card bodies (Gill/Calvin quote + note / contextBridge) when `locale=es`. Voice names, work titles, and citations stay via `notranslate` + `i18n-sources` localizeCard. Do **not** NMT Scripture when Spanish Bible (RV1960) is already on the desk.
+**Scope:** Inquire / reception **generated** cards **and** curated/catalog card bodies (Gill/Calvin **quote** + note / contextBridge) when `locale=es`. Voice names, work titles, and citations stay via `notranslate` + `i18n-sources` localizeCard (chrome only — **not** quote bodies). Do **not** NMT Scripture when Spanish Bible (RV1960) is already on the desk.
+
+**Client gap fixed:** Opening a curated verse loads English `quote` from `getCurated` until the server NMT round-trip. Reception sheet auto-calls `askReception` when `locale=es` and there is no locale-keyed desk cache; gather merge prefers server bodies for the same voice+citation so EN curated quotes are replaced.
 
 **Engine:** Google Cloud Translation NMT (`google-nmt`). Env (server only):
 
@@ -26,7 +28,7 @@ If both missing, cards remain English (graceful skip). Never ship these as `VITE
 ## Automated
 
 ```bash
-npm test -- src/lib/translate/ src/lib/reception/locale-switch.test.ts src/lib/lexicon/midvash.test.ts
+npm test -- src/lib/translate/ src/lib/reception/locale-switch.test.ts src/lib/reception/merge-cards.test.ts src/lib/lexicon/midvash.test.ts
 ```
 
 Mocks the Translate API; no live billing in CI.

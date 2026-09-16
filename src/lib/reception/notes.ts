@@ -20,19 +20,25 @@ import {
 } from "./curated.ts";
 
 
+function citeKey(c: SourceCard): string {
+  return `${c.voice}\0${c.citation}`;
+}
+
+function quoteKey(c: SourceCard): string {
+  return c.quote.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
 /** Cards from a focused Inquire that are not already on the desk. */
 export function additionalSourceCards(
   prior: SourceCard[],
   incoming: SourceCard[],
 ): SourceCard[] {
-  const seenCite = new Set(prior.map((c) => `${c.voice}\0${c.citation}`));
-  const seenQuote = new Set(
-    prior.map((c) => c.quote.replace(/\s+/g, " ").trim().toLowerCase()),
-  );
+  const seenCite = new Set(prior.map(citeKey));
+  const seenQuote = new Set(prior.map(quoteKey));
   const added: SourceCard[] = [];
   for (const c of incoming) {
-    const cite = `${c.voice}\0${c.citation}`;
-    const quote = c.quote.replace(/\s+/g, " ").trim().toLowerCase();
+    const cite = citeKey(c);
+    const quote = quoteKey(c);
     if (seenCite.has(cite) || seenQuote.has(quote)) continue;
     seenCite.add(cite);
     seenQuote.add(quote);
@@ -42,6 +48,62 @@ export function additionalSourceCards(
     });
   }
   return added;
+}
+
+/**
+ * Merge a server desk into the open desk. Same voice+citation prefers the
+ * incoming card so ES NMT can replace English curated quote bodies that were
+ * shown from client getCurated before the server round-trip.
+ */
+export function mergeReceptionCards(
+  prior: SourceCard[],
+  incoming: SourceCard[],
+): { cards: SourceCard[]; addedCount: number } {
+  if (!prior.length) {
+    return {
+      cards: incoming.map((c) => ({ ...c, source: c.source ?? "generated" })),
+      addedCount: incoming.length,
+    };
+  }
+  if (!incoming.length) {
+    return { cards: prior, addedCount: 0 };
+  }
+
+  const priorByCite = new Map(prior.map((c) => [citeKey(c), c]));
+  const priorQuotes = new Set(prior.map(quoteKey));
+
+  const cards = prior.map((c) => {
+    const newer = incoming.find((i) => citeKey(i) === citeKey(c));
+    return newer ?? c;
+  });
+
+  const added: SourceCard[] = [];
+  for (const c of incoming) {
+    if (priorByCite.has(citeKey(c))) continue;
+    if (priorQuotes.has(quoteKey(c))) continue;
+    added.push({
+      ...c,
+      source: c.source ?? "generated",
+    });
+  }
+
+  return { cards: [...cards, ...added], addedCount: added.length };
+}
+
+/** True when desk is curated-only English fallback (no locale-keyed cache hit). */
+export function isUncachedCuratedDesk(
+  bookId: string,
+  chapter: number,
+  verse: number,
+  verseEnd: number | null | undefined,
+  locale: Locale | null | undefined,
+  desk: ReceptionResult | null,
+): boolean {
+  if (!desk?.cards.length) return false;
+  if (getCached(bookId, chapter, verse, verseEnd, locale)) return false;
+  return desk.cards.every(
+    (c) => c.source === "curated" || c.source == null,
+  );
 }
 
 export function isCardGenerated(

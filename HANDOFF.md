@@ -1,6 +1,15 @@
-# Theos Logos — living handoff (updated 2026-09-16 ~01:50 ET)
+# Theos Logos — living handoff (updated 2026-09-16 ~02:00 ET)
 
 **Grok: start here.** Repo `HANDOFF.md` + `BUGS-PLAN.md` on `scholar-desk`.
+
+## Curated quote NMT on open (2026-09-16 ~02:00 ET) — PREVIEW ONLY
+- **Bug:** locale=es curated/CURADA cards showed Spanish chrome (Agustín via i18n-sources) but **quote bodies stayed English** — client `getDeskNotes` → `getCurated` never hit server NMT; `localizeCard` skips `quote`. Gather merge also kept prior EN quotes when cites matched.
+- **Fix:** Reception auto-calls `askReception` (Google NMT + durable cache) when locale=es and desk is uncached curated; `mergeReceptionCards` prefers server quote/note for same voice+citation. EN switch still locale-keyed → English curated.
+- **Field missed:** `quote` (and `note` when present; curated `excerpt` maps to `quote`).
+- **Verify:** Juan 1:4–7 curated — Augustine “What was made…” → Spanish body; EN restores English.
+- Keep Midvash Strong, onboarding as-is. **NO promote.**
+- SHA _(pending)_ · preview _(pending)_
+- Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 
 ## Midvash Strong + curated NMT + locale switch (2026-09-16 ~01:50 ET) — PREVIEW ONLY
 - **Strong pills:** gold, new tab, max 2+N; Midvash over BibleHub. ES desk: `https://midvash.com/es/concordancia-strong/griego/g{n}` (Hebrew `…/hebreo/h{n}`); EN: `…/strongs-concordance/greek/g{n}` (Hebrew `…/hebrew/h{n}`). Digits without leading zeros. UBS attribution kept on gloss card. Verified G3956 ES → “todo”.

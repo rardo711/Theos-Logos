@@ -1,18 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Highlighter, Loader2, Maximize2, Minimize2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
-import { gatherCommentaries, synthesizeFromCards } from "@/lib/reception/ask";
 import {
-  additionalSourceCards,
+  askReception,
+  gatherCommentaries,
+  synthesizeFromCards,
+} from "@/lib/reception/ask";
+import {
   clearGeneratedNotesForChapter,
   clearGeneratedNotesForVerse,
   getDeskNotes,
   hasCachedNotesInChapter,
   isCardGenerated,
+  isUncachedCuratedDesk,
   markedVerses,
+  mergeReceptionCards,
   rememberReception,
 } from "@/lib/reception/notes";
 import { getCurated, hasCurated } from "@/lib/reception/curated";
-import { removeCached, saveCached } from "@/lib/reception/cache";
+import { getCached, removeCached, saveCached } from "@/lib/reception/cache";
 import { hasLexiconChip, lookupWordNow } from "@/lib/lexicon/stepbible";
 import {
   hasSpanishLexiconChip,
@@ -111,6 +116,8 @@ export function ReceptionPanel({
   const [lexicon, setLexicon] = useState<LexiconResult | null>(null);
   const [spanishLexicon, setSpanishLexicon] =
     useState<SpanishLexiconResult | null>(null);
+  /** Bump after clearing ES cache so curated desks re-run NMT. */
+  const [curatedNmtKick, setCuratedNmtKick] = useState(0);
 
   const verse = chapter?.verses.find((v) => v.verse === selectedVerse) ?? null;
   const highlighted = useMemo(() => {
@@ -167,22 +174,90 @@ export function ReceptionPanel({
     setAimOpen(false);
     setSynthesis(null);
     setLoadingKind(null);
+    let cancelled = false;
+
     if (chapter && selectedVerse != null) {
-      setResult(
-        getDeskNotes(
+      const desk = getDeskNotes(
+        chapter.bookId,
+        chapter.chapter,
+        selectedVerse,
+        selectedEndVerse,
+        locale,
+      );
+      setResult(desk);
+
+      // Curated desks load from client English getCurated; localizeCard only
+      // maps voice/work chrome. When locale=es with no ES cache, NMT quote
+      // bodies via the same server path as AI cards, then cache by locale.
+      const needsCuratedNmt =
+        locale === "es" &&
+        isUncachedCuratedDesk(
           chapter.bookId,
           chapter.chapter,
           selectedVerse,
           selectedEndVerse,
           locale,
-        ),
-      );
+          desk,
+        );
+
+      if (needsCuratedNmt && desk) {
+        const verseText = selectionText || (verse?.text ?? "");
+        void (async () => {
+          try {
+            const data = await askReception({
+              data: {
+                bookId: chapter.bookId,
+                bookName: chapter.bookName,
+                chapter: chapter.chapter,
+                verse: selectedVerse,
+                verseEnd: selectedEndVerse,
+                verseText,
+                passage: chapter.verses
+                  .slice(0, 12)
+                  .map((v) => `${v.verse} ${v.text}`)
+                  .join("\n"),
+                mode: "reception",
+                locale: "es",
+              },
+            });
+            if (cancelled || !data.cards.length) return;
+            // Only apply if still on the same verse/locale and still uncached.
+            if (
+              getCached(
+                chapter.bookId,
+                chapter.chapter,
+                selectedVerse,
+                selectedEndVerse,
+                "es",
+              )
+            ) {
+              return;
+            }
+            setResult(data);
+            rememberReception(
+              chapter.bookId,
+              chapter.chapter,
+              selectedVerse,
+              data,
+              selectedEndVerse,
+              "es",
+            );
+            touchNotes();
+          } catch {
+            /* keep English curated until gather */
+          }
+        })();
+      }
     } else if (chapter) {
       setResult(getDeskNotes(chapter.bookId, chapter.chapter, null, null, locale));
     } else {
       setResult(null);
     }
-  }, [chapter, selectedVerse, selectedEndVerse, locale]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chapter, selectedVerse, selectedEndVerse, locale, selectionText, verse?.text, touchNotes, curatedNmtKick]);
 
   async function runCommentaries() {
     if (!chapter) return;
@@ -218,19 +293,33 @@ export function ReceptionPanel({
             : undefined,
         },
       });
-      const added = prior?.cards.length
-        ? additionalSourceCards(prior.cards, data.cards)
-        : data.cards;
+      // Prefer server bodies for matching cites so ES NMT replaces EN curated
+      // quotes that were shown from client getCurated before this round-trip.
+      const merged = prior?.cards.length
+        ? mergeReceptionCards(prior.cards, data.cards)
+        : { cards: data.cards, addedCount: data.cards.length };
+      const quotesRefreshed =
+        Boolean(prior?.cards.length) &&
+        merged.cards.some(
+          (c, i) => prior!.cards[i] && c.quote !== prior!.cards[i].quote,
+        );
+      if (
+        prior?.cards.length &&
+        merged.addedCount === 0 &&
+        !quotesRefreshed
+      ) {
+        throw new Error("NO_MORE");
+      }
       const next: ReceptionResult = prior?.cards.length
         ? {
-            source: added.length ? data.source : prior.source,
-            cards: added.length ? [...prior.cards, ...added] : prior.cards,
+            source:
+              merged.addedCount || data.source === "generated"
+                ? data.source
+                : prior.source,
+            cards: merged.cards,
             caution: data.caution ?? prior.caution,
           }
         : data;
-      if (prior?.cards.length && !added.length && !data.cards.length) {
-        throw new Error("NO_MORE");
-      }
       setResult(next);
       if (selectedVerse != null && next.cards.length) {
         rememberReception(
@@ -363,6 +452,7 @@ export function ReceptionPanel({
         locale,
       );
       setResult(hasAnyCurated ? curated : null);
+      if (locale === "es" && hasAnyCurated) setCuratedNmtKick((k) => k + 1);
     } else if (remainingGenerated.length === 0 && hasAnyCurated) {
       removeCached(
         chapter.bookId,
@@ -375,6 +465,7 @@ export function ReceptionPanel({
         ...curated,
         cards: newCards,
       });
+      if (locale === "es") setCuratedNmtKick((k) => k + 1);
     } else {
       const updated: ReceptionResult = {
         ...result,
@@ -406,6 +497,9 @@ export function ReceptionPanel({
     setResult(restored);
     setError(null);
     touchNotes();
+    if (locale === "es" && restored?.cards.length) {
+      setCuratedNmtKick((k) => k + 1);
+    }
   }
 
   function handleClearChapterGenerated() {
