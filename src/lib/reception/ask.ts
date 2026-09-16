@@ -41,15 +41,14 @@ function refOf(data: AskInput): string {
   return formatReference(data.bookName, data.chapter, data.verse, data.verseEnd);
 }
 
-/** NMT for generated cards only when locale=es. Curated/catalog untouched. */
+/** NMT for card bodies (generated + curated/catalog) when locale=es. */
 async function maybeTranslateGenerated(
   result: ReceptionResult,
   data: AskInput,
 ): Promise<ReceptionResult> {
   const locale: Locale = data.locale === "es" ? "es" : "en";
   if (locale !== "es") return result;
-  const hasGenerated = result.cards.some((c) => c.source === "generated");
-  if (!hasGenerated && !result.synthesis) return result;
+  if (!result.cards.length && !result.synthesis) return result;
   return translateGeneratedReception(result, {
     locale,
     verseTextEn: data.verseText,
@@ -150,15 +149,18 @@ export const askReception = createServerFn({ method: "POST" })
     if (!question) {
       if (ready && ready.cards.length > 0) {
         if (data.mode === "traditions") {
-          return {
-            ...ready,
-            caution:
-              locale === "es"
-                ? "Fuentes primarias verificadas por tradiciones para este versículo."
-                : "Verified historic primary sources across traditions for this verse.",
-          };
+          return maybeTranslateGenerated(
+            {
+              ...ready,
+              caution:
+                locale === "es"
+                  ? "Fuentes primarias verificadas por tradiciones para este versículo."
+                  : "Verified historic primary sources across traditions for this verse.",
+            },
+            data,
+          );
         }
-        return ready;
+        return maybeTranslateGenerated(ready, data);
       }
     }
 
@@ -173,14 +175,16 @@ export const askReception = createServerFn({ method: "POST" })
       });
 
       if (establishedMatch && establishedMatch.cards.length > 0) {
-        return establishedMatch;
+        return maybeTranslateGenerated(establishedMatch, data);
       }
     }
 
     const retrieved = await retrieveForVerse(data, question);
     if (retrieved?.cards.length) return maybeTranslateGenerated(retrieved, data);
 
-    if (ready && ready.cards.length > 0) return ready;
+    if (ready && ready.cards.length > 0) {
+      return maybeTranslateGenerated(ready, data);
+    }
 
     if (!geminiApiKey()) {
       return {

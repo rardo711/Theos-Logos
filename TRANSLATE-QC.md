@@ -1,6 +1,6 @@
-# Spanish NMT QC — AI-generated commentary cards
+# Spanish NMT QC — Reception commentary cards
 
-**Scope:** Inquire / reception **generated** drafts only. Catalog PD voices (Gill, Calvin curated, etc.) stay English extracts with title/voice localization via `i18n-sources` — never machine-translated.
+**Scope:** Inquire / reception **generated** cards **and** curated/catalog card bodies (Gill/Calvin quote + note / contextBridge) when `locale=es`. Voice names, work titles, and citations stay via `notranslate` + `i18n-sources` localizeCard. Do **not** NMT Scripture when Spanish Bible (RV1960) is already on the desk.
 
 **Engine:** Google Cloud Translation NMT (`google-nmt`). Env (server only):
 
@@ -11,21 +11,22 @@ If both missing, cards remain English (graceful skip). Never ship these as `VITE
 
 **Cache:** Memory + `.data/translation-cache/` filesystem + Neon table `translation_cache` when DATABASE_URL is set, key = `sha256(text) + engine + target_locale`.
 
+**Locale switch:** Client desk cache is keyed by verse **and** locale (`theos-logos-reception-v2`). Open sheet reloads on locale change — English must show English source text (no sticky ES UI).
+
 ## Sample EN vs ES fidelity (manual)
 
 1. Open preview → Appearance → **Español**.
-2. Mark an NT verse with weak/no curated desk (e.g. a lesser-indexed chapter).
-3. Tap **Commentaries** / gather so **Generated** badges appear.
-4. For 2–3 generated slips, copy EN (switch locale to English and re-gather, or compare citation URL source) vs ES quote + context bridge:
-   - Meaning faithful (formal/literary), not paraphrase drift.
-   - Verse refs (`Romans 9:11`), Greek/Hebrew, Strong’s (`G1589`), author name, URLs unchanged.
-5. Confirm a **Curated** Gill/Calvin slip still shows English quotation body (titles may be Spanish via phrase map).
-6. Scripture column stays **RV1960** — do not expect NMT on the reader verse.
+2. Mark a verse with curated Gill/Calvin **and** gather generated cards.
+3. Confirm curated quote/note bodies are Spanish (faithful MT); voice/work may also show Spanish chrome via phrase map.
+4. Switch Appearance → **English**: open sheet must show English quote bodies again (re-fetch / locale-keyed desk).
+5. Verse refs, Greek/Hebrew, Strong’s, URLs, author names unchanged inside MT text.
+6. Scripture column stays **RV1960** when locale=es — do not expect NMT on the reader verse.
+7. Strong gold pills open Midvash ES (`/es/concordancia-strong/griego/g{n}`), not BibleHub.
 
 ## Automated
 
 ```bash
-npm test -- src/lib/translate/
+npm test -- src/lib/translate/ src/lib/reception/locale-switch.test.ts src/lib/lexicon/midvash.test.ts
 ```
 
 Mocks the Translate API; no live billing in CI.

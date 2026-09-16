@@ -1,3 +1,4 @@
+import type { Locale } from "@/lib/bible/books";
 import type { ReceptionResult, SourceCard } from "@/lib/bible/types";
 import {
   cachedBookIds,
@@ -6,6 +7,7 @@ import {
   clearChapterCached,
   getCached,
   removeCached,
+  removeCachedAllLocales,
   saveCached,
 } from "./cache.ts";
 import {
@@ -68,9 +70,10 @@ export function getDeskNotes(
   chapter: number,
   verse: number | null,
   verseEnd?: number | null,
+  locale?: Locale | null,
 ): ReceptionResult | null {
   if (verse != null) {
-    const cached = getCached(bookId, chapter, verse, verseEnd);
+    const cached = getCached(bookId, chapter, verse, verseEnd, locale);
     if (cached && cached.cards.length > 0) return cached;
     const cur = getCurated(bookId, chapter, verse, verseEnd);
     if (cur && cur.cards.length > 0) return cur;
@@ -84,8 +87,13 @@ export function clearGeneratedNotesForVerse(
   chapter: number,
   verse: number,
   verseEnd?: number | null,
+  locale?: Locale | null,
 ): ReceptionResult | null {
-  removeCached(bookId, chapter, verse, verseEnd);
+  if (locale != null) {
+    removeCached(bookId, chapter, verse, verseEnd, locale);
+  } else {
+    removeCachedAllLocales(bookId, chapter, verse, verseEnd);
+  }
   const cur = getCurated(bookId, chapter, verse, verseEnd);
   return cur && cur.cards.length > 0 ? cur : null;
 }
@@ -108,10 +116,13 @@ export function hasNotes(
   bookId: string,
   chapter: number,
   verse: number,
+  locale?: Locale | null,
 ): boolean {
   return (
     hasCurated(bookId, chapter, verse) ||
-    Boolean(getCached(bookId, chapter, verse))
+    Boolean(getCached(bookId, chapter, verse, null, locale)) ||
+    Boolean(getCached(bookId, chapter, verse, null, "en")) ||
+    Boolean(getCached(bookId, chapter, verse, null, "es"))
   );
 }
 
@@ -142,6 +153,7 @@ export function rememberReception(
   verse: number,
   result: ReceptionResult,
   verseEnd?: number | null,
+  locale?: Locale | null,
 ) {
-  saveCached(bookId, chapter, verse, result, verseEnd);
+  saveCached(bookId, chapter, verse, result, verseEnd, locale);
 }

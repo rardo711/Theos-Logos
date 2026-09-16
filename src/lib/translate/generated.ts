@@ -1,6 +1,7 @@
 /**
- * Translate AI-generated commentary cards (and synthesis quote spans) EN→ES.
- * Catalog / curated PD voices are never touched.
+ * Translate Reception card bodies (generated + curated/catalog) EN→ES via NMT.
+ * Voice / work / citation stay for i18n-sources localizeCard (notranslate extras).
+ * Scripture prefers verseTextEs when the quote is the English verse.
  */
 import type { Locale } from "../bible/books.ts";
 import type {
@@ -62,22 +63,18 @@ async function translateOne(
   return plain;
 }
 
-function isGeneratedCard(card: SourceCard): boolean {
-  return card.source === "generated";
-}
-
 /**
- * Translate quote / note / contextBridge on generated cards only.
- * Voice, work, citation stay for i18n-sources localizeCard.
+ * Translate quote / note / contextBridge on any Reception card (generated or
+ * curated/catalog). Voice, work, citation stay for i18n-sources localizeCard.
  */
 export async function translateGeneratedCard(
   card: SourceCard,
   opts: TranslateGeneratedOpts,
 ): Promise<SourceCard> {
-  if (opts.locale !== "es" || !isGeneratedCard(card)) return card;
+  if (opts.locale !== "es") return card;
   if (!translateConfigured()) return card;
 
-  const extras = [card.voice, card.work].filter(Boolean);
+  const extras = [card.voice, card.work, card.citation].filter(Boolean);
 
   let quote = card.quote;
   if (
@@ -116,7 +113,7 @@ export async function translateGeneratedCards(
   if (opts.locale !== "es") return cards;
   if (!translateConfigured()) {
     console.warn(
-      "[translate] credentials missing — returning English generated card text",
+      "[translate] credentials missing — returning English card text",
     );
     return cards;
   }
@@ -162,8 +159,10 @@ export async function translateSynthesisQuotes(
 }
 
 /**
- * Apply NMT to a reception payload: generated cards (+ optional synthesis).
- * Curated cards and empty results pass through unchanged.
+ * Apply NMT to a reception payload: all card bodies (+ optional synthesis).
+ * Empty results and locale≠es pass through unchanged.
+ * Display selection must follow the request locale — callers must not reuse an
+ * ES-translated payload when the app locale switches back to English.
  */
 export async function translateGeneratedReception(
   result: ReceptionResult,

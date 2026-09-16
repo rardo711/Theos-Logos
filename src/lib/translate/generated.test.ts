@@ -51,23 +51,33 @@ describe("translateGeneratedCard", () => {
     delete process.env.GOOGLE_TRANSLATE_API_KEY;
   });
 
-  it("translates generated quote and bridge; leaves curated alone", async () => {
+  it("translates generated quote and bridge", async () => {
     const generated = gen({
       quote: "the election of grace",
       contextBridge: "This note explains the focus.",
     });
-    const curated: SourceCard = {
-      ...generated,
-      source: "curated",
-      quote: "the election of grace",
-    };
 
     const outGen = await translateGeneratedCard(generated, { locale: "es" });
     assert.match(outGen.quote, /elección de gracia/);
     assert.match(String(outGen.contextBridge), /Esta nota/);
+  });
+
+  it("also translates curated/catalog card bodies when locale=es", async () => {
+    const curated: SourceCard = {
+      voice: "John Gill",
+      work: "Exposition of the Bible",
+      tradition: "reformed",
+      citation: "Romans 9:11",
+      source: "curated",
+      quote: "the election of grace",
+      note: "This note explains the focus.",
+    };
 
     const outCur = await translateGeneratedCard(curated, { locale: "es" });
-    assert.equal(outCur.quote, "the election of grace");
+    assert.match(outCur.quote, /elección de gracia/);
+    assert.match(String(outCur.note), /Esta nota/);
+    assert.equal(outCur.voice, "John Gill");
+    assert.equal(outCur.source, "curated");
   });
 
   it("uses Spanish scripture when quote is the English verse", async () => {
@@ -119,7 +129,7 @@ describe("translateGeneratedReception", () => {
     delete process.env.GOOGLE_TRANSLATE_API_KEY;
   });
 
-  it("only mutates generated cards in a mixed desk", async () => {
+  it("translates generated and curated cards in a mixed desk", async () => {
     const result = await translateGeneratedReception(
       {
         source: "generated",
@@ -138,7 +148,33 @@ describe("translateGeneratedReception", () => {
       { locale: "es" },
     );
     assert.match(result.cards[0].quote, /gracia/);
-    assert.equal(result.cards[1].quote, "grace alone");
+    assert.match(result.cards[1].quote, /gracia/);
+  });
+
+  it("locale=en returns English source text (no sticky ES)", async () => {
+    const englishCards = [
+      gen({ quote: "grace alone" }),
+      {
+        voice: "John Calvin",
+        work: "Institutes",
+        tradition: "reformed" as const,
+        quote: "grace alone",
+        citation: "III.xxi",
+        source: "curated" as const,
+      },
+    ];
+    const es = await translateGeneratedReception(
+      { source: "generated", cards: englishCards },
+      { locale: "es" },
+    );
+    assert.match(es.cards[0].quote, /gracia/);
+
+    const en = await translateGeneratedReception(
+      { source: "generated", cards: englishCards },
+      { locale: "en" },
+    );
+    assert.equal(en.cards[0].quote, "grace alone");
+    assert.equal(en.cards[1].quote, "grace alone");
   });
 });
 
@@ -182,4 +218,3 @@ describe("translateSynthesisQuotes", () => {
     assert.doesNotMatch(out.answer, /the vessels of wrath/);
   });
 });
-

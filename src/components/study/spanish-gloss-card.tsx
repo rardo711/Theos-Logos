@@ -6,17 +6,14 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { SpanishLexiconResult } from "@/lib/lexicon/spanish";
+import { strongsMidvashHref } from "@/lib/lexicon/midvash";
 
 const LABEL =
   "text-[0.6875rem] font-medium tracking-[0.14em] text-faint uppercase";
 
-/** BibleHub Greek Strong's deep link (strip leading zeros: G3956 → 3956). */
+/** @deprecated Use strongsMidvashHref from @/lib/lexicon/midvash */
 export function strongsBibleHubHref(strongs: string): string {
-  const m = String(strongs ?? "")
-    .toUpperCase()
-    .match(/G0*(\d+)/);
-  const n = m?.[1] ?? String(strongs ?? "").replace(/^G0*/i, "");
-  return `https://biblehub.com/greek/${n}.htm`;
+  return strongsMidvashHref(strongs, "es");
 }
 
 export function SpanishGlossCard({
@@ -152,13 +149,13 @@ export function SpanishGlossCard({
         </div>
       ) : null}
 
-      {/* 4. Hairline + Strong footer pills (max 2 + N) — gold, open BibleHub */}
+      {/* 4. Hairline + Strong footer pills (max 2 + N) — gold, open Midvash ES */}
       <div className="tl-gloss-hairline mt-3 pt-2.5">
         <div className="flex flex-nowrap items-center gap-2 overflow-hidden">
           {visible.map((id) => (
             <a
               key={id}
-              href={strongsBibleHubHref(id)}
+              href={strongsMidvashHref(id, "es")}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => onStrong?.(id)}

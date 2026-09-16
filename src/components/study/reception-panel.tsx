@@ -174,14 +174,15 @@ export function ReceptionPanel({
           chapter.chapter,
           selectedVerse,
           selectedEndVerse,
+          locale,
         ),
       );
     } else if (chapter) {
-      setResult(getDeskNotes(chapter.bookId, chapter.chapter, null));
+      setResult(getDeskNotes(chapter.bookId, chapter.chapter, null, null, locale));
     } else {
       setResult(null);
     }
-  }, [chapter, selectedVerse, selectedEndVerse]);
+  }, [chapter, selectedVerse, selectedEndVerse, locale]);
 
   async function runCommentaries() {
     if (!chapter) return;
@@ -238,6 +239,7 @@ export function ReceptionPanel({
           selectedVerse,
           next,
           selectedEndVerse,
+          locale,
         );
         touchNotes();
       }
@@ -358,6 +360,7 @@ export function ReceptionPanel({
         chapter.chapter,
         selectedVerse,
         selectedEndVerse,
+        locale,
       );
       setResult(hasAnyCurated ? curated : null);
     } else if (remainingGenerated.length === 0 && hasAnyCurated) {
@@ -366,6 +369,7 @@ export function ReceptionPanel({
         chapter.chapter,
         selectedVerse,
         selectedEndVerse,
+        locale,
       );
       setResult({
         ...curated,
@@ -383,6 +387,7 @@ export function ReceptionPanel({
         selectedVerse,
         updated,
         selectedEndVerse,
+        locale,
       );
       setResult(updated);
     }
@@ -396,6 +401,7 @@ export function ReceptionPanel({
       chapter.chapter,
       selectedVerse,
       selectedEndVerse,
+      locale,
     );
     setResult(restored);
     setError(null);
@@ -412,6 +418,7 @@ export function ReceptionPanel({
           chapter.chapter,
           selectedVerse,
           selectedEndVerse,
+          locale,
         ),
       );
     }

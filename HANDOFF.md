@@ -1,6 +1,14 @@
-# Theos Logos — living handoff (updated 2026-09-16 ~01:45 ET)
+# Theos Logos — living handoff (updated 2026-09-16 ~01:50 ET)
 
 **Grok: start here.** Repo `HANDOFF.md` + `BUGS-PLAN.md` on `scholar-desk`.
+
+## Midvash Strong + curated NMT + locale switch (2026-09-16 ~01:50 ET) — PREVIEW ONLY
+- **Strong pills:** gold, new tab, max 2+N; Midvash over BibleHub. ES desk: `https://midvash.com/es/concordancia-strong/griego/g{n}` (Hebrew `…/hebreo/h{n}`); EN: `…/strongs-concordance/greek/g{n}` (Hebrew `…/hebrew/h{n}`). Digits without leading zeros. UBS attribution kept on gloss card. Verified G3956 ES → “todo”.
+- **NMT scope:** when `locale=es`, Google NMT translates **generated + curated/catalog** card bodies (quote / note / contextBridge). Voice/work/citations via notranslate + i18n-sources. Do not MT Scripture when RV1960 already on desk. Same durable cache (hash + engine + locale).
+- **Locale switch:** client desk cache `theos-logos-reception-v2` keyed by verse **and** locale; open sheet reloads on locale change — EN shows English source (no sticky ES). Tests: `locale-switch.test.ts`, `midvash.test.ts`, updated `generated.test.ts`.
+- **Out of scope:** onboarding ES v3 (untouched). **NO promote.**
+- SHA `TBD` · preview TBD after deploy
+- Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 
 ## Spanish onboarding refine v3 (2026-09-16 ~01:45 ET) — PREVIEW ONLY
 - **Brief:** `LOOK-BRIEF-first-run-onboarding-es-v3.md` (builds on v2 structure/motion).
