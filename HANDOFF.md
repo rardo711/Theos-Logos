@@ -1,6 +1,6 @@
 # Theos Logos — living handoff (updated 2026-09-16 ~02:15 ET)
 
-**Grok: start here.** Repo `HANDOFF.md` + `BUGS-PLAN.md` on `scholar-desk`.
+**Grok: start here.** Repo `HANDOFF.md` on `scholar-desk` (BUGS-PLAN.md retired 2026-09-16 — all items verified fixed on prod).
 
 ## Reception card QC — verse-ref spam + ES book names (2026-09-16 ~02:15 ET) — PREVIEW ONLY
 - **Bug 1:** GENERADA bodies (e.g. Kretzmann on Juan 1:4) showed concatenated “John 1:1 John 1:2 …” spam. **QC:** `isMostlyVerseRefs` in `retrieve-html.ts` — high density of named book+ch:v tokens (EN+ES) or bare ch:v spam with little prose → `isSubstantiveQuote` false → reject/drop (EN and ES). Never ship spam cards.
