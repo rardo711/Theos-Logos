@@ -48,8 +48,13 @@ describe("onboarding persistence", () => {
     store.clear();
   });
 
-  it("persists as version 2", () => {
-    assert.equal(ONBOARDING_VERSION, "2");
+  it("persists as version 3", () => {
+    assert.equal(ONBOARDING_VERSION, "3");
+  });
+
+  it("treats version 2 as incomplete after bump", () => {
+    globalThis.localStorage.setItem("theos-logos.onboarding.version", "2");
+    assert.equal(isOnboardingComplete(), false);
   });
 
   it("treats version 1 as incomplete after bump", () => {

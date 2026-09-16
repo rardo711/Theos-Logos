@@ -1,6 +1,6 @@
 /**
- * Premium first-run v2: language gate → 4 how-to screens → desk.
- * Look brief LOOK-BRIEF-first-run-onboarding-v2.md — LIVE prod seal only.
+ * Premium first-run v3 (ES refine): language gate → 4 how-to screens → desk.
+ * Look briefs v2 structure + LOOK-BRIEF-first-run-onboarding-es-v3.md — LIVE prod seal only.
  */
 import {
   useCallback,
@@ -25,7 +25,7 @@ const COPY = {
     enLabel: "English",
     enSub: "Read and study in English",
     esLabel: "Español",
-    esSub: "Leer y estudiar en español",
+    esSub: "Escritura, glosas y Recepción",
     back: "Back",
     next: "Next",
     stepOf: (n: number, total: number) => `${n} / ${total}`,
@@ -33,18 +33,22 @@ const COPY = {
       {
         title: "Open a verse",
         body: "Pick a book and chapter, then open any verse on the desk. The Word stays front and center.",
+        hint: "",
       },
       {
         title: "Tap a word for Glosa",
         body: "On a verse, tap a word. A desk slip opens: sense, Glosa (main meaning), lemma, and a Strong chip in the footer.",
+        hint: "",
       },
       {
         title: "Reception is your slip stack",
         body: "Stay on the verse. Reception brings commentary and study voices as slips on the same desk — go deeper without leaving the text.",
+        hint: "",
       },
       {
         title: "Your desk is ready",
         body: "Language is saved. You can change it later in settings. Open a verse and begin.",
+        hint: "",
       },
     ],
     begin: "Begin studying",
@@ -59,26 +63,30 @@ const COPY = {
     enLabel: "English",
     enSub: "Read and study in English",
     esLabel: "Español",
-    esSub: "Leer y estudiar en español",
+    esSub: "Escritura, glosas y Recepción",
     back: "Atrás",
     next: "Siguiente",
     stepOf: (n: number, total: number) => `${n} de ${total}`,
     screens: [
       {
-        title: "Abre un versículo",
-        body: "Elige libro y capítulo; abre cualquier versículo en el escritorio. La Palabra queda al centro.",
+        title: "Abrir un versículo",
+        body: "Elige libro y capítulo. Abre un versículo del NT. La Escritura queda al centro del escritorio.",
+        hint: "Puedes cambiar de pasaje cuando quieras.",
       },
       {
-        title: "Toca una palabra para la Glosa",
-        body: "En el versículo, toca una palabra. Sale una ficha: sentido, Glosa, lema y el chip Strong abajo.",
+        title: "Toca una palabra",
+        body: "En el versículo, toca una palabra. Se abre una ficha: sentido, Glosa (significado principal), lema y el chip Strong abajo (en oro del escritorio).",
+        hint: "La Glosa es lo más importante de la ficha.",
       },
       {
-        title: "Recepción es tu pila de fichas",
-        body: "Quédate en el versículo. Recepción trae comentarios y voces como fichas en el mismo escritorio.",
+        title: "Recepción y comentarios",
+        body: "Sin salir del versículo, Recepción trae voces y comentarios como fichas en el mismo escritorio. Lee la Palabra; profundiza al lado.",
+        hint: "Recepción = comentarios y estudio, no otra app.",
       },
       {
-        title: "Tu escritorio está listo",
-        body: "El idioma quedó guardado. Puedes cambiarlo después en ajustes. Abre un versículo y empieza.",
+        title: "Ya puedes empezar",
+        body: "El español quedó guardado. Ábrelo en ajustes si quieres cambiarlo. Abre un versículo y toca una palabra para ver la Glosa.",
+        hint: "",
       },
     ],
     begin: "Empezar",
@@ -164,11 +172,23 @@ function GlossMock({
   return (
     <div className="relative mx-auto w-full max-w-[360px]">
       <p className="font-serif mb-3 text-center text-sm text-ink">
-        …the{" "}
-        <span className="rounded-sm bg-oxblood-soft px-1 text-oxblood underline decoration-oxblood/40 underline-offset-2">
-          {word}
-        </span>{" "}
-        was…
+        {locale === "es" ? (
+          <>
+            …era el{" "}
+            <span className="rounded-sm bg-oxblood-soft px-1 text-oxblood underline decoration-oxblood/40 underline-offset-2">
+              {word}
+            </span>
+            …
+          </>
+        ) : (
+          <>
+            …the{" "}
+            <span className="rounded-sm bg-oxblood-soft px-1 text-oxblood underline decoration-oxblood/40 underline-offset-2">
+              {word}
+            </span>{" "}
+            was…
+          </>
+        )}
       </p>
       <div className="tl-gloss-slip rounded-[0.875rem] border border-rule bg-surface px-3.5 py-3 shadow-soft">
         <p className="text-[0.6875rem] font-medium tracking-[0.14em] text-faint uppercase">
@@ -488,6 +508,11 @@ export function Onboarding({ onFinished }: { onFinished: () => void }) {
               <p className="mt-3 text-center text-[0.9375rem] leading-relaxed text-muted">
                 {copy.screens[page]?.body}
               </p>
+              {copy.screens[page]?.hint ? (
+                <p className="mt-2 text-center text-[0.8125rem] leading-snug text-faint">
+                  {copy.screens[page]?.hint}
+                </p>
+              ) : null}
             </div>
           </div>
 
