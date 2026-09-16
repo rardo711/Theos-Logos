@@ -1,6 +1,13 @@
-# Theos Logos — living handoff (updated 2026-09-07 ~11:17 ET)
+# Theos Logos — living handoff (updated 2026-09-16 ~01:25 ET)
 
 **Grok: start here.** Repo `HANDOFF.md` + `BUGS-PLAN.md` on `scholar-desk`.
+
+## Spanish gloss card polish — sentidos más + gold Strong (2026-09-16 ~01:25 ET) — PREVIEW ONLY
+- **Expand:** when `relatedSenseCount > 0`, control “N sentidos más” (Spanish chrome); tap expands other UBS LEXMeanings (DefinitionShort + Glosses + Domain/SubDomain); collapse via “Ocultar sentidos”. Verse-selected sense stays Sentido/Glosa hero.
+- **Strong pills:** desk-gold (`tl-strong-pill--gold` / `--color-gold`); max 2 + overflow; each opens BibleHub `https://biblehub.com/greek/{n}.htm` in a **new tab** (strip leading zeros). No in-repo UBS viewer deep-link — UBS attribution footer kept.
+- **Acceptance:** Juan 1:3 *todas* / G3956 → sense 59.23 totality; “6 sentidos más” expandable.
+- Hierarchy / logo / verse-sense pick unchanged. **NO promote.**
+- SHA / preview URL: fill after push + Vercel READY.
 
 ## Reception + gloss sheet motion/polish (2026-09-15 ~22:10 ET) — PREVIEW ONLY
 - Design brief `LOOK-BRIEF-gloss-reception-motion-v1.md` on `scholar-desk` (content hierarchy unchanged).

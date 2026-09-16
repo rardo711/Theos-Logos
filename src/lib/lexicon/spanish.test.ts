@@ -93,4 +93,26 @@ describe("spanish UBS lexicon", () => {
     assert.equal(hit?.domains[0], "Aspecto");
     assert.equal(hit?.senseMatchedByReference, true);
   });
+
+  it("G3956 + Juan 1:3 selects totality sense (todas) with related senses", () => {
+    const hit = lookupSpanishByStrongs("G3956", "Juan 1:3");
+    assert.ok(hit);
+    assert.equal(hit?.strongs, "G3956");
+    assert.equal(hit?.gloss, "todas");
+    assert.equal(hit?.entryCode, "59.23");
+    assert.equal(hit?.senseMatchedByReference, true);
+    assert.ok((hit?.relatedSenseCount ?? 0) >= 1);
+    assert.equal(hit?.relatedSenseCount, (hit?.senses.length ?? 0) - 1);
+    assert.match(hit?.sentido ?? "", /totalidad/i);
+    assert.equal(hit?.domains[0], "Cantidad");
+  });
+
+  it("tap todas on Juan 1:3 resolves to G3956 sense 59.23", () => {
+    const hit = lookupSpanishWordNow("todas", "Juan 1:3");
+    assert.ok(hit);
+    assert.equal(hit?.strongs, "G3956");
+    assert.equal(hit?.entryCode, "59.23");
+    assert.equal(hit?.gloss, "todas");
+    assert.equal(hit?.senseMatchedByReference, true);
+  });
 });
