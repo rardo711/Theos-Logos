@@ -12,7 +12,7 @@
 - **Smoke:** Col 1:15 *image* / *firstborn* → UBS EN verse-sense (G1504 / G4416), not Hebrew, not Johannine.
 - **Tests:** `english.test.ts` (G-lookup + verse-sense + NT-not-Hebrew). Attribution: `ATTRIBUTION.md` / `SOURCES.md`.
 - **NO promote.** Live prod logo untouched. No Scofield/Darby.
-- SHA `PENDING` · preview PENDING · dpl PENDING
+- SHA `45ae4f8` · preview https://theos-logos-official-faxwamqqi-castanedag2001-1468.vercel.app · dpl `dpl_5pbQcWFJFz4msKSsWE74xp3YjMuk`
 - Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 
 
