@@ -11,10 +11,14 @@
  *
  * Fidelity rules (Gerardo's standing condition: faithful to the original lexicon):
  * 1. PRIMARY — BDB HTML entries keyed by Strong's (H####). One H-number is often
- *    claimed by several BDB rows (homograph sections like I./II. ברא, "see X"
- *    cross-ref stubs, Biblical Aramaic appendix rows). Keep the row with the
- *    longest cleaned text — stubs lose, the full entry wins. Rows are never
- *    merged and wording is never paraphrased or regenerated.
+ *    claimed by several BDB rows: homograph sections (I./II./III. under one
+ *    headword), "see X" cross-ref stubs, Biblical Aramaic appendix rows, and
+ *    "mentioned-in" rows. Homograph sections — rows whose consonantal headword
+ *    and language (Hebrew/Aramaic) match the winning row's — are MERGED in BDB
+ *    row order so no BDB meaning is dropped (e.g. H4853 מַשָּׂא keeps both
+ *    "load, burden" and "utterance, oracle"). Rows with a different headword
+ *    keep the longest-cleaned-text rule — stubs lose, the full entry wins.
+ *    Wording is never paraphrased or regenerated.
  * 2. Markup is stripped to plain text; the wording stays verbatim. Very long
  *    entries are truncated at a per-entry budget (earliest senses kept whole) —
  *    truncation only, never rewriting.
@@ -47,7 +51,7 @@ const ATTRIBUTION = "Brown-Driver-Briggs Hebrew Lexicon (1906), public domain.";
 const HEAD_CAP = 600;
 const SENSE_CAP = 900;
 const MAX_SENSES = 14;
-const REF_CAP = 8;
+const REF_CAP = 8; // per sense-div; the head sense keeps all its refs (uncapped)
 const ENTRY_BUDGET = 5000;
 
 function normalizeStrongs(raw) {
@@ -163,6 +167,10 @@ function cleanText(t) {
   );
   out = out.replace(/<[^>]+>/g, " ");
   out = stripTags(out)
+    // BDB's sub-sense divider "<br>\&emsp;\&emsp;\&emsp;" survives tag
+    // stripping as literal backslash runs (" \ \ \ "); normalize to a
+    // readable separator instead of shipping visible artifacts.
+    .replace(/(?:\s*\\)+/g, " · ")
     .replace(/\s*¶\s*/g, "\n\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -325,6 +333,69 @@ function cleanedLength(p) {
   return p.head.length + p.senses.reduce((n, s) => n + s.text.length, 0);
 }
 
+/**
+ * Merge BDB homograph sections (I./II./III.) that share one Strong's number.
+ * Every word stays verbatim BDB; only the container is joined, in BDB row
+ * order (lowest BDB id first — the primary section keeps headword priority).
+ * Headword glosses join with "; ", POS joins with "; ", senses concatenate,
+ * occurrence counts sum, head refs union.
+ */
+function mergeParses(ps) {
+  const first = ps[0];
+  const hwParts = [];
+  const posParts = [];
+  const heads = [];
+  const senses = [];
+  let occ = 0;
+  let aramaic = false;
+  for (const p of ps) {
+    for (const h of String(p.hw || "").split(";")) {
+      const t = h.trim();
+      if (t && !hwParts.includes(t)) hwParts.push(t);
+    }
+    if (p.pos && !posParts.includes(p.pos)) posParts.push(p.pos);
+    occ += p.occ || 0;
+    if (p.aramaic) aramaic = true;
+    if (p.head) heads.push(p.head);
+    for (const s of p.senses) senses.push(s);
+  }
+  // Head refs: round-robin across the merged sections so each homograph
+  // section is represented early (e.g. H4853's "utterance, oracle" head cites
+  // Hab 1:1). Single-section entries keep their original ref order.
+  const refLists = ps.map((p) => p.headRefs || []);
+  const headRefs = [];
+  const seenRef = new Set();
+  for (let i = 0; ; i++) {
+    let any = false;
+    for (const list of refLists) {
+      const r = list[i];
+      if (!r) continue;
+      any = true;
+      const k = `${r.b}.${r.c1}.${r.v1}-${r.c2}.${r.v2}`;
+      if (!seenRef.has(k)) {
+        seenRef.add(k);
+        headRefs.push(r);
+      }
+    }
+    if (!any) break;
+  }
+  return {
+    lemma: first.lemma,
+    pos: posParts.join("; "),
+    occ,
+    hw: hwParts.join("; "),
+    aramaic,
+    head: heads.join("\n\n"),
+    headRefs,
+    senses,
+  };
+}
+
+function bdbNum(id) {
+  const n = parseInt(String(id).replace(/\D/g, ""), 10);
+  return Number.isFinite(n) ? n : 0;
+}
+
 async function main() {
   process.stderr.write("Importing unabridged BDB…\n");
   const csvText = await loadCsv();
@@ -353,6 +424,7 @@ async function main() {
   // 3. multi-number row where this H-number comes first (variant groupings).
   // 4. longest cleaned entry (last resort; logged for review).
   const stats = { lemma: 0, exact: 0, first: 0, fallback: 0 };
+  let merged = 0; // H-numbers whose I./II./III. homograph rows were merged
   const fallbacks = [];
   const winners = new Map();
   for (const [id, list] of claims) {
@@ -400,12 +472,28 @@ async function main() {
       }
     }
     stats[rule] += 1;
-    winners.set(id, win.row);
+    // Homograph merge: keep every claiming row whose consonantal headword and
+    // language match the winner's — BDB's I./II./III. sections are one entry
+    // (e.g. H4853 מַשָּׂא keeps "load, burden" AND "utterance, oracle").
+    // Different-headword rows ("mentioned-in" rows, cross-ref stubs, the
+    // Biblical Aramaic appendix cognate) stay dropped by the rules above.
+    const winSkel = skeleton(win.p.lemma);
+    let group = parsed.filter(
+      ({ p }) =>
+        p.lemma && p.aramaic === win.p.aramaic && skeleton(p.lemma) === winSkel,
+    );
+    if (!group.length) group = [{ row: win.row, p: win.p }];
+    group.sort((a, b) => bdbNum(a.row.id) - bdbNum(b.row.id));
+    if (group.length > 1) merged++;
+    winners.set(id, {
+      rows: group.map((g) => g.row),
+      p: mergeParses(group.map((g) => g.p)),
+    });
   }
   const multiClaim = [...claims.values()].filter((l) => l.length > 1).length;
   process.stderr.write(
     `  ${multiClaim} H-numbers claimed by multiple rows ` +
-      `(lemma ${stats.lemma}, exact ${stats.exact}, first ${stats.first}, fallback ${stats.fallback})\n`,
+      `(lemma ${stats.lemma}, exact ${stats.exact}, first ${stats.first}, fallback ${stats.fallback}; ${merged} homograph merges)\n`,
   );
   if (fallbacks.length) {
     process.stderr.write(
@@ -423,7 +511,7 @@ async function main() {
   let truncated = 0;
   let aramaicCount = 0;
   for (const id of ids) {
-    const p = parseEntry(winners.get(id).html);
+    const { rows: srcRows, p } = winners.get(id);
     const fullLen =
       p.head.length + p.senses.reduce((n, s) => n + s.text.length, 0);
     if (fullLen > ENTRY_BUDGET) truncated += 1;
@@ -437,7 +525,10 @@ async function main() {
       senses.push({
         t: headText,
         g: [],
-        rv: p.headRefs.slice(0, REF_CAP).map(refKey),
+        // The head keeps every verse BDB cites (uncapped): it is the entry's
+        // anchor block, and a cap here silently drops verse-anchored picks
+        // (e.g. H4853 "utterance, oracle" cites Hab 1:1 deep in its head).
+        rv: p.headRefs.map(refKey),
       });
     }
     for (const s of p.senses.slice(0, MAX_SENSES)) {
@@ -453,8 +544,8 @@ async function main() {
     }
     by[id] = {
       s: id,
-      /** Winning source CSV row (traceability for the fidelity audit). */
-      row: winners.get(id).id,
+      /** Winning source CSV row(s); "+"-joined when homographs were merged. */
+      row: srcRows.map((r) => r.id).join("+"),
       m: p.lemma,
       ...(p.pos ? { pos: [p.pos] } : {}),
       ...(p.occ ? { occ: p.occ } : {}),

@@ -142,28 +142,42 @@ async function main() {
     perBand,
   ).forEach((id) => sampled.add(id));
   // Always include the high-risk homograph / cross-ref cases.
-  for (const id of ["H430", "H1254", "H7225", "H216", "H157"]) sampled.add(id);
+  for (const id of ["H430", "H1254", "H7225", "H216", "H157", "H4853"])
+    sampled.add(id);
 
   const failures = [];
   let glossCount = 0;
   let wordCount = 0;
   for (const id of [...sampled].sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)))) {
     const e = by[id];
-    const row = rows.get(e.row);
-    if (!row) {
-      failures.push(`${id}: winner row ${e.row} not in CSV`);
+    // Merged homograph entries record "+"-joined source rows (e.g. H4853).
+    const rowIds = String(e.row).split("+");
+    const srcRows = [];
+    let badRow = null;
+    for (const rid of rowIds) {
+      const r = rows.get(rid);
+      if (!r) {
+        badRow = `${id}: source row ${rid} not in CSV`;
+        break;
+      }
+      // Each source row must actually claim this H-number.
+      const claimed = r.strong.split(/[_\s,;]+/).some((p) => {
+        const m = p.toUpperCase().match(/^H0*(\d+)$/);
+        return m && m[1] !== "0" && "H" + m[1] === id;
+      });
+      if (!claimed) {
+        badRow = `${id}: source row ${rid} does not claim ${id}`;
+        break;
+      }
+      srcRows.push(r);
+    }
+    if (badRow) {
+      failures.push(badRow);
       continue;
     }
-    // The winner row must actually claim this H-number.
-    const claimed = row.strong.split(/[_\s,;]+/).some((p) => {
-      const m = p.toUpperCase().match(/^H0*(\d+)$/);
-      return m && m[1] !== "0" && "H" + m[1] === id;
-    });
-    if (!claimed) {
-      failures.push(`${id}: winner row ${e.row} does not claim ${id}`);
-      continue;
-    }
-    const srcWords = words(stripSource(row.html));
+    // Every shipped word must appear in the concatenated source rows in the
+    // same order — no invented, paraphrased, or reordered wording.
+    const srcWords = words(srcRows.map((r) => stripSource(r.html)).join(" "));
     // Each shipped component must be a word-subsequence of the source.
     // Checked independently because the head block repeats head material
     // (lemma/POS) and glosses are drawn from later senses.

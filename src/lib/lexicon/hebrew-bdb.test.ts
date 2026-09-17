@@ -7,6 +7,7 @@ import {
   lookupHebrewBdbByStrongs,
   lookupHebrewBdbWordNow,
 } from "./hebrew-bdb.ts";
+import hebrewBdbJson from "./data/hebrew-bdb.json" with { type: "json" };
 
 describe("hebrew BDB lexicon", () => {
   it("H7225 returns BDB beginning/chief", () => {
@@ -97,5 +98,51 @@ describe("hebrew BDB lexicon", () => {
     const hits = lookupHebrewBdbByGloss("light");
     assert.ok(hits.length > 0);
     assert.ok(hits.some((h) => h.strongs === "H216"));
+  });
+
+  it("Habakkuk 1:1 'oracle' resolves to H4853 (utterance, oracle), not H2374 seer", () => {
+    assert.equal(hasHebrewBdbChip("oracle"), true);
+    const hit = lookupHebrewBdbWordNow("oracle", "Habakkuk 1:1");
+    assert.ok(hit);
+    assert.equal(hit?.strongs, "H4853");
+    assert.equal(hit?.senseMatchedByReference, true);
+    assert.match(hit?.gloss ?? "", /utterance, oracle/i);
+  });
+
+  it("H4853 keeps both BDB homograph sections (load AND utterance, oracle)", () => {
+    const hit = lookupHebrewBdbByStrongs("H4853");
+    assert.ok(hit);
+    assert.match(hit?.headwordGloss ?? "", /load, burden/i);
+    assert.match(hit?.headwordGloss ?? "", /utterance, oracle/i);
+  });
+
+  it("Habakkuk 1:1 'saw' reaches H2372 via the see variant", () => {
+    const hit = lookupHebrewBdbWordNow("saw", "Habakkuk 1:1");
+    assert.ok(hit);
+    assert.equal(hit?.strongs, "H2372");
+    assert.equal(hit?.senseMatchedByReference, true);
+  });
+
+  it("H1254 stays create-first after the homograph merge (not be fat)", () => {
+    const hit = lookupHebrewBdbByStrongs("H1254");
+    assert.ok(hit);
+    assert.match(hit?.gloss ?? "", /create/i);
+    assert.ok(!(hit?.gloss ?? "").toLowerCase().startsWith("be fat"));
+  });
+
+  it("no shipped BDB text carries backslash formatting artifacts", () => {
+    const by = (hebrewBdbJson as { by: Record<string, { hw?: string; ss: { t: string; g: string[] }[] }> }).by;
+    let checked = 0;
+    for (const e of Object.values(by)) {
+      if (e.hw) assert.ok(!e.hw.includes("\\"), `backslash in hw: ${e.hw}`);
+      for (const s of e.ss || []) {
+        assert.ok(!s.t.includes("\\"), `backslash in sense: ${s.t.slice(0, 60)}`);
+        for (const g of s.g || []) {
+          assert.ok(!g.includes("\\"), `backslash in gloss: ${g}`);
+        }
+        checked++;
+      }
+    }
+    assert.ok(checked > 10000, `only checked ${checked} senses`);
   });
 });
