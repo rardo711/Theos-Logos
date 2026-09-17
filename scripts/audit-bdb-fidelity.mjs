@@ -38,6 +38,14 @@ function stripSource(html) {
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'");
+  // The digitization pipeline's metadata artifacts (&lt;TOPIC:...&gt;,
+  // &lt;BIBLE:...&gt;, &lt;Times New Roman&gt;) decode into <...> shapes —
+  // strip exactly that family, mirroring the importer. BDB's own < ... >
+  // conjectural-reading brackets are real content and are left alone.
+  out = out
+    .replace(/<(TOPIC|BIBLE):[^<>]*>/g, " ")
+    .replace(/<Times New Roman>/g, " ")
+    .replace(/>BIBLE:[^<>]*>/g, " ");
   return out.replace(/\s+/g, " ").trim();
 }
 

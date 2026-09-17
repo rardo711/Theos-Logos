@@ -146,3 +146,143 @@ describe("hebrew BDB lexicon", () => {
     assert.ok(checked > 10000, `only checked ${checked} senses`);
   });
 });
+
+describe("hebrew BDB OT sweep regressions", () => {
+  it("H4 is the אֵב 'fruit' article, not the Aramaic preface", () => {
+    const hit = lookupHebrewBdbByStrongs("H4");
+    assert.ok(hit);
+    assert.equal(hit?.lemma, "אֵב");
+    assert.equal(hit?.headwordGloss, "fruit");
+    assert.deepEqual(hit?.pos, ["noun masculine"]);
+    assert.equal(hit?.isAramaic, true);
+    // Head block cites Daniel 4:9, 4:11, 4:18 (SIL keys 027004009 …).
+    const refs = hit?.senses[0]?.refs ?? [];
+    assert.ok(refs.includes("027004009"), "Dan 4:9 cited");
+    assert.ok(refs.includes("027004011"), "Dan 4:11 cited");
+    assert.ok(refs.includes("027004018"), "Dan 4:18 cited");
+  });
+
+  it("H3 stays the Hebrew אֵב 'freshness', not the H4 fruit article", () => {
+    const hit = lookupHebrewBdbByStrongs("H3");
+    assert.ok(hit);
+    assert.equal(hit?.lemma, "אֵב");
+    assert.match(hit?.headwordGloss ?? "", /freshness, fresh green/);
+    assert.equal(hit?.isAramaic, false);
+  });
+
+  it("H8 leads with אֹבֵד 'destruction' (BDB7) before the אָבַד verb article", () => {
+    const hit = lookupHebrewBdbByStrongs("H8");
+    assert.ok(hit);
+    assert.equal(hit?.lemma, "אֹבֵד");
+    assert.match(hit?.headwordGloss ?? "", /^destruction/);
+    assert.match(hit?.headwordGloss ?? "", /perish/);
+  });
+
+  it("bare English 'see' ranks Hebrew H2372 over Aramaic H2370", () => {
+    const hit = lookupHebrewBdbWordNow("see");
+    assert.ok(hit);
+    assert.equal(hit?.strongs, "H2372");
+    assert.equal(hit?.isAramaic, false);
+  });
+
+  it("H433 and H988 ship the Hebrew articles, not the Aramaic companions", () => {
+    const h433 = lookupHebrewBdbByStrongs("H433");
+    assert.ok(h433);
+    assert.equal(h433?.isAramaic, false);
+    assert.match(h433?.headwordGloss ?? "", /god, God/i);
+    const h988 = lookupHebrewBdbByStrongs("H988");
+    assert.ok(h988);
+    assert.equal(h988?.lemma, "בָּטַל");
+    assert.equal(h988?.isAramaic, false);
+  });
+
+  it("singular 'heaven' falls back to the plural index key 'heavens'", () => {
+    const hit = lookupHebrewBdbWordNow("heaven");
+    assert.ok(hit);
+    assert.equal(hit?.strongs, "H8064");
+    assert.match(hit?.headwordGloss ?? "", /heavens/i);
+  });
+
+  it("entity-encoded metadata tags never ship in card text", () => {
+    const by = (
+      hebrewBdbJson as {
+        by: Record<
+          string,
+          { m?: string; hw?: string; pos?: string[]; ss: { t: string; g: string[] }[] }
+        >;
+      }
+    ).by;
+    const strings: string[] = [];
+    for (const e of Object.values(by)) {
+      if (e.m) strings.push(e.m);
+      if (e.hw) strings.push(e.hw);
+      for (const p of e.pos || []) strings.push(p);
+      for (const s of e.ss || []) {
+        strings.push(s.t);
+        for (const g of s.g || []) strings.push(g);
+      }
+    }
+    assert.ok(strings.length > 60000, `only saw ${strings.length} strings`);
+    for (const v of strings) {
+      assert.ok(!/<[A-Za-z][^>]*>/.test(v), `tag remnant in ${v.slice(0, 70)}`);
+      assert.ok(!/>BIBLE:[^<>]*>/.test(v), `metadata remnant in ${v.slice(0, 70)}`);
+    }
+    // The three rows that originally leaked metadata are clean.
+    for (const id of ["H3654", "H3678", "H5782"]) {
+      const text = (by[id].ss || []).map((s) => s.t).join(" ");
+      assert.ok(!/TOPIC:|Times New Roman|BIBLE:/.test(text), `${id} leaks metadata`);
+    }
+  });
+
+  it("sliced POS/headword values are trimmed (H4601, H4714)", () => {
+    const by = (
+      hebrewBdbJson as {
+        by: Record<string, { m?: string; hw?: string; pos?: string[] }>;
+      }
+    ).by;
+    for (const id of ["H4601", "H4714"]) {
+      for (const p of by[id].pos || []) assert.equal(p, p.trim(), `${id} pos`);
+    }
+    let checked = 0;
+    for (const [id, e] of Object.entries(by)) {
+      if (e.m) {
+        assert.equal(e.m, e.m.trim(), `${id} lemma`);
+        checked++;
+      }
+      if (e.hw) assert.equal(e.hw, e.hw.trim(), `${id} hw`);
+      for (const p of e.pos || []) assert.equal(p, p.trim(), `${id} pos`);
+    }
+    assert.ok(checked > 8000, `only checked ${checked} lemmas`);
+  });
+
+  it("no bare sense label ships as a part of speech (H1276 regression)", () => {
+    const by = (
+      hebrewBdbJson as { by: Record<string, { pos?: string[] }> }
+    ).by;
+    const labelRe = /^([a-z]+\.|[a-z]?\d+\s?[a-z]?\.?)$/i;
+    for (const [id, e] of Object.entries(by)) {
+      for (const p of e.pos || [])
+        assert.ok(!labelRe.test(p), `${id} pos is a sense label: ${p}`);
+    }
+    // H1276 is בֵּרִים (2 Sam 20:14), not the בְּרִית cross-reference stub.
+    const h1276 = lookupHebrewBdbByStrongs("H1276");
+    assert.ok(h1276);
+    assert.equal(h1276?.lemma, "בֵּרִים");
+    assert.match(h1276?.senses[0]?.text ?? "", /2Sam 20:14/);
+  });
+
+  it("no head block is a 'see below/above' cross-reference stub", () => {
+    const by = (
+      hebrewBdbJson as {
+        by: Record<string, { ss: { t: string }[] }>;
+      }
+    ).by;
+    for (const [id, e] of Object.entries(by)) {
+      const t0 = e.ss[0]?.t || "";
+      assert.ok(
+        !/^[\u0590-\u05ea]+\s+see (below|above)/i.test(t0),
+        `${id} head is a stub: ${t0.slice(0, 60)}`,
+      );
+    }
+  });
+});

@@ -214,6 +214,9 @@ function wordVariants(word: string): string[] {
     } else if (key.endsWith("s") && key.length > 3 && !key.endsWith("ss")) {
       push(key.slice(0, -1)); // dreams → dream
     }
+    if (!key.endsWith("s") && key.length > 3) {
+      push(key + "s"); // heaven → heavens (index holds the plural form)
+    }
     if (key.endsWith("ed") && key.length > 4) {
       const stem = key.slice(0, -2);
       push(stem); // walked → walk

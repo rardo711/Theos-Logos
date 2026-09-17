@@ -110,6 +110,15 @@ function stripTags(t) {
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
+    // BDB itself uses < ... > brackets for conjectural readings ("< read",
+    // "< strike out" — 230+ occurrences in the source); those are real
+    // scholarly content and must be kept as literal text. Only the
+    // digitization pipeline's metadata artifacts are stripped here:
+    // <TOPIC:...>, <BIBLE:...>, <Times New Roman>, and the mangled
+    // >BIBLE:...> variant (same family, corrupted opening bracket).
+    .replace(/<(TOPIC|BIBLE):[^<>]*>/g, " ")
+    .replace(/<Times New Roman>/g, " ")
+    .replace(/>BIBLE:[^<>]*>/g, " ")
     .replace(/[ \t ]+/g, " ");
 }
 
@@ -198,6 +207,54 @@ function isMeaningGloss(g) {
   return !GRAMMATICAL.has(k);
 }
 
+function isCrossrefNote(t) {
+  return (
+    /^\[/.test(t) && (/[0-9]+:[0-9]/.test(t) || /[\u0590-\u05ea]/.test(t))
+  );
+}
+
+/**
+ * BDB cross-references senses with bold labels ("see also אֵל 3. בַּעַל 4.",
+ * "1.", "a.", "II.", "2 b"). Those are not parts of speech and must never
+ * ship as the entry's POS (H1276 shipped pos "3."; 14 other entries shipped
+ * bare sense labels like "1." or "a." instead of their real POS).
+ */
+function isSenseLabel(t) {
+  return /^([a-z]+\.|[a-z]?\d+\s?[a-z]?\.?)$/i.test(t);
+}
+
+/** A <b> qualifies as a part-of-speech candidate. */
+function isPosCandidate(t) {
+  return !isCrossrefNote(t) && !isSenseLabel(t);
+}
+
+/**
+ * The article's head paragraph: the first <p> with a Hebrew headword that
+ * reads like a real entry head (carries a POS <b> or a highlighted gloss).
+ * Skips section prefaces ("[ Dan 2:4-7:28 … ]", "NOTE. …") and "see X"
+ * cross-reference stubs — e.g. BDB9264 leads with the Biblical Aramaic
+ * preface and an אָב stub before the real אֵב 'fruit' article (H4).
+ * Falls back to the first <p> when no paragraph qualifies (old behavior).
+ */
+function headBlock(c) {
+  const blocks = [...c.matchAll(/<p>(.*?)<\/p>/gs)].map((m) => m[1]);
+  const hasHeadword = (h) => {
+    for (const m of h.matchAll(/<(bdbheb|bdbarc|bdbare|heb)>(.*?)<\/\1>/gs)) {
+      if (/[\u0590-\u05ea]/.test(stripTags(m[2]))) return true;
+    }
+    return false;
+  };
+  const hasPosOrGloss = (h) => {
+    if (/<highlightword>/.test(h)) return true;
+    for (const m of h.matchAll(/<b>(.*?)<\/b>/gs)) {
+      if (isPosCandidate(stripTags(m[1]).trim())) return true;
+    }
+    return false;
+  };
+  for (const h of blocks) if (hasHeadword(h) && hasPosOrGloss(h)) return h;
+  return blocks[0] ?? "";
+}
+
 function parseEntry(html) {
   // Drop the <h1> title and prev/next navigation chrome.
   let c = html.replace(/<h1>.*?<\/h1>/gs, " ");
@@ -205,8 +262,7 @@ function parseEntry(html) {
   const navMatch = html.match(/<div class="navigation">(.*?)<\/div>/s);
   const aramaic = /BIBLICAL ARAMAIC/.test(navMatch ? navMatch[1] : "");
 
-  const headMatch = c.match(/<p>(.*?)<\/p>/s);
-  const headHtml = headMatch ? headMatch[1] : "";
+  const headHtml = headBlock(c);
 
   // Lemma: first headword tag containing Hebrew letters. Skips footnote
   // markers like <bdbheb><reflink>ᵑ7</reflink></bdbheb> and covers the
@@ -217,7 +273,9 @@ function parseEntry(html) {
   )) {
     const t = stripTags(m[2]).trim();
     if (/[\u0590-\u05ea]/.test(t)) {
-      lemma = t.slice(0, 60);
+      // Trim after slicing: a slice cut at a space would otherwise leave
+      // trailing whitespace in the shipped lemma.
+      lemma = t.slice(0, 60).trim();
       break;
     }
   }
@@ -226,16 +284,18 @@ function parseEntry(html) {
   let pos = "";
   for (const m of headHtml.matchAll(/<b>(.*?)<\/b>/gs)) {
     const t = stripTags(m[1]).trim();
-    if (/^\[/.test(t) && (/[0-9]+:[0-9]/.test(t) || /[\u0590-\u05ea]/.test(t))) {
-      continue; // cross-reference note, not a part of speech
+    if (!isPosCandidate(t)) {
+      continue; // cross-reference note or bare sense label, not a part of speech
     }
-    pos = t.slice(0, 40);
+    // Trim after slicing: a slice cut at a space would otherwise leave
+    // trailing whitespace in the shipped POS (seen on H4601/H4714).
+    pos = t.slice(0, 40).trim();
     break;
   }
   const occMatch = headHtml.match(/<sub>(\d+)<\/sub>/);
   const occ = occMatch ? parseInt(occMatch[1], 10) : 0;
   const hwMatch = headHtml.match(/<highlightword>(.*?)<\/highlightword>/s);
-  let hw = hwMatch ? stripTags(hwMatch[1]).trim().slice(0, 80) : "";
+  let hw = hwMatch ? stripTags(hwMatch[1]).trim().slice(0, 80).trim() : "";
 
   const headRefs = [];
   for (const m of headHtml.matchAll(REF_RE)) {
@@ -274,7 +334,7 @@ function parseEntry(html) {
     for (const s of senses) {
       const g = s.glosses.find(isMeaningGloss);
       if (g) {
-        hw = g.slice(0, 80);
+        hw = g.slice(0, 80).trim();
         break;
       }
     }
@@ -436,9 +496,21 @@ async function main() {
     let win = null;
     let rule = "";
     if (lemmaHit.length) {
-      win = lemmaHit.reduce((a, b) =>
-        cleanedLength(b.p) > cleanedLength(a.p) ? b : a,
-      );
+      // Prefer the Hebrew article over the Biblical Aramaic appendix
+      // companion, then the row dedicated to this exact number over a shared
+      // multi-number row, then the longest entry. (H3 אֵב 'freshness' wants
+      // BDB3, not the Aramaic-section row BDB9264; H8 אֹבֵד 'destruction'
+      // wants BDB7, not the אָבַד verb article BDB6.)
+      const rankLemma = (x) => [
+        x.p.aramaic ? 1 : 0,
+        x.row.strong.trim().toUpperCase() === id ? 0 : 1,
+        -cleanedLength(x.p),
+      ];
+      win = lemmaHit
+        .map((x) => ({ x, r: rankLemma(x) }))
+        .sort(
+          (a, b) => a.r[0] - b.r[0] || a.r[1] - b.r[1] || a.r[2] - b.r[2],
+        )[0].x;
       rule = "lemma";
     } else {
       const exact = parsed.filter(
@@ -483,7 +555,14 @@ async function main() {
         p.lemma && p.aramaic === win.p.aramaic && skeleton(p.lemma) === winSkel,
     );
     if (!group.length) group = [{ row: win.row, p: win.p }];
-    group.sort((a, b) => bdbNum(a.row.id) - bdbNum(b.row.id));
+    // The winning row leads: it is the row judged really about this
+    // Strong's number, so its headword opens the card. Remaining merged
+    // sections follow in BDB row order (BDB's own I./II./III. sequence).
+    group.sort((a, b) => {
+      if (a.row.id === win.row.id) return -1;
+      if (b.row.id === win.row.id) return 1;
+      return bdbNum(a.row.id) - bdbNum(b.row.id);
+    });
     if (group.length > 1) merged++;
     winners.set(id, {
       rows: group.map((g) => g.row),
@@ -560,30 +639,51 @@ async function main() {
   );
 
   // English gloss → Strong's index from BDB's own highlighted glosses.
-  // Two passes so headword glosses outrank incidental sense glosses:
-  // "beginning" should surface H7225 (רֵאשִׁית, "beginning, chief") first.
+  // Candidates rank: Hebrew before Biblical Aramaic (a bare English lookup
+  // like "see" should surface Hebrew H2372 חָזָה, not Aramaic H2370 חֲזָא);
+  // then by headword-phrase position, so the entry whose PRIMARY gloss is
+  // the word wins ("hear" → H8085 שָׁמַע 'hear', not H238 אָזַן whose hw is
+  // 'give ear, listen, hear, almost wholly poet'); Strong's number breaks
+  // remaining ties. Sense-gloss-only matches rank after headword matches.
   const byGloss = Object.create(null);
   const seenGloss = new Map(); // id -> Set of keys already indexed
-  const addGloss = (id, ph) => {
+  const glossMeta = new Map(); // `${key}␟${id}` -> { aram, pos }
+  const addGloss = (id, ph, isHw) => {
     let seen = seenGloss.get(id);
     if (!seen) {
       seen = new Set();
       seenGloss.set(id, seen);
     }
-    for (const part of String(ph).split(/[;,·]/)) {
-      const key = glossKey(part);
-      if (key.length < 2 || key.length > 24 || seen.has(key)) continue;
-      seen.add(key);
-      const list = byGloss[key] ?? [];
-      if (!list.includes(id) && list.length < 6) list.push(id);
-      byGloss[key] = list;
-    }
+    const aram = by[id].lang === "aramaic" ? 1 : 0;
+    String(ph)
+      .split(/[;,·]/)
+      .forEach((part, pi) => {
+        const key = glossKey(part);
+        if (key.length < 2 || key.length > 24 || seen.has(key)) return;
+        seen.add(key);
+        glossMeta.set(`${key}␟${id}`, { aram, pos: isHw ? pi : 99 });
+        const list = byGloss[key] ?? [];
+        if (!list.includes(id)) list.push(id);
+        byGloss[key] = list;
+      });
   };
   for (const id of ids) {
-    if (by[id].hw) addGloss(id, by[id].hw);
+    if (by[id].hw) addGloss(id, by[id].hw, true);
   }
   for (const id of ids) {
-    for (const s of by[id].ss) for (const g of s.g) addGloss(id, g);
+    for (const s of by[id].ss) for (const g of s.g) addGloss(id, g, false);
+  }
+  for (const [key, list] of Object.entries(byGloss)) {
+    list.sort((a, b) => {
+      const ma = glossMeta.get(`${key}␟${a}`);
+      const mb = glossMeta.get(`${key}␟${b}`);
+      return (
+        ma.aram - mb.aram ||
+        ma.pos - mb.pos ||
+        parseInt(a.slice(1), 10) - parseInt(b.slice(1), 10)
+      );
+    });
+    byGloss[key] = list.slice(0, 6);
   }
   process.stderr.write(`  gloss index keys: ${Object.keys(byGloss).length}\n`);
 
