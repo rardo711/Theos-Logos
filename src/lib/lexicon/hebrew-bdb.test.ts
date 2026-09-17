@@ -6,18 +6,21 @@ import {
   lookupHebrewBdbByGloss,
   lookupHebrewBdbByStrongs,
   lookupHebrewBdbWordNow,
+  strongsAttribution,
   verseSenseLine,
   clearestBlockGloss,
 } from "./hebrew-bdb.ts";
 import hebrewBdbJson from "./data/hebrew-bdb.json" with { type: "json" };
 
 describe("hebrew BDB lexicon", () => {
-  it("H7225 returns BDB beginning/chief", () => {
+  it("H7225 hero is the Strong's definition (BDB chain stays as fallback data)", () => {
     const hit = lookupHebrewBdbByStrongs("H7225");
     assert.ok(hit);
     assert.equal(hit?.strongs, "H7225");
     assert.equal(hit?.lemma, "רֵאשִׁית");
-    assert.match(hit?.gloss ?? "", /beginning/i);
+    assert.ok(hit?.strongsDefinition, "H7225 should carry a Strong's definition");
+    assert.equal(hit?.gloss, hit?.strongsDefinition);
+    assert.match(hit?.gloss ?? "", /first/i);
     assert.match(hit?.attribution ?? "", /Brown-Driver-Briggs/);
     assert.match(hebrewBdbAttribution, /Brown-Driver-Briggs/);
     assert.equal(hit?.isAramaic, false);
@@ -31,13 +34,17 @@ describe("hebrew BDB lexicon", () => {
     assert.ok((hit?.senses ?? []).length > 5);
   });
 
-  it("H430 is elohim (God), not halal", () => {
+  it("H430 is elohim (God), not halal — Strong's hero, BDB chain intact", () => {
     const hit = lookupHebrewBdbByStrongs("H430");
     assert.ok(hit);
     assert.equal(hit?.lemma, "אֱלֹהִים");
-    // BDB's first sense block glosses it "rulers, judges"; "God" appears in
-    // the fuller sense glosses below.
-    assert.equal(hit?.gloss, "rulers, judges");
+    // The hero is now Strong's own definition; BDB's "rulers, judges" stays
+    // in the BDB chain (headword gloss / sense glosses), not the hero.
+    assert.ok(hit?.strongsDefinition, "H430 should carry a Strong's definition");
+    assert.equal(hit?.gloss, hit?.strongsDefinition);
+    assert.match(hit?.gloss ?? "", /God/);
+    assert.ok(!/halal/i.test(hit?.gloss ?? ""));
+    assert.equal(hit?.headwordGloss, "rulers, judges");
     assert.ok(
       (hit?.senses ?? []).some((s) =>
         s.glosses.some((g) => /god/i.test(g)),
@@ -108,7 +115,9 @@ describe("hebrew BDB lexicon", () => {
     assert.ok(hit);
     assert.equal(hit?.strongs, "H4853");
     assert.equal(hit?.senseMatchedByReference, true);
-    assert.match(hit?.gloss ?? "", /utterance, oracle/i);
+    // "utterance, oracle" is BDB's wording — it lives in the BDB chain now,
+    // not the Strong's hero.
+    assert.match(hit?.headwordGloss ?? "", /utterance, oracle/i);
   });
 
   it("H4853 keeps both BDB homograph sections (load AND utterance, oracle)", () => {
@@ -128,8 +137,10 @@ describe("hebrew BDB lexicon", () => {
   it("H1254 stays create-first after the homograph merge (not be fat)", () => {
     const hit = lookupHebrewBdbByStrongs("H1254");
     assert.ok(hit);
+    // Strong's own definition leads the hero: "to create, shape, form".
     assert.match(hit?.gloss ?? "", /create/i);
     assert.ok(!(hit?.gloss ?? "").toLowerCase().startsWith("be fat"));
+    assert.equal(hit?.gloss, hit?.strongsDefinition);
   });
 
   it("no shipped BDB text carries backslash formatting artifacts", () => {
@@ -307,13 +318,16 @@ describe("verse sense one-liner", () => {
     assert.equal(hit?.senseLine, hit?.senses[hit.selectedSenseIndex]?.glosses[0]);
   });
 
-  it("Meaning hero prefers the verse-pinned sense's gloss over the headword default", () => {
+  it("Meaning hero is the Strong's definition; the verse nuance stays in the sense line", () => {
     const hit = lookupHebrewBdbByStrongs("H1254", "Genesis 2:4");
     assert.ok(hit);
     assert.equal(hit?.senseMatchedByReference, true);
-    // Not the headword default ("create"); the Niphal sense for this verse.
-    assert.equal(hit?.gloss, "be created:");
-    assert.notEqual(hit?.gloss, hit?.headwordGloss);
+    // The hero is the dictionary definition (Strong's), verse-independent;
+    // the verse-pinned BDB nuance ("be created:") is the one-liner.
+    assert.ok(hit?.strongsDefinition, "H1254 should carry a Strong's definition");
+    assert.equal(hit?.gloss, hit?.strongsDefinition);
+    assert.match(hit?.gloss ?? "", /create/i);
+    assert.equal(hit?.senseLine, "be created:");
   });
 
   it("first gloss wins over the headword gloss", () => {
@@ -389,5 +403,88 @@ describe("clearestBlockGloss", () => {
   it("plain first gloss is returned untouched", () => {
     assert.equal(clearestBlockGloss(["the whole of", "all", "every:"]), "the whole of");
     assert.equal(clearestBlockGloss(["be created:"]), "be created:");
+  });
+});
+
+describe("Strong's concise definitions", () => {
+  it("H2377 ships Strong's definition verbatim as the Meaning hero", () => {
+    const hit = lookupHebrewBdbByStrongs("H2377");
+    assert.ok(hit);
+    assert.equal(hit?.strongs, "H2377");
+    assert.ok(
+      (hit?.strongsDefinition ?? "").startsWith(
+        "a sight (mentally), i.e. a dream, revelation, or oracle",
+      ),
+      `unexpected Strong's text: ${hit?.strongsDefinition}`,
+    );
+    assert.equal(hit?.gloss, hit?.strongsDefinition);
+    // BDB's own wording is untouched and still present underneath.
+    assert.equal(hit?.headwordGloss, "vision");
+    assert.equal(hit?.senseLine, "vision");
+  });
+
+  it("coverage: nearly every entry carries a Strong's definition", () => {
+    const by = (
+      hebrewBdbJson as { by: Record<string, { sd?: string }> }
+    ).by;
+    const ids = Object.keys(by);
+    assert.equal(ids.length, 8618);
+    const withSd = ids.filter((id) => by[id].sd);
+    // Pinned after the import's reported count; the import itself refuses
+    // to ship a thin layer (< 8500 parsed definitions).
+    assert.ok(
+      withSd.length >= 8550,
+      `only ${withSd.length}/${ids.length} entries have a Strong's definition`,
+    );
+  });
+
+  it("entries without a Strong's definition fall back to the BDB hero", () => {
+    const by = (
+      hebrewBdbJson as { by: Record<string, { sd?: string }> }
+    ).by;
+    const missing = Object.keys(by).filter((id) => !by[id].sd);
+    // Vacuous if Strong's ever reaches 100% coverage; the coverage test
+    // above pins the count either way.
+    for (const id of missing.slice(0, 25)) {
+      const hit = lookupHebrewBdbByStrongs(id);
+      assert.ok(hit, `${id} lookup failed`);
+      assert.equal(hit?.strongsDefinition, "");
+      assert.ok(hit?.gloss, `${id} fallback hero is empty`);
+      assert.notEqual(hit?.gloss, "", `${id} hero should be the BDB chain`);
+    }
+  });
+
+  it("Strong's layer is attributed separately from BDB", () => {
+    assert.match(strongsAttribution, /Strong/);
+    assert.match(strongsAttribution, /1890/);
+    assert.match(strongsAttribution, /public domain/i);
+    assert.match(hebrewBdbAttribution, /Brown-Driver-Briggs/);
+    const top = hebrewBdbJson as {
+      strongsSource?: string;
+      strongsLicense?: string;
+      provenance?: string;
+    };
+    assert.ok(
+      top.strongsSource?.includes("openscriptures/strongs"),
+      `strongsSource: ${top.strongsSource}`,
+    );
+    assert.equal(top.strongsLicense, "Public domain");
+    assert.match(top.provenance ?? "", /openscriptures\/strongs/);
+  });
+
+  it("no Strong's definition carries markup or entity artifacts", () => {
+    const by = (
+      hebrewBdbJson as { by: Record<string, { sd?: string }> }
+    ).by;
+    let checked = 0;
+    for (const [id, e] of Object.entries(by)) {
+      if (!e.sd) continue;
+      assert.equal(e.sd, e.sd.trim(), `${id} sd not trimmed`);
+      assert.ok(!/<[A-Za-z][^>]*>/.test(e.sd), `${id} tag remnant: ${e.sd.slice(0, 70)}`);
+      assert.ok(!/&(?:amp|lt|gt|quot|#39);/.test(e.sd), `${id} entity remnant: ${e.sd.slice(0, 70)}`);
+      assert.ok(!e.sd.includes("\\"), `${id} backslash: ${e.sd.slice(0, 70)}`);
+      checked++;
+    }
+    assert.ok(checked >= 8550, `only checked ${checked} Strong's definitions`);
   });
 });

@@ -13,6 +13,11 @@ export const hebrewBdbAttribution =
   (hebrewBdbJson as { attribution?: string }).attribution ??
   "Brown-Driver-Briggs Hebrew and English Lexicon (1906), public domain.";
 
+/** Strong's concise-definition attribution (the Meaning hero's source). */
+export const strongsAttribution =
+  (hebrewBdbJson as { strongsAttribution?: string }).strongsAttribution ??
+  "Strong's Hebrew Dictionary (1890), public domain.";
+
 /** One BDB sense block, verbatim wording (markup stripped at import). */
 type CompactBdbSense = {
   /** Full sense text, verbatim BDB. */
@@ -34,6 +39,8 @@ type CompactBdb = {
   occ?: number;
   /** BDB's highlighted headword gloss, e.g. "beginning, chief". */
   hw?: string;
+  /** Strong's concise definition, verbatim (1890, public domain). */
+  sd?: string;
   lang?: "aramaic";
   ss: CompactBdbSense[];
 };
@@ -63,10 +70,19 @@ export type HebrewBdbResult = {
   /** Index of the sense shown as "Sense in this verse". */
   selectedSenseIndex: number;
   /**
-   * Hero "meaning": headword gloss, else the selected sense's first gloss,
-   * else the lemma itself (proper names usually have no gloss).
+   * Hero "meaning": Strong's concise definition when the entry has one
+   * (the dictionary definition of the word, verbatim Strong's 1890);
+   * otherwise the BDB chain — verse-pinned sense gloss, headword gloss,
+   * selected sense's clearest gloss, then the lemma (proper names usually
+   * have no gloss).
    */
   gloss: string;
+  /**
+   * Strong's concise definition for this entry, verbatim ("" when Strong's
+   * has no definition for the number — the hero then falls back to BDB).
+   * Never mixed with BDB text: the card attributes each source separately.
+   */
+  strongsDefinition: string;
   glossExtras: string[];
   /** Selected sense's full verbatim text. */
   sense: string;
@@ -338,13 +354,22 @@ function expand(
   if (matched) senses[selectedSenseIndex].matchedByReference = true;
   const selected = senses[selectedSenseIndex] ?? senses[0];
   const headwordGloss = e.hw || "";
-  // Hero meaning: when the verse pinned a specific BDB sense, that sense's
-  // own clearest gloss leads — it is the meaning in THIS verse, and it beats
-  // the dictionary headword default. Otherwise BDB's headword gloss wins;
-  // then the selected sense's clearest gloss; then the lemma.
+  const strongsDefinition = e.sd || "";
+  // Hero meaning: Strong's concise definition wins when present — it is the
+  // dictionary definition of the word, and it is what the card attributes as
+  // Strong's. Without one, the BDB chain stands: when the verse pinned a
+  // specific BDB sense, that sense's own clearest gloss leads (it is the
+  // meaning in THIS verse, and it beats the dictionary headword default);
+  // otherwise BDB's headword gloss wins; then the selected sense's clearest
+  // gloss; then the lemma.
   const senseGloss = clearestBlockGloss(selected?.glosses || []);
   const gloss =
-    (matched && senseGloss) || headwordGloss || senseGloss || e.m || "";
+    strongsDefinition ||
+    (matched && senseGloss) ||
+    headwordGloss ||
+    senseGloss ||
+    e.m ||
+    "";
   const glossExtras = (selected?.glosses || []).filter((g) => g !== gloss);
   return {
     word,
@@ -356,6 +381,7 @@ function expand(
     senses,
     selectedSenseIndex,
     gloss,
+    strongsDefinition,
     glossExtras,
     sense: selected?.text || "",
     senseLine: verseSenseLine(

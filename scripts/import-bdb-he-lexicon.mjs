@@ -9,6 +9,11 @@
  * Run locally / on the box — DO NOT download at Vercel build.
  * Outputs: src/lib/lexicon/data/hebrew-bdb.json
  *
+ * Each entry also carries `sd`: the concise definition from Strong's Hebrew
+ * Dictionary (1890, public domain) via openscriptures/strongs. The card shows
+ * it as the Meaning hero; BDB stays the verse-sense source. The two sources
+ * are never mixed: each is shipped verbatim under its own attribution.
+ *
  * Fidelity rules (Gerardo's standing condition: faithful to the original lexicon):
  * 1. PRIMARY — BDB HTML entries keyed by Strong's (H####). One H-number is often
  *    claimed by several BDB rows: homograph sections (I./II./III. under one
@@ -45,6 +50,16 @@ const CSV_ZIP_URL =
 const SOURCE_URL =
   "https://github.com/primekoboo-bibleresources/unabridged-bdb-hebrew-lexicon";
 const ATTRIBUTION = "Brown-Driver-Briggs Hebrew Lexicon (1906), public domain.";
+
+// Strong's concise Hebrew definitions, merged per entry as `sd`.
+// Source: openscriptures/strongs, hebrew/StrongHebrewG.xml — a digitization
+// of Strong's Hebrew Dictionary (James Strong, "The Exhaustive Concordance
+// of the Bible", 1890; public domain). Same fetch-once-locally pattern as
+// the BDB CSV above: never downloaded at Vercel build.
+const STRONGS_XML_URL =
+  "https://raw.githubusercontent.com/openscriptures/strongs/master/hebrew/StrongHebrewG.xml";
+const STRONGS_SOURCE_URL = "https://github.com/openscriptures/strongs";
+const STRONGS_ATTRIBUTION = "Strong's Hebrew Dictionary (1890), public domain.";
 
 // Size caps: the median BDB entry ships whole; only the long tail is trimmed
 // (earliest senses first, so the common meanings are never cut).
@@ -370,6 +385,72 @@ function skeleton(s) {
 }
 
 /**
+ * Load Strong's concise Hebrew definitions keyed by Strong's number
+ * ("H2377" -> "a sight (mentally), i.e. a dream, revelation, or oracle").
+ *
+ * The openscriptures OSIS XML stores one <div type="entry" n="N"> per
+ * Strong's number with the concise definition in <note type="explanation">
+ * (the KJV gloss lives separately in <note type="translation">; the
+ * derivation in <note type="exegesis"> — neither is the definition).
+ * Tag matching is strict on this known format and the parse fails loudly
+ * when the entry count is far below Strong's 8,674 Hebrew numbers, so a
+ * silent upstream format change can never ship an empty `sd` layer.
+ */
+async function loadStrongsDefinitions() {
+  const local = join(RESEARCH, "StrongHebrewG.xml");
+  let xml;
+  try {
+    xml = await readFile(local, "utf8");
+    process.stderr.write(`  using local ${local}\n`);
+  } catch {
+    process.stderr.write(`  fetching ${STRONGS_XML_URL}\n`);
+    const res = await fetch(STRONGS_XML_URL, {
+      headers: { "User-Agent": "Theos-Logos Strongs importer (public domain)" },
+    });
+    if (!res.ok) throw new Error(`${res.status} ${STRONGS_XML_URL}`);
+    xml = await res.text();
+    await mkdir(RESEARCH, { recursive: true });
+    await writeFile(local, xml);
+    process.stderr.write(`  cached to ${local}\n`);
+  }
+  const defs = {};
+  const entryRe = /<div\s+type="entry"\s+n="(\d+)">([\s\S]*?)<\/div>/g;
+  for (const m of xml.matchAll(entryRe)) {
+    const id = `H${parseInt(m[1], 10)}`;
+    const defMatch = m[2].match(/<note\s+type="explanation">([\s\S]*?)<\/note>/);
+    if (!defMatch) continue;
+    // Same hygiene as BDB: decode entities, strip tags, collapse whitespace.
+    // Strong's <hi> marks are inline emphasis, so tags are removed WITHOUT
+    // inserting spaces (the BDB stripTags inserts a space per tag, which
+    // would leave "a dream , revelation"). A space-before-punctuation pass
+    // catches any leftovers. Strong's wording stays verbatim otherwise
+    // (its {braces} correction marks are Strong's own convention, kept).
+    const text = defMatch[1]
+      .replace(/<[^>]+>/g, "")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, " ")
+      .replace(/\s+([,.;:!?])/g, "$1")
+      .trim()
+      .replace(/;+$/, "")
+      .trim();
+    if (text) defs[id] = text;
+  }
+  const n = Object.keys(defs).length;
+  process.stderr.write(`  Strong's definitions parsed: ${n}\n`);
+  if (n < 8500) {
+    throw new Error(
+      `Strong's parse yielded only ${n} definitions (expected ~8674); ` +
+        `upstream format may have changed — refusing to ship a thin layer.`,
+    );
+  }
+  return defs;
+}
+
+/**
  * Expected lemma per Strong's number from the legacy STEPBible hebrew.json.
  * Used ONLY to pick the right BDB row when several claim one H-number
  * (homograph sections, variant groupings); never shipped as content.
@@ -638,6 +719,29 @@ async function main() {
     `  shipped: ${ids.length} Strong's entries (${aramaicCount} Aramaic), ${truncated} trimmed by budget\n`,
   );
 
+  // Merge Strong's concise definitions (the card's Meaning hero). Verbatim
+  // Strong's text under its own attribution; entries with no Strong's
+  // definition keep the BDB-gloss hero as fallback.
+  const strongs = await loadStrongsDefinitions();
+  let strongsHits = 0;
+  const strongsMissing = [];
+  for (const id of ids) {
+    const def = strongs[id];
+    if (def) {
+      by[id].sd = def;
+      strongsHits += 1;
+    } else {
+      strongsMissing.push(id);
+    }
+  }
+  process.stderr.write(
+    `  Strong's definitions merged: ${strongsHits}/${ids.length}` +
+      (strongsMissing.length
+        ? ` (missing: ${strongsMissing.slice(0, 12).join(", ")}${strongsMissing.length > 12 ? "…" : ""})`
+        : "") +
+      "\n",
+  );
+
   // English gloss → Strong's index from BDB's own highlighted glosses.
   // Candidates rank: Hebrew before Biblical Aramaic (a bare English lookup
   // like "see" should surface Hebrew H2372 חָזָה, not Aramaic H2370 חֲזָא);
@@ -692,6 +796,9 @@ async function main() {
     attribution: ATTRIBUTION,
     license: "Public domain",
     source: SOURCE_URL,
+    strongsAttribution: STRONGS_ATTRIBUTION,
+    strongsLicense: "Public domain",
+    strongsSource: STRONGS_SOURCE_URL,
     retrieved: new Date().toISOString().slice(0, 10),
     provenance:
       "unabridged-BDB-Hebrew-lexicon.csv (Eliran Wong formatting of BDB 1906); " +
@@ -699,7 +806,9 @@ async function main() {
       "by headword-lemma match against the legacy Strong's lemma, then exact " +
       "single-number mapping, then first-listed variant, then longest entry; " +
       "markup stripped, wording verbatim; " +
-      `caps head/${HEAD_CAP} sense/${SENSE_CAP} senses/${MAX_SENSES} refs/${REF_CAP} budget/${ENTRY_BUDGET}.`,
+      `caps head/${HEAD_CAP} sense/${SENSE_CAP} senses/${MAX_SENSES} refs/${REF_CAP} budget/${ENTRY_BUDGET}; ` +
+      "concise per-entry definitions (sd) from openscriptures/strongs " +
+      "hebrew/StrongHebrewG.xml (Strong's Hebrew Dictionary, 1890, public domain).",
     by,
     byGloss,
   };

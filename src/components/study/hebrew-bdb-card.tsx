@@ -1,12 +1,15 @@
 /**
  * Hebrew BDB desk slip. Mirrors EnglishGlossCard (design brief v1 + motion/polish).
- * Hierarchy: Meaning hero → Sense in this verse → Lemma/Morphology →
+ * Hierarchy: Meaning hero (Strong's concise definition when present, with its
+ * own attribution) → Sense in this verse (BDB) → Lemma/Morphology →
  * more BDB senses (expandable) → Strong footer → attribution.
- * Body text = BDB source fields only, verbatim. Chip tap never Gemini.
+ * Body text = source fields only, verbatim, each source under its own
+ * attribution. Chip tap never Gemini.
  */
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { HebrewBdbResult } from "@/lib/lexicon/hebrew-bdb";
+import { strongsAttribution } from "@/lib/lexicon/hebrew-bdb";
 import { strongsMidvashHref } from "@/lib/lexicon/midvash";
 
 const LABEL =
@@ -36,7 +39,10 @@ export function HebrewBdbCard({
       data-hebrew-bdb-card
       data-strongs={entry.strongs}
     >
-      {/* 1. Meaning hero — the readable gloss stays in the card */}
+      {/* 1. Meaning hero — Strong's concise definition when the entry has
+          one (attributed to Strong's right below); otherwise the BDB-gloss
+          hero as before. BDB gloss extras are hidden under a Strong's hero
+          so the two sources never read as one text. */}
       <div className="flex flex-wrap items-center gap-2">
         <p className={LABEL}>Meaning</p>
         {entry.isAramaic ? (
@@ -48,7 +54,10 @@ export function HebrewBdbCard({
       <p className="font-display mt-1 text-[1.375rem] font-semibold leading-snug text-ink">
         {entry.gloss || "—"}
       </p>
-      {entry.glossExtras.length > 0 ? (
+      {entry.strongsDefinition ? (
+        <p className="mt-1 text-[0.6875rem] text-faint">{strongsAttribution}</p>
+      ) : null}
+      {!entry.strongsDefinition && entry.glossExtras.length > 0 ? (
         <p className="mt-1 text-[0.8125rem] leading-snug text-muted">
           {entry.glossExtras.join(" · ")}
         </p>
