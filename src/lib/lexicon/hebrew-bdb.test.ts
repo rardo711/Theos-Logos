@@ -6,6 +6,8 @@ import {
   lookupHebrewBdbByGloss,
   lookupHebrewBdbByStrongs,
   lookupHebrewBdbWordNow,
+  verseSenseLine,
+  clearestBlockGloss,
 } from "./hebrew-bdb.ts";
 import hebrewBdbJson from "./data/hebrew-bdb.json" with { type: "json" };
 
@@ -284,5 +286,108 @@ describe("hebrew BDB OT sweep regressions", () => {
         `${id} head is a stub: ${t0.slice(0, 60)}`,
       );
     }
+  });
+});
+describe("verse sense one-liner", () => {
+  it("H3605 at Haggai 1:12 shows 'the whole, all', not the wall of text", () => {
+    const hit = lookupHebrewBdbByStrongs("H3605", "Haggai 1:12");
+    assert.ok(hit);
+    // Glossless head block -> BDB's verbatim headword gloss is the line.
+    assert.equal(hit?.senseLine, "the whole, all");
+    // The full verbatim entry text is still shipped for the expander.
+    assert.match(hit?.sense ?? "", /Moabite/);
+    assert.ok((hit?.senseLine.length ?? 0) < (hit?.sense.length ?? 0));
+  });
+
+  it("H1254 at Genesis 2:4 shows the matched block's first gloss verbatim", () => {
+    const hit = lookupHebrewBdbByStrongs("H1254", "Genesis 2:4");
+    assert.ok(hit);
+    assert.equal(hit?.senseMatchedByReference, true);
+    assert.equal(hit?.senseLine, "be created:");
+    assert.equal(hit?.senseLine, hit?.senses[hit.selectedSenseIndex]?.glosses[0]);
+  });
+
+  it("Meaning hero prefers the verse-pinned sense's gloss over the headword default", () => {
+    const hit = lookupHebrewBdbByStrongs("H1254", "Genesis 2:4");
+    assert.ok(hit);
+    assert.equal(hit?.senseMatchedByReference, true);
+    // Not the headword default ("create"); the Niphal sense for this verse.
+    assert.equal(hit?.gloss, "be created:");
+    assert.notEqual(hit?.gloss, hit?.headwordGloss);
+  });
+
+  it("first gloss wins over the headword gloss", () => {
+    assert.equal(
+      verseSenseLine("long block text here", ["the whole of", "all"], "the whole, all"),
+      "the whole of",
+    );
+  });
+
+  it("headword gloss is the fallback for any block without a usable gloss", () => {
+    const text = "Note . — When the genitive after כל is a noun feminine or plural";
+    assert.equal(verseSenseLine(text, [], "the whole, all"), "the whole, all");
+    // Paradigm blocks (labels only) fall back to the headword gloss too.
+    assert.equal(
+      verseSenseLine("Qal paradigm table", ["Perfect", "Imperfect"], "sow, scatter seed"),
+      "sow, scatter seed",
+    );
+  });
+
+  it("glossless block with no headword falls back to a verbatim truncated prefix", () => {
+    const text =
+      "Note . — When the genitive after כל is a noun feminine or plural, the predicate usually agrees with this (as being the really important idea), e.g. Gen 5:5 ויהיו כל ימי אדם , Num 14:1 and on and on past one hundred and sixty characters of BDB detail";
+    const line = verseSenseLine(text, [], "");
+    assert.ok(line.endsWith("…"), "truncated prefix signals continuation");
+    assert.ok(line.length <= 165, `line too long: ${line.length}`);
+    assert.ok(text.replace(/\s+/g, " ").startsWith(line.replace(/…$/, "").trimEnd()));
+  });
+
+  it("short glossless text is returned whole with no ellipsis", () => {
+    assert.equal(verseSenseLine("Qal be fat", [], ""), "Qal be fat");
+  });
+
+  it("empty block yields an empty line", () => {
+    assert.equal(verseSenseLine("", [], ""), "");
+  });
+});
+
+describe("clearestBlockGloss", () => {
+  it("prefers the identical restatement without BDB's trailing-colon marker", () => {
+    assert.equal(clearestBlockGloss(["sow:", "sow"]), "sow");
+    assert.equal(clearestBlockGloss(["except:", "except"]), "except");
+    assert.equal(clearestBlockGloss(["against:", "against"]), "against");
+  });
+
+  it("never promotes an alternative parsing over the block's opening gloss", () => {
+    // H384: "I have wearied myself" is the moderns' repointing, not the name's meaning.
+    assert.equal(
+      clearestBlockGloss(["with me is God:", "I have wearied myself"]),
+      "with me is God:",
+    );
+  });
+
+  it("never promotes a verse quotation over the gloss it illustrates", () => {
+    assert.equal(
+      clearestBlockGloss(["be sown:", "no more of thy name be sown"]),
+      "be sown:",
+    );
+  });
+
+  it("replaces a bare grammar label with the block's plain gloss", () => {
+    // H430 sense 1: "plural" hides "rulers, judges".
+    assert.equal(
+      clearestBlockGloss(["plural", "rulers, judges", "gods", "God"]),
+      "rulers, judges",
+    );
+  });
+
+  it("paradigm-only blocks yield no gloss", () => {
+    assert.equal(clearestBlockGloss(["Perfect", "Imperfect", "Imperative"]), "");
+    assert.equal(clearestBlockGloss([]), "");
+  });
+
+  it("plain first gloss is returned untouched", () => {
+    assert.equal(clearestBlockGloss(["the whole of", "all", "every:"]), "the whole of");
+    assert.equal(clearestBlockGloss(["be created:"]), "be created:");
   });
 });

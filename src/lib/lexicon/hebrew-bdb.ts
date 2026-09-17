@@ -70,6 +70,11 @@ export type HebrewBdbResult = {
   glossExtras: string[];
   /** Selected sense's full verbatim text. */
   sense: string;
+  /**
+   * One-line "Sense in this verse" extract — always verbatim BDB text,
+   * never paraphrased (see verseSenseLine). The full block stays in `sense`.
+   */
+  senseLine: string;
   /** How many other BDB sense blocks exist beyond the selected one. */
   relatedSenseCount: number;
   isAramaic: boolean;
@@ -254,6 +259,67 @@ function pickSenseIndex(
   return { index: 0, matched: false };
 }
 
+/** BDB stem/paradigm labels and bare grammar labels: not meanings. */
+const GLOSS_LABEL_RE =
+  /^(Perfect|Imperfect|Imperative|Infinitive|Participle|Gerund|Qal|Niphal|Piel|Pual|Hiphil|Hophal|Hithpael|Hothpael|Polel|Polal|Pilpel|Poel|Poal|Hithpalpel|Tiphel)(\s|[.,:;]|$)/i;
+const GRAMMAR_LABEL_RE =
+  /^(plural|singular|masculine|feminine|absolute|construct|dual|common)$/i;
+
+const isGlossLabel = (g: string) =>
+  GLOSS_LABEL_RE.test(g) || GRAMMAR_LABEL_RE.test(g);
+const isPlainGloss = (g: string) => !isGlossLabel(g) && !/:$/.test(g);
+
+/**
+ * The block's clearest plain-English gloss — always verbatim BDB, just
+ * better-chosen:
+ *  - a trailing-colon cross-reference marker restated cleanly in the same
+ *    block ("sow:" -> "sow");
+ *  - a bare label ("plural") replaced by the block's first plain gloss
+ *    ("rulers, judges");
+ *  - otherwise the first gloss untouched — later glosses in a block can be
+ *    alternative parsings ("with me is God:" vs "I have wearied myself"),
+ *    so they are never promoted over the block's own opening gloss.
+ * Returns "" when the block has no usable meaning gloss (paradigm blocks).
+ */
+export function clearestBlockGloss(glosses: string[]): string {
+  const list = (glosses ?? []).map((g) => g.replace(/\s+/g, " ").trim()).filter(Boolean);
+  if (!list.length) return "";
+  const g0 = list[0];
+  if (/:$/.test(g0) && !isGlossLabel(g0)) {
+    const restated = list.slice(1).find((g) => g === g0.replace(/[:\s]+$/, ""));
+    if (restated) return restated;
+    return g0;
+  }
+  if (isGlossLabel(g0)) return list.slice(1).find(isPlainGloss) ?? "";
+  return g0;
+}
+
+/**
+ * One-line "Sense in this verse" extract. Always verbatim BDB text — never
+ * paraphrased or reworded:
+ *  1. the selected block's clearest highlighted gloss (plain English over
+ *     BDB cross-reference punctuation and grammar labels);
+ *  2. else BDB's headword gloss — the entry's own plain-English summary;
+ *  3. else the block's opening text as a verbatim prefix (whitespace
+ *     collapsed, cut at a word boundary to 160 chars, "…" when truncated).
+ */
+export function verseSenseLine(
+  text: string,
+  glosses: string[],
+  headwordGloss: string,
+): string {
+  const clean = (s: string) => s.replace(/\s+/g, " ").trim();
+  const line = clearestBlockGloss(glosses);
+  if (line) return line;
+  const hw = clean(headwordGloss ?? "");
+  if (hw) return hw;
+  const t = clean(text ?? "");
+  if (t.length <= 160) return t;
+  const cut = t.slice(0, 160);
+  const at = cut.lastIndexOf(" ");
+  return (at > 80 ? cut.slice(0, at) : cut).trimEnd() + "…";
+}
+
 function expand(
   word: string,
   e: CompactBdb,
@@ -273,14 +339,12 @@ function expand(
   const selected = senses[selectedSenseIndex] ?? senses[0];
   const headwordGloss = e.hw || "";
   // Hero meaning: when the verse pinned a specific BDB sense, that sense's
-  // own gloss leads — it is the meaning in THIS verse. Otherwise BDB's
-  // headword gloss wins; then the selected sense's glosses; then the lemma.
+  // own clearest gloss leads — it is the meaning in THIS verse, and it beats
+  // the dictionary headword default. Otherwise BDB's headword gloss wins;
+  // then the selected sense's clearest gloss; then the lemma.
+  const senseGloss = clearestBlockGloss(selected?.glosses || []);
   const gloss =
-    (matched && selected?.glosses[0]) ||
-    headwordGloss ||
-    selected?.glosses[0] ||
-    e.m ||
-    "";
+    (matched && senseGloss) || headwordGloss || senseGloss || e.m || "";
   const glossExtras = (selected?.glosses || []).filter((g) => g !== gloss);
   return {
     word,
@@ -294,6 +358,11 @@ function expand(
     gloss,
     glossExtras,
     sense: selected?.text || "",
+    senseLine: verseSenseLine(
+      selected?.text || "",
+      selected?.glosses || [],
+      headwordGloss,
+    ),
     relatedSenseCount: Math.max(0, senses.length - 1),
     isAramaic: e.lang === "aramaic",
     attribution: hebrewBdbAttribution,

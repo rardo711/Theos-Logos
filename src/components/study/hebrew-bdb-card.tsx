@@ -23,6 +23,7 @@ export function HebrewBdbCard({
   className?: string;
 }) {
   const [sensesOpen, setSensesOpen] = useState(false);
+  const [senseFullOpen, setSenseFullOpen] = useState(false);
   const related = entry.senses.filter((_, i) => i !== entry.selectedSenseIndex);
   const relatedCount = entry.relatedSenseCount;
 
@@ -77,17 +78,34 @@ export function HebrewBdbCard({
         ) : null}
       </div>
 
-      {/* 3. Sense in this verse — verbatim BDB */}
+      {/* 3. Sense in this verse — one verbatim line; full entry behind a tap */}
       <p className={cn(LABEL, "mt-3")}>Sense in this verse</p>
-      {entry.sense ? (
+      {entry.senseLine ? (
         <p className="mt-1 text-[0.9375rem] leading-[1.35] text-ink">
-          {entry.sense}
+          {entry.senseLine}
         </p>
       ) : (
         <p className="mt-1 text-[0.9375rem] text-muted italic">
           No BDB sense text.
         </p>
       )}
+      {entry.sense && entry.sense !== entry.senseLine ? (
+        <div className="mt-1" data-sense-full>
+          <button
+            type="button"
+            className="tl-sentidos-mas text-[0.75rem] font-medium text-gold hover:underline"
+            aria-expanded={senseFullOpen}
+            onClick={() => setSenseFullOpen((o) => !o)}
+          >
+            {senseFullOpen ? "Hide full entry" : "Read full BDB entry"}
+          </button>
+          {senseFullOpen ? (
+            <p className="mt-1.5 text-[0.8125rem] leading-snug text-muted">
+              {entry.sense}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       {entry.senseMatchedByReference ? (
         <p className="mt-1 text-[0.6875rem] text-faint">
           Chosen because BDB cites this verse here.
