@@ -107,8 +107,9 @@ verse. An NPNF volume root, a *Catena Aurea* volume root, Poole's
 `annotations.html`, or a `calcom{n}.i.html` title page is a table of contents;
 fetching one returns a preface that the desk then shows as if it were exegesis.
 
-**No page twice.** Each request fetches at most seven pages. A URL indexed
-under two ids spends two of those slots on the same text.
+**No page twice.** Each request fetches at most ten pages (nine when the query
+has no focused question). A URL indexed under two ids spends two of those
+slots on the same text.
 
 ### The `verses` range
 

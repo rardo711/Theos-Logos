@@ -71,9 +71,16 @@ builders). Henry has no fallback — CCEL is the stable host.
   curated rows; the cap applies to wave-generated rows).
 - **Deferred**: Geneva Bible Notes (1599) — sacred-texts URLs verified 200,
   queued as the Wave 1 alternate if any voice's pages fail later.
-- **Excluded**: Albert Barnes — BibleHub hosts his Notes on the *New*
-  Testament only; no verified OT Barnes chapter pages exist there, so no
-  rows were built (no guessing).
+- **Excluded**: Albert Barnes — his genuine Old Testament corpus is Job,
+  Psalms, Isaiah, and Daniel; he never wrote on the Pentateuch. BibleHub's
+  `/commentaries/barnes/` *does* serve Pentateuch chapter pages, but those
+  cannot be genuine Albert Barnes (his documented OT works are the four books
+  above), so no rows were built rather than shipping misattributed content.
+  **Follow-up for later waves:** Barnes is a legitimate voice for the Job,
+  Psalms, Isaiah, and Daniel waves — add him there (keeping the 10/chapter
+  cap, swapping or seating per wave), with page-level authorship verification
+  before any row ships, since the Pentateuch misattribution shows the
+  `barnes/` section can't be trusted blindly.
 - Retrieval supports the depth: `retrieveExtracts` fetches up to 10 pages
   (focused) / 9 (unfocused), and `mapCatalog`'s wave seating already reserves
   gill/lange + prefers cambridge/ellicott + seats pulpit for chapter queries.
