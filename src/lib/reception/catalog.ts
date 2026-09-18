@@ -1,4 +1,5 @@
 import type { Tradition } from "../bible/types.ts";
+import { OT_WAVE_BUILDERS } from "./ot/waves.ts";
 
 export interface ReceptionSource {
   id: string;
@@ -2405,6 +2406,69 @@ function pulpitOtPentateuch(have: Set<string>): CatalogEntry[] {
   return out;
 }
 
+/**
+ * OT voice cap: at most 10 wave-generated rows per (book, chapter). HAND rows
+ * are exempt (grandfathered curated rows). Priority order decides who stays
+ * when waves overlap (e.g. Calvin pericopes landing on a 10-voice chapter).
+ */
+const OT_BOOK_IDS = new Set([
+  "GEN", "EXO", "LEV", "NUM", "DEU",
+  "JOS", "JDG", "RUT", "1SA", "2SA", "1KI", "2KI",
+  "1CH", "2CH", "EZR", "NEH", "EST",
+  "JOB", "PSA", "PRO", "ECC", "SNG",
+  "ISA", "JER", "LAM", "EZE", "DAN",
+  "HOS", "JOL", "AMO", "OBA", "JON", "MIC", "NAM", "HAB", "ZEP", "HAG", "ZEC", "MAL",
+]);
+
+const OT_VOICE_PRIORITY = [
+  "John Calvin",
+  "Augustine",
+  "Augustine of Hippo",
+  "Charles Spurgeon",
+  "Gregory the Great",
+  "Keil & Delitzsch",
+  "Matthew Henry",
+  "John Gill",
+  "Jamieson-Fausset-Brown",
+  "Matthew Poole",
+  "Adam Clarke",
+  "John Peter Lange",
+  "Charles Ellicott",
+  "Albert Barnes",
+  "Cambridge Bible",
+  "Pulpit Commentary",
+  "Geneva Bible",
+];
+
+function capOtVoices(out: CatalogEntry[]): CatalogEntry[] {
+  const HAND_IDS = new Set(HAND.map((x) => x.id));
+  const rank = (voice: string) => {
+    const i = OT_VOICE_PRIORITY.indexOf(voice);
+    return i < 0 ? OT_VOICE_PRIORITY.length : i;
+  };
+  const groups = new Map<string, CatalogEntry[]>();
+  for (const x of out) {
+    if (HAND_IDS.has(x.id)) continue;
+    const b = x.books?.[0];
+    const c = x.chapters?.[0];
+    if (!b || c == null || !OT_BOOK_IDS.has(b)) continue;
+    const k = `${b}:${c}`;
+    let g = groups.get(k);
+    if (!g) {
+      g = [];
+      groups.set(k, g);
+    }
+    g.push(x);
+  }
+  const drop = new Set<string>();
+  for (const g of groups.values()) {
+    if (g.length <= 10) continue;
+    const sorted = [...g].sort((a, b) => rank(a.voice) - rank(b.voice));
+    for (const x of sorted.slice(10)) drop.add(x.id);
+  }
+  return drop.size ? out.filter((x) => !drop.has(x.id)) : out;
+}
+
 export const CATALOG: CatalogEntry[] = (() => {
   const have = new Set(HAND.map((x) => x.id));
   const out = [...HAND];
@@ -2458,12 +2522,15 @@ export const CATALOG: CatalogEntry[] = (() => {
     ellicottOtPentateuch,
     cambridgeOtPentateuch,
     pulpitOtPentateuch,
+    // Wave-generated OT builders (see src/lib/reception/ot/waves.ts).
+    // Registered from JSON wave tables by scripts in ~/workspace/ot-waves.
+    ...OT_WAVE_BUILDERS,
   ]) {
     const more = gen(have);
     for (const x of more) have.add(x.id);
     out.push(...more);
   }
-  return out;
+  return capOtVoices(out);
 })();
 
 const STOP = new Set([
