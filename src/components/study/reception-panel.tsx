@@ -37,8 +37,15 @@ import {
   lookupHebrewBdbWordNow,
   type HebrewBdbResult,
 } from "@/lib/lexicon/hebrew-bdb";
+import {
+  hasSpanishHebrewChip,
+  lookupSpanishHebrewByStrongs,
+  lookupSpanishHebrewWordNow,
+  type SpanishHebrewResult,
+} from "@/lib/lexicon/spanish-hebrew";
 import { EnglishGlossCard } from "./english-gloss-card";
 import { HebrewBdbCard } from "./hebrew-bdb-card";
+import { SpanishHebrewCard } from "./spanish-hebrew-card";
 import { formatReference } from "@/lib/bible/reference";
 import { bookName, getBook } from "@/lib/bible/books";
 import { t } from "@/lib/i18n";
@@ -69,6 +76,7 @@ function wordChips(
   text: string,
   reference: string,
   locale: "en" | "es",
+  isOt: boolean,
 ): string[] {
   const words = text
     .replace(/[“”‘’]/g, "")
@@ -83,7 +91,7 @@ function wordChips(
     seen.add(key);
     const hit =
       locale === "es"
-        ? hasSpanishLexiconChip(w)
+        ? hasSpanishLexiconChip(w) || (isOt && hasSpanishHebrewChip(w))
         : hasLexiconChip(w, reference) ||
           (!isOtReference(reference) && hasEnglishLexiconChip(w)) ||
           (isOtReference(reference) && hasHebrewBdbChip(w));
@@ -135,6 +143,8 @@ export function ReceptionPanel({
   const [englishLexicon, setEnglishLexicon] =
     useState<EnglishLexiconResult | null>(null);
   const [hebrewBdb, setHebrewBdb] = useState<HebrewBdbResult | null>(null);
+  const [spanishHebrew, setSpanishHebrew] =
+    useState<SpanishHebrewResult | null>(null);
   /** Bump after clearing ES cache so curated desks re-run NMT. */
   const [curatedNmtKick, setCuratedNmtKick] = useState(0);
 
@@ -171,14 +181,18 @@ export function ReceptionPanel({
       .map((v) => v.text)
       .join(" ");
   }, [chapter, selectedVerse, selectedEndVerse]);
+  // Locale-independent OT check: isOtReference() only matches English
+  // book names, but `reference` is localized in es UI.
+  const isOtBook =
+    chapter != null && getBook(chapter.bookId).testament === "ot";
   const chips = useMemo(
     () =>
       selectionText
-        ? wordChips(selectionText, reference, locale)
+        ? wordChips(selectionText, reference, locale, isOtBook)
         : verse
-          ? wordChips(verse.text, reference, locale)
+          ? wordChips(verse.text, reference, locale, isOtBook)
           : [],
-    [selectionText, verse, reference, locale],
+    [selectionText, verse, reference, locale, isOtBook],
   );
   const marked = useMemo(
     () => (chapter ? markedVerses(chapter.bookId, chapter.chapter) : []),
@@ -190,6 +204,7 @@ export function ReceptionPanel({
     setSpanishLexicon(null);
     setEnglishLexicon(null);
     setHebrewBdb(null);
+    setSpanishHebrew(null);
     setError(null);
     setQuestion("");
     setAimOpen(false);
@@ -290,6 +305,7 @@ export function ReceptionPanel({
     setSpanishLexicon(null);
     setEnglishLexicon(null);
     setHebrewBdb(null);
+    setSpanishHebrew(null);
     setSynthesis(null);
     try {
       const data = await gatherCommentaries({
@@ -383,6 +399,7 @@ export function ReceptionPanel({
     setSpanishLexicon(null);
     setEnglishLexicon(null);
     setHebrewBdb(null);
+    setSpanishHebrew(null);
     try {
       const data = await synthesizeFromCards({
         data: {
@@ -422,7 +439,18 @@ export function ReceptionPanel({
     if (locale === "es") {
       setLexicon(null);
       setEnglishLexicon(null);
-      setSpanishLexicon(lookupSpanishWordNow(word, reference));
+      if (isOtBook) {
+        // Spanish OT Hebrew card: Spanish layer first (chip words are
+        // Spanish), then the BDB side by the resolved Strong's number.
+        const heb = lookupSpanishHebrewWordNow(word);
+        setSpanishLexicon(null);
+        setSpanishHebrew(heb);
+        setHebrewBdb(heb ? lookupHebrewBdbByStrongs(heb.strongs, reference) : null);
+      } else {
+        setHebrewBdb(null);
+        setSpanishHebrew(null);
+        setSpanishLexicon(lookupSpanishWordNow(word, reference));
+      }
       return;
     }
     setSpanishLexicon(null);
@@ -434,6 +462,7 @@ export function ReceptionPanel({
     if (enHit) {
       setLexicon(null);
       setHebrewBdb(null);
+      setSpanishHebrew(null);
       setEnglishLexicon(enHit);
       return;
     }
@@ -448,6 +477,7 @@ export function ReceptionPanel({
     }
     setEnglishLexicon(null);
     setHebrewBdb(null);
+    setSpanishHebrew(null);
     setLexicon(lookupWordNow(word, reference));
   }
 
@@ -456,6 +486,7 @@ export function ReceptionPanel({
     setLexicon(null);
     setEnglishLexicon(null);
     setHebrewBdb(null);
+    setSpanishHebrew(null);
     setSpanishLexicon(lookupSpanishByStrongs(strongs, reference));
   }
 
@@ -464,6 +495,7 @@ export function ReceptionPanel({
     setLexicon(null);
     setSpanishLexicon(null);
     setHebrewBdb(null);
+    setSpanishHebrew(null);
     setEnglishLexicon(lookupEnglishByStrongs(strongs, reference));
   }
 
@@ -472,7 +504,18 @@ export function ReceptionPanel({
     setLexicon(null);
     setSpanishLexicon(null);
     setEnglishLexicon(null);
+    setSpanishHebrew(null);
     setHebrewBdb(lookupHebrewBdbByStrongs(strongs, reference));
+  }
+
+  function runSpanishHebrewStrong(strongs: string) {
+    setError(null);
+    setLexicon(null);
+    setSpanishLexicon(null);
+    setEnglishLexicon(null);
+    const heb = lookupSpanishHebrewByStrongs(strongs);
+    setSpanishHebrew(heb);
+    setHebrewBdb(heb ? lookupHebrewBdbByStrongs(strongs, reference) : null);
   }
 
   const hasGeneratedCards = useMemo(() => {
@@ -842,6 +885,8 @@ export function ReceptionPanel({
                         lexicon?.word.toLowerCase() === w.toLowerCase() ||
                           spanishLexicon?.word.toLowerCase() ===
                             w.toLowerCase() ||
+                          spanishHebrew?.word.toLowerCase() ===
+                            w.toLowerCase() ||
                           englishLexicon?.word.toLowerCase() ===
                             w.toLowerCase() ||
                           hebrewBdb?.word.toLowerCase() === w.toLowerCase()
@@ -864,6 +909,19 @@ export function ReceptionPanel({
                 <SpanishGlossCard
                   entry={spanishLexicon}
                   onStrong={runSpanishStrong}
+                />
+              </div>
+            ) : null}
+
+            {locale === "es" && spanishHebrew ? (
+              <div
+                key={`${spanishHebrew.strongs}:${spanishHebrew.hero}`}
+                className="tl-gloss-crossfade"
+              >
+                <SpanishHebrewCard
+                  entry={spanishHebrew}
+                  bdb={hebrewBdb}
+                  onStrong={runSpanishHebrewStrong}
                 />
               </div>
             ) : null}
