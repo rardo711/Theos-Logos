@@ -30,6 +30,10 @@ Share-alike and attribution requirements of CC BY-SA 4.0 apply to the UBS
 material. Rebuild via `node scripts/import-ubs-es-lexicon.mjs` (local only —
 not at Vercel build).
 
+Index enrichment (singular/plural + multi-word gloss tokens) and
+curated key-only edges in `scripts/data/spanish-gloss-edges.json` are applied
+at import; UBS entry bodies are not rewritten.
+
 ## Secondary short glosses
 
 Filtered rows from [bcv-commons/strongs](https://huggingface.co/datasets/bcv-commons/strongs)

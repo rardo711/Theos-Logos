@@ -115,4 +115,80 @@ describe("spanish UBS lexicon", () => {
     assert.equal(hit?.gloss, "todas");
     assert.equal(hit?.senseMatchedByReference, true);
   });
+
+  // --- Muse Spanish lexicon fix: index enrichment + curated edges ---
+
+  it("Col 1:7 ministro → G1249 διάκονος (not G4166 ποιμήν)", () => {
+    const hit = lookupSpanishWordNow("ministro", "Colosenses 1:7");
+    assert.ok(hit);
+    assert.equal(hit?.strongs, "G1249");
+    assert.equal(hit?.senseMatchedByReference, true);
+    assert.equal(hit?.unattestedInVerse, false);
+    assert.match(hit?.lemma ?? "", /διάκονος|διάκονος/i);
+    // SIL ref for Col 1:7
+    assert.equal(referenceToSilVerseKey("Colosenses 1:7"), "051001007");
+  });
+
+  it("ministro without verse still includes G1249 as a candidate path", () => {
+    const hit = lookupSpanishWordNow("ministro");
+    assert.ok(hit);
+    // Curated edge prepends G1249; may still surface first without verse.
+    assert.ok(
+      ["G1249", "G4166"].includes(hit?.strongs ?? ""),
+      `unexpected strongs ${hit?.strongs}`,
+    );
+  });
+
+  it("regression: palabras / ancianos / obra / evangelio resolve enriched Strong's", () => {
+    const palabras = lookupSpanishWordNow("palabras", "Mateo 7:24");
+    assert.ok(palabras);
+    assert.ok(
+      ["G3056", "G4487"].includes(palabras?.strongs ?? ""),
+      `palabras → ${palabras?.strongs}`,
+    );
+
+    const ancianos = lookupSpanishWordNow("ancianos", "Mateo 15:2");
+    assert.ok(ancianos);
+    assert.equal(ancianos?.strongs, "G4245");
+
+    const obra = lookupSpanishWordNow("obra", "Mateo 26:10");
+    assert.ok(obra);
+    assert.equal(obra?.strongs, "G2041");
+
+    const evangelio = lookupSpanishWordNow("evangelio", "Marcos 1:1");
+    assert.ok(evangelio);
+    // Multi-word token + curated edge → G2098; verse may or may not attest.
+    assert.equal(evangelio?.strongs, "G2098");
+  });
+
+  it("regression: servidor / esposo / muerte / temor curated edges", () => {
+    const servidor = lookupSpanishWordNow("servidor", "Mateo 20:26");
+    assert.ok(servidor);
+    assert.equal(servidor?.strongs, "G1249");
+
+    const esposo = lookupSpanishWordNow("esposo", "Mateo 9:15");
+    assert.ok(esposo);
+    assert.equal(esposo?.strongs, "G3566");
+
+    const muerte = lookupSpanishWordNow("muerte", "Romanos 6:23");
+    assert.ok(muerte);
+    assert.equal(muerte?.strongs, "G2288");
+
+    const temor = lookupSpanishWordNow("temor", "Mateo 28:8");
+    assert.ok(temor);
+    assert.equal(temor?.strongs, "G5401");
+  });
+
+  it("unattestedInVerse when reference given but no candidate attested", () => {
+    // Invent a verse that will not appear in any ministro candidate rv if
+    // only G4166 were present historically; after enrichment G1249 may attest
+    // some verses. Use a Strong's lookup with a nonsense OT ref on a Greek entry.
+    const hit = lookupSpanishByStrongs("G3056", "Génesis 1:1");
+    assert.ok(hit);
+    assert.equal(hit?.senseMatchedByReference, false);
+    const wordHit = lookupSpanishWordNow("G3056", "Génesis 1:1");
+    assert.ok(wordHit);
+    assert.equal(wordHit?.unattestedInVerse, true);
+  });
+
 });

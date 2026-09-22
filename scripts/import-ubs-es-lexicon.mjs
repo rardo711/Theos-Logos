@@ -196,6 +196,74 @@ function parseSpa(text) {
   return { short, kept, skipped };
 }
 
+/** Content stopwords for multi-word gloss key tokenization (Spanish). */
+const GLOSS_STOP = new Set([
+  "el", "la", "los", "las", "un", "una", "unos", "unas",
+  "de", "del", "al", "a", "y", "o", "en", "por", "con",
+  "su", "sus", "lo", "le", "se", "que", "para", "como",
+  "mas", "muy", "ya", "si", "no", "eso", "esta", "este",
+]);
+
+const MAX_GLOSS_HITS = 8;
+
+/**
+ * Spanish singular/plural heuristics derived from an existing gloss key.
+ * Source-faithful: only morphs of keys already present — no invented gloss text.
+ */
+function numberVariants(key) {
+  const out = new Set();
+  if (!key || key.includes(" ")) return out;
+  const w = key;
+  out.add(w);
+  // Pluralize
+  if (w.endsWith("z") && w.length > 2) out.add(w.slice(0, -1) + "ces");
+  else if ((w.endsWith("cion") || w.endsWith("sion") || w.endsWith("ion")) && w.length > 4)
+    out.add(w + "es");
+  else if (/[aeiou]$/.test(w)) out.add(w + "s");
+  else if (/[nrljdys]$/.test(w) && w.length > 2) out.add(w + "es");
+  // Singularize
+  if (w.endsWith("ces") && w.length > 4) out.add(w.slice(0, -3) + "z");
+  else if (w.endsWith("iones") && w.length > 6) out.add(w.slice(0, -2)); // -iones → -ion
+  else if (w.endsWith("es") && w.length > 3) {
+    const stem = w.slice(0, -2);
+    if (/[nrljdys]$/.test(stem)) out.add(stem);
+  }
+  if (w.endsWith("s") && !w.endsWith("es") && !w.endsWith("us") && w.length > 2) {
+    out.add(w.slice(0, -1));
+  }
+  return out;
+}
+
+/** Whole content tokens of a multi-word gloss key (e.g. "el evangelio" → "evangelio"). */
+function contentTokens(key) {
+  const out = new Set();
+  const parts = key.split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return out;
+  for (const p of parts) {
+    if (p.length < 2 || p.length > 24) continue;
+    if (GLOSS_STOP.has(p)) continue;
+    out.add(p);
+  }
+  return out;
+}
+
+function pushGloss(byGloss, key, id, { front = false } = {}) {
+  if (!key || key.length < 2 || key.length > 24) return;
+  const list = byGloss[key] ?? [];
+  if (list.includes(id)) {
+    if (front) {
+      byGloss[key] = [id, ...list.filter((x) => x !== id)].slice(0, MAX_GLOSS_HITS);
+    }
+    return;
+  }
+  if (front) {
+    byGloss[key] = [id, ...list].slice(0, MAX_GLOSS_HITS);
+  } else if (list.length < MAX_GLOSS_HITS) {
+    list.push(id);
+    byGloss[key] = list;
+  }
+}
+
 function buildGlossIndex(by) {
   /** @type {Record<string, string[]>} */
   const byGloss = Object.create(null);
@@ -208,12 +276,45 @@ function buildGlossIndex(by) {
     for (const g of glosses) {
       const key = glossKey(g);
       if (key.length < 2 || key.length > 24) continue;
-      const list = byGloss[key] ?? [];
-      if (!list.includes(id) && list.length < 5) list.push(id);
-      byGloss[key] = list;
+      pushGloss(byGloss, key, id);
+      // Multi-word key tokens (9% of Muse collisions)
+      for (const tok of contentTokens(key)) pushGloss(byGloss, tok, id);
+    }
+  }
+  // Singular/plural variants of every existing key (32% of Muse collisions)
+  for (const key of Object.keys(byGloss)) {
+    const ids = byGloss[key];
+    for (const variant of numberVariants(key)) {
+      if (variant === key) continue;
+      for (const id of ids) pushGloss(byGloss, variant, id);
     }
   }
   return byGloss;
+}
+
+/**
+ * Apply curated headword → Strong's edges (key only; entry content untouched).
+ * Prepends so verse-aware lookup can discover the should-win Strong's.
+ */
+function applyCuratedEdges(byGloss, by, edges) {
+  let applied = 0;
+  let skipped = 0;
+  for (const [rawKey, ids] of Object.entries(edges || {})) {
+    if (rawKey.startsWith("_")) continue;
+    const key = glossKey(rawKey);
+    if (!key) continue;
+    for (const rawId of ids || []) {
+      const id = normalizeStrongs(rawId);
+      if (!id || !by[id]) {
+        skipped += 1;
+        process.stderr.write(`  edge skip ${key}→${rawId} (missing entry)\n`);
+        continue;
+      }
+      pushGloss(byGloss, key, id, { front: true });
+      applied += 1;
+    }
+  }
+  return { applied, skipped };
 }
 
 async function main() {
@@ -248,6 +349,20 @@ async function main() {
   process.stderr.write(`  spa attached to UBS ${spaFilled}, spa-only gaps ${spaOnly}\n`);
 
   const byGloss = buildGlossIndex(by);
+  process.stderr.write(`  gloss index (enriched): ${Object.keys(byGloss).length} keys\n`);
+
+  // Curated index-key edges (Muse audit / Chief) — key only, entry content untouched.
+  let curatedPath = join(ROOT, "scripts/data/spanish-gloss-edges.json");
+  let curatedEdges = {};
+  try {
+    const curatedRaw = JSON.parse(await readFile(curatedPath, "utf8"));
+    curatedEdges = curatedRaw.edges || curatedRaw;
+    const { applied, skipped } = applyCuratedEdges(byGloss, by, curatedEdges);
+    process.stderr.write(`  curated edges applied ${applied}, skipped ${skipped}\n`);
+  } catch (err) {
+    process.stderr.write(`  curated edges not loaded: ${err.message}\n`);
+  }
+
   await mkdir(DIR, { recursive: true });
   const out = {
     attribution: ATTRIBUTION,
@@ -255,7 +370,7 @@ async function main() {
     source:
       "https://github.com/ubsicap/ubs-open-license/tree/main/dictionaries/greek",
     merge:
-      "PRIMARY UBS ES by Strong's; per-sense rv (SIL BBBCCCVVV), code, dom/sub; SECONDARY spa.tsv (lexicon|ubs-dict only, no llm); sg short / gap fill.",
+      "PRIMARY UBS ES by Strong's; per-sense rv (SIL BBBCCCVVV), code, dom/sub; SECONDARY spa.tsv (lexicon|ubs-dict only, no llm); sg short / gap fill; byGloss enriched (singular/plural + multi-word tokens) + curated spanish-gloss-edges.json (key-only).",
     by,
     byGloss,
   };

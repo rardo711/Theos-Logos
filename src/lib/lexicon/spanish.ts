@@ -73,6 +73,12 @@ export type SpanishLexiconResult = {
   source: "ubs" | "spa";
   /** True when selected sense came from a LEXReferences hit. */
   senseMatchedByReference: boolean;
+  /**
+   * True when a verse reference was provided but no candidate Strong's has
+   * that verse in UBS LEXReferences. Dictionary browse still returns a surface
+   * hit; chip/card must not imply it is the verse lemma.
+   */
+  unattestedInVerse?: boolean;
 };
 
 function normalizeStrongs(raw: string): string {
@@ -199,8 +205,11 @@ export function lookupSpanishByGloss(
 }
 
 /**
- * Prefer a UBS hit whose LEXReferences include this verse; else first gloss hit.
- * Never Gemini.
+ * Prefer a UBS hit whose LEXReferences include this verse.
+ * When a verse reference is provided but no candidate is verse-attested, still
+ * return the best surface-form hit for dictionary browse, but flag
+ * unattestedInVerse so the card does not imply it is the verse lemma.
+ * Never Gemini. Index enrichment (not verse-rerank-only) discovers missing Strong's.
  */
 export function lookupSpanishWordNow(
   word: string,
@@ -209,11 +218,22 @@ export function lookupSpanishWordNow(
   const hits = lookupSpanishByGloss(word, reference);
   if (hits.length) {
     const refHit = hits.find((h) => h.senseMatchedByReference);
-    if (refHit) return refHit;
-    return hits[0];
+    if (refHit) return { ...refHit, unattestedInVerse: false };
+    const surface = hits[0];
+    // Reference given but no candidate attested in this verse — do not silently
+    // present hits[0] as the verse's word.
+    if (reference && reference.trim()) {
+      return { ...surface, unattestedInVerse: true };
+    }
+    return surface;
   }
   if (/^g\s*0*\d+$/i.test(word.trim())) {
-    return lookupSpanishByStrongs(word, reference);
+    const hit = lookupSpanishByStrongs(word, reference);
+    if (!hit) return null;
+    if (reference && reference.trim() && !hit.senseMatchedByReference) {
+      return { ...hit, unattestedInVerse: true };
+    }
+    return hit;
   }
   return null;
 }

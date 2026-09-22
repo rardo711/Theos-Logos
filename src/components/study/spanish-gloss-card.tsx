@@ -55,6 +55,14 @@ export function SpanishGlossCard({
           Sin definición breve.
         </p>
       )}
+      {entry.unattestedInVerse ? (
+        <p
+          className="mt-1 text-[0.6875rem] text-faint"
+          data-unattested-in-verse
+        >
+          no atestiguado en este versículo
+        </p>
+      ) : null}
 
       {/* 2. Glosa hero — visual king */}
       <p className={cn(LABEL, "mt-3")}>Glosa</p>

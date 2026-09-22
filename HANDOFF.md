@@ -1,6 +1,19 @@
-# Theos Logos — living handoff (updated 2026-09-16 ~07:50 ET)
+# Theos Logos — living handoff (updated 2026-09-22 ~14:50 ET)
 
 **Grok: start here.** Repo `HANDOFF.md` on `scholar-desk` (BUGS-PLAN.md retired 2026-09-16 — all items verified fixed on prod).
+
+## Muse Spanish lexicon fix — index enrichment + curated edges (2026-09-22 ~14:50 ET) — PREVIEW ONLY
+- **Problem (Muse audit):** `byGloss["ministro"] == ["G4166"]` so Col 1:7 tap never sees G1249; verse-rerank alone fixes **0%** of 704 events — correct Strong's missing from candidates.
+- **Fix (index enrichment, not verse-rerank-only):**
+  1. `scripts/import-ubs-es-lexicon.mjs` — singular/plural variants of every gloss key + whole tokens of multi-word keys (e.g. `evangelio` ← `el evangelio`); regenerates `spanish.json`.
+  2. Curated key-only edges `scripts/data/spanish-gloss-edges.json` (reviewable) — `ministro`→G1249, `muerte`→G2288, `temor`→G5401, `esposo`→G3566, plus radioactive pairs (`palabras`, `ancianos`, `obra`, `evangelio`, `servidor`, …). Entry content untouched.
+  3. Ranking hardening in `lookupSpanishWordNow`: when verse `reference` given and no candidate has `senseMatchedByReference`, still return surface hit for browse but set `unattestedInVerse` + card note “no atestiguado en este versículo”.
+- **Success:** Colosenses 1:7 `ministro` → διάκονος **G1249** (SIL `051001007`), not ποιμήν G4166.
+- **Repro:** locale=es → Colosenses 1:7 → tap **ministro** → Spanish gloss card shows G1249.
+- **Tests:** `spanish.test.ts` — Col 1:7 pin + Muse regression set (palabras/ancianos/obra/evangelio/servidor/esposo/muerte/temor) + unattested flag. English UBS path unchanged (asymmetry Spanish-specific).
+- **NO promote.** Chip tap never Gemini. No Scofield/Darby. Live prod logo untouched.
+- SHA `TIP_SHA` · preview PREVIEW_URL · dpl DPL_ID
+- Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 
 ## English NT lexicon parity — UBS EN gloss pack (2026-09-16 ~07:50 ET) — PREVIEW ONLY
 - **Goal:** locale=en NT word-tap matches Spanish UBS robustness (verse-sense, multi-gloss hero, N more senses, gold Strong → Midvash EN).
