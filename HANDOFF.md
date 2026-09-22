@@ -12,7 +12,7 @@
 - **Repro:** locale=es → Colosenses 1:7 → tap **ministro** → Spanish gloss card shows G1249.
 - **Tests:** `spanish.test.ts` — Col 1:7 pin + Muse regression set (palabras/ancianos/obra/evangelio/servidor/esposo/muerte/temor) + unattested flag. English UBS path unchanged (asymmetry Spanish-specific).
 - **NO promote.** Chip tap never Gemini. No Scofield/Darby. Live prod logo untouched.
-- SHA `TIP_SHA` · preview PREVIEW_URL · dpl DPL_ID
+- SHA `0b4c720` · preview https://theos-logos-official-564xpzoxv-castanedag2001-1468.vercel.app · dpl `dpl_BiEhx3FKptqLHKfaDYnYCrJ1nT4t`
 - Branch alias: https://theos-logos-official-git-scholar-desk-castanedag2001-1468.vercel.app
 
 ## English NT lexicon parity — UBS EN gloss pack (2026-09-16 ~07:50 ET) — PREVIEW ONLY
