@@ -1,8 +1,10 @@
-// @ts-check
 /**
- * The sign-out sequence used by `src/lib/auth/client.ts`, kept here as a pure
- * module so its effects can be unit-tested (`node --test` only covers
- * `scripts/`), the same split `migration-plan.mjs` uses for the two appliers.
+ * The sign-out sequence used by `./client.ts`, kept here as a pure module so
+ * its effects can be unit-tested (`./sign-out-plan.test.ts`).
+ *
+ * It lives inside `src/lib/auth/` — not `scripts/` — so browser code can
+ * import it without reaching outside `src/`. It must stay browser-safe: no
+ * Node-only APIs, just timers and promises.
  *
  * The two environments authenticate differently, so they need different
  * answers to "the server did not reply":
@@ -37,26 +39,25 @@ export const DEPLOYED_SIGN_OUT_TIMEOUT_MS = 10_000;
  * How long to wait for a sign-out in this environment. Every sign-out network
  * call picks its bound here, so the preview/deployed split cannot drift apart
  * between callers.
- * @param {boolean} livePreview
- * @returns {number}
  */
-export function signOutTimeoutMs(livePreview) {
+export function signOutTimeoutMs(livePreview: boolean): number {
   return livePreview ? PREVIEW_SIGN_OUT_TIMEOUT_MS : DEPLOYED_SIGN_OUT_TIMEOUT_MS;
 }
+
+export type SettleOutcome = "ok" | "failed" | "timeout";
 
 /**
  * Run `start()` but give up after `timeoutMs`, reporting which happened. Never
  * rejects — callers decide what a failure means, and a `try/catch` around an
  * `await` does nothing for a promise that never settles.
- * @param {() => unknown} start
- * @param {number} timeoutMs
- * @returns {Promise<"ok" | "failed" | "timeout">}
  */
-export function settleWithin(start, timeoutMs) {
-  return new Promise((resolve) => {
+export function settleWithin(
+  start: () => unknown,
+  timeoutMs: number,
+): Promise<SettleOutcome> {
+  return new Promise<SettleOutcome>((resolve) => {
     const timer = setTimeout(() => resolve("timeout"), timeoutMs);
-    /** @param {"ok" | "failed"} outcome */
-    const done = (outcome) => {
+    const done = (outcome: "ok" | "failed") => {
       clearTimeout(timer);
       resolve(outcome);
     };
@@ -71,15 +72,19 @@ export function settleWithin(start, timeoutMs) {
   });
 }
 
-/**
- * @typedef {object} SignOutSteps
- * @property {boolean} livePreview Whether the app is the sandbox preview iframe.
- * @property {boolean} hasBearer Whether a preview bearer token is stored.
- * @property {() => unknown} requestSignOut Ask the server to end the session; must reject on a failed response.
- * @property {() => void} clearToken Drop the stored bearer token.
- * @property {() => void} redirect Leave the page.
- * @property {number} [timeoutMs]
- */
+export interface SignOutSteps {
+  /** Whether the app is the sandbox preview iframe. */
+  livePreview: boolean;
+  /** Whether a preview bearer token is stored. */
+  hasBearer: boolean;
+  /** Ask the server to end the session; must reject on a failed response. */
+  requestSignOut: () => unknown;
+  /** Drop the stored bearer token. */
+  clearToken: () => void;
+  /** Leave the page. */
+  redirect: () => void;
+  timeoutMs?: number;
+}
 
 /**
  * End the session, then clear the local token and redirect.
@@ -88,8 +93,6 @@ export function settleWithin(start, timeoutMs) {
  * the server confirmed, because nothing else can clear the cookie — a failed or
  * timed-out sign-out throws rather than reporting a sign-out that did not
  * happen.
- * @param {SignOutSteps} steps
- * @returns {Promise<void>}
  */
 export async function runSignOut({
   livePreview,
@@ -98,7 +101,7 @@ export async function runSignOut({
   clearToken,
   redirect,
   timeoutMs,
-}) {
+}: SignOutSteps): Promise<void> {
   if (livePreview) {
     // No bearer means a partitioned iframe with nothing to invalidate; with one,
     // still invalidate it server-side, just don't block on the answer.
@@ -122,14 +125,17 @@ export async function runSignOut({
   redirect();
 }
 
-/**
- * @typedef {object} PreSignInSteps
- * @property {boolean} livePreview Whether the app is the sandbox preview iframe.
- * @property {boolean} hasBearer Whether a preview bearer token is stored.
- * @property {() => unknown} requestSignOut Ask the server to end any prior session.
- * @property {() => void} clearToken Drop the stored bearer token.
- * @property {number} [timeoutMs]
- */
+export interface PreSignInSteps {
+  /** Whether the app is the sandbox preview iframe. */
+  livePreview: boolean;
+  /** Whether a preview bearer token is stored. */
+  hasBearer: boolean;
+  /** Ask the server to end any prior session. */
+  requestSignOut: () => unknown;
+  /** Drop the stored bearer token. */
+  clearToken: () => void;
+  timeoutMs?: number;
+}
 
 /**
  * Drop any prior session before a new sign-in starts, so switching providers
@@ -142,8 +148,6 @@ export async function runSignOut({
  * way. Only the wait is bounded, and by the same per-environment rule as
  * `runSignOut`: a deployed session dies server-side, so it gets the full
  * window rather than the preview's aggressive one.
- * @param {PreSignInSteps} steps
- * @returns {Promise<void>}
  */
 export async function runPreSignInSignOut({
   livePreview,
@@ -151,7 +155,7 @@ export async function runPreSignInSignOut({
   requestSignOut,
   clearToken,
   timeoutMs,
-}) {
+}: PreSignInSteps): Promise<void> {
   // In the preview a missing bearer means there is nothing to clear.
   if (hasBearer || !livePreview) {
     await settleWithin(requestSignOut, timeoutMs ?? signOutTimeoutMs(livePreview));

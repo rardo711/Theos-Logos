@@ -1,6 +1,6 @@
 import { genericOAuthClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
-import { runPreSignInSignOut, runSignOut } from "../../../scripts/sign-out-plan.mjs";
+import { runPreSignInSignOut, runSignOut } from "./sign-out-plan";
 import { GROK_PROVIDERS } from "./providers";
 
 /**
@@ -210,7 +210,7 @@ function waitForPopupToken(popup: Window): Promise<string | null> {
  * Sign out of THIS app's local session, clear the preview token, then redirect.
  *
  * Use this, never `authClient.signOut()` — see the note on `authClient`.
- * Sequencing lives in `scripts/sign-out-plan.mjs` so it can be unit-tested.
+ * Sequencing lives in `./sign-out-plan.ts` so it can be unit-tested.
  *
  * **Rejects when deployed if the server never confirms.** There the session is
  * an HttpOnly cookie only the server can clear, so redirecting anyway would

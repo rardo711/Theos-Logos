@@ -7,7 +7,9 @@ import {
   runSignOut,
   settleWithin,
   signOutTimeoutMs,
-} from "./sign-out-plan.mjs";
+  type PreSignInSteps,
+  type SignOutSteps,
+} from "./sign-out-plan.ts";
 
 const TEST_TIMEOUT_MS = 20;
 
@@ -25,11 +27,10 @@ const flush = () => new Promise((resolve) => setImmediate(resolve));
  * A `runSignOut` call with the browser effects replaced by recorders, so each
  * test asserts on what actually happened rather than on how it was written.
  */
-function harness(overrides = {}) {
-  /** @type {string[]} */
-  const order = [];
+function harness(overrides: Partial<SignOutSteps> = {}) {
+  const order: string[] = [];
   let requests = 0;
-  const steps = {
+  const steps: SignOutSteps = {
     livePreview: false,
     hasBearer: true,
     requestSignOut: () => {
@@ -39,8 +40,8 @@ function harness(overrides = {}) {
     clearToken: () => order.push("clear"),
     redirect: () => order.push("redirect"),
     timeoutMs: TEST_TIMEOUT_MS,
-    ...overrides,
   };
+  Object.assign(steps, overrides);
   return {
     order,
     get requests() {
@@ -51,10 +52,12 @@ function harness(overrides = {}) {
 }
 
 /** Live preview: the bearer is the session, so the local clear always wins. */
-const preview = (overrides = {}) => harness({ livePreview: true, ...overrides });
+const preview = (overrides: Partial<SignOutSteps> = {}) =>
+  harness({ livePreview: true, ...overrides });
 
 /** Deployed: only the server can clear the `__Host-` cookie. */
-const deployed = (overrides = {}) => harness({ livePreview: false, ...overrides });
+const deployed = (overrides: Partial<SignOutSteps> = {}) =>
+  harness({ livePreview: false, ...overrides });
 
 // ── Live preview ─────────────────────────────────────────────────────────────
 
@@ -145,7 +148,7 @@ test("settleWithin reports the outcome and never rejects", async () => {
 
 test("settleWithin waits its full window, then gives up rather than hanging", async (t) => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
-  let outcome = null;
+  let outcome: string | null = null;
   const done = settleWithin(hangs, TEST_TIMEOUT_MS).then((o) => (outcome = o));
 
   t.mock.timers.tick(TEST_TIMEOUT_MS - 1);
@@ -162,15 +165,18 @@ test("settleWithin waits its full window, then gives up rather than hanging", as
 // there is no prior session, so a failure must never block sign-in.
 
 /** A pre-sign-in clear whose request never settles. */
-function preSignIn(livePreview, overrides = {}) {
+function preSignIn(livePreview: boolean, overrides: Partial<PreSignInSteps> = {}) {
   let cleared = 0;
-  const done = runPreSignInSignOut({
+  const steps: PreSignInSteps = {
     livePreview,
     hasBearer: true,
     requestSignOut: hangs,
-    clearToken: () => (cleared += 1),
-    ...overrides,
-  });
+    clearToken: () => {
+      cleared += 1;
+    },
+  };
+  Object.assign(steps, overrides);
+  const done = runPreSignInSignOut(steps);
   return {
     done,
     get cleared() {
