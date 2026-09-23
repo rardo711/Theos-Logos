@@ -5,7 +5,7 @@ export type Compact = {
   m: string;
   g: string;
   d: string;
-  src: "AS" | "BDB";
+  src: "STEPBible" | "BDB";
 };
 
 export const deskAttribution =
@@ -18,7 +18,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "λόγος",
     g: "word",
     d: "Word; that by which inward thought is expressed. In John, the personal Word.",
-    src: "AS",
+    src: "STEPBible",
   },
   G746: {
     s: "G746",
@@ -26,7 +26,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "ἀρχή",
     g: "beginning",
     d: "Beginning, origin; first principle; also rule or authority.",
-    src: "AS",
+    src: "STEPBible",
   },
   G2316: {
     s: "G2316",
@@ -34,7 +34,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "θεός",
     g: "God",
     d: "God; a god. In the NT almost always of the one true God.",
-    src: "AS",
+    src: "STEPBible",
   },
   G5457: {
     s: "G5457",
@@ -42,7 +42,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "φῶς",
     g: "light",
     d: "Light (opposite darkness).",
-    src: "AS",
+    src: "STEPBible",
   },
   G4653: {
     s: "G4653",
@@ -50,7 +50,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "σκοτία",
     g: "darkness",
     d: "Darkness; in John, the realm that does not comprehend the light.",
-    src: "AS",
+    src: "STEPBible",
   },
   G2222: {
     s: "G2222",
@@ -58,7 +58,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "ζωή",
     g: "life",
     d: "Life; existence. In John, often the life that is in God.",
-    src: "AS",
+    src: "STEPBible",
   },
   G4561: {
     s: "G4561",
@@ -66,7 +66,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "σάρξ",
     g: "flesh",
     d: "Flesh; the soft substance of the body; human nature.",
-    src: "AS",
+    src: "STEPBible",
   },
   G1391: {
     s: "G1391",
@@ -74,7 +74,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "δόξα",
     g: "glory",
     d: "Opinion, reputation; in Scripture, glory, honour, splendour.",
-    src: "AS",
+    src: "STEPBible",
   },
   G5485: {
     s: "G5485",
@@ -82,7 +82,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "χάρις",
     g: "grace",
     d: "Grace, favour, gift — unearned kindness.",
-    src: "AS",
+    src: "STEPBible",
   },
   G225: {
     s: "G225",
@@ -90,7 +90,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "ἀλήθεια",
     g: "truth",
     d: "Truth; reality as disclosed.",
-    src: "AS",
+    src: "STEPBible",
   },
   G2889: {
     s: "G2889",
@@ -98,7 +98,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "κόσμος",
     g: "world",
     d: "Order, ornament; then the world as created order, humankind, or the present age.",
-    src: "AS",
+    src: "STEPBible",
   },
   G286: {
     s: "G286",
@@ -106,7 +106,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "ἀμνός",
     g: "lamb",
     d: "A lamb; in John 1, of Christ.",
-    src: "AS",
+    src: "STEPBible",
   },
   G2424: {
     s: "G2424",
@@ -114,7 +114,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "Ἰησοῦς",
     g: "Jesus",
     d: "Jesus — the Greek form of Joshua; in the NT the personal name of the Messiah.",
-    src: "AS",
+    src: "STEPBible",
   },
   G5547: {
     s: "G5547",
@@ -122,7 +122,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "Χριστός",
     g: "Christ",
     d: "Anointed; the Messiah, Christ.",
-    src: "AS",
+    src: "STEPBible",
   },
   G2962: {
     s: "G2962",
@@ -130,7 +130,7 @@ export const byStrongs: Record<string, Compact> = {
     m: "κύριος",
     g: "Lord",
     d: "Lord, master, owner; in the NT often of Christ and of God.",
-    src: "AS",
+    src: "STEPBible",
   },
   H430: {
     s: "H430",

@@ -13,7 +13,7 @@ import glossesJson from "./data/glosses.json" with { type: "json" };
 export type StepEntry = {
   strongs: string;
   language: "hebrew" | "greek";
-  source: "AS" | "BDB";
+  source: "STEPBible" | "BDB";
   lemma: string;
   gloss: string;
   definition: string;
@@ -40,7 +40,7 @@ function expand(c: Compact | JsonCompact): StepEntry {
   return {
     strongs: c.s,
     language: c.l === "h" ? "hebrew" : "greek",
-    source: c.src === "BDB" ? "BDB" : "AS",
+    source: c.src === "BDB" ? "BDB" : "STEPBible",
     lemma: c.m,
     gloss: c.g,
     definition: c.d,

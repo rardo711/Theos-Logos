@@ -1,6 +1,9 @@
 /**
  * English NT lexicon — UBS Greek NT Dictionary (en), CC BY-SA 4.0.
- * Secondary short glosses from bcv-commons/strongs eng.tsv (lexicon|ubs-dict only).
+ * Secondary short glosses: canonical NT gap-fills (G1–G5624) are
+ * Abbott-Smith 1922 (public domain), verbatim; 20 omissions keep their
+ * prior eng.tsv fallback gloss (src "eng-fallback"); extended numbers
+ * (G5625+) keep bcv-commons/strongs eng.tsv glosses (src "eng").
  * Committed static JSON — never fetched at Vercel build. Chip tap never Gemini.
  *
  * Sense fidelity: when a verse reference is provided, pick the LEXMeanings
@@ -19,6 +22,9 @@ export const englishAttribution =
   (englishJson as { attribution?: string }).attribution ??
   "UBS Greek NT Dictionary (English) © United Bible Societies. CC BY-SA 4.0.";
 
+export const abbottSmithAttribution =
+  "G. Abbott-Smith, A Manual Greek Lexicon of the New Testament (New York: Scribner's, 1922). Public domain.";
+
 type CompactSense = {
   g: string[];
   d: string;
@@ -36,7 +42,7 @@ type CompactEn = {
   ss: CompactSense[];
   sc?: string[];
   sg?: string;
-  src?: "ubs" | "eng";
+  src?: "ubs" | "eng" | "abbott-smith" | "eng-fallback";
 };
 
 const by = (englishJson as { by: Record<string, CompactEn> }).by ?? {};
@@ -75,7 +81,7 @@ export type EnglishLexiconResult = {
   relatedSenseCount: number;
   shortGloss?: string;
   attribution: string;
-  source: "ubs" | "eng";
+  source: "ubs" | "eng" | "abbott-smith";
   /** True when selected sense came from a LEXReferences hit. */
   senseMatchedByReference: boolean;
 };
@@ -135,6 +141,12 @@ function expand(
   const subdomains = selected?.subdomains || [];
   const entryCode = selected?.entryCode || "";
   const strongsAll = e.sc?.length ? e.sc : [e.s];
+  const source: EnglishLexiconResult["source"] =
+    e.src === "abbott-smith"
+      ? "abbott-smith"
+      : e.src === "eng" || e.src === "eng-fallback"
+        ? "eng"
+        : "ubs";
   return {
     word,
     strongs: e.s,
@@ -151,8 +163,9 @@ function expand(
     entryCode,
     relatedSenseCount: Math.max(0, senses.length - 1),
     shortGloss: e.sg,
-    attribution: englishAttribution,
-    source: e.src === "eng" ? "eng" : "ubs",
+    attribution:
+      e.src === "abbott-smith" ? abbottSmithAttribution : englishAttribution,
+    source,
     senseMatchedByReference: matched,
   };
 }
