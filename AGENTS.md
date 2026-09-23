@@ -14,7 +14,7 @@
 This repository is actively developed using a multi-tool setup:
 - **Grok (xAI)**: Uses a sandbox environment expecting dev server on `0.0.0.0:8080` with host `*.grok-sandbox.com`.
 - **Google AI Studio**: Uses a Cloud Run sandbox expecting dev server on `0.0.0.0:3000` with host `*.run.app`.
-- **Local Dev / Deployment**: Node 22+, Vercel Hobby, or Render.
+- **Local Dev / Deployment**: Node 22+, Vercel Hobby.
 
 ### Preserving Cross-Environment Compatibility:
 1. **Ports (`3000` vs `8080`)**:
@@ -57,4 +57,4 @@ Theos Logos is a **scholarly Bible study desk**, not a generic chatbot or conver
 - **Strict Anti-Slop**:
   - No synthetic chatbot overlays, generic marketing copy, or unrequested landing hero sections.
   - Strict scholarly typography and styling: Playfair Display + Source Serif 4 on warm paper / oxblood accents.
-  - Never fabricate quotes or theological claims; always ground citations in reputable historic sources (see `SOURCES.md` and `COMMENTARY-GUIDE.md`).
+  - Never fabricate quotes or theological claims; always ground citations in reputable historic sources (see `SOURCES.md`).
