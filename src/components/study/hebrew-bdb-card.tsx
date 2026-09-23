@@ -29,6 +29,9 @@ export function HebrewBdbCard({
   const [senseFullOpen, setSenseFullOpen] = useState(false);
   const related = entry.senses.filter((_, i) => i !== entry.selectedSenseIndex);
   const relatedCount = entry.relatedSenseCount;
+  // Sibling lexemes under the same Strong's number (homograph split).
+  const siblings = (entry.siblings ?? []).filter((s) => s.key !== entry.splitKey);
+  const [lexemesOpen, setLexemesOpen] = useState(!!entry.redirectedFromStub);
 
   return (
     <article
@@ -54,10 +57,19 @@ export function HebrewBdbCard({
       <p className="font-display mt-1 text-[1.375rem] font-semibold leading-snug text-ink">
         {entry.gloss || "—"}
       </p>
-      {entry.strongsDefinition ? (
+      {entry.glossSource === "strongs" && entry.strongsDefinition ? (
         <p className="mt-1 text-[0.6875rem] text-faint">{strongsAttribution}</p>
       ) : null}
-      {!entry.strongsDefinition && entry.glossExtras.length > 0 ? (
+      {entry.glossSource === "bdb" && entry.isSplit ? (
+        <p className="mt-1 text-[0.6875rem] text-faint">{entry.attribution}</p>
+      ) : null}
+      {entry.needsReview ? (
+        <p className="mt-1 text-[0.6875rem] text-faint italic">
+          Lexeme boundary under review.
+        </p>
+      ) : null}
+      {(entry.glossSource === "bdb" || !entry.strongsDefinition) &&
+      entry.glossExtras.length > 0 ? (
         <p className="mt-1 text-[0.8125rem] leading-snug text-muted">
           {entry.glossExtras.join(" · ")}
         </p>
@@ -154,7 +166,72 @@ export function HebrewBdbCard({
         </div>
       ) : null}
 
-      {/* 5. Hairline + Strong footer pill — gold, opens Midvash EN */}
+      {/* 5. Related lexemes — homograph split siblings under this Strong's
+          number. Stub (head-only) lexemes live here, never as own cards. */}
+      {siblings.length > 0 ? (
+        <div className="mt-2" data-related-lexemes>
+          <button
+            type="button"
+            className="tl-sentidos-mas text-[0.75rem] font-medium text-gold hover:underline"
+            aria-expanded={lexemesOpen}
+            onClick={() => setLexemesOpen((o) => !o)}
+          >
+            {lexemesOpen
+              ? "Hide related lexemes"
+              : `${siblings.length} related lexeme${siblings.length === 1 ? "" : "s"}`}
+          </button>
+          {lexemesOpen ? (
+            <ul className="mt-2 space-y-1.5 border-l-2 border-gold/25 pl-3">
+              {siblings.map((sib) => (
+                <li key={sib.key} className="text-[0.8125rem] leading-snug">
+                  {sib.stub ? (
+                    <p className="text-muted">
+                      {sib.sec ? <span className="font-medium text-gold">{sib.sec}. </span> : null}
+                      <span dir="rtl" lang="he" className="font-serif">{sib.lemma}</span>
+                      {sib.headwordGloss ? <span> — {sib.headwordGloss}</span> : null}
+                      <span className="text-faint"> · brief entry</span>
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      className="text-left text-gold hover:underline"
+                      onClick={() => onStrong?.(sib.key)}
+                      aria-label={`Open ${sib.key}`}
+                    >
+                      {sib.sec ? <span className="font-medium">{sib.sec}. </span> : null}
+                      <span dir="rtl" lang="he" className="font-serif text-ink">{sib.lemma}</span>
+                      {sib.headwordGloss ? <span className="text-muted"> — {sib.headwordGloss}</span> : null}
+                    </button>
+                  )}
+                  {sib.needsReview ? (
+                    <p className="text-[0.6875rem] text-faint italic">Boundary under review.</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* 6. See also — cross-lexeme pointers (tappable) */}
+      {entry.seeAlso.length > 0 ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2" data-see-also>
+          <p className={cn(LABEL, "mr-1")}>See also</p>
+          {entry.seeAlso.map((id) => (
+            <button
+              key={id}
+              type="button"
+              className="rounded-full border border-gold/40 bg-gold-soft px-2 py-0.5 text-[0.75rem] font-medium text-gold hover:border-gold/60"
+              onClick={() => onStrong?.(id)}
+              aria-label={`Open ${id}`}
+            >
+              <span className="tabular-nums">{id}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {/* 7. Hairline + Strong footer pill — gold, opens Midvash EN */}
       <div className="tl-gloss-hairline mt-3 pt-2.5">
         <div className="flex flex-nowrap items-center gap-2 overflow-hidden">
           <a
@@ -174,7 +251,7 @@ export function HebrewBdbCard({
             </span>
           </a>
         </div>
-        {/* 6. Micro attribution */}
+        {/* 8. Micro attribution */}
         <p className="mt-2 text-[0.625rem] leading-snug text-faint">
           {entry.attribution}
         </p>

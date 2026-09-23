@@ -85,7 +85,10 @@ async function main() {
   const flag = (name, def) => {
     const i = args.indexOf(name);
     if (i < 0 || i + 1 >= args.length) return def;
-    const n = name === "--mutate" ? args[i + 1].toUpperCase() : parseInt(args[i + 1], 10);
+    const n =
+      name === "--mutate"
+        ? args[i + 1].toUpperCase().replace(/([A-Z])$/, (m) => m.toLowerCase())
+        : parseInt(args[i + 1], 10);
     return Number.isNaN(n) ? def : n;
   };
   const mutateId = flag("--mutate", "");
@@ -134,6 +137,7 @@ async function main() {
     return out;
   };
   const sampled = new Set();
+  if (mutateId) sampled.add(mutateId); // positive control is always checked
   for (let i = 0; i < 9; i++) {
     const lo = i * 1000 + 1;
     const hi = i === 8 ? 99999 : (i + 1) * 1000;
@@ -158,6 +162,9 @@ async function main() {
   let wordCount = 0;
   for (const id of [...sampled].sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)))) {
     const e = by[id];
+    // Split entries (H1254b) record their own source row; the claim check
+    // uses the canonical Strong's number (e.s), not the split key.
+    const canon = e.s || id;
     // Merged homograph entries record "+"-joined source rows (e.g. H4853).
     const rowIds = String(e.row).split("+");
     const srcRows = [];
@@ -171,7 +178,7 @@ async function main() {
       // Each source row must actually claim this H-number.
       const claimed = r.strong.split(/[_\s,;]+/).some((p) => {
         const m = p.toUpperCase().match(/^H0*(\d+)$/);
-        return m && m[1] !== "0" && "H" + m[1] === id;
+        return m && m[1] !== "0" && "H" + m[1] === canon;
       });
       if (!claimed) {
         badRow = `${id}: source row ${rid} does not claim ${id}`;

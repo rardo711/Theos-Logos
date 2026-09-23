@@ -120,11 +120,19 @@ describe("hebrew BDB lexicon", () => {
     assert.match(hit?.headwordGloss ?? "", /utterance, oracle/i);
   });
 
-  it("H4853 keeps both BDB homograph sections (load AND utterance, oracle)", () => {
+  it("H4853 splits the homographs: primary is utterance/oracle (BDB5391), H4853b is load/burden (BDB5390)", () => {
     const hit = lookupHebrewBdbByStrongs("H4853");
     assert.ok(hit);
-    assert.match(hit?.headwordGloss ?? "", /load, burden/i);
     assert.match(hit?.headwordGloss ?? "", /utterance, oracle/i);
+    assert.equal(hit?.splitKey, "H4853");
+    assert.equal(hit?.isSplit, false);
+    const split = lookupHebrewBdbByStrongs("H4853b");
+    assert.ok(split);
+    assert.match(split?.headwordGloss ?? "", /load, burden/i);
+    assert.equal(split?.splitKey, "H4853b");
+    assert.equal(split?.isSplit, true);
+    // Plain canonical lookup still resolves to the primary.
+    assert.equal(lookupHebrewBdbByStrongs("h4853")?.splitKey, "H4853");
   });
 
   it("Habakkuk 1:1 'saw' reaches H2372 via the see variant", () => {
@@ -132,6 +140,149 @@ describe("hebrew BDB lexicon", () => {
     assert.ok(hit);
     assert.equal(hit?.strongs, "H2372");
     assert.equal(hit?.senseMatchedByReference, true);
+  });
+
+  it("homograph routing: 1 Samuel 2:29 with H1254 routes to H1254b (be fat)", () => {
+    const hit = lookupHebrewBdbByStrongs("H1254", "1 Samuel 2:29");
+    assert.ok(hit);
+    assert.equal(hit?.splitKey, "H1254b");
+    assert.equal(hit?.strongs, "H1254");
+    assert.equal(hit?.isSplit, true);
+    assert.equal(hit?.sec, "II");
+    assert.equal(hit?.senseMatchedByReference, true);
+    // Decision 1: the verse-matched BDB sense outranks Strong's on a split —
+    // Strong's "to create" would be wrong on the "be fat" lexeme.
+    assert.match(hit?.gloss ?? "", /fat/i);
+    assert.equal(hit?.glossSource, "bdb");
+    assert.ok(
+      !(hit?.gloss ?? "").toLowerCase().includes("create"),
+      "Strong's create-definition must not lead on H1254b",
+    );
+  });
+
+  it("homograph routing: Genesis 2:4 with H1254 stays the create lexeme", () => {
+    const hit = lookupHebrewBdbByStrongs("H1254", "Genesis 2:4");
+    assert.ok(hit);
+    assert.equal(hit?.splitKey, "H1254");
+    assert.equal(hit?.isSplit, false);
+    assert.equal(hit?.sec, "I");
+    // Strong's own definition leads the hero on the primary.
+    assert.match(hit?.gloss ?? "", /create/i);
+    assert.equal(hit?.glossSource, "strongs");
+    assert.equal(hit?.gloss, hit?.strongsDefinition);
+  });
+
+  it("homograph routing: plain H1254 (no verse) resolves to the primary", () => {
+    const hit = lookupHebrewBdbByStrongs("H1254");
+    assert.ok(hit);
+    assert.equal(hit?.splitKey, "H1254");
+    assert.equal(hit?.sec, "I");
+    assert.match(hit?.headwordGloss ?? "", /shape, create/);
+  });
+
+  it("homograph routing: suffixed keys resolve directly", () => {
+    for (const raw of ["H1254b", "H1254B", "h1254b", "H01254b"]) {
+      const hit = lookupHebrewBdbByStrongs(raw);
+      assert.ok(hit, raw);
+      assert.equal(hit?.splitKey, "H1254b");
+      assert.match(hit?.headwordGloss ?? "", /be fat/);
+    }
+  });
+
+  it("H1101 splits mingle (BDB1138) from provender (BDB1140)", () => {
+    const primary = lookupHebrewBdbByStrongs("H1101");
+    assert.ok(primary);
+    assert.match(primary?.headwordGloss ?? "", /mingle/);
+    assert.equal(primary?.sec, "I");
+    const split = lookupHebrewBdbByStrongs("H1101b");
+    assert.ok(split);
+    assert.match(split?.headwordGloss ?? "", /provender/);
+    assert.equal(split?.sec, "II");
+    // Sibling enumerator lists both under the same Strong's number.
+    const sibs = (primary?.siblings ?? []).map((s) => s.key);
+    assert.ok(sibs.includes("H1101") && sibs.includes("H1101b"));
+  });
+
+  it("H219 splits light (BDB243) from herb (BDB244): both carry their own refs", () => {
+    const primary = lookupHebrewBdbByStrongs("H219");
+    assert.ok(primary);
+    assert.match(primary?.headwordGloss ?? "", /light/);
+    assert.equal(primary?.sec, "I");
+    const split = lookupHebrewBdbByStrongs("H219b", "Genesis 1:11");
+    assert.ok(split);
+    // Head-only BUT with its own verse references — a real lexeme entry,
+    // not a stub: it resolves directly to its own card.
+    assert.equal(split?.splitKey, "H219b");
+    assert.equal(split?.sec, "II");
+    assert.match(split?.headwordGloss ?? "", /herb/);
+    assert.equal(split?.senseMatchedByReference, true);
+  });
+
+  it("head-only stubs redirect to the primary and stay in the disclosure", () => {
+    const hit = lookupHebrewBdbByStrongs("H369b");
+    assert.ok(hit);
+    // Stubs never render as their own card: redirect to the primary.
+    assert.equal(hit?.splitKey, "H369");
+    assert.equal(hit?.redirectedFromStub, "H369b");
+    // But the lexeme stays visible in the primary's related-lexemes disclosure.
+    const sib = (hit?.siblings ?? []).find((s) => s.key === "H369b");
+    assert.ok(sib);
+    assert.equal(sib?.stub, true);
+  });
+
+  it("H4116 splits hasten from the under-review second lexeme", () => {
+    const primary = lookupHebrewBdbByStrongs("H4116");
+    assert.ok(primary);
+    assert.match(primary?.headwordGloss ?? "", /hasten/);
+    const split = lookupHebrewBdbByStrongs("H4116b");
+    assert.ok(split);
+    assert.equal(split?.needsReview, true);
+    assert.match(split?.needsReviewReason ?? "", /head paragraphs|homograph/);
+  });
+
+  it("all 8618 canonical Strong's numbers still resolve", () => {
+    const by = (hebrewBdbJson as { by: Record<string, unknown> }).by;
+    const canonical = Object.keys(by).filter((id) => /^H\d+$/.test(id));
+    assert.equal(canonical.length, 8618);
+    for (const id of canonical) {
+      assert.ok(
+        lookupHebrewBdbByStrongs(id),
+        `canonical Strong's number no longer resolves: ${id}`,
+      );
+    }
+  });
+
+  it("the 62 hand-review rows stay traceable: needsReview on the entry or its seeAlso target", () => {
+    const by = (
+      hebrewBdbJson as {
+        by: Record<
+          string,
+          { s?: string; needsReview?: boolean; seeAlso?: string[] }
+        >;
+      }
+    ).by;
+    const handIds = [
+      "H8", "H1167", "H1197", "H1254", "H1984", "H2151", "H2342", "H2470",
+      "H2490", "H2502", "H2505", "H2603", "H2617", "H2763", "H2764", "H2790",
+      "H3068", "H3069", "H3373", "H3581", "H3588", "H3722", "H4116", "H4229",
+      "H4482", "H4541", "H4794", "H4835", "H4888", "H4994", "H5035", "H5090",
+      "H5257", "H5493", "H5494", "H5608", "H5646", "H5674", "H5800", "H6031",
+      "H6213", "H6327", "H6331", "H6544", "H6565", "H6601", "H6692", "H6731",
+      "H6732", "H6957", "H7136", "H7203", "H7235", "H7489", "H7503", "H7605",
+      "H7673", "H7845", "H7931", "H7933", "H7999", "H9003",
+    ];
+    assert.equal(handIds.length, 62);
+    for (const hid of handIds) {
+      const entries = Object.values(by).filter((e) => e.s === hid);
+      assert.ok(entries.length > 0, `${hid} has no entries`);
+      const flaggedHere = entries.some((e) => e.needsReview);
+      const targets = entries.flatMap((e) => e.seeAlso ?? []);
+      const flaggedViaTarget = targets.some((t) => by[t]?.needsReview);
+      assert.ok(
+        flaggedHere || flaggedViaTarget,
+        `${hid}: needsReview flag lost after the split`,
+      );
+    }
   });
 
   it("H1254 stays create-first after the homograph merge (not be fat)", () => {
@@ -183,12 +334,15 @@ describe("hebrew BDB OT sweep regressions", () => {
     assert.equal(hit?.isAramaic, false);
   });
 
-  it("H8 leads with אֹבֵד 'destruction' (BDB7) before the אָבַד verb article", () => {
+  it("H8 is destruction only (BDB7); the אָבַד verb article lives at H6 via seeAlso", () => {
     const hit = lookupHebrewBdbByStrongs("H8");
     assert.ok(hit);
     assert.equal(hit?.lemma, "אֹבֵד");
     assert.match(hit?.headwordGloss ?? "", /^destruction/);
-    assert.match(hit?.headwordGloss ?? "", /perish/);
+    // No verb senses leak in: exactly one noun sense block.
+    assert.equal(hit?.senses.length, 1);
+    assert.ok(!(hit?.headwordGloss ?? "").includes("perish"));
+    assert.ok((hit?.seeAlso ?? []).includes("H6"));
   });
 
   it("bare English 'see' ranks Hebrew H2372 over Aramaic H2370", () => {
@@ -425,10 +579,21 @@ describe("Strong's concise definitions", () => {
 
   it("coverage: nearly every entry carries a Strong's definition", () => {
     const by = (
-      hebrewBdbJson as { by: Record<string, { sd?: string }> }
+      hebrewBdbJson as {
+        by: Record<string, { sd?: string; s?: string; stub?: boolean }>;
+      }
     ).by;
     const ids = Object.keys(by);
-    assert.equal(ids.length, 8618);
+    const canonical = ids.filter((id) => /^H\d+$/.test(id));
+    const splits = ids.filter((id) => /^H\d+[b-z]$/.test(id));
+    assert.equal(canonical.length, 8618);
+    // Pinned after the split import's reported count: every canonical
+    // Strong's number keeps its own entry, plus the homograph splits.
+    assert.ok(
+      ids.length > 9000,
+      `expected > 9000 entries, got ${ids.length}`,
+    );
+    assert.ok(splits.length > 0, "expected homograph split entries");
     const withSd = ids.filter((id) => by[id].sd);
     // Pinned after the import's reported count; the import itself refuses
     // to ship a thin layer (< 8500 parsed definitions).
@@ -436,6 +601,14 @@ describe("Strong's concise definitions", () => {
       withSd.length >= 8550,
       `only ${withSd.length}/${ids.length} entries have a Strong's definition`,
     );
+    // Every stub is head-only behind a primary; every split carries its
+    // canonical Strong's number.
+    for (const id of splits) {
+      assert.match(by[id].s ?? "", /^H\d+$/);
+    }
+    for (const id of ids.filter((i) => by[i].stub)) {
+      assert.match(by[id].s ?? "", /^H\d+$/);
+    }
   });
 
   it("entries without a Strong's definition fall back to the BDB hero", () => {
