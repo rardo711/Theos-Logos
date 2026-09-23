@@ -14,7 +14,7 @@ describe("lexicon chips", () => {
     assert.equal(getLocalLexicon("Word", "John 1:1"), null);
     const now = lookupWordNow("Word", "John 1:1");
     assert.equal(now?.strongs, "G3056");
-    assert.equal(now?.source, "AS");
+    assert.equal(now?.source, "STEPBible");
   });
 
   it("maps κόσμος to G2889, never G2884", () => {
@@ -48,7 +48,7 @@ describe("lexicon chips", () => {
     for (const [id, lemma] of Object.entries(ids)) {
       const hit = lookupByStrongsSync(id);
       assert.equal(hit?.lemma, lemma, id);
-      assert.equal(hit?.source, "AS");
+      assert.equal(hit?.source, "STEPBible");
     }
   });
 
@@ -65,7 +65,7 @@ describe("lexicon chips", () => {
     assert.equal(getLocalLexicon("Jesus", "John 1:17"), null);
     const now = lookupWordNow("Jesus", "John 1:17");
     assert.equal(now?.strongs, "G2424");
-    assert.equal(now?.source, "AS");
+    assert.equal(now?.source, "STEPBible");
     assert.match(now?.citation ?? "", /G2424/);
     assert.match(now?.caution ?? "", /BDAG/);
   });
@@ -115,6 +115,6 @@ describe("lexicon chips", () => {
     assert.equal(getLocalLexicon("faith", "John 1:12"), null);
     const now = lookupWordNow("faith", "John 1:12");
     assert.equal(now?.strongs, "G4102");
-    assert.equal(now?.source, "AS");
+    assert.equal(now?.source, "STEPBible");
   });
 });
