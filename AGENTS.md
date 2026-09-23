@@ -1,7 +1,7 @@
 # Agent Guidelines & Project Context
 
 
-> **AI pickup:** read [`HANDOFF.md`](./HANDOFF.md) + [`BUGS-PLAN.md`](./BUGS-PLAN.md) first (Chief Boss numbering by *symptom*; overnight Grok remapped IDs — ignore those).
+> **AI pickup:** read [`HANDOFF.md`](./HANDOFF.md) first.
 >
 
 > **Note for AI Assistants (Grok, Google AI Studio, Claude, Cursor, Copilot, etc.):**
