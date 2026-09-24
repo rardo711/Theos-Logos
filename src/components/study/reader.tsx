@@ -229,7 +229,7 @@ export function Reader({
       >
         <div
           ref={readRef}
-          className="tl-read mx-auto max-w-[42rem] px-5 pt-6 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-10 sm:pt-12"
+          className="tl-read mx-auto max-w-[42rem] px-5 pt-6 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-10 sm:pt-12 xl:max-w-[54rem]"
           data-pick={selected != null ? "true" : "false"}
         >
           {loading && !chapter ? (

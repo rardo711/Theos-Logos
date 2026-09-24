@@ -67,6 +67,9 @@
   --motion-sheet-enter: 250ms;
   --motion-sheet-exit: 220ms;
   --motion-sheet-crossfade: 160ms;
+  /* Sources page — calm, slow-ish: never snaps */
+  --motion-sources-enter: 380ms;
+  --motion-sources-exit: 320ms;
   --ease-sheet-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-sheet-exit: cubic-bezier(0.4, 0, 1, 1);
   --sheet-enter-y: 16%;
@@ -536,6 +539,24 @@ html.dark .tl-shell {
   transition:
     transform var(--motion-sheet-enter) var(--ease-sheet-enter),
     opacity var(--motion-sheet-enter) var(--ease-sheet-enter);
+}
+
+/* Sources page — calm fade + rise. Slow-ish on purpose: this app never snaps. */
+.tl-sources {
+  opacity: 0;
+  transform: translateY(14px);
+  will-change: opacity, transform;
+  transition:
+    opacity var(--motion-sources-exit) var(--ease-smooth-out),
+    transform var(--motion-sources-exit) var(--ease-smooth-out);
+}
+
+.tl-sources[data-open="true"] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--motion-sources-enter) var(--ease-smooth-out),
+    transform var(--motion-sources-enter) var(--ease-smooth-out);
 }
 
 .tl-sheet-up {
