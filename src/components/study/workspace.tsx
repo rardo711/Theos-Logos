@@ -12,6 +12,7 @@ import { Onboarding } from "./onboarding";
 import { Reader } from "./reader";
 import { ReceptionPanel } from "./reception-panel";
 import { TopBar } from "./top-bar";
+import { DiagOverlay } from "./diag-overlay";
 
 function lockAppHeight() {
   const root = document.documentElement;
@@ -72,6 +73,22 @@ export function StudyWorkspace() {
     "pending",
   );
   const [wideDesk, setWideDesk] = useState(false);
+  /** Hidden on-device diagnostic: 5 quick taps on the top bar toggles it. */
+  const [showDiag, setShowDiag] = useState(false);
+  const diagTaps = useRef(0);
+  const diagTimer = useRef<number | null>(null);
+  const handleTopBarTap = () => {
+    diagTaps.current += 1;
+    if (diagTimer.current) window.clearTimeout(diagTimer.current);
+    if (diagTaps.current >= 5) {
+      diagTaps.current = 0;
+      setShowDiag((v) => !v);
+    } else {
+      diagTimer.current = window.setTimeout(() => {
+        diagTaps.current = 0;
+      }, 800);
+    }
+  };
   const [sheetShown, setSheetShown] = useState(false);
   const [sheetState, setSheetState] = useState<
     "hidden" | "peek" | "mid" | "full"
@@ -459,7 +476,10 @@ export function StudyWorkspace() {
 
   return (
     <div className="tl-shell flex flex-col overflow-hidden text-ink">
-      <TopBar />
+      <div onClick={handleTopBarTap}>
+        <TopBar />
+      </div>
+      {showDiag ? <DiagOverlay /> : null}
 
       <div className="relative flex min-h-0 flex-1">
         <section className="relative min-h-0 min-w-0 flex-1">
