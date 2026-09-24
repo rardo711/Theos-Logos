@@ -18,6 +18,7 @@ import {
 import type { HebrewBdbResult } from "@/lib/lexicon/hebrew-bdb";
 import { hebrewBdbAttribution, strongsAttribution } from "@/lib/lexicon/hebrew-bdb";
 import { strongsMidvashHref } from "@/lib/lexicon/midvash";
+import { transliterateLemma } from "@/lib/lexicon/transliterate";
 
 const LABEL =
   "text-[0.6875rem] font-medium tracking-[0.14em] text-faint uppercase";
@@ -94,6 +95,11 @@ export function SpanishHebrewCard({
               <span dir="rtl" lang="he" className="font-serif text-[1rem]">
                 {bdb.lemma}
               </span>
+              {transliterateLemma(bdb.lemma) ? (
+                <span dir="ltr" className="ml-2 text-[0.75rem] text-faint">
+                  {transliterateLemma(bdb.lemma)}
+                </span>
+              ) : null}
             </p>
           ) : null}
           {bdb.pos.length > 0 ? (
