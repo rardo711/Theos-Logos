@@ -56,27 +56,31 @@
 }
 
 :root {
-  --motion-stagger: 40ms;
+  --motion-stagger: 60ms;
   --motion-micro: 80ms;
-  --motion-quick: 150ms;
-  --motion-fast: 250ms;
-  --motion-medium: 350ms;
-  --motion-slow: 400ms;
-  --motion-drawer: 500ms;
+  --motion-quick: 200ms;
+  --motion-fast: 300ms;
+  --motion-medium: 450ms;
+  --motion-slow: 550ms;
+  --motion-drawer: 340ms;
   /* Shared Reception + gloss sheet tokens (Design motion brief) */
   --motion-sheet-enter: 250ms;
   --motion-sheet-exit: 220ms;
   --motion-sheet-crossfade: 160ms;
+  /* Sources page — calm, slow-ish: never snaps */
+  --motion-sources-enter: 380ms;
+  --motion-sources-exit: 320ms;
   --ease-sheet-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-sheet-exit: cubic-bezier(0.4, 0, 1, 1);
   --sheet-enter-y: 16%;
   --dim-sheet: 0.36;
   --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --motion-scale-menu: 0.97;
-  --motion-y-small: 6px;
-  --motion-y-medium: 12px;
+  --motion-y-small: 10px;
+  --motion-y-medium: 16px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top-min: 0px;
   --sheet-peek: 5.75rem;
@@ -300,11 +304,11 @@
 }
 
 .tl-verse[aria-selected="true"] {
-  background-color: color-mix(in oklab, var(--color-lamp) 16%, transparent);
+  background-color: color-mix(in oklab, var(--color-lamp) 20%, transparent);
 }
 
 .dark .tl-verse[aria-selected="true"] {
-  background-color: color-mix(in oklab, var(--color-lamp) 22%, transparent);
+  background-color: color-mix(in oklab, var(--color-lamp) 28%, transparent);
 }
 
 .tl-first-verse[aria-selected="true"] {
@@ -320,16 +324,16 @@
 }
 
 .tl-first-verse[aria-selected="true"] .tl-verse-ink {
-  background-color: color-mix(in oklab, var(--color-lamp) 16%, transparent);
+  background-color: color-mix(in oklab, var(--color-lamp) 20%, transparent);
 }
 
 .dark .tl-first-verse[aria-selected="true"] .tl-verse-ink {
-  background-color: color-mix(in oklab, var(--color-lamp) 22%, transparent);
+  background-color: color-mix(in oklab, var(--color-lamp) 28%, transparent);
 }
 
 .tl-verse[aria-selected="true"] .verse-num {
   color: var(--color-lamp);
-  text-shadow: 0 0 10px color-mix(in oklab, var(--color-lamp) 40%, transparent);
+  transition: color var(--motion-quick) var(--ease-out);
 }
 
 .tl-verse[data-range-start="true"]::before,
@@ -340,7 +344,6 @@
   height: 1.15em;
   border-radius: 1px;
   background: var(--color-lamp);
-  box-shadow: 0 0 18px 3px color-mix(in oklab, var(--color-lamp) 85%, transparent);
   vertical-align: -0.12em;
   opacity: 0;
   animation: tl-lamp-in var(--motion-medium) var(--ease-smooth-out) forwards;
@@ -505,10 +508,11 @@ html.dark .tl-shell {
 }
 
 .tl-drawer {
-  /* Slide-first: no opacity fade (avoids X/close pop). Dim handles veil. */
+  /* One decisive slide — the panel leads, content settles after it.
+     No opacity fade (avoids X/close pop). Dim handles the veil. */
   transform: translateX(-100%);
   opacity: 1;
-  transition: transform var(--motion-drawer) var(--ease-smooth-out);
+  transition: transform var(--motion-drawer) var(--ease-drawer);
   overflow-x: hidden;
   will-change: transform;
 }
@@ -535,6 +539,24 @@ html.dark .tl-shell {
   transition:
     transform var(--motion-sheet-enter) var(--ease-sheet-enter),
     opacity var(--motion-sheet-enter) var(--ease-sheet-enter);
+}
+
+/* Sources page — calm fade + rise. Slow-ish on purpose: this app never snaps. */
+.tl-sources {
+  opacity: 0;
+  transform: translateY(14px);
+  will-change: opacity, transform;
+  transition:
+    opacity var(--motion-sources-exit) var(--ease-smooth-out),
+    transform var(--motion-sources-exit) var(--ease-smooth-out);
+}
+
+.tl-sources[data-open="true"] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--motion-sources-enter) var(--ease-smooth-out),
+    transform var(--motion-sources-enter) var(--ease-smooth-out);
 }
 
 .tl-sheet-up {
@@ -863,38 +885,41 @@ html.dark .tl-shell {
   animation: tl-rise var(--motion-fast) var(--ease-smooth-out) both;
 }
 
+/* The panel leads; content follows as one wave (panel-first, then settle).
+   Delays start after the drawer slide begins so the two motions read as
+   one intentional sequence instead of fighting each other. */
 .tl-pane[data-enter="true"] .tl-canon-section:nth-child(1) {
-  animation-delay: 0ms;
+  animation-delay: 100ms;
 }
 .tl-pane[data-enter="true"] .tl-canon-section:nth-child(2) {
-  animation-delay: 40ms;
-}
-.tl-pane[data-enter="true"] .tl-canon-section:nth-child(3) {
-  animation-delay: 80ms;
-}
-.tl-pane[data-enter="true"] .tl-canon-section:nth-child(4) {
-  animation-delay: 120ms;
-}
-.tl-pane[data-enter="true"] .tl-canon-section:nth-child(5) {
   animation-delay: 160ms;
 }
-.tl-pane[data-enter="true"] .tl-canon-section:nth-child(6) {
-  animation-delay: 200ms;
+.tl-pane[data-enter="true"] .tl-canon-section:nth-child(3) {
+  animation-delay: 220ms;
 }
-.tl-pane[data-enter="true"] .tl-canon-section:nth-child(7) {
-  animation-delay: 240ms;
-}
-.tl-pane[data-enter="true"] .tl-canon-section:nth-child(8) {
+.tl-pane[data-enter="true"] .tl-canon-section:nth-child(4) {
   animation-delay: 280ms;
 }
+.tl-pane[data-enter="true"] .tl-canon-section:nth-child(5) {
+  animation-delay: 340ms;
+}
+.tl-pane[data-enter="true"] .tl-canon-section:nth-child(6) {
+  animation-delay: 400ms;
+}
+.tl-pane[data-enter="true"] .tl-canon-section:nth-child(7) {
+  animation-delay: 460ms;
+}
+.tl-pane[data-enter="true"] .tl-canon-section:nth-child(8) {
+  animation-delay: 520ms;
+}
 .tl-pane[data-enter="true"] .tl-canon-section:nth-child(9) {
-  animation-delay: 320ms;
+  animation-delay: 580ms;
 }
 
 @keyframes tl-rise {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -1534,7 +1559,14 @@ html.dark .tl-shell {
   .tl-lamp-in,
   .tl-drawer,
   .tl-menu,
+  .tl-dialog,
   .tl-title-swap,
+  .tl-lamp-rule,
+  .tl-lamp-warm,
+  .tl-view,
+  .tl-hit,
+  .tl-kindling,
+  .tl-skeleton,
   .tl-pane[data-enter="true"] .tl-canon-section {
     animation: none;
   }
@@ -1589,4 +1621,238 @@ html.dark .tl-shell {
   .tl-onboard-exit {
     opacity: 0 !important;
   }
+}
+
+/* ================= Motion workshop (2026-09-24) =================
+   Lamp strike · card unfold · tap attack · skeleton sheen ·
+   route crossfade · search settle · wordmark kindling · scroll marginalia.
+   All durations/easings reuse the existing --motion-* / --ease-* tokens. */
+
+/* 1. Lamp strike — the verse-illuminated sense: a gold rule draws
+   left→right and the sense line warms from gold, then settles to ink. */
+@keyframes tl-lamp-strike {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.tl-lamp-rule {
+  height: 2px;
+  border-radius: 2px;
+  margin-top: 0.625rem;
+  background: linear-gradient(
+    to right,
+    var(--color-gold),
+    color-mix(in oklab, var(--color-gold) 45%, transparent)
+  );
+  transform-origin: left center;
+  animation: tl-lamp-strike 450ms var(--ease-out);
+}
+
+@keyframes tl-lamp-warm {
+  0% {
+    color: var(--color-gold);
+    background-color: color-mix(in oklab, var(--color-gold) 26%, transparent);
+  }
+  55% {
+    background-color: color-mix(in oklab, var(--color-gold) 12%, transparent);
+  }
+  100% {
+    color: var(--color-ink);
+    background-color: transparent;
+  }
+}
+
+.tl-lamp-warm {
+  border-radius: 4px;
+  animation: tl-lamp-warm 800ms var(--ease-out);
+}
+
+/* 2. Card unfold — disclosures breathe open (same motion language as
+   .tl-contents: grid 0fr→1fr, rows stagger in). */
+.tl-unfold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 500ms var(--ease-smooth-out);
+}
+
+.tl-unfold[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+.tl-unfold-body {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tl-unfold-item {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity var(--motion-fast) var(--ease-smooth-out),
+    transform var(--motion-fast) var(--ease-smooth-out);
+}
+
+.tl-unfold[data-open="true"] .tl-unfold-item {
+  opacity: 1;
+  transform: none;
+}
+
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(1) {
+  transition-delay: 100ms;
+}
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(2) {
+  transition-delay: 160ms;
+}
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(3) {
+  transition-delay: 220ms;
+}
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(4) {
+  transition-delay: 280ms;
+}
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(5) {
+  transition-delay: 340ms;
+}
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(n + 6) {
+  transition-delay: 400ms;
+}
+
+/* 4. Tap attack — the press lands fast and visibly, releases slow. */
+.tl-verse:active {
+  transition-duration: var(--motion-quick);
+  background-color: color-mix(in oklab, var(--color-lamp) 12%, transparent);
+}
+
+/* 5. Skeleton sheen — a slow light pass over the existing lamp-tinted
+   loading bars (reader initial load). */
+@keyframes tl-shimmer {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -80% 0;
+  }
+}
+
+.tl-skeleton {
+  background-image: linear-gradient(
+    100deg,
+    transparent 35%,
+    color-mix(in oklab, var(--color-paper) 78%, transparent) 50%,
+    transparent 65%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: tl-shimmer 1100ms linear infinite;
+}
+
+/* 6. Route crossfade — replays when the route component remounts
+   (reader ↔ sources ↔ home). Chapter changes don't remount: untouched. */
+@keyframes tl-view-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tl-view {
+  animation: tl-view-in 280ms var(--ease-out);
+}
+
+/* 7. Search settle — quick-jump hits cascade in (delay set inline). */
+@keyframes tl-hit-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tl-hit {
+  animation: tl-hit-in var(--motion-fast) var(--ease-smooth-out) both;
+}
+
+/* Quick-jump dialog — one clear entrance, one graceful exit. */
+@keyframes tl-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes tl-dialog-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+}
+
+.tl-dialog {
+  animation: tl-dialog-in 260ms var(--ease-out);
+}
+
+.tl-dialog[data-closing="true"] {
+  animation: tl-dialog-out 180ms var(--ease-sheet-exit);
+}
+
+/* 10. Wordmark kindling — one ember breath on mount, then still. */
+@keyframes tl-kindling {
+  0% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  35% {
+    box-shadow: 0 0 28px 4px
+      color-mix(in oklab, var(--color-gold) 75%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.tl-kindling {
+  animation: tl-kindling 1000ms var(--ease-out);
+}
+
+/* In dark mode the oxblood seal sinks into the paper; give it an edge. */
+.dark .tl-kindling {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-gold) 32%, transparent);
+}
+
+/* 11. Scroll marginalia — section headings process in as they enter the
+   viewport. JS adds .tl-marginalia-on to the container and data-inview
+   per heading; without JS nothing hides. */
+.bible-heading {
+  transition:
+    opacity 400ms var(--ease-smooth-out),
+    transform 400ms var(--ease-smooth-out);
+}
+
+.tl-marginalia-on .bible-heading {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.tl-marginalia-on .bible-heading[data-inview="true"] {
+  opacity: 1;
+  transform: none;
 }

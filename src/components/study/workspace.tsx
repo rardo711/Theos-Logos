@@ -103,6 +103,13 @@ export function StudyWorkspace() {
   // xl side desk: keep mounted through exit slide (BUG-10)
   const [deskShown, setDeskShown] = useState(false);
   const [deskOpen, setDeskOpen] = useState(false);
+  // Desktop source desk: raised automatically by verse selection on wide
+  // screens. Tracks whether this session's desk open came from selection
+  // (vs. the user opening/pinning it deliberately).
+  const autoDesk = useRef(false);
+  // Sources page: keep mounted through its exit animation.
+  const [sourcesShown, setSourcesShown] = useState(false);
+  const [sourcesAnimOpen, setSourcesAnimOpen] = useState(false);
   const sheetRef = useRef<HTMLElement>(null);
   const sheetStateRef = useRef(sheetState);
   sheetStateRef.current = sheetState;
@@ -176,6 +183,51 @@ export function StudyWorkspace() {
       setSheetDragging(false);
     }
   }, [sheetShown]);
+
+  // Desktop source desk: selecting a verse on a wide screen raises the
+  // desk (side panel) so commentaries are one tap away. Deselecting lowers
+  // it again. Mobile keeps its bottom-sheet behavior untouched — this
+  // effect never fires below the xl breakpoint.
+  useEffect(() => {
+    if (!wideDesk) {
+      // Fell back under the breakpoint: hand control back to the sheet.
+      if (autoDesk.current) {
+        autoDesk.current = false;
+        setReceptionOpen(false);
+      }
+      return;
+    }
+    if (selectedVerse != null && !receptionOpen && !receptionPinned) {
+      autoDesk.current = true;
+      setReceptionOpen(true);
+    } else if (
+      selectedVerse == null &&
+      autoDesk.current &&
+      receptionOpen &&
+      !receptionPinned
+    ) {
+      autoDesk.current = false;
+      setReceptionOpen(false);
+    }
+  }, [wideDesk, selectedVerse, receptionOpen, receptionPinned, setReceptionOpen]);
+
+  // Sources page enter/exit — calm fade + rise, no snap.
+  useEffect(() => {
+    if (sourcesPageOpen) {
+      setSourcesShown(true);
+      let inner = 0;
+      const outer = requestAnimationFrame(() => {
+        inner = requestAnimationFrame(() => setSourcesAnimOpen(true));
+      });
+      return () => {
+        cancelAnimationFrame(outer);
+        if (inner) cancelAnimationFrame(inner);
+      };
+    }
+    setSourcesAnimOpen(false);
+    const t = window.setTimeout(() => setSourcesShown(false), 340);
+    return () => window.clearTimeout(t);
+  }, [sourcesPageOpen]);
 
   // BUG-10: xl reception overlay — mount for enter, stay for exit slide.
   useEffect(() => {
@@ -469,6 +521,12 @@ export function StudyWorkspace() {
   ]);
 
   function closeReception() {
+    // Desktop auto-raised desk: closing it also clears the verse selection,
+    // so the desk fully lowers instead of springing back open.
+    if (autoDesk.current) {
+      autoDesk.current = false;
+      clearSelection();
+    }
     setReceptionPinned(false);
     setReceptionFull(false);
     setReceptionOpen(false);
@@ -497,7 +555,7 @@ export function StudyWorkspace() {
   }
 
   return (
-    <div className="tl-shell flex flex-col overflow-hidden text-ink">
+    <div className="tl-shell tl-view flex flex-col overflow-hidden text-ink">
       <div onClick={handleTopBarTap}>
         <TopBar />
       </div>
@@ -598,8 +656,11 @@ export function StudyWorkspace() {
         }
       />
 
-      {sourcesPageOpen ? (
-        <SourcesPage onClose={() => setSourcesPageOpen(false)} />
+      {sourcesShown ? (
+        <SourcesPage
+          onClose={() => setSourcesPageOpen(false)}
+          animOpen={sourcesAnimOpen}
+        />
       ) : null}
 
       <QuickJumpModal />

@@ -15,6 +15,7 @@ export function Wordmark({
       <span
         aria-hidden
         className={cn(
+          "tl-kindling",
           "relative flex size-9 shrink-0 items-center justify-center overflow-hidden bg-oxblood text-oxblood-fg transition-[box-shadow] duration-200 ease-out",
           active && "ring-1 ring-oxblood/50",
         )}

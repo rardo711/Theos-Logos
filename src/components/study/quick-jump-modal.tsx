@@ -12,10 +12,12 @@ function highlightMatch(text: string, query: string) {
   const q = query.trim();
   if (!q) return text;
   const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(`(${escaped})`, "gi");
+  // Highlight the whole word containing the match: a prefix query like
+  // "fait" lights up "faith" instead of leaving a dangling "fait"+"h".
+  const regex = new RegExp(`([A-Za-zÀ-ÿ']*${escaped}[A-Za-zÀ-ÿ']*)`, "gi");
   const parts = text.split(regex);
   return parts.map((part, i) =>
-    part.toLowerCase() === q.toLowerCase() ? (
+    i % 2 === 1 ? (
       <mark key={i} className="bg-lamp-soft text-lamp rounded-xs px-0.5 font-semibold">
         {part}
       </mark>
@@ -36,6 +38,58 @@ export function QuickJumpModal() {
   const [hits, setHits] = useState<ScriptureHit[]>([]);
   const [loadingHits, setLoadingHits] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  // Exit choreography — when the store closes the modal, play the
+  // tl-dialog-out animation before unmounting (180ms), instead of
+  // vanishing mid-frame.
+  const [renderOpen, setRenderOpen] = useState(open);
+  const [closing, setClosing] = useState(false);
+  useEffect(() => {
+    if (open) {
+      setRenderOpen(true);
+      setClosing(false);
+      return;
+    }
+    if (!renderOpen) return;
+    setClosing(true);
+    const t = window.setTimeout(() => {
+      setRenderOpen(false);
+      setClosing(false);
+    }, 180);
+    return () => window.clearTimeout(t);
+  }, [open, renderOpen]);
+
+  // Concordance tally — the hit count glides from the previous value
+  // instead of snapping (and never restarts from zero mid-typing).
+  const [reduceMotion] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  const [tally, setTally] = useState(hits.length);
+  const tallyRef = useRef(hits.length);
+  useEffect(() => {
+    const to = hits.length;
+    if (reduceMotion) {
+      tallyRef.current = to;
+      setTally(to);
+      return;
+    }
+    const from = tallyRef.current;
+    if (from === to) return;
+    let raf = 0;
+    const start = performance.now();
+    const duration = 400;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      const val = Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3)));
+      tallyRef.current = val;
+      setTally(val);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [hits.length, reduceMotion]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -102,7 +156,7 @@ export function QuickJumpModal() {
     };
   }, [open, q, locale, parsed?.chapter]);
 
-  if (!open) return null;
+  if (!renderOpen) return null;
 
   function handleSelectReference(bId: string, ch?: number, v?: number) {
     jumpTo(bId, ch ?? 1, v);
@@ -153,7 +207,10 @@ export function QuickJumpModal() {
       />
 
       {/* Dialog card */}
-      <div className="relative z-10 w-full max-w-xl rounded-xl border border-rule bg-paper shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 ease-out">
+      <div
+        data-closing={closing ? "true" : undefined}
+        className="tl-dialog relative z-10 w-full max-w-xl rounded-xl border border-rule bg-paper shadow-2xl overflow-hidden"
+      >
         {/* Input bar */}
         <div className="flex items-center border-b border-rule px-4 py-3 bg-surface">
           <Search size={18} className="text-faint shrink-0 mr-3" />
@@ -226,7 +283,7 @@ export function QuickJumpModal() {
           {hits.length > 0 ? (
             <div className="pt-1.5 space-y-1">
               <p className="px-3 py-1 text-3xs font-semibold tracking-wider text-faint uppercase font-mono">
-                {t(locale, "verseHits")} ({hits.length})
+                {t(locale, "verseHits")} ({tally})
               </p>
               {hits.map((hit, idx) => (
                 <button
@@ -236,9 +293,10 @@ export function QuickJumpModal() {
                     handleSelectReference(hit.bookId, hit.chapter, hit.verse)
                   }
                   className={cn(
-                    "w-full text-left p-3 rounded-md transition-colors duration-100 flex flex-col gap-1",
+                    "tl-hit w-full text-left p-3 rounded-md transition-colors duration-100 flex flex-col gap-1",
                     idx === selectedIndex ? "bg-surface-raised" : "hover:bg-surface",
                   )}
+                  style={{ animationDelay: `${Math.min(idx, 10) * 60}ms` }}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-display text-sm font-semibold text-ink">

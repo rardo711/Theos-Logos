@@ -109,7 +109,12 @@ export function HebrewBdbCard({
       {/* 3. Sense in this verse — one verbatim line; full entry behind a tap */}
       <p className={cn(LABEL, "mt-3")}>Sense in this verse</p>
       {entry.senseLine ? (
-        <p className="mt-1 text-[0.9375rem] leading-[1.35] text-ink">
+        <p
+          className={cn(
+            "mt-1 text-[0.9375rem] leading-[1.35] text-ink",
+            entry.senseMatchedByReference && "tl-lamp-warm",
+          )}
+        >
           {entry.senseLine}
         </p>
       ) : (
@@ -117,6 +122,9 @@ export function HebrewBdbCard({
           No BDB sense text.
         </p>
       )}
+      {entry.senseMatchedByReference && entry.senseLine ? (
+        <div className="tl-lamp-rule" aria-hidden="true" />
+      ) : null}
       {entry.sense && entry.sense !== entry.senseLine ? (
         <div className="mt-1" data-sense-full>
           <button
@@ -153,23 +161,29 @@ export function HebrewBdbCard({
               ? "Hide BDB senses"
               : `${relatedCount} more BDB sense${relatedCount === 1 ? "" : "s"}`}
           </button>
-          {sensesOpen ? (
-            <ul className="tl-related-senses mt-2 space-y-2.5 border-l-2 border-gold/25 pl-3">
-              {related.map((sense, i) => (
-                <li
-                  key={`rel-${i}`}
-                  className="text-[0.8125rem] leading-snug text-ink"
-                >
-                  {sense.glosses.length > 0 ? (
-                    <p className="font-medium text-gold">
-                      {sense.glosses.join(" · ")}
-                    </p>
-                  ) : null}
-                  <p className="mt-0.5">{sense.text}</p>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          <div
+            className="tl-unfold"
+            data-open={sensesOpen ? "true" : undefined}
+            inert={!sensesOpen}
+          >
+            <div className="tl-unfold-body">
+              <ul className="mt-2 space-y-2.5 border-l-2 border-gold/25 pl-3">
+                {related.map((sense, i) => (
+                  <li
+                    key={`rel-${i}`}
+                    className="tl-unfold-item text-[0.8125rem] leading-snug text-ink"
+                  >
+                    {sense.glosses.length > 0 ? (
+                      <p className="font-medium text-gold">
+                        {sense.glosses.join(" · ")}
+                      </p>
+                    ) : null}
+                    <p className="mt-0.5">{sense.text}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       ) : null}
 
@@ -187,10 +201,15 @@ export function HebrewBdbCard({
               ? "Hide related lexemes"
               : `${siblings.length} related lexeme${siblings.length === 1 ? "" : "s"}`}
           </button>
-          {lexemesOpen ? (
-            <ul className="mt-2 space-y-1.5 border-l-2 border-gold/25 pl-3">
-              {siblings.map((sib) => (
-                <li key={sib.key} className="text-[0.8125rem] leading-snug">
+          <div
+            className="tl-unfold"
+            data-open={lexemesOpen ? "true" : undefined}
+            inert={!lexemesOpen}
+          >
+            <div className="tl-unfold-body">
+              <ul className="mt-2 space-y-1.5 border-l-2 border-gold/25 pl-3">
+                {siblings.map((sib) => (
+                  <li key={sib.key} className="tl-unfold-item text-[0.8125rem] leading-snug">
                   {sib.stub ? (
                     <p className="text-muted">
                       {sib.sec ? <span className="font-medium text-gold">{sib.sec}. </span> : null}
@@ -224,9 +243,10 @@ export function HebrewBdbCard({
                     <p className="text-[0.6875rem] text-faint italic">Boundary under review.</p>
                   ) : null}
                 </li>
-              ))}
-            </ul>
-          ) : null}
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       ) : null}
 

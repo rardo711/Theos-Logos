@@ -18,7 +18,14 @@ import {
 } from "@/lib/reception/device-sources";
 import type { SourceCard, Tradition } from "@/lib/bible/types";
 
-export function SourcesPage({ onClose }: { onClose: () => void }) {
+export function SourcesPage({
+  onClose,
+  animOpen = true,
+}: {
+  onClose: () => void;
+  /** Controlled by the parent for the enter/exit animation. */
+  animOpen?: boolean;
+}) {
   const locale = useStudy((s) => s.locale);
   const jumpTo = useStudy((s) => s.jumpTo);
   const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
@@ -90,7 +97,10 @@ export function SourcesPage({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-paper text-ink">
+    <div
+      className="tl-sources fixed inset-0 z-50 flex flex-col overflow-hidden bg-paper text-ink"
+      data-open={animOpen ? "true" : "false"}
+    >
       {/* Top Oxblood Accent Line */}
       <div
         aria-hidden

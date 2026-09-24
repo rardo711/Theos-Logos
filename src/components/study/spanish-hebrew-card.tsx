@@ -148,7 +148,12 @@ export function SpanishHebrewCard({
             <span className="normal-case tracking-normal">(en inglés · BDB)</span>
           </p>
           {bdb.senseLine ? (
-            <p className="mt-1 text-[0.9375rem] leading-[1.35] text-ink">
+            <p
+              className={cn(
+                "mt-1 text-[0.9375rem] leading-[1.35] text-ink",
+                bdb.senseMatchedByReference && "tl-lamp-warm",
+              )}
+            >
               {bdb.senseLine}
             </p>
           ) : (
@@ -156,6 +161,9 @@ export function SpanishHebrewCard({
               Sin texto de sentido BDB.
             </p>
           )}
+          {bdb.senseMatchedByReference && bdb.senseLine ? (
+            <div className="tl-lamp-rule" aria-hidden="true" />
+          ) : null}
           {bdb.sense && bdb.sense !== bdb.senseLine ? (
             <div className="mt-1" data-sense-full>
               <button
@@ -194,23 +202,29 @@ export function SpanishHebrewCard({
                   ? "Ocultar sentidos BDB"
                   : `${relatedCount} sentido${relatedCount === 1 ? "" : "s"} BDB más`}
               </button>
-              {sensesOpen ? (
-                <ul className="tl-related-senses mt-2 space-y-2.5 border-l-2 border-gold/25 pl-3">
-                  {related.map((sense, i) => (
-                    <li
-                      key={`rel-${i}`}
-                      className="text-[0.8125rem] leading-snug text-ink"
-                    >
-                      {sense.glosses.length > 0 ? (
-                        <p className="font-medium text-gold">
-                          {sense.glosses.join(" · ")}
-                        </p>
-                      ) : null}
-                      <p className="mt-0.5">{sense.text}</p>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+              <div
+                className="tl-unfold"
+                data-open={sensesOpen ? "true" : undefined}
+                inert={!sensesOpen}
+              >
+                <div className="tl-unfold-body">
+                  <ul className="mt-2 space-y-2.5 border-l-2 border-gold/25 pl-3">
+                    {related.map((sense, i) => (
+                      <li
+                        key={`rel-${i}`}
+                        className="tl-unfold-item text-[0.8125rem] leading-snug text-ink"
+                      >
+                        {sense.glosses.length > 0 ? (
+                          <p className="font-medium text-gold">
+                            {sense.glosses.join(" · ")}
+                          </p>
+                        ) : null}
+                        <p className="mt-0.5">{sense.text}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           ) : null}
         </>
