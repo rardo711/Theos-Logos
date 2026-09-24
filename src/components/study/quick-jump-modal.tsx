@@ -39,6 +39,26 @@ export function QuickJumpModal() {
   const [loadingHits, setLoadingHits] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  // Exit choreography — when the store closes the modal, play the
+  // tl-dialog-out animation before unmounting (180ms), instead of
+  // vanishing mid-frame.
+  const [renderOpen, setRenderOpen] = useState(open);
+  const [closing, setClosing] = useState(false);
+  useEffect(() => {
+    if (open) {
+      setRenderOpen(true);
+      setClosing(false);
+      return;
+    }
+    if (!renderOpen) return;
+    setClosing(true);
+    const t = window.setTimeout(() => {
+      setRenderOpen(false);
+      setClosing(false);
+    }, 180);
+    return () => window.clearTimeout(t);
+  }, [open, renderOpen]);
+
   // Concordance tally — the hit count glides from the previous value
   // instead of snapping (and never restarts from zero mid-typing).
   const [reduceMotion] = useState(
@@ -136,7 +156,7 @@ export function QuickJumpModal() {
     };
   }, [open, q, locale, parsed?.chapter]);
 
-  if (!open) return null;
+  if (!renderOpen) return null;
 
   function handleSelectReference(bId: string, ch?: number, v?: number) {
     jumpTo(bId, ch ?? 1, v);
@@ -187,7 +207,10 @@ export function QuickJumpModal() {
       />
 
       {/* Dialog card */}
-      <div className="relative z-10 w-full max-w-xl rounded-xl border border-rule bg-paper shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 ease-out">
+      <div
+        data-closing={closing ? "true" : undefined}
+        className="tl-dialog relative z-10 w-full max-w-xl rounded-xl border border-rule bg-paper shadow-2xl overflow-hidden"
+      >
         {/* Input bar */}
         <div className="flex items-center border-b border-rule px-4 py-3 bg-surface">
           <Search size={18} className="text-faint shrink-0 mr-3" />
@@ -273,7 +296,7 @@ export function QuickJumpModal() {
                     "tl-hit w-full text-left p-3 rounded-md transition-colors duration-100 flex flex-col gap-1",
                     idx === selectedIndex ? "bg-surface-raised" : "hover:bg-surface",
                   )}
-                  style={{ animationDelay: `${Math.min(idx, 10) * 40}ms` }}
+                  style={{ animationDelay: `${Math.min(idx, 10) * 60}ms` }}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-display text-sm font-semibold text-ink">
