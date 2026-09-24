@@ -36,6 +36,7 @@ export function lockThemeColor() {
 export function initPwa() {
   if (typeof window === "undefined") return;
   lockThemeColor();
+  lockSafeBottom();
   if ("serviceWorker" in navigator) {
     void navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" });
   }
@@ -77,6 +78,35 @@ export function lockSafeTop() {
     "--safe-top-min",
     fullscreen && inset < 12 ? "2rem" : "0px",
   );
+}
+
+/**
+ * Measure the real bottom system-gesture overlay at runtime.
+ * Android Chrome reports env(safe-area-inset-bottom) as 0px, so fixed rem
+ * floors are guesses. The layout viewport (innerHeight) spans edge-to-edge
+ * under the gesture bar; the visual viewport is what's actually visible.
+ * Their difference is the obscured height. Never drops below the CSS floor,
+ * and ignores huge shrinks (that's the keyboard, not the nav bar).
+ */
+export function lockSafeBottom() {
+  if (typeof window === "undefined" || !document.body) return;
+  const root = document.documentElement;
+  const apply = () => {
+    const vv = window.visualViewport;
+    const overlay = vv
+      ? Math.max(0, Math.round(window.innerHeight - vv.height))
+      : 0;
+    if (overlay > 200) return; // keyboard open, not the nav bar
+    const cssFloor = 80; // 5rem fallback from --read-bottom
+    const px = Math.max(cssFloor, overlay + 16);
+    root.style.setProperty("--read-bottom", `${px}px`);
+  };
+  apply();
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", apply);
+  } else {
+    window.addEventListener("resize", apply);
+  }
 }
 
 export function subscribePwa(fn: () => void) {
