@@ -46,7 +46,7 @@ export async function findScripture(
 ): Promise<ScriptureHit[]> {
   const query = q.trim();
   if (query.length < 2) return [];
-  const tx = locale === "es" ? "RV1960" : "ESV";
+  const tx = locale === "es" ? "RV2004" : "ESV";
   const url = `https://bolls.life/v2/find/${tx}?search=${encodeURIComponent(query)}&match_case=false&match_whole=false&limit=24&page=1`;
   const res = await fetch(url, {
     headers: { Accept: "application/json" },

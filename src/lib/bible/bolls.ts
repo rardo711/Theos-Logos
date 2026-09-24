@@ -2,15 +2,18 @@ import { bollsBookId, bookName, type Locale } from "./books.ts";
 import type { Book } from "./books.ts";
 import type { Chapter, Verse } from "./types.ts";
 
-export const RV1960_NAME = "Reina-Valera 1960";
-
-const RV1960_NOTE =
-  "Reina-Valera 1960. © Sociedades Bíblicas en América Latina, 1960; © Sociedades Bíblicas Unidas, 1988. Used for study on this desk.";
-
 const cache = new Map<string, Chapter>();
 
 export function stripBollsHtml(s: string): string {
   return s.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * bolls.life embeds Strong's numbers inline in some feeds, either as
+ * <S>1722</S> tags or ~~1722~~ markers. They are data, not display text.
+ */
+export function stripStrongs(s: string): string {
+  return s.replace(/<S>\d+<\/S>/g, "").replace(/~~\d+~~/g, "");
 }
 
 type BollsVerse = { verse?: number; text?: string };
@@ -44,7 +47,7 @@ function toChapter(
   const out: Verse[] = [];
   for (const v of verses) {
     const n = Number(v.verse) || 0;
-    const text = stripBollsHtml(v.text ?? "");
+    const text = stripBollsHtml(stripStrongs(v.text ?? ""));
     if (!n || !text) continue;
     out.push({
       bookId: book.id,
@@ -66,27 +69,24 @@ function toChapter(
   };
 }
 
-/** Spanish reader: Reina-Valera 1960. */
-export async function fetchSpanishChapter(
+/** Chapter fetch through the bolls.life pipe, parameterized by slug. */
+export async function fetchBollsChapter(
+  slug: string,
   book: Book,
   chapter: number,
+  locale: Locale,
+  name: string,
+  note: string,
 ): Promise<Chapter | null> {
-  const cacheKey = `RV1960-${book.id}-${chapter}`;
+  const cacheKey = `${slug}-${book.id}-${chapter}`;
   const hit = cache.get(cacheKey);
   if (hit) return hit;
 
   const num = bollsBookId(book.id);
   try {
-    const verses = await getText("RV1960", num, chapter);
+    const verses = await getText(slug, num, chapter);
     if (!verses) return null;
-    const ch = toChapter(
-      book,
-      chapter,
-      verses,
-      "es",
-      RV1960_NAME,
-      RV1960_NOTE,
-    );
+    const ch = toChapter(book, chapter, verses, locale, name, note);
     if (ch) {
       cache.set(cacheKey, ch);
       return ch;
@@ -96,4 +96,3 @@ export async function fetchSpanishChapter(
   }
   return null;
 }
-

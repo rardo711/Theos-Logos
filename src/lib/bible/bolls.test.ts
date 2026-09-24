@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { bollsBookId, bookName, findBook, getBook, parseReference } from "./books.ts";
-import { stripBollsHtml } from "./bolls.ts";
+import { stripBollsHtml, stripStrongs } from "./bolls.ts";
 
 describe("Spanish books", () => {
   it("maps Protestant order to bolls book numbers", () => {
@@ -32,6 +32,17 @@ describe("Spanish books", () => {
     assert.equal(
       stripBollsHtml("<p><b>Cristo</b> viene al mundo</p>"),
       "Cristo viene al mundo",
+    );
+  });
+
+  it("strips inline Strong's numbers from bolls text", () => {
+    assert.equal(
+      stripStrongs("In the beginning God~~430~~ created~~1254~~"),
+      "In the beginning God created",
+    );
+    assert.equal(
+      stripStrongs("In<S>1722</S> the beginning<S>746</S> was<S>2258</S>"),
+      "In the beginning was",
     );
   });
 });

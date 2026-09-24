@@ -3,6 +3,8 @@ import { fetchChapter } from "@/lib/bible/fetch-chapter";
 import { getSeed } from "@/lib/bible/seed";
 import { attachNtHeadings } from "@/lib/bible/nt-headings";
 import type { Chapter } from "@/lib/bible/types";
+import { translationInfo } from "@/lib/bible/translations";
+import type { Locale } from "@/lib/bible/books";
 import { initPwa, isStandalone, lockSafeTop } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
 import { useStudy } from "@/lib/study-store";
@@ -39,11 +41,13 @@ function lockAppHeight() {
   }
 }
 
-function chapterFitsLocale(ch: Chapter, locale: string): boolean {
-  const name = ch.translationName ?? "";
-  const english =
-    name.includes("English Standard") || name.includes("World English");
-  return locale === "es" ? !english : english;
+function chapterFitsSelection(
+  ch: Chapter,
+  locale: Locale,
+  translationId: string,
+): boolean {
+  const info = translationInfo(locale, translationId);
+  return (ch.translationName ?? "") === info.name;
 }
 
 export function StudyWorkspace() {
@@ -52,6 +56,9 @@ export function StudyWorkspace() {
   const chapterNum = useStudy((s) => s.chapter);
   const fontSize = useStudy((s) => s.fontSize);
   const locale = useStudy((s) => s.locale);
+  const enTranslation = useStudy((s) => s.enTranslation);
+  const esTranslation = useStudy((s) => s.esTranslation);
+  const translationId = locale === "es" ? esTranslation : enTranslation;
   const setLibraryOpen = useStudy((s) => s.setLibraryOpen);
   const setTypeOpen = useStudy((s) => s.setTypeOpen);
   const receptionOpen = useStudy((s) => s.receptionOpen);
@@ -316,13 +323,13 @@ export function StudyWorkspace() {
         prev == null ||
         prev.bookId !== bookId ||
         prev.chapter !== chapterNum ||
-        !chapterFitsLocale(prev, locale)
+        !chapterFitsSelection(prev, locale, translationId)
       ) {
         return null;
       }
       return prev;
     });
-    fetchChapter({ data: { bookId, chapter: chapterNum, locale } })
+    fetchChapter({ data: { bookId, chapter: chapterNum, locale, translation: translationId } })
       .then((data) => {
         if (!cancelled) {
           setChapter(data);
@@ -349,7 +356,7 @@ export function StudyWorkspace() {
     return () => {
       cancelled = true;
     };
-  }, [hydrated, bookId, chapterNum, locale]);
+  }, [hydrated, bookId, chapterNum, locale, translationId]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -478,7 +485,7 @@ export function StudyWorkspace() {
     chapter != null &&
     (chapter.bookId !== bookId ||
       chapter.chapter !== chapterNum ||
-      !chapterFitsLocale(chapter, locale));
+      !chapterFitsSelection(chapter, locale, translationId));
   const waitingOnFetch = staleChapter || (loading && chapter == null);
   const shownChapter = waitingOnFetch ? null : chapter;
 
