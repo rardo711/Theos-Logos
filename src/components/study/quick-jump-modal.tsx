@@ -12,10 +12,12 @@ function highlightMatch(text: string, query: string) {
   const q = query.trim();
   if (!q) return text;
   const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(`(${escaped})`, "gi");
+  // Highlight the whole word containing the match: a prefix query like
+  // "fait" lights up "faith" instead of leaving a dangling "fait"+"h".
+  const regex = new RegExp(`([A-Za-zÀ-ÿ']*${escaped}[A-Za-zÀ-ÿ']*)`, "gi");
   const parts = text.split(regex);
   return parts.map((part, i) =>
-    part.toLowerCase() === q.toLowerCase() ? (
+    i % 2 === 1 ? (
       <mark key={i} className="bg-lamp-soft text-lamp rounded-xs px-0.5 font-semibold">
         {part}
       </mark>
@@ -37,24 +39,32 @@ export function QuickJumpModal() {
   const [loadingHits, setLoadingHits] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // Concordance tally — the hit count ticks up instead of snapping.
+  // Concordance tally — the hit count glides from the previous value
+  // instead of snapping (and never restarts from zero mid-typing).
   const [reduceMotion] = useState(
     () =>
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
   const [tally, setTally] = useState(hits.length);
+  const tallyRef = useRef(hits.length);
   useEffect(() => {
+    const to = hits.length;
     if (reduceMotion) {
-      setTally(hits.length);
+      tallyRef.current = to;
+      setTally(to);
       return;
     }
+    const from = tallyRef.current;
+    if (from === to) return;
     let raf = 0;
     const start = performance.now();
     const duration = 400;
     const tick = (now: number) => {
       const p = Math.min(1, (now - start) / duration);
-      setTally(Math.round(hits.length * (1 - Math.pow(1 - p, 3))));
+      const val = Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3)));
+      tallyRef.current = val;
+      setTally(val);
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
