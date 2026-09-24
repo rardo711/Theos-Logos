@@ -146,9 +146,10 @@
       );
   }
 
-  /* Installed PWA: fill the app window, including the gesture inset.
-     Chrome in a tab already does this; visualViewport locking left a
-     navy strip under the paper on Android standalone. */
+  /* Installed PWA: fill the app window exactly. Do NOT use min-height:100lvh
+     here: on Android Chrome 100lvh can resolve taller than the visible
+     window (it doesn't account for the letterboxed gesture area), which
+     oversizes the scroller and hides the bottom padding below the fold. */
   html.tl-standalone body {
     top: 0;
     left: 0;
@@ -156,8 +157,6 @@
     bottom: 0;
     width: auto;
     height: auto;
-    min-height: 100%;
-    min-height: 100lvh;
   }
 
   @media (display-mode: standalone), (display-mode: fullscreen) {
@@ -171,8 +170,6 @@
       bottom: 0;
       width: auto;
       height: auto;
-      min-height: 100%;
-      min-height: 100lvh;
     }
   }
 
