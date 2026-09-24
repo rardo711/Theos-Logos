@@ -329,7 +329,7 @@
 
 .tl-verse[aria-selected="true"] .verse-num {
   color: var(--color-lamp);
-  text-shadow: 0 0 10px color-mix(in oklab, var(--color-lamp) 40%, transparent);
+  transition: color var(--motion-quick) var(--ease-out);
 }
 
 .tl-verse[data-range-start="true"]::before,
@@ -508,7 +508,7 @@ html.dark .tl-shell {
   /* Slide-first: no opacity fade (avoids X/close pop). Dim handles veil. */
   transform: translateX(-100%);
   opacity: 1;
-  transition: transform var(--motion-drawer) var(--ease-smooth-out);
+  transition: transform var(--motion-drawer) var(--ease-snap);
   overflow-x: hidden;
   will-change: transform;
 }
@@ -1535,6 +1535,12 @@ html.dark .tl-shell {
   .tl-drawer,
   .tl-menu,
   .tl-title-swap,
+  .tl-lamp-rule,
+  .tl-lamp-warm,
+  .tl-view,
+  .tl-hit,
+  .tl-kindling,
+  .tl-skeleton,
   .tl-pane[data-enter="true"] .tl-canon-section {
     animation: none;
   }
@@ -1589,4 +1595,194 @@ html.dark .tl-shell {
   .tl-onboard-exit {
     opacity: 0 !important;
   }
+}
+
+/* ================= Motion workshop (2026-09-24) =================
+   Lamp strike · card unfold · tap attack · skeleton sheen ·
+   route crossfade · search settle · wordmark kindling · scroll marginalia.
+   All durations/easings reuse the existing --motion-* / --ease-* tokens. */
+
+/* 1. Lamp strike — the verse-illuminated sense: a gold rule draws
+   left→right and the sense line warms from gold, then settles to ink. */
+@keyframes tl-lamp-strike {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.tl-lamp-rule {
+  height: 1px;
+  margin-top: 0.625rem;
+  background: linear-gradient(
+    to right,
+    var(--color-gold),
+    color-mix(in oklab, var(--color-gold) 25%, transparent)
+  );
+  transform-origin: left center;
+  animation: tl-lamp-strike var(--motion-fast) var(--ease-out);
+}
+
+@keyframes tl-lamp-warm {
+  from {
+    color: var(--color-gold);
+  }
+  to {
+    color: var(--color-ink);
+  }
+}
+
+.tl-lamp-warm {
+  animation: tl-lamp-warm var(--motion-slow) var(--ease-out);
+}
+
+/* 2. Card unfold — disclosures breathe open (same motion language as
+   .tl-contents: grid 0fr→1fr, rows stagger in). */
+.tl-unfold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--motion-medium) var(--ease-smooth-out);
+}
+
+.tl-unfold[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+.tl-unfold-body {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tl-unfold-item {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity var(--motion-fast) var(--ease-smooth-out),
+    transform var(--motion-fast) var(--ease-smooth-out);
+}
+
+.tl-unfold[data-open="true"] .tl-unfold-item {
+  opacity: 1;
+  transform: none;
+}
+
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(1) {
+  transition-delay: 80ms;
+}
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(2) {
+  transition-delay: 120ms;
+}
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(3) {
+  transition-delay: 160ms;
+}
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(4) {
+  transition-delay: 200ms;
+}
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(5) {
+  transition-delay: 240ms;
+}
+.tl-unfold[data-open="true"] .tl-unfold-item:nth-child(n + 6) {
+  transition-delay: 280ms;
+}
+
+/* 4. Tap attack — the press wash lands fast, releases slow. */
+.tl-verse:active {
+  transition-duration: var(--motion-quick);
+}
+
+/* 5. Skeleton sheen — a slow light pass over the existing lamp-tinted
+   loading bars (reader initial load). */
+@keyframes tl-shimmer {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -80% 0;
+  }
+}
+
+.tl-skeleton {
+  background-image: linear-gradient(
+    100deg,
+    transparent 35%,
+    color-mix(in oklab, var(--color-paper) 60%, transparent) 50%,
+    transparent 65%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: tl-shimmer 1400ms linear infinite;
+}
+
+/* 6. Route crossfade — replays when the route component remounts
+   (reader ↔ sources ↔ home). Chapter changes don't remount: untouched. */
+@keyframes tl-view-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tl-view {
+  animation: tl-view-in var(--motion-quick) var(--ease-out);
+}
+
+/* 7. Search settle — quick-jump hits cascade in (delay set inline). */
+@keyframes tl-hit-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tl-hit {
+  animation: tl-hit-in var(--motion-fast) var(--ease-smooth-out) both;
+}
+
+/* 10. Wordmark kindling — one ember breath on mount, then still. */
+@keyframes tl-kindling {
+  0% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  35% {
+    box-shadow: 0 0 16px 2px
+      color-mix(in oklab, var(--color-gold) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.tl-kindling {
+  animation: tl-kindling 600ms var(--ease-out);
+}
+
+/* 11. Scroll marginalia — section headings process in as they enter the
+   viewport. JS adds .tl-marginalia-on to the container and data-inview
+   per heading; without JS nothing hides. */
+.bible-heading {
+  transition:
+    opacity var(--motion-fast) var(--ease-smooth-out),
+    transform var(--motion-fast) var(--ease-smooth-out);
+}
+
+.tl-marginalia-on .bible-heading {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.tl-marginalia-on .bible-heading[data-inview="true"] {
+  opacity: 1;
+  transform: none;
 }

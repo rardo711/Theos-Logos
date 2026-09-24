@@ -497,7 +497,7 @@ export function StudyWorkspace() {
   }
 
   return (
-    <div className="tl-shell flex flex-col overflow-hidden text-ink">
+    <div className="tl-shell tl-view flex flex-col overflow-hidden text-ink">
       <div onClick={handleTopBarTap}>
         <TopBar />
       </div>

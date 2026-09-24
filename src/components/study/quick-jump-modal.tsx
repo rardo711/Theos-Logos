@@ -37,6 +37,30 @@ export function QuickJumpModal() {
   const [loadingHits, setLoadingHits] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  // Concordance tally — the hit count ticks up instead of snapping.
+  const [reduceMotion] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  const [tally, setTally] = useState(hits.length);
+  useEffect(() => {
+    if (reduceMotion) {
+      setTally(hits.length);
+      return;
+    }
+    let raf = 0;
+    const start = performance.now();
+    const duration = 400;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      setTally(Math.round(hits.length * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [hits.length, reduceMotion]);
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Focus input when opened
@@ -226,7 +250,7 @@ export function QuickJumpModal() {
           {hits.length > 0 ? (
             <div className="pt-1.5 space-y-1">
               <p className="px-3 py-1 text-3xs font-semibold tracking-wider text-faint uppercase font-mono">
-                {t(locale, "verseHits")} ({hits.length})
+                {t(locale, "verseHits")} ({tally})
               </p>
               {hits.map((hit, idx) => (
                 <button
@@ -236,9 +260,10 @@ export function QuickJumpModal() {
                     handleSelectReference(hit.bookId, hit.chapter, hit.verse)
                   }
                   className={cn(
-                    "w-full text-left p-3 rounded-md transition-colors duration-100 flex flex-col gap-1",
+                    "tl-hit w-full text-left p-3 rounded-md transition-colors duration-100 flex flex-col gap-1",
                     idx === selectedIndex ? "bg-surface-raised" : "hover:bg-surface",
                   )}
+                  style={{ animationDelay: `${Math.min(idx, 10) * 40}ms` }}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-display text-sm font-semibold text-ink">

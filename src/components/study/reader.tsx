@@ -86,6 +86,7 @@ export function Reader({
   const bookId = useStudy((s) => s.bookId);
   const chapterNum = useStudy((s) => s.chapter);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const readRef = useRef<HTMLDivElement>(null);
   const verseRefs = useRef<Map<number, HTMLElement>>(new Map());
   const touch = useRef<{ x: number; y: number } | null>(null);
   const topAnim = useRef<{ id: number | null }>({ id: null });
@@ -129,6 +130,30 @@ export function Reader({
     el.scrollTop = 0;
     setShowTop(false);
     setTocOpen(false);
+  }, [chapter?.reference, chapter?.bookId, chapter?.chapter]);
+
+  // Scroll marginalia — section headings process in as they enter view.
+  // The container class is added by JS, so without JS nothing hides.
+  useEffect(() => {
+    const root = readRef.current;
+    if (!root || typeof IntersectionObserver === "undefined") return;
+    root.classList.add("tl-marginalia-on");
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).dataset.inview = "true";
+            io.unobserve(entry.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.1 },
+    );
+    root.querySelectorAll(".bible-heading").forEach((h) => io.observe(h));
+    return () => {
+      io.disconnect();
+      root.classList.remove("tl-marginalia-on");
+    };
   }, [chapter?.reference, chapter?.bookId, chapter?.chapter]);
 
   useEffect(() => {
@@ -203,18 +228,19 @@ export function Reader({
         }}
       >
         <div
+          ref={readRef}
           className="tl-read mx-auto max-w-[42rem] px-5 pt-6 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-10 sm:pt-12"
           data-pick={selected != null ? "true" : "false"}
         >
           {loading && !chapter ? (
             <div className="space-y-4" aria-busy>
-              <div className="mx-auto h-3 w-28 rounded-sm bg-lamp/15" />
-              <div className="mx-auto h-10 w-44 rounded-sm bg-lamp/20" />
+              <div className="tl-skeleton mx-auto h-3 w-28 rounded-sm bg-lamp/15" />
+              <div className="tl-skeleton mx-auto h-10 w-44 rounded-sm bg-lamp/20" />
               <div className="mt-10 space-y-3">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-4 rounded-sm bg-lamp/10"
+                    className="tl-skeleton h-4 rounded-sm bg-lamp/10"
                     style={{ width: `${80 - (i % 3) * 12}%` }}
                   />
                 ))}
