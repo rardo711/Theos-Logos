@@ -83,7 +83,7 @@
   --sheet-mid: min(48dvh, 28rem);
   --sheet-full-gap: 0.4rem;
   --pick-stack: var(--sheet-peek);
-  --read-bottom: max(1.25rem, var(--safe-bottom));
+  --read-bottom: max(3rem, var(--safe-bottom));
 }
 
 @layer base {
