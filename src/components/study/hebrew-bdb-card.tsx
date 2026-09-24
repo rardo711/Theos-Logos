@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import type { HebrewBdbResult } from "@/lib/lexicon/hebrew-bdb";
 import { strongsAttribution } from "@/lib/lexicon/hebrew-bdb";
 import { strongsMidvashHref } from "@/lib/lexicon/midvash";
+import { transliterateLemma } from "@/lib/lexicon/transliterate";
 
 const LABEL =
   "text-[0.6875rem] font-medium tracking-[0.14em] text-faint uppercase";
@@ -32,6 +33,7 @@ export function HebrewBdbCard({
   // Sibling lexemes under the same Strong's number (homograph split).
   const siblings = (entry.siblings ?? []).filter((s) => s.key !== entry.splitKey);
   const [lexemesOpen, setLexemesOpen] = useState(!!entry.redirectedFromStub);
+  const lemmaTranslit = transliterateLemma(entry.lemma ?? "");
 
   return (
     <article
@@ -83,6 +85,11 @@ export function HebrewBdbCard({
             <span dir="rtl" lang="he" className="font-serif text-[1rem]">
               {entry.lemma}
             </span>
+            {lemmaTranslit ? (
+              <span dir="ltr" className="ml-2 text-[0.75rem] text-faint">
+                {lemmaTranslit}
+              </span>
+            ) : null}
           </p>
         ) : null}
         {entry.pos.length > 0 ? (
@@ -188,6 +195,11 @@ export function HebrewBdbCard({
                     <p className="text-muted">
                       {sib.sec ? <span className="font-medium text-gold">{sib.sec}. </span> : null}
                       <span dir="rtl" lang="he" className="font-serif">{sib.lemma}</span>
+                      {transliterateLemma(sib.lemma ?? "") ? (
+                        <span dir="ltr" className="ml-1.5 text-[0.75rem] text-faint">
+                          {transliterateLemma(sib.lemma ?? "")}
+                        </span>
+                      ) : null}
                       {sib.headwordGloss ? <span> — {sib.headwordGloss}</span> : null}
                       <span className="text-faint"> · brief entry</span>
                     </p>
@@ -200,6 +212,11 @@ export function HebrewBdbCard({
                     >
                       {sib.sec ? <span className="font-medium">{sib.sec}. </span> : null}
                       <span dir="rtl" lang="he" className="font-serif text-ink">{sib.lemma}</span>
+                      {transliterateLemma(sib.lemma ?? "") ? (
+                        <span dir="ltr" className="ml-1.5 text-[0.75rem] text-faint">
+                          {transliterateLemma(sib.lemma ?? "")}
+                        </span>
+                      ) : null}
                       {sib.headwordGloss ? <span className="text-muted"> — {sib.headwordGloss}</span> : null}
                     </button>
                   )}

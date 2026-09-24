@@ -9,6 +9,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { EnglishLexiconResult } from "@/lib/lexicon/english";
 import { strongsMidvashHref } from "@/lib/lexicon/midvash";
+import { transliterateLemma } from "@/lib/lexicon/transliterate";
 
 const LABEL =
   "text-[0.6875rem] font-medium tracking-[0.14em] text-faint uppercase";
@@ -124,6 +125,11 @@ export function EnglishGlossCard({
           <p className="text-[0.8125rem] text-ink">
             <span className={cn(LABEL, "mr-2")}>Lemma</span>
             <span className="font-serif text-[0.875rem] italic">{entry.lemma}</span>
+            {transliterateLemma(entry.lemma) ? (
+              <span className="ml-2 text-[0.75rem] text-faint not-italic">
+                {transliterateLemma(entry.lemma)}
+              </span>
+            ) : null}
           </p>
         ) : null}
         {entry.pos.length > 0 ? (
