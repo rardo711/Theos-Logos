@@ -9,8 +9,10 @@ import { useStudy } from "@/lib/study-store";
 import { isOnboardingComplete } from "@/lib/onboarding";
 import { LibraryDrawer } from "./library-drawer";
 import { Onboarding } from "./onboarding";
+import { QuickJumpModal } from "./quick-jump-modal";
 import { Reader } from "./reader";
 import { ReceptionPanel } from "./reception-panel";
+import { SourcesPage } from "./sources-page";
 import { TopBar } from "./top-bar";
 import { DiagOverlay } from "./diag-overlay";
 
@@ -58,6 +60,9 @@ export function StudyWorkspace() {
   const setReceptionFull = useStudy((s) => s.setReceptionFull);
   const receptionPinned = useStudy((s) => s.receptionPinned);
   const setReceptionPinned = useStudy((s) => s.setReceptionPinned);
+  const sourcesPageOpen = useStudy((s) => s.sourcesPageOpen);
+  const setSourcesPageOpen = useStudy((s) => s.setSourcesPageOpen);
+  const setQuickJumpOpen = useStudy((s) => s.setQuickJumpOpen);
   const setVerse = useStudy((s) => s.setVerse);
   const tapVerse = useStudy((s) => s.tapVerse);
   const selectedVerse = useStudy((s) => s.selectedVerse);
@@ -405,9 +410,24 @@ export function StudyWorkspace() {
         setVerse(ch.verses[idx - 1]?.verse ?? null);
         return;
       }
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setQuickJumpOpen(true);
+        return;
+      }
       if (e.key === "Escape") {
-        // Close topmost overlay first (library / type / reception), then clear.
+        // Close topmost overlay first (sources / quickJump / library / type / reception), then clear.
         const st = useStudy.getState();
+        if (st.sourcesPageOpen) {
+          e.preventDefault();
+          setSourcesPageOpen(false);
+          return;
+        }
+        if (st.quickJumpOpen) {
+          e.preventDefault();
+          setQuickJumpOpen(false);
+          return;
+        }
         if (st.libraryOpen) {
           e.preventDefault();
           setLibraryOpen(false);
@@ -442,6 +462,8 @@ export function StudyWorkspace() {
     setReceptionOpen,
     setReceptionFull,
     setReceptionPinned,
+    setSourcesPageOpen,
+    setQuickJumpOpen,
     setVerse,
     tapVerse,
   ]);
@@ -575,6 +597,12 @@ export function StudyWorkspace() {
             : 0
         }
       />
+
+      {sourcesPageOpen ? (
+        <SourcesPage onClose={() => setSourcesPageOpen(false)} />
+      ) : null}
+
+      <QuickJumpModal />
     </div>
   );
 }

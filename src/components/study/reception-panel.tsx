@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, Highlighter, Loader2, Maximize2, Minimize2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
+import { BookMarked, ChevronDown, ChevronUp, Highlighter, Loader2, Maximize2, Minimize2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
 import {
   askReception,
   gatherCommentaries,
@@ -130,6 +130,7 @@ export function ReceptionPanel({
   const setReceptionPinned = useStudy((s) => s.setReceptionPinned);
   const setReceptionOpen = useStudy((s) => s.setReceptionOpen);
   const setReceptionFull = useStudy((s) => s.setReceptionFull);
+  const setSourcesPageOpen = useStudy((s) => s.setSourcesPageOpen);
   const clearSelection = useStudy((s) => s.clearSelection);
   const locale = useStudy((s) => s.locale);
   const [question, setQuestion] = useState("");
@@ -698,6 +699,15 @@ export function ReceptionPanel({
                 <Highlighter size={18} strokeWidth={highlighted ? 2.2 : 1.75} />
               </button>
             ) : null}
+            <button
+              type="button"
+              onClick={() => setSourcesPageOpen(true)}
+              className="flex size-11 items-center justify-center rounded-md text-muted hover:bg-paper hover:text-ink transition-colors active:scale-[0.96]"
+              aria-label={t(locale, "allSavedSources")}
+              title={t(locale, "allSavedSources")}
+            >
+              <BookMarked size={18} strokeWidth={1.75} />
+            </button>
             <button
               type="button"
               onClick={() => setReceptionPinned(!receptionPinned)}

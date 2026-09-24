@@ -87,6 +87,8 @@ interface StudyState extends Persisted {
   typeOpen: boolean;
   receptionOpen: boolean;
   receptionFull: boolean;
+  sourcesPageOpen: boolean;
+  quickJumpOpen: boolean;
   notesRev: number;
   highlightsRev: number;
   setBook: (bookId: string, chapter?: number) => void;
@@ -110,6 +112,8 @@ interface StudyState extends Persisted {
   setReceptionOpen: (open: boolean) => void;
   setReceptionFull: (full: boolean) => void;
   setReceptionPinned: (pinned: boolean) => void;
+  setSourcesPageOpen: (open: boolean) => void;
+  setQuickJumpOpen: (open: boolean) => void;
   touchNotes: () => void;
   touchHighlights: () => void;
   dismissDisclaimer: () => void;
@@ -149,6 +153,8 @@ export const useStudy = create<StudyState>((set, get) => ({
   receptionOpen: false,
   receptionFull: false,
   receptionPinned: false,
+  sourcesPageOpen: false,
+  quickJumpOpen: false,
   notesRev: 0,
   highlightsRev: 0,
   hydrate: () => {
@@ -304,6 +310,20 @@ export const useStudy = create<StudyState>((set, get) => ({
     });
     persist(get());
   },
+  setSourcesPageOpen: (sourcesPageOpen) =>
+    set({
+      sourcesPageOpen,
+      quickJumpOpen: sourcesPageOpen ? false : get().quickJumpOpen,
+      libraryOpen: sourcesPageOpen ? false : get().libraryOpen,
+      typeOpen: sourcesPageOpen ? false : get().typeOpen,
+    }),
+  setQuickJumpOpen: (quickJumpOpen) =>
+    set({
+      quickJumpOpen,
+      sourcesPageOpen: quickJumpOpen ? false : get().sourcesPageOpen,
+      libraryOpen: quickJumpOpen ? false : get().libraryOpen,
+      typeOpen: quickJumpOpen ? false : get().typeOpen,
+    }),
   touchNotes: () => set({ notesRev: get().notesRev + 1 }),
   touchHighlights: () => set({ highlightsRev: get().highlightsRev + 1 }),
   dismissDisclaimer: () => {

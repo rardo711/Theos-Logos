@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as BookChapterRouteImport } from './routes/$book.$chapter'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SourcesRoute = SourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookChapterRoute = BookChapterRouteImport.update({
@@ -25,27 +31,31 @@ const BookChapterRoute = BookChapterRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sources': typeof SourcesRoute
   '/$book/$chapter': typeof BookChapterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sources': typeof SourcesRoute
   '/$book/$chapter': typeof BookChapterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/sources': typeof SourcesRoute
   '/$book/$chapter': typeof BookChapterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$book/$chapter'
+  fullPaths: '/' | '/sources' | '/$book/$chapter'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$book/$chapter'
-  id: '__root__' | '/' | '/$book/$chapter'
+  to: '/' | '/sources' | '/$book/$chapter'
+  id: '__root__' | '/' | '/sources' | '/$book/$chapter'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SourcesRoute: typeof SourcesRoute
   BookChapterRoute: typeof BookChapterRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sources': {
+      id: '/sources'
+      path: '/sources'
+      fullPath: '/sources'
+      preLoaderRoute: typeof SourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$book/$chapter': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SourcesRoute: SourcesRoute,
   BookChapterRoute: BookChapterRoute,
 }
 export const routeTree = rootRouteImport
