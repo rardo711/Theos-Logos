@@ -30,7 +30,7 @@ type CompactBdbSense = {
 
 type CompactBdb = {
   s: string;
-  /** Winning source CSV row id, e.g. "BDB430" (traceability for audits). */
+  /** This entry's own source CSV row id (traceability for audits). */
   row: string;
   /** Hebrew (or Aramaic) headword. */
   m: string;
@@ -43,6 +43,21 @@ type CompactBdb = {
   sd?: string;
   lang?: "aramaic";
   ss: CompactBdbSense[];
+  /** BDB's own section marker, verbatim ("I", "II", "III", …). */
+  sec?: string;
+  /** Canonical Strong's number this split was carved out of. */
+  splitFrom?: string;
+  /** 0 = primary (winner row); 1, 2, … = splits in BDB row order. */
+  splitIndex?: number;
+  /** Head-only, ref-less row: a brief lexeme, shown in the "related lexemes" disclosure. */
+  stub?: boolean;
+  /** This row may hide an unmarked homograph section: needs a human. */
+  needsReview?: boolean;
+  needsReviewReason?: string;
+  /** Other H-numbers holding this entry's missing lexeme (tappable). */
+  seeAlso?: string[];
+  /** Dropped "see below/q.v." stub row ids (traceability). */
+  droppedStubs?: string[];
 };
 
 const by = (hebrewBdbJson as { by: Record<string, CompactBdb> }).by ?? {};
@@ -56,6 +71,17 @@ export type HebrewBdbSense = {
   refs: string[];
   /** True when this sense was selected via <ref> tags for the verse. */
   matchedByReference?: boolean;
+};
+
+export type HebrewBdbSibling = {
+  /** Entry key: "H1254" (primary) or "H1254b" (split). */
+  key: string;
+  sec?: string;
+  headwordGloss: string;
+  lemma: string;
+  stub: boolean;
+  isPrimary: boolean;
+  needsReview?: boolean;
 };
 
 export type HebrewBdbResult = {
@@ -74,9 +100,13 @@ export type HebrewBdbResult = {
    * (the dictionary definition of the word, verbatim Strong's 1890);
    * otherwise the BDB chain — verse-pinned sense gloss, headword gloss,
    * selected sense's clearest gloss, then the lemma (proper names usually
-   * have no gloss).
+   * have no gloss). EXCEPTION (Gerardo's call): on a SPLIT entry, a
+   * verse-matched BDB sense outranks Strong's — showing Strong's "to
+   * create" on the "be fat" lexeme would reproduce the bug being fixed.
    */
   gloss: string;
+  /** Which source the hero gloss comes from ("bdb" on verse-routed splits). */
+  glossSource: "strongs" | "bdb";
   /**
    * Strong's concise definition for this entry, verbatim ("" when Strong's
    * has no definition for the number — the hero then falls back to BDB).
@@ -97,15 +127,75 @@ export type HebrewBdbResult = {
   attribution: string;
   /** True when the selected sense came from a <ref> verse hit. */
   senseMatchedByReference: boolean;
+  /** Entry key: "H1254" or the split key "H1254b". */
+  splitKey: string;
+  /** True for H####b/c/… split entries. */
+  isSplit: boolean;
+  /** BDB's own section marker, verbatim ("I", "II", …). */
+  sec?: string;
+  /** True for brief head-only lexemes (shown in the disclosure, not as cards). */
+  stub: boolean;
+  /** This row may hide an unmarked homograph section: needs a human. */
+  needsReview: boolean;
+  needsReviewReason?: string;
+  /** Other H-numbers holding this entry's missing lexeme. */
+  seeAlso: string[];
+  /** Sibling lexemes under the same Strong's number (for the disclosure). */
+  siblings: HebrewBdbSibling[];
+  /** Set when a stub lookup was redirected to the primary entry. */
+  redirectedFromStub?: string;
 };
 
-/** Accept "H430", "h430", "H0430". */
+/** Accept "H430", "h430", "H0430" — and split keys "H1254b" (suffix kept). */
 function normalizeStrongs(raw: string): string {
   const m = String(raw ?? "")
     .toUpperCase()
     .replace(/\s+/g, "")
-    .match(/H0*(\d+)/);
-  return m ? `H${m[1]}` : "";
+    .match(/H0*(\d+)([A-Z]?)/);
+  return m ? `H${m[1]}${m[2].toLowerCase()}` : "";
+}
+
+/** Canonical number for a key: "H1254b" → "H1254". */
+function canonicalOf(key: string): string {
+  return key.replace(/[a-z]$/, "");
+}
+
+/** All entry keys under one Strong's number, primary first. */
+function splitKeysOf(canonical: string): string[] {
+  const out: string[] = [];
+  for (const [key, e] of Object.entries(by)) {
+    if ((e as CompactBdb).s === canonical) out.push(key);
+  }
+  out.sort(
+    (a, b) =>
+      ((by[a] as CompactBdb).splitIndex ?? 0) -
+        ((by[b] as CompactBdb).splitIndex ?? 0) || (a < b ? -1 : 1),
+  );
+  return out;
+}
+
+/** Sibling lexemes for the card's "related lexemes" disclosure. */
+function siblingInfos(canonical: string): HebrewBdbSibling[] {
+  return splitKeysOf(canonical).map((key) => {
+    const e = by[key] as CompactBdb;
+    return {
+      key,
+      sec: e.sec,
+      headwordGloss: e.hw || "",
+      lemma: e.m || "",
+      stub: !!e.stub,
+      isPrimary: (e.splitIndex ?? 0) === 0,
+      needsReview: e.needsReview,
+    };
+  });
+}
+
+/** Sibling entry keys for a Strong's number ("H1254" → ["H1254", "H1254b"]). */
+export function listHebrewBdbSplits(strongs: string): string[] {
+  const key = normalizeStrongs(strongs);
+  if (!key) return [];
+  const canon = canonicalOf(key);
+  return by[canon] ? splitKeysOf(canon) : [];
 }
 
 function glossKey(word: string): string {
@@ -338,8 +428,10 @@ export function verseSenseLine(
 
 function expand(
   word: string,
+  key: string,
   e: CompactBdb,
   reference?: string,
+  redirectedFromStub?: string,
 ): HebrewBdbResult {
   const silKey = referenceToSilVerseKey(reference);
   const senses: HebrewBdbSense[] = (e.ss || []).map((s) => ({
@@ -355,6 +447,8 @@ function expand(
   const selected = senses[selectedSenseIndex] ?? senses[0];
   const headwordGloss = e.hw || "";
   const strongsDefinition = e.sd || "";
+  const splitIndex = e.splitIndex ?? 0;
+  const isSplit = splitIndex > 0;
   // Hero meaning: Strong's concise definition wins when present — it is the
   // dictionary definition of the word, and it is what the card attributes as
   // Strong's. Without one, the BDB chain stands: when the verse pinned a
@@ -362,14 +456,18 @@ function expand(
   // meaning in THIS verse, and it beats the dictionary headword default);
   // otherwise BDB's headword gloss wins; then the selected sense's clearest
   // gloss; then the lemma.
+  // EXCEPTION (Gerardo's call): on a SPLIT entry, a verse-matched BDB sense
+  // outranks Strong's — the Strong's definition describes the NUMBER, and on
+  // a split like H1254b ("be fat") it would read "to create".
   const senseGloss = clearestBlockGloss(selected?.glosses || []);
+  const bdbHero =
+    (matched && senseGloss) || headwordGloss || senseGloss || e.m || "";
   const gloss =
-    strongsDefinition ||
-    (matched && senseGloss) ||
-    headwordGloss ||
-    senseGloss ||
-    e.m ||
-    "";
+    isSplit && matched && senseGloss
+      ? senseGloss
+      : strongsDefinition || bdbHero;
+  const glossSource: "strongs" | "bdb" =
+    gloss === strongsDefinition && strongsDefinition ? "strongs" : "bdb";
   const glossExtras = (selected?.glosses || []).filter((g) => g !== gloss);
   return {
     word,
@@ -381,6 +479,7 @@ function expand(
     senses,
     selectedSenseIndex,
     gloss,
+    glossSource,
     strongsDefinition,
     glossExtras,
     sense: selected?.text || "",
@@ -393,6 +492,15 @@ function expand(
     isAramaic: e.lang === "aramaic",
     attribution: hebrewBdbAttribution,
     senseMatchedByReference: matched,
+    splitKey: key,
+    isSplit,
+    sec: e.sec,
+    stub: !!e.stub,
+    needsReview: !!e.needsReview,
+    needsReviewReason: e.needsReviewReason,
+    seeAlso: e.seeAlso ?? [],
+    siblings: siblingInfos(e.s),
+    redirectedFromStub,
   };
 }
 
@@ -402,8 +510,32 @@ export function lookupHebrewBdbByStrongs(
 ): HebrewBdbResult | null {
   const key = normalizeStrongs(strongs);
   if (!key) return null;
-  const raw = by[key];
-  return raw ? expand(key, raw, reference) : null;
+  const direct = by[key] as CompactBdb | undefined;
+  if (!direct) return null;
+  // Stub lexemes live behind the primary's "related lexemes" disclosure,
+  // never as their own card (Gerardo's call).
+  if (direct.stub) {
+    const canon = canonicalOf(key);
+    const primary = by[canon] as CompactBdb | undefined;
+    if (primary && canon !== key)
+      return expand(key, canon, primary, reference, key);
+    return expand(key, key, direct, reference);
+  }
+  // Canonical lookup with a verse: route primary → siblings, first
+  // verse-matched sense wins (each split carries only its own row's refs).
+  // A suffixed key always opens its own lexeme.
+  if (canonicalOf(key) === key) {
+    const silKey = referenceToSilVerseKey(reference);
+    if (silKey) {
+      for (const k of splitKeysOf(key)) {
+        const e = by[k] as CompactBdb;
+        if (e.stub) continue;
+        const hit = expand(key, k, e, reference);
+        if (hit.senseMatchedByReference) return hit;
+      }
+    }
+  }
+  return expand(key, key, direct, reference);
 }
 
 export function lookupHebrewBdbByGloss(
@@ -450,7 +582,7 @@ export function lookupHebrewBdbWordNow(
     if (refHit) return refHit;
     return hits[0];
   }
-  if (/^h\s*0*\d+$/i.test(word.trim())) {
+  if (/^h\s*0*\d+[a-z]?$/i.test(word.trim())) {
     return lookupHebrewBdbByStrongs(word, reference);
   }
   return null;
