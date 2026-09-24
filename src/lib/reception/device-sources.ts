@@ -13,14 +13,12 @@ export interface DeviceSourceGroup {
   verseEnd?: number | null;
   displayReference: string;
   cards: SourceCard[];
-  hasSaved: boolean;
 }
 
 export interface DeviceSourcesSummary {
   groups: DeviceSourceGroup[];
   totalCards: number;
   totalPassages: number;
-  savedPassagesCount: number;
   voices: string[];
   traditions: {
     patristic: number;
@@ -91,12 +89,12 @@ export function getAllDeviceSources(locale: Locale = "en"): DeviceSourcesSummary
 
           const book = getBook(parsed.bookId);
           const bName = bookName(book, locale);
-          const displayRef = formatReference({
-            bookName: bName,
-            chapter: parsed.chapter,
-            verse: parsed.verse,
-            verseEnd: parsed.verseEnd,
-          });
+          const displayRef = formatReference(
+            bName,
+            parsed.chapter,
+            parsed.verse,
+            parsed.verseEnd,
+          );
 
           groupMap.set(baseKey, {
             passageKey: baseKey,
@@ -110,7 +108,6 @@ export function getAllDeviceSources(locale: Locale = "en"): DeviceSourcesSummary
               ...c,
               source: c.source ?? "generated",
             })),
-            hasSaved: true,
           });
         }
       }
@@ -140,11 +137,7 @@ export function getAllDeviceSources(locale: Locale = "en"): DeviceSourcesSummary
           const added = curatedCards.filter((c) => !seenCites.has(`${c.voice}\0${c.citation}`));
           existing.cards.push(...added);
         } else {
-          const displayRef = formatReference({
-            bookName: bName,
-            chapter: ch,
-            verse: v,
-          });
+          const displayRef = formatReference(bName, ch, v);
           groupMap.set(baseKey, {
             passageKey: baseKey,
             bookId: bId,
@@ -153,7 +146,6 @@ export function getAllDeviceSources(locale: Locale = "en"): DeviceSourcesSummary
             verse: v,
             displayReference: displayRef,
             cards: curatedCards,
-            hasSaved: false,
           });
         }
       }
@@ -174,7 +166,6 @@ export function getAllDeviceSources(locale: Locale = "en"): DeviceSourcesSummary
 
   // 4. Compute analytics / totals
   let totalCards = 0;
-  let savedPassagesCount = 0;
   const voiceSet = new Set<string>();
   const traditions = {
     patristic: 0,
@@ -185,7 +176,6 @@ export function getAllDeviceSources(locale: Locale = "en"): DeviceSourcesSummary
 
   for (const g of sortedGroups) {
     totalCards += g.cards.length;
-    if (g.hasSaved) savedPassagesCount++;
     for (const c of g.cards) {
       if (c.voice) voiceSet.add(c.voice);
       const trad = (c.tradition ?? "other").toLowerCase();
@@ -200,7 +190,6 @@ export function getAllDeviceSources(locale: Locale = "en"): DeviceSourcesSummary
     groups: sortedGroups,
     totalCards,
     totalPassages: sortedGroups.length,
-    savedPassagesCount,
     voices: Array.from(voiceSet).sort((a, b) => a.localeCompare(b)),
     traditions,
   };

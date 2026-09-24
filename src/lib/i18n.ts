@@ -168,6 +168,7 @@ const EN = {
   filterAll: "All",
   savedBadge: "Saved on Device",
   openSourcesPage: "Open sources page",
+  loadMoreSources: "Load more sources ({n} remaining)",
 } as const;
 
 const ES: { [K in keyof typeof EN]: string } = {
@@ -337,6 +338,7 @@ const ES: { [K in keyof typeof EN]: string } = {
   filterAll: "Todas",
   savedBadge: "Guardado en dispositivo",
   openSourcesPage: "Abrir página de fuentes",
+  loadMoreSources: "Cargar más fuentes ({n} restantes)",
 };
 
 export type Msg = keyof typeof EN;

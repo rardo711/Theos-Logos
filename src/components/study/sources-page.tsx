@@ -7,7 +7,6 @@ import {
   ExternalLink,
   Filter,
   Search,
-  Sparkles,
   X,
 } from "lucide-react";
 import { useStudy } from "@/lib/study-store";
@@ -27,7 +26,6 @@ export function SourcesPage({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("");
   const [selectedTradition, setSelectedTradition] = useState<string>("all");
   const [selectedVoice, setSelectedVoice] = useState<string>("all");
-  const [onlySaved, setOnlySaved] = useState(false);
   const [pageLimit, setPageLimit] = useState(40);
 
   // Close on Escape
@@ -50,8 +48,6 @@ export function SourcesPage({ onClose }: { onClose: () => void }) {
     const q = query.trim().toLowerCase();
     return summary.groups
       .map((g) => {
-        if (onlySaved && !g.hasSaved) return null;
-
         const matchingCards = g.cards.filter((c) => {
           if (
             selectedTradition !== "all" &&
@@ -83,7 +79,7 @@ export function SourcesPage({ onClose }: { onClose: () => void }) {
         };
       })
       .filter((g): g is DeviceSourceGroup => g !== null);
-  }, [summary.groups, query, selectedTradition, selectedVoice, onlySaved]);
+  }, [summary.groups, query, selectedTradition, selectedVoice]);
 
   const displayedGroups = filteredGroups.slice(0, pageLimit);
 
@@ -173,34 +169,17 @@ export function SourcesPage({ onClose }: { onClose: () => void }) {
               type="button"
               onClick={() => {
                 setSelectedTradition("all");
-                setOnlySaved(false);
                 setSelectedVoice("all");
               }}
               className={cn(
                 "shrink-0 rounded-full px-3 py-1 font-medium transition-colors duration-150",
-                selectedTradition === "all" && !onlySaved && selectedVoice === "all"
+                selectedTradition === "all" && selectedVoice === "all"
                   ? "bg-ink text-paper"
                   : "border border-rule bg-surface hover:bg-surface-raised text-muted",
               )}
             >
               {t(locale, "filterAll")} ({summary.totalCards})
             </button>
-
-            {summary.savedPassagesCount > 0 ? (
-              <button
-                type="button"
-                onClick={() => setOnlySaved(!onlySaved)}
-                className={cn(
-                  "shrink-0 rounded-full px-3 py-1 font-medium transition-colors duration-150 flex items-center gap-1.5",
-                  onlySaved
-                    ? "bg-oxblood text-white"
-                    : "border border-rule bg-surface hover:bg-surface-raised text-muted",
-                )}
-              >
-                <Sparkles size={12} />
-                <span>{t(locale, "savedBadge")}</span>
-              </button>
-            ) : null}
 
             {summary.traditions.patristic > 0 ? (
               <button
@@ -280,7 +259,6 @@ export function SourcesPage({ onClose }: { onClose: () => void }) {
                   onClick={() => {
                     setQuery("");
                     setSelectedTradition("all");
-                    setOnlySaved(false);
                   }}
                   className="mt-4 rounded-md border border-rule bg-surface px-4 py-2 text-sm font-medium text-ink hover:bg-surface-raised transition-colors"
                 >
@@ -343,7 +321,7 @@ export function SourcesPage({ onClose }: { onClose: () => void }) {
                         </div>
 
                         {/* Citation */}
-                        <p className="mt-0.5 text-2xs font-mono text-faint">
+                        <p className="mt-0.5 font-sans text-2xs uppercase tracking-wider text-faint">
                           {card.citation}
                         </p>
 
@@ -387,7 +365,9 @@ export function SourcesPage({ onClose }: { onClose: () => void }) {
                     onClick={() => setPageLimit((p) => p + 40)}
                     className="rounded-md border border-rule bg-surface px-5 py-2 text-sm font-medium text-ink hover:bg-surface-raised transition-colors active:scale-[0.98]"
                   >
-                    Load more sources ({filteredGroups.length - displayedGroups.length} remaining)
+                    {t(locale, "loadMoreSources", {
+                      n: filteredGroups.length - displayedGroups.length,
+                    })}
                   </button>
                 </div>
               ) : null}
