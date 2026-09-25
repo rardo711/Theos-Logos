@@ -983,10 +983,11 @@ html.dark .tl-shell {
 .tl-menu button:not(:disabled),
 .tl-sheet button:not(:disabled) {
   transition:
-    transform 320ms var(--ease-smooth-out),
-    background-color 240ms var(--ease-smooth-out),
-    color 240ms var(--ease-smooth-out),
-    border-color 240ms var(--ease-smooth-out);
+    transform 360ms var(--ease-smooth-out),
+    background-color 280ms var(--ease-smooth-out),
+    color 280ms var(--ease-smooth-out),
+    border-color 280ms var(--ease-smooth-out),
+    box-shadow 360ms var(--ease-smooth-out);
 }
 
 .tl-shell button:not(:disabled):not(.tl-dim):active,
@@ -1347,14 +1348,35 @@ html.dark .tl-shell {
   }
 }
 
-.tl-progress {
-  width: 38%;
-  animation: tl-progress 1.6s linear infinite;
+.tl-note-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-oxblood);
+  box-shadow: 0 0 0 1.5px var(--color-paper);
+  pointer-events: none;
 }
 
-@keyframes tl-progress {
-  0% { transform: translateX(-130%); }
-  100% { transform: translateX(320%); }
+.tl-progress {
+  width: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--color-oxblood), var(--color-lamp));
+  animation: tl-kindle-bar 2.4s var(--ease-smooth-out) infinite;
+}
+
+@keyframes tl-kindle-bar {
+  0% {
+    transform: scaleX(0.08);
+    opacity: 0.35;
+  }
+  62% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
 }
 
 .tl-chapter {
@@ -2076,13 +2098,13 @@ html.dark .tl-shell {
 .tl-skeleton {
   background-image: linear-gradient(
     100deg,
-    transparent 35%,
-    color-mix(in oklab, var(--color-paper) 78%, transparent) 50%,
-    transparent 65%
+    transparent 38%,
+    color-mix(in oklab, var(--color-lamp) 42%, transparent) 50%,
+    transparent 62%
   );
-  background-size: 200% 100%;
+  background-size: 220% 100%;
   background-repeat: no-repeat;
-  animation: tl-shimmer 1100ms linear infinite;
+  animation: tl-shimmer 2.6s var(--ease-smooth-out) infinite;
 }
 
 /* 6. Route crossfade — replays when the route component remounts
@@ -2099,7 +2121,7 @@ html.dark .tl-shell {
 }
 
 .tl-view {
-  animation: tl-view-in 280ms var(--ease-out);
+  animation: tl-view-in 460ms var(--ease-smooth-out);
 }
 
 /* 7. Search settle — quick-jump hits cascade in (delay set inline). */
@@ -2115,7 +2137,7 @@ html.dark .tl-shell {
 }
 
 .tl-hit {
-  animation: tl-hit-in var(--motion-fast) var(--ease-smooth-out) both;
+  animation: tl-hit-in 420ms var(--ease-smooth-out) both;
 }
 
 /* Quick-jump dialog — one clear entrance, one graceful exit. */

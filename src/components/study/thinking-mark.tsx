@@ -4,6 +4,26 @@ import { cn } from "@/lib/utils";
 type LampWait = "composing" | "searching" | "breathing";
 
 /**
+ * The small lamp, for a search or a chapter that is still arriving.
+ * The long-answer mark waits before it shows; this one does not.
+ */
+export function LampMark({
+  state = "searching",
+  className,
+}: {
+  state?: LampWait;
+  className?: string;
+}) {
+  return (
+    <span className={cn("tl-lamp-wait", `tl-lamp-wait-${state}`, className)} aria-hidden="true">
+      <i />
+      <i />
+      <i />
+    </span>
+  );
+}
+
+/**
  * Desk lamp while a long answer is written. Not a generic orb:
  * composing breathes three wicks, searching draws a gold rule,
  * breathing is one slow flame. Stays hidden for the first moment

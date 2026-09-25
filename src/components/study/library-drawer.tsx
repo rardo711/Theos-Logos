@@ -6,7 +6,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import { Loader2, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import {
   BIBLE_BOOKS,
   CORPUS,
@@ -23,6 +23,7 @@ import { corpusLabel, t } from "@/lib/i18n";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 import { useSlidingPill } from "./sliding-pill";
+import { LampMark } from "./thinking-mark";
 import { VerseSelector } from "./verse-selector";
 
 function highlightMatch(text: string, query: string) {
@@ -490,8 +491,8 @@ export function LibraryDrawer({ verseCount = 0 }: { verseCount?: number }) {
                           )}
                         >
                           {n}
-                          {noted && !active ? (
-                            <span className="absolute top-1.5 right-1.5 size-1 rounded-full bg-oxblood" />
+                          {noted ? (
+                            <span className="tl-note-dot absolute top-1.5 right-1.5" />
                           ) : null}
                         </button>
                       );
@@ -573,7 +574,7 @@ export function LibraryDrawer({ verseCount = 0 }: { verseCount?: number }) {
                       <span>{t(locale, "verseHits")}</span>
                       <span className="font-serif font-normal tracking-normal text-faint normal-case">
                         {searchingText ? (
-                          <Loader2 size={12} className="inline animate-spin" />
+                          <LampMark className="inline-flex align-[-2px]" />
                         ) : (
                           hits.length
                         )}
