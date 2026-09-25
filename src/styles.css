@@ -199,20 +199,42 @@
 
   .bible-prose {
     text-wrap: pretty;
+    font-variant-numeric: oldstyle-nums proportional-nums;
+    font-feature-settings: "onum" 1, "kern" 1, "liga" 1;
+    hanging-punctuation: first allow-end;
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--color-lamp) 22%, transparent);
+    background: color-mix(in oklab, var(--color-lamp) 28%, transparent);
+    color: inherit;
+  }
+
+  .tl-shell button:focus-visible,
+  .tl-shell a:focus-visible {
+    outline: 1.5px solid color-mix(in oklab, var(--color-lamp) 72%, var(--color-ink));
+    outline-offset: 3px;
+  }
+
+  .tl-shell input,
+  .tl-shell textarea {
+    caret-color: var(--color-lamp);
+  }
+
+  .tl-shell input:-webkit-autofill {
+    -webkit-text-fill-color: var(--color-ink);
+    caret-color: var(--color-lamp);
+    transition: background-color 99999s ease-out;
   }
 }
 
 .verse-num {
-  font-size: 0.68em;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  font-size: 0.65em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  font-variant-numeric: lining-nums tabular-nums;
   color: var(--color-verse);
   position: relative;
-  top: -0.12em;
+  top: -0.14em;
 }
 
 .verse-mark {
@@ -301,8 +323,9 @@
   }
 }
 
-.tl-verse:active {
-  background-color: color-mix(in oklab, var(--color-lamp) 7%, transparent);
+.tl-verse:focus-visible {
+  outline: none;
+  background-color: color-mix(in oklab, var(--color-lamp) 16%, transparent);
 }
 
 .tl-first-verse:hover,
@@ -659,6 +682,39 @@ html.dark .tl-shell {
 
 .tl-sheet-up[data-dragging="true"] {
   transition: none;
+}
+
+.tl-sheet-up::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset-inline: 1.125rem;
+  top: 0;
+  height: 1px;
+  background: color-mix(in oklab, white 62%, transparent);
+  pointer-events: none;
+}
+
+.dark .tl-sheet-up::before {
+  background: color-mix(in oklab, white 14%, transparent);
+}
+
+.tl-sheet-up [data-sheet-handle] span {
+  width: 2.25rem;
+  height: 3px;
+  background: color-mix(in oklab, var(--color-faint) 50%, transparent);
+  transition:
+    width 280ms var(--ease-smooth-out),
+    background-color 180ms var(--ease-smooth-out);
+}
+
+.tl-sheet-up[data-dragging="true"] [data-sheet-handle] span {
+  width: 2.75rem;
+  background: color-mix(in oklab, var(--color-lamp) 65%, var(--color-faint));
+}
+
+.tl-quote {
+  hanging-punctuation: first last;
 }
 
 /* In-place gloss ↔ reception content swap (150–180ms) */
@@ -1271,22 +1327,34 @@ html.dark .tl-shell {
 }
 
 .tl-scroll::-webkit-scrollbar {
-  width: 6px;
+  width: 10px;
 }
 
 .tl-scroll::-webkit-scrollbar-thumb {
-  background: var(--color-faint);
-  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-faint) 75%, transparent);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
+}
+
+@media (hover: hover) {
+  .tl-scroll {
+    scrollbar-color: transparent transparent;
+  }
+  .tl-scroll:hover {
+    scrollbar-color: color-mix(in oklab, var(--color-faint) 75%, transparent)
+      transparent;
+  }
 }
 
 .tl-progress {
-  width: 40%;
-  animation: tl-progress 1.1s var(--ease-smooth-out) infinite;
+  width: 38%;
+  animation: tl-progress 1.6s linear infinite;
 }
 
 @keyframes tl-progress {
-  0% { transform: translateX(-120%); }
-  100% { transform: translateX(280%); }
+  0% { transform: translateX(-130%); }
+  100% { transform: translateX(320%); }
 }
 
 .tl-chapter {
