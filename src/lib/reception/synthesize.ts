@@ -14,6 +14,30 @@ import { longQuotedSpans } from "./quoted.ts";
  */
 const ATTRIBUTABLE_QUOTE = 24;
 
+/**
+ * First long quoted span in an answer that cannot be found on the desk or in
+ * the verse, or null when every attributable span verifies. Exported so a
+ * failed synthesis can name the offending span in its retry nudge.
+ */
+export function firstUnverifiableSpan(
+  answer: string,
+  cards: SourceCard[],
+  verseText?: string,
+): string | null {
+  // The verse under discussion belongs in the haystack. Quoting the passage
+  // being expounded is not a fabrication, and leaving it out rejected honest
+  // answers to the plainest question a reader can ask of a verse.
+  const grounds = [...cards.map((c) => c.quote), verseText ?? ""]
+    .filter(Boolean)
+    .join(" \n\n ");
+  for (const span of longQuotedSpans(answer, ATTRIBUTABLE_QUOTE)) {
+    if (!validateReceptionOutput({ status: "valid", quote: span }, grounds)) {
+      return span;
+    }
+  }
+  return null;
+}
+
 export type SynthesisResult = DeskSynthesis & { caution?: string };
 
 function corpusFromCards(cards: SourceCard[]): string {
@@ -94,10 +118,7 @@ export function parseSynthesis(
     const byVoice = new Map(
       cards.map((c) => [c.voice.trim().toLowerCase(), c] as const),
     );
-    // The verse under discussion belongs in the haystack. Quoting the passage
-    // being expounded is not a fabrication, and leaving it out rejected honest
-    // answers to the plainest question a reader can ask of a verse.
-    const grounds = [...cards.map((c) => c.quote), verseText]
+    const grounds = [...cards.map((c) => c.quote), verseText ?? ""]
       .filter(Boolean)
       .join(" \n\n ");
 
@@ -105,10 +126,12 @@ export function parseSynthesis(
     // fabricated quotation inside the prose passed as long as the model left
     // it out of the `quotes` array. Every attributable span in the answer now
     // has to be found on the desk or in the verse.
-    for (const span of longQuotedSpans(answer, ATTRIBUTABLE_QUOTE)) {
-      if (!validateReceptionOutput({ status: "valid", quote: span }, grounds)) {
-        return null;
-      }
+    const badSpan = firstUnverifiableSpan(answer, cards, verseText);
+    if (badSpan != null) {
+      console.warn(
+        `[reception] synthesis rejected: unverifiable quoted span ${JSON.stringify(badSpan.slice(0, 160))}`,
+      );
+      return null;
     }
 
     // `quotes` is metadata and is never rendered. A single unverifiable entry
@@ -187,30 +210,69 @@ export async function synthesizeFromDesk(opts: {
   }
 
   try {
+    const system = synthesistSystem(locale, { brief: isExplicitQuestion });
+    const userMessage = synthesistUser({ ...opts, question, locale });
+    const tokenBudget = isExplicitQuestion ? 350 : 1400;
     const raw = await generateGeminiJson({
-      system: synthesistSystem(locale, { brief: isExplicitQuestion }),
-      user: synthesistUser({ ...opts, question, locale }),
+      system,
+      user: userMessage,
       temperature: 0.1,
-      maxOutputTokens: isExplicitQuestion ? 350 : 1400,
+      maxOutputTokens: tokenBudget,
     });
     const parsed = parseSynthesis(raw, opts.cards, question, opts.verseText);
-    if (!parsed) {
+    if (parsed) {
       return {
-        question,
-        answer: "",
-        cited: opts.cards.map((c) => c.voice),
+        ...parsed,
         caution:
           locale === "es"
-            ? "La síntesis no pudo verificarse contra las fichas. No se muestra un texto no fundamentado."
-            : "The synthesis could not be verified against the desk cards. Ungrounded text is not shown.",
+            ? "Síntesis a partir de las fichas ya reunidas en este escritorio. No es una búsqueda en la red ni un recuerdo paramétrico."
+            : "Synthesized from the cards already gathered on this desk. Not a web search and not parametric recall.",
+      };
+    }
+    // One retry: the model sometimes paraphrases inside quotation marks or
+    // mangles a span. Name the offending span when it can be identified so
+    // the correction is precise. The gate stays strict on the second pass.
+    let failedSpan: string | null = null;
+    try {
+      const first = JSON.parse(raw) as { answer?: unknown };
+      const firstAnswer = String(first.answer ?? "").trim();
+      if (firstAnswer) {
+        failedSpan = firstUnverifiableSpan(
+          firstAnswer,
+          opts.cards,
+          opts.verseText,
+        );
+      }
+    } catch {
+      failedSpan = null;
+    }
+    const nudge = failedSpan
+      ? `\n\nCORRECTION: your previous answer was rejected because the quotation ${JSON.stringify(failedSpan.slice(0, 200))} is not an exact substring of the desk cards or the verse text. Regenerate the answer now, quoting ONLY exact substrings from the cards or verse, or paraphrase without quotation marks where you are unsure.`
+      : `\n\nCORRECTION: your previous answer was rejected because it contained a quotation that is not an exact substring of the desk cards or the verse text, or it was not valid JSON. Regenerate the answer now, quoting ONLY exact substrings from the cards or verse, or paraphrase without quotation marks where you are unsure.`;
+    const retryRaw = await generateGeminiJson({
+      system,
+      user: userMessage + nudge,
+      temperature: 0.1,
+      maxOutputTokens: tokenBudget,
+    });
+    const retried = parseSynthesis(retryRaw, opts.cards, question, opts.verseText);
+    if (retried) {
+      return {
+        ...retried,
+        caution:
+          locale === "es"
+            ? "Síntesis a partir de las fichas ya reunidas en este escritorio. No es una búsqueda en la red ni un recuerdo paramétrico."
+            : "Synthesized from the cards already gathered on this desk. Not a web search and not parametric recall.",
       };
     }
     return {
-      ...parsed,
+      question,
+      answer: "",
+      cited: opts.cards.map((c) => c.voice),
       caution:
         locale === "es"
-          ? "Síntesis a partir de las fichas ya reunidas en este escritorio. No es una búsqueda en la red ni un recuerdo paramétrico."
-          : "Synthesized from the cards already gathered on this desk. Not a web search and not parametric recall.",
+          ? "La síntesis no pudo verificarse contra las fichas. No se muestra un texto no fundamentado."
+          : "The synthesis could not be verified against the desk cards. Ungrounded text is not shown.",
     };
   } catch (err) {
     return {

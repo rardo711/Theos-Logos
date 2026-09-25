@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { parseSynthesis, synthesistSystem } from "./synthesize.ts";
+import { parseSynthesis, synthesistSystem, firstUnverifiableSpan } from "./synthesize.ts";
 import type { SourceCard } from "../bible/types.ts";
 
 const card: SourceCard = {
@@ -112,6 +112,22 @@ describe("parseSynthesis", () => {
   });
 });
 
+describe("firstUnverifiableSpan", () => {
+  it("names the span that fails the desk check, null when all verify", () => {
+    const bad = firstUnverifiableSpan(
+      'Augustine says "the Word was a created being of the highest order".',
+      [card],
+    );
+    assert.match(bad ?? "", /created being/);
+    assert.equal(
+      firstUnverifiableSpan(
+        'Augustine reads "In the beginning was the Word" as naming God.',
+        [card],
+      ),
+      null,
+    );
+  });
+});
 describe("synthesistSystem", () => {
   it("asks for a short direct answer for explicit questions, paragraphs for summaries", () => {
     assert.match(
