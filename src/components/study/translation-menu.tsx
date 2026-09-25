@@ -74,7 +74,7 @@ export function TranslationMenu() {
         aria-expanded={open}
         aria-label={t(locale, "translation")}
         title={active.name}
-        className="tl-folio-kicker inline-flex cursor-pointer items-center gap-1 rounded-full border border-rule px-3 py-1 text-2xs font-semibold tracking-[0.22em] text-muted uppercase transition-colors duration-150 hover:border-lamp hover:text-ink"
+        className="tl-folio-kicker inline-flex cursor-pointer items-center gap-1 rounded-full border border-lamp/70 px-3 py-1 text-2xs font-semibold tracking-[0.22em] text-muted uppercase transition-colors duration-150 hover:border-lamp hover:text-ink"
       >
         {active.short}
         <ChevronDown
