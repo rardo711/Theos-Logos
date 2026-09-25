@@ -15,6 +15,13 @@ export const DISMISS_SPRING = {
   mass: 1,
 } as const;
 
+/** Reception sheet after the finger lifts. Quick, and it does not ring. */
+export const SHEET_SPRING = {
+  stiffness: 720,
+  damping: 54,
+  mass: 1,
+} as const;
+
 export function springStep(
   x: number,
   v: number,

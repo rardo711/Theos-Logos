@@ -609,58 +609,43 @@ html.dark .tl-shell {
 }
 
 .tl-sheet-up {
-  height: calc(
-    var(--sheet-h, var(--sheet-peek)) - min(0px, var(--sheet-drag, 0px))
-  );
+  /* Full height, moved with translate only. Drag never resizes layout. */
+  height: calc(100% - var(--sheet-full-gap));
   max-height: calc(100% - var(--sheet-full-gap));
-  transform: translateY(
-    calc(var(--sheet-slide, 0px) + max(0px, var(--sheet-drag, 0px)))
-  );
+  transform: translate3d(0, var(--sheet-y, 100%), 0);
   opacity: 1;
   pointer-events: none;
   background: var(--color-surface);
-  border-top-left-radius: 1.125rem; /* 18px — within 16–20 */
+  border-top-left-radius: 1.125rem;
   border-top-right-radius: 1.125rem;
-  will-change: transform, opacity;
+  will-change: transform;
   transition:
-    transform var(--motion-spring) var(--ease-spring),
-    height var(--motion-spring) var(--ease-spring),
-    opacity var(--motion-sheet-enter) var(--ease-smooth-out);
+    transform 280ms var(--ease-smooth-out),
+    opacity 240ms var(--ease-smooth-out);
 }
 
 .tl-sheet-up[data-state="hidden"] {
-  --sheet-h: var(--sheet-peek);
-  /* Short travel (~16%) + fade — not a full-screen fling (BUG-6 spirit) */
-  --sheet-slide: var(--sheet-enter-y);
+  --sheet-y: 100%;
   opacity: 0;
-  transition:
-    transform var(--motion-sheet-exit) var(--ease-sheet-exit),
-    height var(--motion-sheet-exit) var(--ease-sheet-exit),
-    opacity var(--motion-sheet-exit) var(--ease-sheet-exit);
 }
 
 .tl-sheet-up[data-state="peek"] {
-  --sheet-h: var(--sheet-peek);
-  --sheet-slide: 0px;
+  --sheet-y: calc(100% - var(--sheet-peek));
   opacity: 1;
   pointer-events: auto;
   touch-action: none;
 }
 
 .tl-sheet-up[data-state="mid"] {
-  --sheet-h: var(--sheet-mid);
-  --sheet-slide: 0px;
+  --sheet-y: calc(100% - var(--sheet-mid));
   opacity: 1;
   pointer-events: auto;
-  touch-action: pan-y;
 }
 
 .tl-sheet-up[data-state="full"] {
-  --sheet-h: calc(100% - var(--sheet-full-gap));
-  --sheet-slide: 0px;
+  --sheet-y: 0px;
   opacity: 1;
   pointer-events: auto;
-  touch-action: pan-y;
   box-shadow: 0 -18px 40px color-mix(in oklab, #1c1917 14%, transparent);
 }
 
@@ -668,8 +653,7 @@ html.dark .tl-shell {
   box-shadow: 0 -20px 48px rgba(0, 0, 0, 0.45);
 }
 
-.tl-sheet-up[data-state="mid"] [data-sheet-chrome],
-.tl-sheet-up[data-state="full"] [data-sheet-chrome] {
+.tl-sheet-up [data-sheet-chrome] {
   touch-action: none;
 }
 

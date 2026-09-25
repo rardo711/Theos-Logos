@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { fetchChapter } from "@/lib/bible/fetch-chapter";
 import { getSeed } from "@/lib/bible/seed";
 import { attachNtHeadings } from "@/lib/bible/nt-headings";
@@ -7,7 +7,7 @@ import { translationInfo } from "@/lib/bible/translations";
 import type { Locale } from "@/lib/bible/books";
 import { initPwa, isStandalone, lockSafeTop } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
-import { springTo } from "@/lib/spring";
+import { SHEET_SPRING, springTo } from "@/lib/spring";
 import { useStudy } from "@/lib/study-store";
 import { isOnboardingComplete } from "@/lib/onboarding";
 import { LibraryDrawer } from "./library-drawer";
@@ -179,17 +179,11 @@ export function StudyWorkspace() {
       return () => window.clearTimeout(t);
     }
     setSheetShown(true);
-    let inner = 0;
-    const outer = requestAnimationFrame(() => {
-      inner = requestAnimationFrame(() => {
-        setSheetState(want);
-        setSheetDrag(0);
-      });
+    const id = requestAnimationFrame(() => {
+      setSheetState(want);
+      setSheetDrag(0);
     });
-    return () => {
-      cancelAnimationFrame(outer);
-      if (inner) cancelAnimationFrame(inner);
-    };
+    return () => cancelAnimationFrame(id);
   }, [want]);
 
   useEffect(() => {
@@ -290,122 +284,213 @@ export function StudyWorkspace() {
     }
   }, [sheetState]);
 
+  const dragYRef = useRef<number | null>(null);
+  const settleMode = useRef<"peek" | "mid" | "full" | "hidden" | null>(null);
+  const springDone = useRef(false);
+
+  useLayoutEffect(() => {
+    const el = sheetRef.current;
+    if (!el) return;
+    if (
+      springDone.current &&
+      settleMode.current &&
+      sheetState === settleMode.current
+    ) {
+      springDone.current = false;
+      settleMode.current = null;
+      dragYRef.current = null;
+      el.style.removeProperty("--sheet-y");
+      return;
+    }
+    if (dragYRef.current != null) {
+      el.style.setProperty("--sheet-y", `${dragYRef.current}px`);
+    }
+  });
+
   useEffect(() => {
     const el = sheetRef.current;
     const chrome = el?.querySelector("[data-sheet-chrome]") as HTMLElement | null;
-    if (!el || !chrome || sheetState === "hidden") return;
-    let startY = 0;
+    if (!el || !chrome || !sheetShown) return;
+
+    let active = false;
+    let pointer = -1;
+    let startTouch = 0;
+    let origin = 0;
     let lastY = 0;
     let lastT = 0;
     let velocity = 0;
-    let pulling = false;
-    let dy = 0;
-    const COMMIT = 56;
-    const FLING = 0.55;
-    const release = (from: number, v: number) => {
-      sheetSpring.current?.();
+    let moved = 0;
+    const stops = { full: 0, mid: 0, peek: 0, hidden: 0 };
+
+    const readY = () => {
+      const t = getComputedStyle(el).transform;
+      if (!t || t === "none") return 0;
+      return new DOMMatrixReadOnly(t).m42;
+    };
+
+    const measureStops = () => {
+      const held = el.style.getPropertyValue("--sheet-y");
+      const wasDragging = el.dataset.dragging;
+      el.dataset.dragging = "false";
+      el.style.setProperty("transition", "none");
+      el.style.removeProperty("--sheet-y");
+      const prev = el.getAttribute("data-state");
+      for (const mode of ["full", "mid", "peek", "hidden"] as const) {
+        el.setAttribute("data-state", mode);
+        stops[mode] = readY();
+      }
+      if (prev) el.setAttribute("data-state", prev);
+      el.style.removeProperty("transition");
+      if (held) el.style.setProperty("--sheet-y", held);
+      if (wasDragging) el.dataset.dragging = wasDragging;
+    };
+
+    const writeY = (y: number) => {
+      dragYRef.current = y;
+      el.style.setProperty("--sheet-y", `${y}px`);
+    };
+
+    const resist = (y: number) => {
+      if (y < stops.full) return stops.full + (y - stops.full) * 0.28;
+      if (y > stops.hidden) return stops.hidden + (y - stops.hidden) * 0.28;
+      return y;
+    };
+
+    const finishAt = (y: number, v: number) => {
+      const projected = y + v * 0.07;
+      const pastPeek = projected > stops.peek + (stops.hidden - stops.peek) * 0.45;
+      const flickDown = v > 900 && projected > stops.peek - 24;
+      if (pastPeek || flickDown) {
+        settleMode.current = "hidden";
+        springDone.current = false;
+        sheetSpring.current = springTo({
+          from: y,
+          velocity: v,
+          to: stops.hidden,
+          spring: SHEET_SPRING,
+          onUpdate: writeY,
+          onRest: () => {
+            springDone.current = true;
+            dragYRef.current = stops.hidden;
+            setSheetDragging(false);
+            clearSelection();
+          },
+        });
+        return;
+      }
+      const choices = [
+        { mode: "full" as const, y: stops.full, go: () => setReceptionFull(true) },
+        {
+          mode: "mid" as const,
+          y: stops.mid,
+          go: () => {
+            setReceptionFull(false);
+            setReceptionOpen(true);
+          },
+        },
+        {
+          mode: "peek" as const,
+          y: stops.peek,
+          go: () => {
+            setReceptionFull(false);
+            setReceptionOpen(false);
+          },
+        },
+      ];
+      let best = choices[0];
+      for (const choice of choices) {
+        if (Math.abs(choice.y - projected) < Math.abs(best.y - projected)) best = choice;
+      }
+      best.go();
+      settleMode.current = best.mode;
+      springDone.current = false;
       sheetSpring.current = springTo({
-        from,
+        from: y,
         velocity: v,
-        to: 0,
-        onUpdate: setSheetDrag,
+        to: best.y,
+        spring: SHEET_SPRING,
+        onUpdate: writeY,
         onRest: () => {
+          springDone.current = true;
           setSheetDragging(false);
-          setSheetDrag(0);
         },
       });
     };
-    const onStart = (e: TouchEvent) => {
+
+    const onDown = (e: PointerEvent) => {
+      if (sheetStateRef.current === "hidden") return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
       sheetSpring.current?.();
-      startY = e.touches[0].clientY;
-      lastY = startY;
+      springDone.current = false;
+      settleMode.current = null;
+      const visual = readY();
+      measureStops();
+      active = true;
+      pointer = e.pointerId;
+      moved = 0;
+      startTouch = e.clientY;
+      origin = visual;
+      writeY(visual);
+      lastY = e.clientY;
       lastT = performance.now();
       velocity = 0;
-      pulling = false;
-      dy = 0;
+      chrome.setPointerCapture(e.pointerId);
     };
-    const onMove = (e: TouchEvent) => {
-      const y = e.touches[0].clientY;
+
+    const onMove = (e: PointerEvent) => {
+      if (!active || e.pointerId !== pointer) return;
       const now = performance.now();
-      velocity = ((y - lastY) / Math.max(now - lastT, 1)) * 1000;
-      lastY = y;
+      const dt = Math.max(now - lastT, 1);
+      velocity = ((e.clientY - lastY) / dt) * 1000;
+      lastY = e.clientY;
       lastT = now;
-      const delta = y - startY;
-      const mode = sheetStateRef.current;
-      const room = el.parentElement?.clientHeight ?? window.innerHeight;
-      pulling = true;
-      if (mode === "peek") {
-        dy = Math.min(Math.max(delta, -(room - el.offsetHeight)), room * 0.35);
-      } else if (mode === "mid") {
-        dy = Math.min(Math.max(delta, -(room - el.offsetHeight)), el.offsetHeight * 0.9);
-      } else {
-        dy = Math.min(Math.max(delta, 0), el.offsetHeight * 0.92);
+      const delta = e.clientY - startTouch;
+      moved = Math.max(moved, Math.abs(delta));
+      if (el.dataset.dragging !== "true") {
+        el.dataset.dragging = "true";
+        setSheetDragging(true);
       }
-      setSheetDragging(true);
-      setSheetDrag(dy);
-      if (Math.abs(delta) > 4) e.preventDefault();
+      writeY(resist(origin + delta));
     };
-    const finish = () => {
-      const v = velocity / 1000;
-      const mode = sheetStateRef.current;
-      const H = el.offsetHeight;
-      const room = el.parentElement?.clientHeight ?? window.innerHeight;
-      if (!pulling) return;
-      let commit = false;
-      if (mode === "peek") {
-        if (dy < -room * 0.28 || v < -1.05) {
-          setReceptionFull(true);
-          commit = true;
-        } else if (dy < -COMMIT || v < -FLING) {
-          setReceptionOpen(true);
-          commit = true;
-        } else if (dy > COMMIT || v > FLING) {
-          clearSelection();
-          commit = true;
-        }
-      } else if (mode === "mid") {
-        if (dy < -COMMIT || v < -FLING) {
-          setReceptionFull(true);
-          commit = true;
-        } else if (dy > COMMIT || v > FLING) {
-          setReceptionFull(false);
-          setReceptionOpen(false);
-          commit = true;
-        }
-      } else if (dy > H * 0.28 || v > 1.1) {
-        setReceptionFull(false);
-        setReceptionOpen(false);
-        commit = true;
-      } else if (dy > COMMIT || v > FLING) {
-        setReceptionFull(false);
-        commit = true;
-      }
-      if (commit) {
+
+    const onUp = (e: PointerEvent) => {
+      if (!active || e.pointerId !== pointer) return;
+      active = false;
+      pointer = -1;
+      if (moved < 3) {
+        dragYRef.current = null;
+        el.style.removeProperty("--sheet-y");
+        el.dataset.dragging = "false";
         setSheetDragging(false);
-        setSheetDrag(0);
-      } else {
-        release(dy, velocity);
+        return;
       }
-      pulling = false;
-      dy = 0;
+      finishAt(dragYRef.current ?? origin, velocity);
     };
-    chrome.addEventListener("touchstart", onStart, { passive: true });
-    chrome.addEventListener("touchmove", onMove, { passive: false });
-    chrome.addEventListener("touchend", finish);
-    chrome.addEventListener("touchcancel", finish);
+
+    const onClick = (e: MouseEvent) => {
+      if (moved < 8) return;
+      e.preventDefault();
+      e.stopPropagation();
+      moved = 0;
+    };
+
+    chrome.addEventListener("pointerdown", onDown);
+    chrome.addEventListener("pointermove", onMove);
+    chrome.addEventListener("pointerup", onUp);
+    chrome.addEventListener("pointercancel", onUp);
+    chrome.addEventListener("click", onClick, true);
     return () => {
       sheetSpring.current?.();
-      chrome.removeEventListener("touchstart", onStart);
-      chrome.removeEventListener("touchmove", onMove);
-      chrome.removeEventListener("touchend", finish);
-      chrome.removeEventListener("touchcancel", finish);
+      chrome.removeEventListener("pointerdown", onDown);
+      chrome.removeEventListener("pointermove", onMove);
+      chrome.removeEventListener("pointerup", onUp);
+      chrome.removeEventListener("pointercancel", onUp);
+      chrome.removeEventListener("click", onClick, true);
     };
   }, [
-    sheetState,
     sheetShown,
     setReceptionOpen,
     setReceptionFull,
-    setReceptionPinned,
     clearSelection,
   ]);
 
@@ -656,9 +741,6 @@ export function StudyWorkspace() {
               className="tl-sheet-up absolute inset-x-0 bottom-0 flex w-full flex-col overflow-hidden border-t border-rule bg-surface shadow-soft md:mx-auto md:w-[min(40rem,100%)]"
               data-state={sheetState}
               data-dragging={sheetDragging ? "true" : "false"}
-              style={{
-                ["--sheet-drag" as string]: `${sheetDrag}px`,
-              }}
             >
               <div className="flex min-h-0 flex-1 flex-col">
                 <ReceptionPanel
