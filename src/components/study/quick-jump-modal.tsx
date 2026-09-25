@@ -186,9 +186,10 @@ export function QuickJumpModal() {
     }
   }
 
-  const parsedLabel = parsed
-    ? formatReference(bookName(parsed.book, locale), parsed.chapter, parsed.verse)
-    : null;
+  const parsedLabel =
+    parsed && parsed.chapter != null
+      ? formatReference(bookName(parsed.book, locale), parsed.chapter, parsed.verse)
+      : null;
 
   return (
     <div

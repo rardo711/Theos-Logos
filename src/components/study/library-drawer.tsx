@@ -221,7 +221,7 @@ export function LibraryDrawer({ verseCount = 0 }: { verseCount?: number }) {
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.preventDefault();
       setOpen(false);
