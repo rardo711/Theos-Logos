@@ -1,9 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getBook, type Locale } from "./books";
-import { fetchSpanishChapter } from "./bolls";
+import { fetchBollsChapter } from "./bolls";
 import { fetchEsvChapter } from "./esv";
+import { fetchRv1909Chapter } from "./rv1909";
 import { getSeed } from "./seed";
 import { attachNtHeadings } from "./nt-headings";
+import {
+  translationInfo,
+  type EnTranslationId,
+  type EsTranslationId,
+} from "./translations";
 import type { Chapter, Verse } from "./types";
 
 function stripHtml(s: string): string {
@@ -66,29 +72,63 @@ async function fetchWebChapter(
 
 export const fetchChapter = createServerFn({ method: "POST" })
   .validator(
-    (input: { bookId: string; chapter: number; locale?: Locale }) => input,
+    (input: {
+      bookId: string;
+      chapter: number;
+      locale?: Locale;
+      translation?: string;
+    }) => input,
   )
   .handler(async ({ data }): Promise<Chapter> => {
     const book = getBook(data.bookId);
     const chapter = Math.min(Math.max(1, data.chapter), book.chapters);
     const locale: Locale = data.locale === "es" ? "es" : "en";
+    const info = translationInfo(locale, data.translation);
     const seeded = locale === "en" ? getSeed(book.id, chapter) : undefined;
 
     if (locale === "es") {
-      try {
-        const es = await fetchSpanishChapter(book, chapter);
-        if (es) return attachNtHeadings(es, locale);
-      } catch {
-        // fall through
+      const id = info.id as EsTranslationId;
+      if (id === "rv1909") {
+        try {
+          const ch = await fetchRv1909Chapter(
+            book,
+            chapter,
+            info.name,
+            info.note,
+            locale,
+          );
+          if (ch) return attachNtHeadings(ch, locale);
+        } catch {
+          // fall through
+        }
       }
       throw new Error(`No se pudo cargar ${book.name} ${chapter} en español.`);
     }
 
-    try {
-      const esv = await fetchEsvChapter(book, chapter);
-      if (esv) return attachNtHeadings(esv, locale);
-    } catch {
-      // ESV is optional; fall through to WEB / seed.
+    const id = info.id as EnTranslationId;
+    if (id === "esv") {
+      try {
+        const esv = await fetchEsvChapter(book, chapter);
+        if (esv) return attachNtHeadings(esv, locale);
+      } catch {
+        // ESV is optional; fall through to the selected fallback.
+      }
+    }
+
+    if (info.bollsSlug) {
+      try {
+        const ch = await fetchBollsChapter(
+          info.bollsSlug,
+          book,
+          chapter,
+          locale,
+          info.name,
+          info.note,
+        );
+        if (ch) return attachNtHeadings(ch, locale);
+      } catch {
+        // fall through to WEB / seed.
+      }
     }
 
     try {
