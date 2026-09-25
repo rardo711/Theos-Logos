@@ -294,7 +294,7 @@ export function LibraryDrawer({ verseCount = 0 }: { verseCount?: number }) {
         data-open={open ? "true" : "false"}
         className="tl-drawer relative z-10 flex h-full w-[min(28rem,calc(100%-2.75rem))] max-w-md flex-col border-r border-rule bg-paper shadow-soft"
       >
-        <header className="border-b border-rule bg-surface px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
+        <header className="tl-drawer-settle border-b border-rule bg-surface px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-2xs font-semibold tracking-[0.18em] text-faint uppercase">
@@ -381,7 +381,7 @@ export function LibraryDrawer({ verseCount = 0 }: { verseCount?: number }) {
           ) : null}
         </header>
 
-        <div ref={tabBarRef} className="relative flex border-b border-rule px-4">
+        <div ref={tabBarRef} className="tl-drawer-settle relative flex border-b border-rule px-4">
           {(
             [
               ["chapters", t(locale, "thisBook")],
@@ -418,7 +418,7 @@ export function LibraryDrawer({ verseCount = 0 }: { verseCount?: number }) {
           />
         </div>
 
-        <div className="relative min-h-0 flex-1 overflow-hidden">
+        <div className="tl-drawer-settle relative min-h-0 flex-1 overflow-hidden">
           <div
             className="tl-pane-track"
             data-motion={paneMotion ? "true" : "false"}

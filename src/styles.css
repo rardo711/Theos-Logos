@@ -521,6 +521,27 @@ html.dark .tl-shell {
   transform: translateX(0);
 }
 
+/* Content settles after the panel has started. One motion, not a stagger. */
+.tl-drawer .tl-drawer-settle {
+  opacity: 0;
+  transform: translateX(-16px);
+}
+
+.tl-drawer[data-open="true"] .tl-drawer-settle {
+  animation: tl-drawer-settle 280ms var(--ease-out) 150ms forwards;
+}
+
+@keyframes tl-drawer-settle {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .tl-sheet {
   /* xl Reception side panel — same enter/exit vocabulary as bottom sheet */
   transform: translateX(18px);
@@ -717,30 +738,65 @@ html.dark .tl-shell {
 }
 
 .tl-menu {
-  transform-origin: top left;
+  transform-origin: top center;
   opacity: 0;
-  transform: scale(var(--motion-scale-menu)) translateY(-4px);
+  transform: translateY(8px) scale(0.98);
   pointer-events: none;
   transition:
-    opacity var(--motion-medium) var(--ease-smooth-out),
-    transform var(--motion-medium) var(--ease-smooth-out);
+    opacity 180ms var(--ease-sheet-exit),
+    transform 180ms var(--ease-sheet-exit);
 }
 
 .tl-menu[data-open="true"] {
   opacity: 1;
   transform: none;
   pointer-events: auto;
+  transition:
+    opacity 260ms var(--ease-out),
+    transform 260ms var(--ease-out);
 }
 
-/* Mobile bottom sheet: slide up/down rather than scale from top-left. */
+/* Mobile bottom sheet: rise from the bottom, same timing. */
 @media (max-width: 639px) {
   .tl-menu {
     transform-origin: bottom center;
-    transform: translateY(12px);
+    transform: translateY(18%);
   }
   .tl-menu[data-open="true"] {
     transform: none;
   }
+}
+
+/* Translation menu — was a class with no rule, so it snapped open. */
+.tl-tx-pop {
+  transform-origin: top center;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.96);
+  transition:
+    opacity 160ms var(--ease-sheet-exit),
+    transform 160ms var(--ease-sheet-exit);
+}
+
+.tl-tx-pop[data-open="true"] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 220ms var(--ease-out),
+    transform 220ms var(--ease-out);
+}
+
+/* Press lands fast, releases on the slower transition. */
+.tl-press {
+  transition:
+    transform 220ms var(--ease-out),
+    background-color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
+}
+
+.tl-press:active {
+  transform: scale(0.97);
+  transition-duration: 70ms;
 }
 
 .tl-pill-ink {
@@ -1560,6 +1616,8 @@ html.dark .tl-shell {
   .tl-drawer,
   .tl-menu,
   .tl-dialog,
+  .tl-tx-pop,
+  .tl-card-open,
   .tl-title-swap,
   .tl-lamp-rule,
   .tl-lamp-warm,
@@ -1569,6 +1627,16 @@ html.dark .tl-shell {
   .tl-skeleton,
   .tl-pane[data-enter="true"] .tl-canon-section {
     animation: none;
+  }
+
+  .tl-drawer-settle,
+  .tl-tx-pop,
+  .tl-card-open,
+  .tl-press:active {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 
   /* Sheet system: fade only ≤150ms, no slide (Design motion brief) */
@@ -1631,27 +1699,41 @@ html.dark .tl-shell {
 /* 1. Lamp strike — the verse-illuminated sense: a gold rule draws
    left→right and the sense line warms from gold, then settles to ink. */
 @keyframes tl-lamp-strike {
-  from {
+  0% {
     transform: scaleX(0);
     opacity: 0;
   }
-  to {
+  35% {
+    opacity: 1;
+  }
+  100% {
     transform: scaleX(1);
     opacity: 1;
   }
 }
 
 .tl-lamp-rule {
-  height: 2px;
+  height: 3px;
   border-radius: 2px;
   margin-top: 0.625rem;
   background: linear-gradient(
     to right,
     var(--color-gold),
-    color-mix(in oklab, var(--color-gold) 45%, transparent)
+    color-mix(in oklab, var(--color-oxblood) 55%, var(--color-gold))
   );
   transform-origin: left center;
-  animation: tl-lamp-strike 450ms var(--ease-out);
+  animation: tl-lamp-strike 520ms var(--ease-out) both;
+}
+
+.tl-lamp-rule::after {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: 4px;
+  background: var(--color-oxblood);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: tl-lamp-strike 420ms var(--ease-out) 160ms both;
 }
 
 @keyframes tl-lamp-warm {
@@ -1670,7 +1752,24 @@ html.dark .tl-shell {
 
 .tl-lamp-warm {
   border-radius: 4px;
-  animation: tl-lamp-warm 800ms var(--ease-out);
+  animation: tl-lamp-warm 900ms var(--ease-out) both;
+}
+
+/* Every lexicon card, matched or not. The lamp strike stays the special signal. */
+@keyframes tl-card-open {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tl-card-open {
+  animation: tl-card-open 420ms var(--ease-out) both;
+  transform-origin: top center;
 }
 
 /* 2. Card unfold — disclosures breathe open (same motion language as
