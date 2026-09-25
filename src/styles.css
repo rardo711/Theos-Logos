@@ -83,12 +83,16 @@
   --motion-y-medium: 16px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
   --safe-top-min: 0px;
-  --sheet-peek: 5.75rem;
+  --keyboard: 0px;
+  --phone-gutter: 1.25rem;
+  --sheet-peek: calc(5.75rem + var(--safe-bottom, 0px));
   --sheet-mid: min(48dvh, 28rem);
   --sheet-full-gap: 0.4rem;
   --pick-stack: var(--sheet-peek);
-  --read-bottom: max(5rem, var(--safe-bottom));
+  --read-bottom: max(1.5rem, var(--safe-bottom));
 }
 
 @layer base {
@@ -581,7 +585,26 @@ html.dark .tl-shell {
     transform var(--motion-sources-enter) var(--ease-smooth-out);
 }
 
+html[data-phone="compact"] {
+  --phone-gutter: 1rem;
+}
+
+html[data-phone="phone"] {
+  --phone-gutter: 1.25rem;
+}
+
+html[data-phone="large"] {
+  --phone-gutter: 1.5rem;
+}
+
+.tl-jump {
+  padding-bottom: max(0.75rem, var(--keyboard, 0px));
+}
+
 .tl-sheet-up {
+  bottom: var(--keyboard, 0px);
+  padding-bottom: var(--safe-bottom, 0px);
+  box-sizing: border-box;
   height: calc(
     var(--sheet-h, var(--sheet-peek)) - min(0px, var(--sheet-drag, 0px))
   );
@@ -757,6 +780,7 @@ html.dark .tl-shell {
 /* Mobile bottom sheet: slide up/down rather than scale from top-left. */
 @media (max-width: 639px) {
   .tl-menu {
+    bottom: var(--keyboard, 0px);
     transform-origin: bottom center;
     transform: translateY(12px);
   }

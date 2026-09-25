@@ -32,8 +32,10 @@ export function iosMajor(): number | null {
 }
 
 /**
- * Top padding that does not double-count iOS 27's letterboxed status bar.
- * Standalone only. A Safari tab keeps the reported inset.
+ * Top padding that does not double-count a letterboxed status bar.
+ * Standalone only. A browser tab keeps the reported inset.
+ * Android installed apps often report 0 while still drawing under the
+ * status bar; a short fallback clears it without a fake iPhone inset.
  */
 export function resolveSafeTop(input: {
   insetTop: number;
@@ -41,6 +43,7 @@ export function resolveSafeTop(input: {
   innerHeight: number;
   standalone: boolean;
   iosMajor: number | null;
+  android?: boolean;
 }): number {
   const inset = Math.max(0, Math.round(input.insetTop));
   const missing = Math.max(0, Math.round(input.screenHeight - input.innerHeight));
@@ -53,7 +56,51 @@ export function resolveSafeTop(input: {
   ) {
     return IOS27_TOP_FALLBACK;
   }
+  if (input.android && input.standalone && inset < 12 && missing < 24) return 32;
   return inset;
+}
+
+/** Bottom system bar, separate from the keyboard. Touch phones get a 32px floor when Chrome reports 0. */
+export function resolveSafeBottom(input: {
+  insetBottom: number;
+  innerHeight: number;
+  visualHeight: number;
+  touch: boolean;
+}): { bottom: number; keyboard: number } {
+  const inset = Math.max(0, Math.round(input.insetBottom));
+  const overlay = Math.max(0, Math.round(input.innerHeight - input.visualHeight));
+  if (overlay > 200) {
+    return { bottom: Math.max(inset, input.touch ? 32 : 0), keyboard: overlay };
+  }
+  const nav = Math.max(inset, overlay);
+  if (!input.touch) return { bottom: nav, keyboard: 0 };
+  return { bottom: Math.max(nav, 32), keyboard: 0 };
+}
+
+export type PhoneTier = "compact" | "phone" | "large";
+
+/** Width tiers. Not a device catalog — the window is the phone. */
+export function phoneTier(width: number): PhoneTier | null {
+  if (width < 360) return "compact";
+  if (width < 480) return "phone";
+  if (width < 768) return "large";
+  return null;
+}
+
+export function isAndroid(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  return /Android/i.test(ua) && !/iP(hone|ad|od)/.test(ua);
+}
+
+export function lockPhoneClass() {
+  if (typeof window === "undefined") return;
+  const root = document.documentElement;
+  const tier = phoneTier(window.innerWidth);
+  if (tier) root.dataset.phone = tier;
+  else delete root.dataset.phone;
+  if (isAndroid()) root.dataset.android = "true";
+  else delete root.dataset.android;
 }
 
 export function lockThemeColor() {
@@ -102,6 +149,7 @@ export function initPwa() {
   if (typeof window === "undefined") return;
   lockThemeColor();
   releaseIos27StatusBar();
+  lockPhoneClass();
   lockSafeBottom();
   if ("serviceWorker" in navigator) {
     void navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" });
@@ -151,42 +199,50 @@ export function lockSafeTop() {
     innerHeight: window.innerHeight,
     standalone: isStandalone(),
     iosMajor: iosMajor(),
+    android: isAndroid(),
   });
   const fullscreen = window.matchMedia("(display-mode: fullscreen)").matches;
   const root = document.documentElement;
   root.style.setProperty("--safe-top", `${Math.round(resolved)}px`);
+  root.style.setProperty("--safe-left", `${Math.round(measureInset("left"))}px`);
+  root.style.setProperty("--safe-right", `${Math.round(measureInset("right"))}px`);
   root.style.setProperty(
     "--safe-top-min",
     fullscreen && inset < 12 && resolved < 12 ? "2rem" : "0px",
   );
 }
 
+let bottomBound = false;
+
+function applySafeBottom() {
+  if (typeof window === "undefined" || !document.body) return;
+  const root = document.documentElement;
+  const vv = window.visualViewport;
+  const touch = window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768;
+  const resolved = resolveSafeBottom({
+    insetBottom: measureInset("bottom"),
+    innerHeight: window.innerHeight,
+    visualHeight: vv ? vv.height : window.innerHeight,
+    touch,
+  });
+  root.style.setProperty("--safe-bottom", `${resolved.bottom}px`);
+  root.style.setProperty("--keyboard", `${resolved.keyboard}px`);
+}
+
 /**
- * Measure the real bottom system-gesture overlay at runtime.
- * Android Chrome reports env(safe-area-inset-bottom) as 0px, so fixed rem
- * floors are guesses. The layout viewport (innerHeight) spans edge-to-edge
- * under the gesture bar; the visual viewport is what's actually visible.
- * Their difference is the obscured height. Never drops below the CSS floor,
- * and ignores huge shrinks (that's the keyboard, not the nav bar).
+ * Android Chrome often reports env(safe-area-inset-bottom) as 0.
+ * Use the obscured strip when it is a nav bar, and lift sheets when it is the keyboard.
+ * Does not keep the old 5rem floor — that left an empty band under the chapter.
  */
 export function lockSafeBottom() {
   if (typeof window === "undefined" || !document.body) return;
-  const root = document.documentElement;
-  const apply = () => {
-    const vv = window.visualViewport;
-    const overlay = vv
-      ? Math.max(0, Math.round(window.innerHeight - vv.height))
-      : 0;
-    if (overlay > 200) return; // keyboard open, not the nav bar
-    const cssFloor = 80; // 5rem fallback from --read-bottom
-    const px = Math.max(cssFloor, overlay + 16);
-    root.style.setProperty("--read-bottom", `${px}px`);
-  };
-  apply();
+  applySafeBottom();
+  if (bottomBound) return;
+  bottomBound = true;
   if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", apply);
+    window.visualViewport.addEventListener("resize", applySafeBottom);
   } else {
-    window.addEventListener("resize", apply);
+    window.addEventListener("resize", applySafeBottom);
   }
 }
 

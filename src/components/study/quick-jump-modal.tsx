@@ -192,7 +192,7 @@ export function QuickJumpModal() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 md:p-12 overflow-y-auto"
+      className="tl-jump fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 md:p-12 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-label={t(locale, "quickJump")}

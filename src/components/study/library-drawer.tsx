@@ -565,7 +565,7 @@ export function LibraryDrawer({ verseCount = 0 }: { verseCount?: number }) {
 
               <div
                 ref={listRef}
-                className="tl-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 pb-[max(2.5rem,env(safe-area-inset-bottom))]"
+                className="tl-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 pb-[max(2.5rem,var(--safe-bottom))]"
               >
                 {hits.length > 0 || searchingText ? (
                   <section className="scroll-mt-2 px-2 pt-4">

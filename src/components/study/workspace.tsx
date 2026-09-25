@@ -5,7 +5,7 @@ import { attachNtHeadings } from "@/lib/bible/nt-headings";
 import type { Chapter } from "@/lib/bible/types";
 import { translationInfo } from "@/lib/bible/translations";
 import type { Locale } from "@/lib/bible/books";
-import { initPwa, isStandalone, lockSafeTop } from "@/lib/pwa";
+import { initPwa, isStandalone, lockPhoneClass, lockSafeBottom, lockSafeTop } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
 import { useStudy } from "@/lib/study-store";
 import { isOnboardingComplete } from "@/lib/onboarding";
@@ -22,7 +22,9 @@ function lockAppHeight() {
   const root = document.documentElement;
   const standalone = isStandalone();
   root.classList.toggle("tl-standalone", standalone);
+  lockPhoneClass();
   lockSafeTop();
+  lockSafeBottom();
   if (standalone) {
     root.style.setProperty("--app-h", "100%");
     root.style.setProperty("--app-top", "0px");

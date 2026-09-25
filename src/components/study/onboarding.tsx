@@ -516,7 +516,7 @@ export function Onboarding({ onFinished }: { onFinished: () => void }) {
             </div>
           </div>
 
-          <div className="shrink-0 border-t border-rule/80 bg-surface/80 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-sm">
+          <div className="shrink-0 border-t border-rule/80 bg-surface/80 px-4 pb-[max(1rem,var(--safe-bottom))] pt-3 backdrop-blur-sm">
             <div className="mx-auto flex max-w-[360px] items-center justify-between gap-2">
               <button
                 type="button"

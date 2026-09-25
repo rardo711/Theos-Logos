@@ -9,6 +9,13 @@
 - `--safe-top` replaces raw `env(safe-area-inset-top)` on the header, library, sources, and onboarding. Letterboxed viewport + a still-reported inset does not pad twice. A full-bleed icon that reports `0` still clears the clock (59px). Older iOS and Android keep the previous inset.
 - **QC:** delete the Home Screen icon and add it again. Icons saved before this change keep their old chrome. Check a fresh iOS 27 icon (sharp oxblood bar, wordmark not under the clock, no empty double gap) and, if you still have one, an older icon.
 
+## Android phone fill — same branch (2026-09-25)
+- Still `feat/ios27-status-bar`. **NO promote.** Display stays `standalone` (normal app: status bar visible), not fullscreen.
+- No phone-model list. The window sets `data-phone` (`compact` <360, `phone` <480, `large` <768) and the gutters follow. Android is detected only to choose the status-bar fallback.
+- Installed Android app that reports a 0 top inset and is full-bleed gets 32px so the header clears the status bar / punch-hole. A real inset is trusted. A Chrome tab is not padded on top (Chrome already keeps the status bar).
+- Bottom floor drops from 80px to the measured gesture or 3-button bar, with a 32px floor when Chrome reports 0. Keyboard shrink lifts the reception sheet, type menu, and quick jump instead of being stored as nav padding.
+- **QC:** installed app on a gesture-nav phone and, if you have one, 3-button nav. Header clear of the punch-hole, last verse clear of the nav bar, no tall empty band, sheet above the keyboard. Rotate once. Desktop unchanged.
+
 ## Muse Spanish lexicon fix — index enrichment + curated edges (2026-09-22 ~14:50 ET) — PREVIEW ONLY
 - **Problem (Muse audit):** `byGloss["ministro"] == ["G4166"]` so Col 1:7 tap never sees G1249; verse-rerank alone fixes **0%** of 704 events — correct Strong's missing from candidates.
 - **Fix (index enrichment, not verse-rerank-only):**

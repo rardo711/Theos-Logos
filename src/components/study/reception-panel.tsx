@@ -996,7 +996,7 @@ export function ReceptionPanel({
       </div>
 
       <div
-        className="tl-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-scroll overscroll-contain px-5 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+        className="tl-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-scroll overscroll-contain px-5 py-4 pb-[max(1.25rem,var(--safe-bottom))]"
         onScroll={(e) => {
           const el = e.currentTarget;
           if (el.scrollLeft !== 0) el.scrollLeft = 0;
