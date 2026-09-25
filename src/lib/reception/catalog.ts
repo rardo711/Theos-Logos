@@ -1,4 +1,5 @@
 import type { Tradition } from "../bible/types.ts";
+import { OT_WAVE_BUILDERS } from "./ot/waves.ts";
 
 export interface ReceptionSource {
   id: string;
@@ -2077,6 +2078,397 @@ function victorinusRevelationChapters(_have: Set<string>): CatalogEntry[] {
 }
 
 
+// ---------------------------------------------------------------------------
+// Wave 1 OT: the Pentateuch (Genesis–Deuteronomy), 187 chapters.
+//
+// Table columns: url stem, book id, display name, chapter count, Henry CCEL
+// volume, Henry slug (read off the volume .toc.html — e.g. mhc1 lists Gen,
+// Ex, Lev, Num, Deu), sacred-texts 3-letter code, BibleHub slug. Later waves
+// extend this table book by book.
+const OT_PENTATEUCH = [
+  ["genesis", "GEN", "Genesis", 50, "mhc1", "Gen", "gen", "genesis"],
+  ["exodus", "EXO", "Exodus", 40, "mhc1", "Ex", "exo", "exodus"],
+  ["leviticus", "LEV", "Leviticus", 27, "mhc1", "Lev", "lev", "leviticus"],
+  ["numbers", "NUM", "Numbers", 36, "mhc1", "Num", "num", "numbers"],
+  ["deuteronomy", "DEU", "Deuteronomy", 34, "mhc1", "Deu", "deu", "deuteronomy"],
+] as const;
+
+function otTag(name: string): string {
+  return name.toLowerCase().replace(/^\d+\s+/, "");
+}
+
+/**
+ * Lowercase roman numerals. The module-level ROMAN table only reaches xxix
+ * (the NT's longest book is 28 chapters); the OT needs up to cli (Psalms 150
+ * -> index 151), so the OT builders use this instead of ROMAN[ch + 1].
+ */
+function romanNumeral(n: number): string {
+  const table: Array<[number, string]> = [
+    [100, "c"],
+    [90, "xc"],
+    [50, "l"],
+    [40, "xl"],
+    [10, "x"],
+    [9, "ix"],
+    [5, "v"],
+    [4, "iv"],
+    [1, "i"],
+  ];
+  let out = "";
+  for (const [value, numeral] of table) {
+    while (n >= value) {
+      out += numeral;
+      n -= value;
+    }
+  }
+  return out;
+}
+
+/**
+ * Pages already indexed by HAND rows. Builders skip these URLs: the catalog
+ * test "never indexes one page under two ids" rejects duplicate URLs, and a
+ * duplicate burns a fetch slot on a page already read. (Wave 1 case: the
+ * henry-gen-1 hand row is the same page the generator would emit for
+ * henry-genesis-1.)
+ */
+const HAND_URLS = new Set(HAND.map((x) => x.url));
+
+function henryOtPentateuch(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, vol, slug] of OT_PENTATEUCH) {
+    const tag = otTag(name);
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `henry-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      // CCEL numbers Henry's chapters one past the roman numeral: .ii.html is
+      // chapter 1 (verified against page content, Genesis–Deuteronomy).
+      // romanNumeral (not the ROMAN table) because the OT exceeds xxix.
+      const url = `https://ccel.org/ccel/henry/${vol}/${vol}.${slug}.${romanNumeral(ch + 1)}.html`;
+      if (HAND_URLS.has(url)) continue;
+      out.push(
+        e(
+          id,
+          "Matthew Henry",
+          "Commentary on the Whole Bible",
+          "reformed",
+          `${name} ${ch}`,
+          url,
+          [tag, "henry"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+function gillOtPentateuch(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, , , code, hub] of OT_PENTATEUCH) {
+    const tag = otTag(name);
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `gill-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      const url = `https://archive.sacred-texts.com/bib/cmt/gill/${code}${pad3(ch)}.htm`;
+      if (HAND_URLS.has(url)) continue;
+      const entry = e(
+        id,
+        "John Gill",
+        "Exposition of the Old and New Testament",
+        "reformed",
+        `${name} ${ch}`,
+        url,
+        [tag, "gill", "baptist"],
+        [bookId],
+        [ch],
+      );
+      entry.altUrl = `https://biblehub.com/commentaries/gill/${hub}/${ch}.htm`;
+      out.push(entry);
+    }
+  }
+  return out;
+}
+
+function jfbOtPentateuch(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, , , code, hub] of OT_PENTATEUCH) {
+    const tag = otTag(name);
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `jfb-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      const url = `https://archive.sacred-texts.com/bib/cmt/jfb/${code}${pad3(ch)}.htm`;
+      if (HAND_URLS.has(url)) continue;
+      const entry = e(
+        id,
+        "Jamieson-Fausset-Brown",
+        "Commentary Critical and Explanatory on the Whole Bible",
+        "reformed",
+        `${name} ${ch}`,
+        url,
+        [tag, "jfb"],
+        [bookId],
+        [ch],
+      );
+      entry.altUrl = `https://biblehub.com/commentaries/jfb/${hub}/${ch}.htm`;
+      out.push(entry);
+    }
+  }
+  return out;
+}
+
+function pooleOtPentateuch(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, , , , hub] of OT_PENTATEUCH) {
+    const tag = otTag(name);
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `poole-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      const url = `https://biblehub.com/commentaries/poole/${hub}/${ch}.htm`;
+      if (HAND_URLS.has(url)) continue;
+      out.push(
+        e(
+          id,
+          "Matthew Poole",
+          "Annotations upon the Holy Bible",
+          "reformed",
+          `${name} ${ch}`,
+          url,
+          [tag, "poole"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+function clarkeOtPentateuch(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, , , , hub] of OT_PENTATEUCH) {
+    const tag = otTag(name);
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `clarke-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      const url = `https://biblehub.com/commentaries/clarke/${hub}/${ch}.htm`;
+      if (HAND_URLS.has(url)) continue;
+      out.push(
+        e(
+          id,
+          "Adam Clarke",
+          "Clarke's Commentary on the Bible",
+          "arminian",
+          `${name} ${ch}`,
+          url,
+          [tag, "clarke", "methodist"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+function kadOtPentateuch(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, , , , hub] of OT_PENTATEUCH) {
+    const tag = otTag(name);
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `kad-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      const url = `https://biblehub.com/commentaries/kad/${hub}/${ch}.htm`;
+      if (HAND_URLS.has(url)) continue;
+      out.push(
+        e(
+          id,
+          "Keil & Delitzsch",
+          "Commentary on the Old Testament",
+          "lutheran",
+          `${name} ${ch}`,
+          url,
+          [tag, "kad", "keil-delitzsch"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+function langeOtPentateuch(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, , , , hub] of OT_PENTATEUCH) {
+    const tag = otTag(name);
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `lange-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      const url = `https://biblehub.com/commentaries/lange/${hub}/${ch}.htm`;
+      if (HAND_URLS.has(url)) continue;
+      out.push(
+        e(
+          id,
+          "John Peter Lange",
+          "Commentary on the Holy Scriptures",
+          "reformed",
+          `${name} ${ch}`,
+          url,
+          [tag, "lange"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+function ellicottOtPentateuch(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, , , , hub] of OT_PENTATEUCH) {
+    const tag = otTag(name);
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `ellicott-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      const url = `https://biblehub.com/commentaries/ellicott/${hub}/${ch}.htm`;
+      if (HAND_URLS.has(url)) continue;
+      out.push(
+        e(
+          id,
+          "Charles Ellicott",
+          "Commentary for English Readers",
+          "reformed",
+          `${name} ${ch}`,
+          url,
+          [tag, "ellicott"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+function cambridgeOtPentateuch(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, , , , hub] of OT_PENTATEUCH) {
+    const tag = otTag(name);
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `cambridge-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      const url = `https://biblehub.com/commentaries/cambridge/${hub}/${ch}.htm`;
+      if (HAND_URLS.has(url)) continue;
+      out.push(
+        e(
+          id,
+          "Cambridge Bible",
+          "Cambridge Bible for Schools and Colleges",
+          "reformed",
+          `${name} ${ch}`,
+          url,
+          [tag, "cambridge"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+function pulpitOtPentateuch(have: Set<string>): CatalogEntry[] {
+  const out: CatalogEntry[] = [];
+  for (const [stem, bookId, name, chapters, , , , hub] of OT_PENTATEUCH) {
+    const tag = otTag(name);
+    for (let ch = 1; ch <= chapters; ch++) {
+      const id = `pulpit-${stem}-${ch}`;
+      if (have.has(id)) continue;
+      const url = `https://biblehub.com/commentaries/pulpit/${hub}/${ch}.htm`;
+      if (HAND_URLS.has(url)) continue;
+      out.push(
+        e(
+          id,
+          "Pulpit Commentary",
+          "The Pulpit Commentary",
+          "reformed",
+          `${name} ${ch}`,
+          url,
+          [tag, "pulpit"],
+          [bookId],
+          [ch],
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+/**
+ * OT voice cap: at most 10 wave-generated rows per (book, chapter). HAND rows
+ * are exempt (grandfathered curated rows). Priority order decides who stays
+ * when waves overlap (e.g. Calvin pericopes landing on a 10-voice chapter).
+ */
+const OT_BOOK_IDS = new Set([
+  "GEN", "EXO", "LEV", "NUM", "DEU",
+  "JOS", "JDG", "RUT", "1SA", "2SA", "1KI", "2KI",
+  "1CH", "2CH", "EZR", "NEH", "EST",
+  "JOB", "PSA", "PRO", "ECC", "SNG",
+  "ISA", "JER", "LAM", "EZE", "DAN",
+  "HOS", "JOL", "AMO", "OBA", "JON", "MIC", "NAM", "HAB", "ZEP", "HAG", "ZEC", "MAL",
+]);
+
+const OT_VOICE_PRIORITY = [
+  "John Calvin",
+  "Augustine",
+  "Augustine of Hippo",
+  "Charles Spurgeon",
+  "Gregory the Great",
+  "Keil & Delitzsch",
+  "Matthew Henry",
+  "John Gill",
+  "Jamieson-Fausset-Brown",
+  "Matthew Poole",
+  "Adam Clarke",
+  "John Peter Lange",
+  "Charles Ellicott",
+  "Albert Barnes",
+  "Cambridge Bible",
+  "Pulpit Commentary",
+  "Geneva Bible",
+];
+
+function capOtVoices(out: CatalogEntry[]): CatalogEntry[] {
+  const HAND_IDS = new Set(HAND.map((x) => x.id));
+  const rank = (voice: string) => {
+    const i = OT_VOICE_PRIORITY.indexOf(voice);
+    return i < 0 ? OT_VOICE_PRIORITY.length : i;
+  };
+  const groups = new Map<string, CatalogEntry[]>();
+  for (const x of out) {
+    if (HAND_IDS.has(x.id)) continue;
+    const b = x.books?.[0];
+    const c = x.chapters?.[0];
+    if (!b || c == null || !OT_BOOK_IDS.has(b)) continue;
+    const k = `${b}:${c}`;
+    let g = groups.get(k);
+    if (!g) {
+      g = [];
+      groups.set(k, g);
+    }
+    g.push(x);
+  }
+  const drop = new Set<string>();
+  for (const g of groups.values()) {
+    if (g.length <= 10) continue;
+    const sorted = [...g].sort((a, b) => rank(a.voice) - rank(b.voice));
+    for (const x of sorted.slice(10)) drop.add(x.id);
+  }
+  return drop.size ? out.filter((x) => !drop.has(x.id)) : out;
+}
+
 export const CATALOG: CatalogEntry[] = (() => {
   const have = new Set(HAND.map((x) => x.id));
   const out = [...HAND];
@@ -2119,12 +2511,26 @@ export const CATALOG: CatalogEntry[] = (() => {
     augustineHarmonyGospels,
     theodoretRomans,
     victorinusRevelationChapters,
+    // Wave 1 OT: Pentateuch (Genesis–Deuteronomy), 10 voices per chapter.
+    henryOtPentateuch,
+    gillOtPentateuch,
+    jfbOtPentateuch,
+    pooleOtPentateuch,
+    clarkeOtPentateuch,
+    kadOtPentateuch,
+    langeOtPentateuch,
+    ellicottOtPentateuch,
+    cambridgeOtPentateuch,
+    pulpitOtPentateuch,
+    // Wave-generated OT builders (see src/lib/reception/ot/waves.ts).
+    // Registered from JSON wave tables by scripts in ~/workspace/ot-waves.
+    ...OT_WAVE_BUILDERS,
   ]) {
     const more = gen(have);
     for (const x of more) have.add(x.id);
     out.push(...more);
   }
-  return out;
+  return capOtVoices(out);
 })();
 
 const STOP = new Set([
