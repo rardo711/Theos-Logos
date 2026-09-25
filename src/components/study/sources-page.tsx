@@ -108,7 +108,7 @@ export function SourcesPage({
       />
 
       {/* Main Page Header */}
-      <header className="shrink-0 border-b border-rule bg-surface px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 shadow-xs">
+      <header className="shrink-0 border-b border-rule bg-surface px-4 pt-[max(0.75rem,var(--safe-top),var(--safe-top-min,0px))] pb-3 shadow-xs">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <button

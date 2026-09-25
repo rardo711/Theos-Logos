@@ -477,7 +477,7 @@ export function Onboarding({ onFinished }: { onFinished: () => void }) {
             phase === "crossing" && "tl-onboard-intro-in pointer-events-none",
           )}
         >
-          <div className="px-6 pt-[max(1.25rem,env(safe-area-inset-top))]">
+          <div className="px-6 pt-[max(1.25rem,var(--safe-top),var(--safe-top-min,0px))]">
             <p
               className="text-center text-[0.6875rem] tabular-nums tracking-[0.06em] text-muted"
               aria-live="polite"
@@ -516,7 +516,7 @@ export function Onboarding({ onFinished }: { onFinished: () => void }) {
             </div>
           </div>
 
-          <div className="shrink-0 border-t border-rule/80 bg-surface/80 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-sm">
+          <div className="shrink-0 border-t border-rule/80 bg-surface/80 px-4 pb-[max(1rem,var(--safe-bottom))] pt-3 backdrop-blur-sm">
             <div className="mx-auto flex max-w-[360px] items-center justify-between gap-2">
               <button
                 type="button"

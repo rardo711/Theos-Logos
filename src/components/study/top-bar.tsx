@@ -29,7 +29,7 @@ export function TopBar() {
   );
 
   return (
-    <header className="relative z-30 shrink-0 border-b border-rule bg-surface pt-[max(env(safe-area-inset-top),var(--safe-top-min,0px))]">
+    <header className="relative z-30 shrink-0 border-b border-rule bg-surface pt-[max(var(--safe-top),var(--safe-top-min,0px))]">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-oxblood"
