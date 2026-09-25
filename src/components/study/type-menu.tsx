@@ -2,10 +2,11 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { t } from "@/lib/i18n";
 import { canInstallPwa, installPwa, subscribePwa } from "@/lib/pwa";
 import { useStudy } from "@/lib/study-store";
+import { DISMISS_SPRING, springTo } from "@/lib/spring";
 import { cn } from "@/lib/utils";
 import { useSlidingPill } from "./sliding-pill";
 
-const EXIT_MS = 480;
+const EXIT_MS = 620;
 
 export function TypeMenu() {
   const open = useStudy((s) => s.typeOpen);
@@ -21,13 +22,26 @@ export function TypeMenu() {
   const [visible, setVisible] = useState(open);
   const [localeRef, localeInk] = useSlidingPill(locale, visible);
   const [lampRef, lampInk] = useSlidingPill(theme, visible);
-  const dragRef = useRef({ active: false, y: 0 });
+  const dragRef = useRef({ active: false, y: 0, lastY: 0, lastT: 0, velocity: 0 });
+  const springStop = useRef<(() => void) | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [springing, setSpringing] = useState(false);
   const [dragY, setDragY] = useState(0);
+
+  useEffect(() => () => springStop.current?.(), []);
 
   function onDragStart(e: PointerEvent<HTMLDivElement>) {
     if (!window.matchMedia("(max-width: 639px)").matches) return;
-    dragRef.current = { active: true, y: e.clientY };
+    springStop.current?.();
+    setSpringing(false);
+    const now = performance.now();
+    dragRef.current = {
+      active: true,
+      y: e.clientY,
+      lastY: e.clientY,
+      lastT: now,
+      velocity: 0,
+    };
     setDragging(true);
     setDragY(0);
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -35,16 +49,40 @@ export function TypeMenu() {
 
   function onDragMove(e: PointerEvent<HTMLDivElement>) {
     if (!dragRef.current.active) return;
+    const now = performance.now();
+    const dt = Math.max(now - dragRef.current.lastT, 1);
+    dragRef.current.velocity = ((e.clientY - dragRef.current.lastY) / dt) * 1000;
+    dragRef.current.lastY = e.clientY;
+    dragRef.current.lastT = now;
     setDragY(Math.max(0, e.clientY - dragRef.current.y));
   }
 
   function onDragEnd(e: PointerEvent<HTMLDivElement>) {
     if (!dragRef.current.active) return;
     const dy = Math.max(0, e.clientY - dragRef.current.y);
+    const velocity = dragRef.current.velocity;
     dragRef.current.active = false;
     setDragging(false);
-    setDragY(0);
-    if (dy > 64) setOpen(false);
+    const menu = e.currentTarget.closest(".tl-menu");
+    const height = menu instanceof HTMLElement ? menu.offsetHeight : 480;
+    const dismiss = dy > 72 || velocity > 850;
+    setSpringing(true);
+    springStop.current?.();
+    springStop.current = springTo({
+      from: dy,
+      velocity,
+      to: dismiss ? height + 40 : 0,
+      spring: dismiss ? DISMISS_SPRING : undefined,
+      onUpdate: setDragY,
+      onRest: () => {
+        if (dismiss) {
+          setOpen(false);
+          return;
+        }
+        setSpringing(false);
+        setDragY(0);
+      },
+    });
   }
 
   useEffect(() => {
@@ -56,6 +94,9 @@ export function TypeMenu() {
   // Keep mounted through exit so .tl-menu[data-open] can animate out (BUG-9).
   useEffect(() => {
     if (open) {
+      springStop.current?.();
+      setSpringing(false);
+      setDragY(0);
       setMounted(true);
       let inner = 0;
       const outer = requestAnimationFrame(() => {
@@ -108,7 +149,12 @@ export function TypeMenu() {
         className="tl-menu fixed inset-x-0 bottom-0 z-50 w-full overflow-hidden rounded-t-xl border-t border-rule bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-soft sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-[calc(100%+6px)] sm:left-0 sm:w-72 sm:rounded-lg sm:border sm:pb-4"
         data-open={visible ? "true" : "false"}
         data-dragging={dragging ? "true" : "false"}
-        style={dragging ? { ["--menu-drag" as string]: `${dragY}px` } : undefined}
+        data-spring={springing ? "true" : "false"}
+        style={
+          dragging || springing
+            ? { ["--menu-drag" as string]: `${dragY}px` }
+            : undefined
+        }
         role="dialog"
         aria-label={t(locale, "theDesk")}
         aria-hidden={!visible}

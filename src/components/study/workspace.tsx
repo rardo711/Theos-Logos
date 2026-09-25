@@ -7,6 +7,7 @@ import { translationInfo } from "@/lib/bible/translations";
 import type { Locale } from "@/lib/bible/books";
 import { initPwa, isStandalone, lockSafeTop } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
+import { springTo } from "@/lib/spring";
 import { useStudy } from "@/lib/study-store";
 import { isOnboardingComplete } from "@/lib/onboarding";
 import { LibraryDrawer } from "./library-drawer";
@@ -107,6 +108,7 @@ export function StudyWorkspace() {
   >("hidden");
   const [sheetDrag, setSheetDrag] = useState(0);
   const [sheetDragging, setSheetDragging] = useState(false);
+  const sheetSpring = useRef<(() => void) | null>(null);
   // xl side desk: keep mounted through exit slide (BUG-10)
   const [deskShown, setDeskShown] = useState(false);
   const [deskOpen, setDeskOpen] = useState(false);
@@ -287,19 +289,42 @@ export function StudyWorkspace() {
     const chrome = el?.querySelector("[data-sheet-chrome]") as HTMLElement | null;
     if (!el || !chrome || sheetState === "hidden") return;
     let startY = 0;
-    let startT = 0;
+    let lastY = 0;
+    let lastT = 0;
+    let velocity = 0;
     let pulling = false;
     let dy = 0;
     const COMMIT = 56;
     const FLING = 0.55;
+    const release = (from: number, v: number) => {
+      sheetSpring.current?.();
+      sheetSpring.current = springTo({
+        from,
+        velocity: v,
+        to: 0,
+        onUpdate: setSheetDrag,
+        onRest: () => {
+          setSheetDragging(false);
+          setSheetDrag(0);
+        },
+      });
+    };
     const onStart = (e: TouchEvent) => {
+      sheetSpring.current?.();
       startY = e.touches[0].clientY;
-      startT = performance.now();
+      lastY = startY;
+      lastT = performance.now();
+      velocity = 0;
       pulling = false;
       dy = 0;
     };
     const onMove = (e: TouchEvent) => {
-      const delta = e.touches[0].clientY - startY;
+      const y = e.touches[0].clientY;
+      const now = performance.now();
+      velocity = ((y - lastY) / Math.max(now - lastT, 1)) * 1000;
+      lastY = y;
+      lastT = now;
+      const delta = y - startY;
       const mode = sheetStateRef.current;
       const room = el.parentElement?.clientHeight ?? window.innerHeight;
       pulling = true;
@@ -315,33 +340,45 @@ export function StudyWorkspace() {
       if (Math.abs(delta) > 4) e.preventDefault();
     };
     const finish = () => {
-      const v = dy / Math.max(performance.now() - startT, 1);
+      const v = velocity / 1000;
       const mode = sheetStateRef.current;
       const H = el.offsetHeight;
       const room = el.parentElement?.clientHeight ?? window.innerHeight;
-      setSheetDragging(false);
-      if (!pulling) {
-        dy = 0;
-        return;
-      }
+      if (!pulling) return;
+      let commit = false;
       if (mode === "peek") {
-        if (dy < -room * 0.28 || v < -1.05) setReceptionFull(true);
-        else if (dy < -COMMIT || v < -FLING) setReceptionOpen(true);
-        else if (dy > COMMIT || v > FLING) clearSelection();
-        else setSheetDrag(0);
+        if (dy < -room * 0.28 || v < -1.05) {
+          setReceptionFull(true);
+          commit = true;
+        } else if (dy < -COMMIT || v < -FLING) {
+          setReceptionOpen(true);
+          commit = true;
+        } else if (dy > COMMIT || v > FLING) {
+          clearSelection();
+          commit = true;
+        }
       } else if (mode === "mid") {
-        if (dy < -COMMIT || v < -FLING) setReceptionFull(true);
-        else if (dy > COMMIT || v > FLING) {
+        if (dy < -COMMIT || v < -FLING) {
+          setReceptionFull(true);
+          commit = true;
+        } else if (dy > COMMIT || v > FLING) {
           setReceptionFull(false);
           setReceptionOpen(false);
-        } else setSheetDrag(0);
+          commit = true;
+        }
       } else if (dy > H * 0.28 || v > 1.1) {
         setReceptionFull(false);
         setReceptionOpen(false);
+        commit = true;
       } else if (dy > COMMIT || v > FLING) {
         setReceptionFull(false);
-      } else {
+        commit = true;
+      }
+      if (commit) {
+        setSheetDragging(false);
         setSheetDrag(0);
+      } else {
+        release(dy, velocity);
       }
       pulling = false;
       dy = 0;
@@ -351,6 +388,7 @@ export function StudyWorkspace() {
     chrome.addEventListener("touchend", finish);
     chrome.addEventListener("touchcancel", finish);
     return () => {
+      sheetSpring.current?.();
       chrome.removeEventListener("touchstart", onStart);
       chrome.removeEventListener("touchmove", onMove);
       chrome.removeEventListener("touchend", finish);
