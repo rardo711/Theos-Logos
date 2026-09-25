@@ -1134,75 +1134,6 @@ export function ReceptionPanel({
               </div>
             ) : null}
 
-            {/* Question box under the lexicon chips; its short answer unfolds
-                right beneath it, in its own slot. */}
-            <form
-              className="mb-3"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleQuestionSubmit();
-              }}
-            >
-              <label className="sr-only" htmlFor="ask-verse">
-                {t(locale, "askVersePlaceholder")}
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  id="ask-verse"
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  placeholder={t(locale, "askVersePlaceholder")}
-                  className="min-h-11 w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-lamp"
-                />
-                <button
-                  type="submit"
-                  disabled={loading || !question.trim()}
-                  aria-label={t(locale, "inquire")}
-                  className="flex size-11 shrink-0 items-center justify-center rounded-md bg-oxblood text-oxblood-fg disabled:opacity-50"
-                >
-                  <Send size={16} />
-                </button>
-              </div>
-            </form>
-
-            <div
-              className="tl-unfold"
-              data-open={
-                qaOpen &&
-                (qa != null ||
-                  qaError != null ||
-                  (loading && loadingKind === "question"))
-              }
-            >
-              <div className="tl-unfold-body">
-                <div className="tl-unfold-item">
-                  {loading && loadingKind === "question" ? (
-                    <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
-                      <Loader2 size={14} className="animate-spin text-lamp" />
-                      {t(locale, "synthesizing")}
-                    </p>
-                  ) : null}
-                  {qaError && !(loading && loadingKind === "question") ? (
-                    <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
-                      {qaError}
-                    </p>
-                  ) : null}
-                  {qa && !(loading && loadingKind === "question") ? (
-                    <article className="mb-4 rounded-lg border border-rule bg-surface p-4 shadow-soft">
-                      <p className="font-serif text-base leading-relaxed text-ink">
-                        {qa.answer}
-                      </p>
-                      {qa.cited.length ? (
-                        <p className="mt-2 text-2xs tracking-wide text-faint">
-                          {qa.cited.join(" · ")}
-                        </p>
-                      ) : null}
-                    </article>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-
             {locale === "es" && spanishHebrew ? (
               <div
                 key={`${spanishHebrew.strongs}:${spanishHebrew.hero}`}
@@ -1278,6 +1209,70 @@ export function ReceptionPanel({
                 </p>
               </article>
             ) : null}
+
+            {/* Question box sits directly above the commentaries, after any open
+                lexicon card; its short answer unfolds right beneath it. */}
+            <form
+              className="mb-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleQuestionSubmit();
+              }}
+            >
+              <label className="sr-only" htmlFor="ask-verse">
+                {t(locale, "askVersePlaceholder")}
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="ask-verse"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder={t(locale, "askVersePlaceholder")}
+                  className="min-h-11 w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-lamp"
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !question.trim()}
+                  aria-label={t(locale, "inquire")}
+                  className="flex size-11 shrink-0 items-center justify-center rounded-md bg-oxblood text-oxblood-fg disabled:opacity-50"
+                >
+                  <Send size={16} />
+                </button>
+              </div>
+            </form>
+
+            <div
+              className="tl-unfold"
+              data-open={
+                qaOpen &&
+                (qa != null ||
+                  qaError != null ||
+                  (loading && loadingKind === "question"))
+              }
+            >
+              <div className="tl-unfold-body">
+                <div className="tl-unfold-item">
+                  {loading && loadingKind === "question" ? (
+                    <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
+                      <Loader2 size={14} className="animate-spin text-lamp" />
+                      {t(locale, "synthesizing")}
+                    </p>
+                  ) : null}
+                  {qaError && !(loading && loadingKind === "question") ? (
+                    <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
+                      {qaError}
+                    </p>
+                  ) : null}
+                  {qa && !(loading && loadingKind === "question") ? (
+                    <div className="mb-4 border-l-2 border-lamp pl-3">
+                      <p className="font-serif text-[15px] leading-relaxed text-ink">
+                        {qa.answer}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
 
             {/* Commentaries for this verse: heading, per-verse tradition filters,
                 initial set, then the More / Summary row. Always mounted in the
