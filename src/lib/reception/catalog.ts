@@ -2660,9 +2660,6 @@ export function scoreEntry(
   if (verse != null && entry.verses) {
     score += 30;
   }
-  if (verse != null && entry.verses) {
-    score += 30;
-  }
   return score;
 }
 
