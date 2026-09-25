@@ -147,6 +147,19 @@ describe("synthesistSystem", () => {
   });
 });
 
+describe("off-verse redirect", () => {
+  it("tells the model to decline or redirect questions outside the passage", () => {
+    for (const sys of [
+      synthesistSystem("en", { brief: true }),
+      synthesistSystem("en", { brief: true, noCards: true }),
+      synthesistSystem("es", { brief: true, noCards: true }),
+    ]) {
+      assert.match(sys, /not about this verse/);
+      assert.match(sys, /using Search/);
+    }
+  });
+});
+
 describe("verse-only answers (no desk cards)", () => {
   const verse = "For God so loved the world that he gave his only Son.";
   it("prompts from the verse text alone and names the honesty rule", () => {

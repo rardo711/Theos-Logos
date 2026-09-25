@@ -1260,7 +1260,10 @@ export function ReceptionPanel({
                     </p>
                   ) : null}
                   {qa && !(loading && loadingKind === "question") ? (
-                    <div className="mb-4 border-l-2 border-lamp pl-3">
+                    <div
+                      key={qa.answer}
+                      className="tl-rise-in mb-4 border-l-2 border-lamp pl-3"
+                    >
                       <p className="font-serif text-[15px] leading-relaxed text-ink">
                         {qa.answer}
                       </p>
@@ -1449,7 +1452,10 @@ export function ReceptionPanel({
                       </p>
                     ) : null}
                     {summary && !(loading && loadingKind === "summary") ? (
-                      <article className="mb-2 rounded-lg border border-rule bg-surface p-4 shadow-soft">
+                      <article
+                        key={summary.answer}
+                        className="tl-rise-in mb-2 rounded-lg border border-rule bg-surface p-4 shadow-soft"
+                      >
                         <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
                           {t(locale, "synthesisFromDesk")}
                         </p>
