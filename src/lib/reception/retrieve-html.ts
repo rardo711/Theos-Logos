@@ -27,19 +27,62 @@ export function sanitizeHtml(html: string): string {
 
 export function htmlToText(html: string): string {
   const clean = sanitizeHtml(html);
-  return clean
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&/gi, "&")
-    .replace(/"/gi, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/</gi, "<")
-    .replace(/>/gi, ">")
-    .replace(/&mdash;/gi, "\u2014")
-    .replace(/&ndash;/gi, "\u2013")
-    .replace(/&hellip;/gi, "...")
-    .replace(/\s+/g, " ")
-    .trim();
+  return decodeHtmlEntities(
+    clean
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim(),
+  );
+}
+
+const NAMED_HTML_ENTITIES: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: " ",
+  ldquo: "\u201c",
+  rdquo: "\u201d",
+  lsquo: "\u2018",
+  rsquo: "\u2019",
+  mdash: "\u2014",
+  ndash: "\u2013",
+  hellip: "\u2026",
+};
+
+/**
+ * Decode HTML entities (&#931; &#x3ba; &amp; &ldquo; ...) to characters.
+ *
+ * Extracted card quotes sometimes carry entities verbatim from the source
+ * page's HTML (e.g. a Greek word stored as &#x3ba;&#x3bf;...). The synthesis
+ * model reads those as the characters they encode, so both verification and
+ * display must compare on decoded text. Loops to a fixed point (max 3
+ * passes) for double-escaped input. Text without entities is returned
+ * unchanged.
+ */
+export function decodeHtmlEntities(s: string): string {
+  let out = s;
+  for (let i = 0; i < 3; i++) {
+    const next = out.replace(
+      /&(#\d+|#[xX][0-9a-fA-F]+|[a-zA-Z]+);/g,
+      (m, ent: string) => {
+        if (ent[0] === "#") {
+          const n =
+            ent[1] === "x" || ent[1] === "X"
+              ? parseInt(ent.slice(2), 16)
+              : Number(ent.slice(1));
+          return Number.isFinite(n) && n > 0 && n <= 0x10ffff
+            ? String.fromCodePoint(n)
+            : m;
+        }
+        return NAMED_HTML_ENTITIES[ent] ?? m;
+      },
+    );
+    if (next === out) break;
+    out = next;
+  }
+  return out;
 }
 
 export function isBoilerplate(text: string): boolean {

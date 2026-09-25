@@ -4,6 +4,7 @@ import { t } from "../i18n.ts";
 import { geminiApiKey, generateGeminiJson } from "../ai/gemini.ts";
 import {
   type FetchedExtract,
+  decodeHtmlEntities,
   isBoilerplate,
   isEmbeddedScripture,
   isSubstantiveQuote,
@@ -22,8 +23,13 @@ export function validateReceptionOutput(
     return false;
   }
 
+  // Entity-decode first: extracted quotes sometimes carry the source page's
+  // HTML entities verbatim (&#x3ba;...), while the model quotes the characters
+  // they encode. NFC second: entities may spell a decomposed sequence
+  // (o + combining acute) where prose uses the precomposed character.
   const normalize = (str: string) =>
-    str
+    decodeHtmlEntities(str)
+      .normalize("NFC")
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/[\u2014\u2013-]/g, " ")

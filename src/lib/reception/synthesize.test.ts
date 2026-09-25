@@ -85,4 +85,29 @@ describe("parseSynthesis", () => {
       null,
     );
   });
+
+  it("accepts an answer that quotes a card's HTML entities as decoded characters", () => {
+    // Extracted cards can carry the source page's entities verbatim
+    // (&#x3ba;...); the model quotes the Greek they encode, possibly in the
+    // precomposed unicode form where the entities spell a decomposed one.
+    // Rejecting that mismatch blanked the Summary panel on John 3:16.
+    const entityCard: SourceCard = {
+      voice: "Marvin Vincent",
+      work: "Word Studies",
+      tradition: "reformed",
+      quote:
+        "The term world (&#x3ba;&#x3bf;&#769;&#x3c3;&#x3bc;&#x3bf;&#x3bd;) refers not to all human individuals.",
+      citation: "Vincent, Word Studies",
+      source: "generated",
+    };
+    const raw = JSON.stringify({
+      answer:
+        "Vincent limits the scope: \u201cthe term world (\u03ba\u03cc\u03c3\u03bc\u03bf\u03bd) refers not to all human individuals.\u201d",
+      cited: ["Marvin Vincent"],
+      quotes: [],
+    });
+    const parsed = parseSynthesis(raw, [entityCard], "q");
+    assert.ok(parsed);
+    assert.match(parsed.answer, /Vincent limits the scope/);
+  });
 });
