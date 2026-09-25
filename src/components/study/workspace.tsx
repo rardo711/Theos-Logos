@@ -232,7 +232,7 @@ export function StudyWorkspace() {
       };
     }
     setSourcesAnimOpen(false);
-    const t = window.setTimeout(() => setSourcesShown(false), 340);
+    const t = window.setTimeout(() => setSourcesShown(false), 460);
     return () => window.clearTimeout(t);
   }, [sourcesPageOpen]);
 

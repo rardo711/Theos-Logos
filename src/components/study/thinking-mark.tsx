@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { ThinkingOrb, type OrbState } from "thinking-orbs";
 import { cn } from "@/lib/utils";
 
+type LampWait = "composing" | "searching" | "breathing";
+
 /**
- * AI waits only. The orb stays off for the first moment so a cached
- * answer never flashes a canvas. thinking-orbs, size 20, beside the label.
+ * Desk lamp while a long answer is written. Not a generic orb:
+ * composing breathes three wicks, searching draws a gold rule,
+ * breathing is one slow flame. Stays hidden for the first moment
+ * so a cached answer never flashes.
  */
 export function ThinkingMark({
   active,
@@ -13,7 +16,7 @@ export function ThinkingMark({
   className,
 }: {
   active: boolean;
-  state: Extract<OrbState, "composing" | "searching" | "breathing">;
+  state: LampWait;
   label: string;
   className?: string;
 }) {
@@ -31,18 +34,17 @@ export function ThinkingMark({
   return (
     <p
       className={cn(
-        "flex items-center gap-2 font-serif text-sm text-muted italic",
+        "flex items-center gap-2.5 font-serif text-sm text-muted italic",
         className,
       )}
       role="status"
     >
       {show ? (
-        <ThinkingOrb
-          state={state}
-          size={20}
-          theme="auto"
-          aria-hidden="true"
-        />
+        <span className={cn("tl-lamp-wait", `tl-lamp-wait-${state}`)} aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </span>
       ) : null}
       {label}
     </p>

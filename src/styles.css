@@ -68,8 +68,8 @@
   --motion-sheet-exit: 240ms;
   --motion-sheet-crossfade: 160ms;
   /* Sources page — calm, slow-ish: never snaps */
-  --motion-sources-enter: 380ms;
-  --motion-sources-exit: 320ms;
+  --motion-sources-enter: 560ms;
+  --motion-sources-exit: 420ms;
   --ease-sheet-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-sheet-exit: cubic-bezier(0.4, 0, 1, 1);
   --sheet-enter-y: 32%;
@@ -529,7 +529,7 @@ html.dark .tl-shell {
 }
 
 .tl-drawer[data-open="true"] .tl-drawer-settle {
-  animation: tl-drawer-settle 400ms var(--ease-out) 280ms both;
+  animation: tl-drawer-settle 460ms var(--ease-smooth-out) 300ms both;
 }
 
 @keyframes tl-drawer-settle {
@@ -563,10 +563,10 @@ html.dark .tl-shell {
     opacity var(--motion-sheet-enter) var(--ease-sheet-enter);
 }
 
-/* Sources page — calm fade + rise. Slow-ish on purpose: this app never snaps. */
+/* Sources desk — the page rises, then the header and list settle. */
 .tl-sources {
   opacity: 0;
-  transform: translateY(14px);
+  transform: translateY(40px);
   will-change: opacity, transform;
   transition:
     opacity var(--motion-sources-exit) var(--ease-smooth-out),
@@ -579,6 +579,26 @@ html.dark .tl-shell {
   transition:
     opacity var(--motion-sources-enter) var(--ease-smooth-out),
     transform var(--motion-sources-enter) var(--ease-smooth-out);
+}
+
+.tl-sources:not([data-open="true"]) .tl-sources-settle {
+  opacity: 1;
+  transform: none;
+}
+
+.tl-sources[data-open="true"] .tl-sources-settle {
+  animation: tl-sources-settle 520ms var(--ease-smooth-out) 120ms both;
+}
+
+@keyframes tl-sources-settle {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .tl-sheet-up {
@@ -741,11 +761,11 @@ html.dark .tl-shell {
 .tl-menu {
   transform-origin: top center;
   opacity: 0;
-  transform: translateY(16px) scale(0.94);
+  transform: translateY(12px) scale(0.985);
   pointer-events: none;
   transition:
-    opacity 200ms var(--ease-sheet-exit),
-    transform 200ms var(--ease-sheet-exit);
+    opacity 280ms var(--ease-smooth-out),
+    transform 320ms var(--ease-smooth-out);
 }
 
 .tl-menu[data-open="true"] {
@@ -753,37 +773,134 @@ html.dark .tl-shell {
   transform: none;
   pointer-events: auto;
   transition:
-    opacity 300ms var(--ease-snap),
-    transform 340ms var(--ease-snap);
+    opacity 420ms var(--ease-smooth-out),
+    transform 480ms var(--ease-smooth-out);
 }
 
-/* Phone: the menu rises from off the bottom edge, not a small nudge. */
+/* Phone: rise from the bottom. A downward drag follows the finger. */
 @media (max-width: 639px) {
   .tl-menu {
     transform-origin: bottom center;
-    transform: translateY(110%);
+    transform: translateY(100%);
   }
   .tl-menu[data-open="true"] {
     transform: none;
   }
+  .tl-menu[data-dragging="true"] {
+    transition: none;
+    transform: translateY(var(--menu-drag, 0px));
+  }
 }
 
-/* Translation menu. */
+.tl-menu-handle {
+  cursor: grab;
+  touch-action: none;
+}
+
+/* Desk lamp — the wait mark. Wicks for writing, a rule for searching. */
+.tl-lamp-wait {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+  flex: none;
+}
+
+.tl-lamp-wait i {
+  display: block;
+  width: 3px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--color-oxblood);
+  transform-origin: bottom center;
+  animation: tl-wick 1.15s var(--ease-smooth-out) infinite;
+}
+
+.tl-lamp-wait i:nth-child(2) {
+  height: 12px;
+  background: var(--color-gold);
+  animation-delay: 0.16s;
+}
+
+.tl-lamp-wait i:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+.tl-lamp-wait-searching {
+  align-items: center;
+  width: 28px;
+}
+
+.tl-lamp-wait-searching i {
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-gold);
+  transform-origin: left center;
+  animation: tl-lamp-seek 1.3s var(--ease-smooth-out) infinite;
+}
+
+.tl-lamp-wait-searching i:nth-child(2),
+.tl-lamp-wait-searching i:nth-child(3) {
+  display: none;
+}
+
+.tl-lamp-wait-breathing i:nth-child(1),
+.tl-lamp-wait-breathing i:nth-child(3) {
+  display: none;
+}
+
+.tl-lamp-wait-breathing i:nth-child(2) {
+  width: 5px;
+  height: 12px;
+  border-radius: 3px 3px 1px 1px;
+  animation-duration: 1.8s;
+  animation-delay: 0s;
+}
+
+@keyframes tl-wick {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+    opacity: 0.4;
+  }
+  45% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes tl-lamp-seek {
+  0% {
+    transform: scaleX(0.15);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(0.15);
+    opacity: 0.4;
+  }
+}
+
+/* Translation menu — soft open, rows follow. */
 .tl-tx-pop {
   transform-origin: top center;
   opacity: 0;
-  transform: translateY(-16px) scale(0.88);
+  transform: translateY(-10px) scale(0.98);
   transition:
-    opacity 180ms var(--ease-sheet-exit),
-    transform 180ms var(--ease-sheet-exit);
+    opacity 240ms var(--ease-smooth-out),
+    transform 240ms var(--ease-smooth-out);
 }
 
 .tl-tx-pop[data-open="true"] {
   opacity: 1;
   transform: none;
   transition:
-    opacity 260ms var(--ease-snap),
-    transform 320ms var(--ease-snap);
+    opacity 360ms var(--ease-smooth-out),
+    transform 420ms var(--ease-smooth-out);
 }
 
 .tl-tx-pop li {
@@ -795,8 +912,8 @@ html.dark .tl-shell {
   opacity: 1;
   transform: none;
   transition:
-    opacity 220ms var(--ease-out),
-    transform 280ms var(--ease-out);
+    opacity 320ms var(--ease-smooth-out),
+    transform 380ms var(--ease-smooth-out);
 }
 
 .tl-tx-pop[data-open="true"] li:nth-child(1) { transition-delay: 90ms; }
@@ -1644,9 +1761,11 @@ html.dark .tl-shell {
   }
 
   .tl-drawer-settle,
+  .tl-sources-settle,
   .tl-tx-pop,
   .tl-card-open,
-  .tl-press:active {
+  .tl-press:active,
+  .tl-lamp-wait i {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
@@ -1782,7 +1901,7 @@ html.dark .tl-shell {
 }
 
 .tl-card-open {
-  animation: tl-card-open 520ms var(--ease-snap) both;
+  animation: tl-card-open 560ms var(--ease-smooth-out) both;
   transform-origin: top center;
 }
 
@@ -1939,7 +2058,7 @@ html.dark .tl-shell {
 }
 
 .tl-dialog {
-  animation: tl-dialog-in 340ms var(--ease-snap);
+  animation: tl-dialog-in 420ms var(--ease-smooth-out);
 }
 
 .tl-dialog[data-closing="true"] {

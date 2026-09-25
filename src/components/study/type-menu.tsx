@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { t } from "@/lib/i18n";
 import { canInstallPwa, installPwa, subscribePwa } from "@/lib/pwa";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 import { useSlidingPill } from "./sliding-pill";
 
-const EXIT_MS = 320;
+const EXIT_MS = 480;
 
 export function TypeMenu() {
   const open = useStudy((s) => s.typeOpen);
@@ -21,6 +21,31 @@ export function TypeMenu() {
   const [visible, setVisible] = useState(open);
   const [localeRef, localeInk] = useSlidingPill(locale, visible);
   const [lampRef, lampInk] = useSlidingPill(theme, visible);
+  const dragRef = useRef({ active: false, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const [dragY, setDragY] = useState(0);
+
+  function onDragStart(e: PointerEvent<HTMLDivElement>) {
+    if (!window.matchMedia("(max-width: 639px)").matches) return;
+    dragRef.current = { active: true, y: e.clientY };
+    setDragging(true);
+    setDragY(0);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function onDragMove(e: PointerEvent<HTMLDivElement>) {
+    if (!dragRef.current.active) return;
+    setDragY(Math.max(0, e.clientY - dragRef.current.y));
+  }
+
+  function onDragEnd(e: PointerEvent<HTMLDivElement>) {
+    if (!dragRef.current.active) return;
+    const dy = Math.max(0, e.clientY - dragRef.current.y);
+    dragRef.current.active = false;
+    setDragging(false);
+    setDragY(0);
+    if (dy > 64) setOpen(false);
+  }
 
   useEffect(() => {
     const sync = () => setInstallable(canInstallPwa());
@@ -82,14 +107,20 @@ export function TypeMenu() {
       <div
         className="tl-menu fixed inset-x-0 bottom-0 z-50 w-full overflow-hidden rounded-t-xl border-t border-rule bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-soft sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-[calc(100%+6px)] sm:left-0 sm:w-72 sm:rounded-lg sm:border sm:pb-4"
         data-open={visible ? "true" : "false"}
+        data-dragging={dragging ? "true" : "false"}
+        style={dragging ? { ["--menu-drag" as string]: `${dragY}px` } : undefined}
         role="dialog"
         aria-label={t(locale, "theDesk")}
         aria-hidden={!visible}
         inert={!visible ? true : undefined}
       >
         <div
-          className="flex justify-center pt-0.5 pb-3 sm:hidden"
+          className="tl-menu-handle flex justify-center pt-2 pb-3 touch-none sm:hidden"
           aria-hidden
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
         >
           <span className="h-1 w-10 rounded-full bg-faint/70" />
         </div>
