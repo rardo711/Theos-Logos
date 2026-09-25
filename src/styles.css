@@ -743,44 +743,6 @@ html.dark .tl-shell {
   }
 }
 
-/* Translation picker: the menu grows smoothly out of the header chip —
-   a calm bloom, no bounce, no snap. */
-.tl-tx-pop {
-  transform-origin: top center;
-}
-.tl-tx-pop[data-open="true"] {
-  animation: tl-tx-pop-in 300ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.tl-tx-pop[data-open="false"] {
-  animation: tl-tx-pop-out 150ms ease-in forwards;
-}
-@keyframes tl-tx-pop-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.55) translateY(-10px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-@keyframes tl-tx-pop-out {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.82) translateY(-8px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .tl-tx-pop[data-open="true"],
-  .tl-tx-pop[data-open="false"] {
-    animation: none;
-  }
-}
-
 .tl-pill-ink {
   position: absolute;
   bottom: 0;
@@ -1758,6 +1720,24 @@ html.dark .tl-shell {
 }
 .tl-unfold[data-open="true"] .tl-unfold-item:nth-child(n + 6) {
   transition-delay: 400ms;
+}
+
+/* Content entrance — a finished answer or summary rises in when it mounts,
+   so generation landing never reads as a pop. The reduced-motion kill-switch
+   below neutralizes this automatically. */
+@keyframes tl-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tl-rise-in {
+  animation: tl-rise-in 550ms var(--ease-smooth-out);
 }
 
 /* 4. Tap attack — the press lands fast and visibly, releases slow. */
