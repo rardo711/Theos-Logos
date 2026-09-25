@@ -1,6 +1,14 @@
 import { create } from "zustand";
 import { BIBLE_BOOKS, getBook, type Locale } from "@/lib/bible/books";
 import { applyVersePick, applyVerseTap, type VerseRange } from "@/lib/bible/range";
+import {
+  DEFAULT_EN_TRANSLATION,
+  DEFAULT_ES_TRANSLATION,
+  isEnTranslationId,
+  isEsTranslationId,
+  type EnTranslationId,
+  type EsTranslationId,
+} from "@/lib/bible/translations";
 import { applyDocumentLocale } from "@/lib/i18n";
 
 const KEY = "theos-logos-hybrid";
@@ -16,6 +24,8 @@ interface Persisted {
   disclaimerSeen: boolean;
   receptionPinned: boolean;
   locale: Locale;
+  enTranslation: EnTranslationId;
+  esTranslation: EsTranslationId;
 }
 
 function load(): Persisted {
@@ -37,6 +47,16 @@ function load(): Persisted {
         disclaimerSeen: Boolean(p.disclaimerSeen),
         receptionPinned: Boolean(p.receptionPinned),
         locale: p.locale === "es" ? "es" : "en",
+        enTranslation:
+          typeof p.enTranslation === "string" &&
+          isEnTranslationId(p.enTranslation)
+            ? p.enTranslation
+            : DEFAULT_EN_TRANSLATION,
+        esTranslation:
+          typeof p.esTranslation === "string" &&
+          isEsTranslationId(p.esTranslation)
+            ? p.esTranslation
+            : DEFAULT_ES_TRANSLATION,
       };
     }
   } catch {
@@ -50,6 +70,8 @@ function load(): Persisted {
     disclaimerSeen: false,
     receptionPinned: false,
     locale: "en",
+    enTranslation: DEFAULT_EN_TRANSLATION,
+    esTranslation: DEFAULT_ES_TRANSLATION,
   };
 }
 
@@ -107,6 +129,8 @@ interface StudyState extends Persisted {
   setTheme: (theme: Theme) => void;
   setFontSize: (n: number) => void;
   setLocale: (locale: Locale) => void;
+  setEnTranslation: (id: EnTranslationId) => void;
+  setEsTranslation: (id: EsTranslationId) => void;
   setLibraryOpen: (open: boolean, tab?: LibraryTab) => void;
   setTypeOpen: (open: boolean) => void;
   setReceptionOpen: (open: boolean) => void;
@@ -129,6 +153,8 @@ function persist(s: StudyState) {
     disclaimerSeen: s.disclaimerSeen,
     receptionPinned: s.receptionPinned,
     locale: s.locale,
+    enTranslation: s.enTranslation,
+    esTranslation: s.esTranslation,
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(data));
@@ -144,6 +170,8 @@ export const useStudy = create<StudyState>((set, get) => ({
   fontSize: 20,
   disclaimerSeen: false,
   locale: "en",
+  enTranslation: DEFAULT_EN_TRANSLATION,
+  esTranslation: DEFAULT_ES_TRANSLATION,
   selectedVerse: null,
   selectedEndVerse: null,
   selectMode: false,
@@ -280,6 +308,14 @@ export const useStudy = create<StudyState>((set, get) => ({
   setLocale: (locale) => {
     set({ locale });
     applyDocumentLocale(locale);
+    persist(get());
+  },
+  setEnTranslation: (enTranslation) => {
+    set({ enTranslation });
+    persist(get());
+  },
+  setEsTranslation: (esTranslation) => {
+    set({ esTranslation });
     persist(get());
   },
   setLibraryOpen: (libraryOpen, tab) =>

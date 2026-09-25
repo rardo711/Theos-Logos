@@ -743,6 +743,44 @@ html.dark .tl-shell {
   }
 }
 
+/* Translation picker: the menu grows smoothly out of the header chip —
+   a calm bloom, no bounce, no snap. */
+.tl-tx-pop {
+  transform-origin: top center;
+}
+.tl-tx-pop[data-open="true"] {
+  animation: tl-tx-pop-in 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tl-tx-pop[data-open="false"] {
+  animation: tl-tx-pop-out 150ms ease-in forwards;
+}
+@keyframes tl-tx-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.55) translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+@keyframes tl-tx-pop-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.82) translateY(-8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tl-tx-pop[data-open="true"],
+  .tl-tx-pop[data-open="false"] {
+    animation: none;
+  }
+}
+
 .tl-pill-ink {
   position: absolute;
   bottom: 0;
