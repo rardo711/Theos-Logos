@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { Liquid } from "liquid-gooey";
 import { t } from "@/lib/i18n";
 import { canInstallPwa, installPwa, subscribePwa } from "@/lib/pwa";
 import { useStudy } from "@/lib/study-store";
@@ -7,6 +8,54 @@ import { cn } from "@/lib/utils";
 import { useSlidingPill } from "./sliding-pill";
 
 const EXIT_MS = 620;
+
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReduced(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return reduced;
+}
+
+function DeskInk({
+  ink,
+}: {
+  ink: { x: number; w: number; ready: boolean };
+}) {
+  const reduced = useReducedMotion();
+  const mark = (
+    <span
+      className="tl-seg-ink"
+      data-liquid={reduced ? undefined : "true"}
+      data-ready={ink.ready ? "true" : "false"}
+      style={{
+        width: ink.w,
+        transform: `translateX(${ink.x}px)`,
+      }}
+    />
+  );
+  if (reduced) return mark;
+  return (
+    <Liquid
+      fill="var(--color-lamp-soft)"
+      blur={8}
+      contrast={15}
+      className="pointer-events-none"
+      style={{ position: "absolute", inset: 0 }}
+    >
+      <Liquid.Item
+        effect="move"
+        move={{ stretch: 0.28, trail: 0.22, springiness: 0.4, wobble: 0.1 }}
+      >
+        {mark}
+      </Liquid.Item>
+    </Liquid>
+  );
+}
 
 export function TypeMenu() {
   const open = useStudy((s) => s.typeOpen);
@@ -234,16 +283,9 @@ export function TypeMenu() {
         </p>
         <div
           ref={localeRef}
-          className="relative mb-4 flex overflow-hidden rounded-md border border-rule p-0.5"
+          className="relative mb-4 flex rounded-md border border-rule p-0.5"
         >
-          <span
-            className="tl-seg-ink"
-            data-ready={localeInk.ready ? "true" : "false"}
-            style={{
-              width: localeInk.w,
-              transform: `translateX(${localeInk.x}px)`,
-            }}
-          />
+          <DeskInk ink={localeInk} />
           {(
             [
               ["en", t(locale, "english")],
@@ -270,16 +312,9 @@ export function TypeMenu() {
         <p className="mb-2 text-xs font-medium text-muted">{t(locale, "lamp")}</p>
         <div
           ref={lampRef}
-          className="relative flex overflow-hidden rounded-md border border-rule p-0.5"
+          className="relative flex rounded-md border border-rule p-0.5"
         >
-          <span
-            className="tl-seg-ink"
-            data-ready={lampInk.ready ? "true" : "false"}
-            style={{
-              width: lampInk.w,
-              transform: `translateX(${lampInk.x}px)`,
-            }}
-          />
+          <DeskInk ink={lampInk} />
           {lamps.map((lamp) => (
             <button
               key={lamp.id}

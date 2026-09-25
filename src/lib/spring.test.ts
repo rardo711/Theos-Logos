@@ -21,6 +21,6 @@ test("desk spring reaches the target and settles once", () => {
   }
   assert.ok(Math.abs(x - 100) < 0.5, `rested at ${x}`);
   assert.ok(Math.abs(v) < 5, `still moving at ${v}`);
-  assert.ok(peak > 100 && peak < 112, `overshot to ${peak}`);
+  assert.ok(peak > 99 && peak < 108, `overshot to ${peak}`);
   assert.ok(swings <= 1, `swung ${swings} times`);
 });

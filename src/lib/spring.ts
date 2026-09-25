@@ -3,8 +3,8 @@
  * Not a bounce. Used where a finger lets go, and sampled into --ease-spring.
  */
 export const DESK_SPRING = {
-  stiffness: 340,
-  damping: 26,
+  stiffness: 280,
+  damping: 38,
   mass: 1,
 } as const;
 

@@ -175,15 +175,21 @@ export function StudyWorkspace() {
     if (want === "hidden") {
       setSheetState("hidden");
       setSheetDrag(0);
-      const t = window.setTimeout(() => setSheetShown(false), 280);
+      const t = window.setTimeout(() => setSheetShown(false), 440);
       return () => window.clearTimeout(t);
     }
     setSheetShown(true);
-    const id = requestAnimationFrame(() => {
-      setSheetState(want);
-      setSheetDrag(0);
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => {
+        setSheetState(want);
+        setSheetDrag(0);
+      });
     });
-    return () => cancelAnimationFrame(id);
+    return () => {
+      cancelAnimationFrame(outer);
+      if (inner) cancelAnimationFrame(inner);
+    };
   }, [want]);
 
   useEffect(() => {
@@ -253,7 +259,7 @@ export function StudyWorkspace() {
       };
     }
     setDeskOpen(false);
-    const t = window.setTimeout(() => setDeskShown(false), 280);
+    const t = window.setTimeout(() => setDeskShown(false), 440);
     return () => window.clearTimeout(t);
   }, [receptionOpen, docked]);
 

@@ -64,22 +64,22 @@
   --motion-slow: 550ms;
   --motion-drawer: 580ms;
   /* A sampled spring: fast at first, one small settle, then rest. */
-  --motion-spring: 585ms;
+  --motion-spring: 500ms;
   --ease-spring: linear(
-    0, 0.0588, 0.1879, 0.3357, 0.4821, 0.6187, 0.7283, 0.8157,
-    0.8845, 0.9323, 0.9654, 0.988, 1.0011, 1.0083, 1.0116, 1.0122,
-    1.0114, 1.0098, 1.0079, 1.0062, 1.0045, 1.0032, 1.0022, 1.0013, 1
+    0, 0.1042, 0.2764, 0.454, 0.6026, 0.7174, 0.7992, 0.8609,
+    0.9044, 0.9336, 0.9548, 0.9693, 0.9789, 0.9857, 0.9904, 0.9935,
+    0.9956, 0.997, 0.998, 0.9986, 1
   );
   /* Shared Reception + gloss sheet tokens (Design motion brief) */
-  --motion-sheet-enter: 340ms;
-  --motion-sheet-exit: 240ms;
+  --motion-sheet-enter: 500ms;
+  --motion-sheet-exit: 400ms;
   --motion-sheet-crossfade: 160ms;
   /* Sources page — calm, slow-ish: never snaps */
   --motion-sources-enter: 560ms;
   --motion-sources-exit: 420ms;
   --ease-sheet-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-sheet-exit: cubic-bezier(0.4, 0, 1, 1);
-  --sheet-enter-y: 32%;
+  --ease-sheet-exit: cubic-bezier(0.22, 1, 0.36, 1);
+  --sheet-enter-y: 22%;
   --dim-sheet: 0.36;
   --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
@@ -536,13 +536,13 @@ html.dark .tl-shell {
 }
 
 .tl-drawer[data-open="true"] .tl-drawer-settle {
-  animation: tl-drawer-settle 460ms var(--ease-smooth-out) 420ms both;
+  animation: tl-drawer-settle 420ms var(--ease-smooth-out) 220ms both;
 }
 
 @keyframes tl-drawer-settle {
   from {
     opacity: 0;
-    transform: translateY(32px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -566,14 +566,14 @@ html.dark .tl-shell {
   opacity: 1;
   pointer-events: auto;
   transition:
-    transform var(--motion-sheet-enter) var(--ease-sheet-enter),
-    opacity var(--motion-sheet-enter) var(--ease-sheet-enter);
+    transform var(--motion-spring) var(--ease-spring),
+    opacity 420ms var(--ease-smooth-out);
 }
 
 /* Sources desk — the page rises, then the header and list settle. */
 .tl-sources {
   opacity: 0;
-  transform: translateY(40px);
+  transform: translateY(22px);
   will-change: opacity, transform;
   transition:
     opacity var(--motion-sources-exit) var(--ease-smooth-out),
@@ -600,7 +600,7 @@ html.dark .tl-shell {
 @keyframes tl-sources-settle {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -768,7 +768,7 @@ html.dark .tl-shell {
 .tl-menu {
   transform-origin: top center;
   opacity: 0;
-  transform: translateY(12px) scale(0.985);
+  transform: translateY(10px);
   pointer-events: none;
   transition:
     opacity 280ms var(--ease-smooth-out),
@@ -897,7 +897,7 @@ html.dark .tl-shell {
 .tl-tx-pop {
   transform-origin: top center;
   opacity: 0;
-  transform: translateY(-10px) scale(0.98);
+  transform: translateY(-8px);
   transition:
     opacity 240ms var(--ease-smooth-out),
     transform 240ms var(--ease-smooth-out);
@@ -912,30 +912,50 @@ html.dark .tl-shell {
 }
 
 .tl-tx-pop li {
-  opacity: 0;
-  transform: translateY(10px);
+  opacity: 1;
+  transform: none;
 }
 
 .tl-tx-pop[data-open="true"] li {
-  opacity: 1;
-  transform: none;
-  transition:
-    opacity 320ms var(--ease-smooth-out),
-    transform 380ms var(--ease-smooth-out);
+  animation: tl-tx-row 360ms var(--ease-smooth-out) both;
 }
 
-.tl-tx-pop[data-open="true"] li:nth-child(1) { transition-delay: 90ms; }
-.tl-tx-pop[data-open="true"] li:nth-child(2) { transition-delay: 140ms; }
-.tl-tx-pop[data-open="true"] li:nth-child(3) { transition-delay: 190ms; }
-.tl-tx-pop[data-open="true"] li:nth-child(4) { transition-delay: 240ms; }
-.tl-tx-pop[data-open="true"] li:nth-child(n + 5) { transition-delay: 280ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(1) { animation-delay: 30ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(2) { animation-delay: 60ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(3) { animation-delay: 90ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(4) { animation-delay: 120ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(n + 5) { animation-delay: 150ms; }
+
+@keyframes tl-tx-row {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tl-shell button:not(:disabled):not(.tl-dim),
+.tl-drawer button:not(:disabled),
+.tl-sheet-up button:not(:disabled),
+.tl-menu button:not(:disabled),
+.tl-sheet button:not(:disabled) {
+  transition:
+    transform 320ms var(--ease-smooth-out),
+    background-color 240ms var(--ease-smooth-out),
+    color 240ms var(--ease-smooth-out),
+    border-color 240ms var(--ease-smooth-out);
+}
 
 .tl-shell button:not(:disabled):not(.tl-dim):active,
 .tl-drawer button:not(:disabled):active,
 .tl-sheet-up button:not(:disabled):active,
-.tl-menu button:not(:disabled):active {
-  transform: scale(0.96);
-  transition-duration: 70ms;
+.tl-menu button:not(:disabled):active,
+.tl-sheet button:not(:disabled):active {
+  transform: scale(0.985);
+  transition-duration: 80ms;
 }
 
 .tl-pill-ink {
@@ -950,8 +970,8 @@ html.dark .tl-shell {
 
 .tl-pill-ink[data-ready="true"] {
   transition:
-    transform var(--motion-fast) var(--ease-smooth-out),
-    width var(--motion-fast) var(--ease-smooth-out);
+    transform 420ms var(--ease-smooth-out),
+    width 420ms var(--ease-smooth-out);
 }
 
 .tl-seg-ink {
@@ -966,8 +986,12 @@ html.dark .tl-shell {
 
 .tl-seg-ink[data-ready="true"] {
   transition:
-    transform var(--motion-fast) var(--ease-smooth-out),
-    width var(--motion-fast) var(--ease-smooth-out);
+    transform 420ms var(--ease-smooth-out),
+    width 420ms var(--ease-smooth-out);
+}
+
+.tl-seg-ink[data-liquid="true"] {
+  background: transparent;
 }
 
 .tl-pane-track {
@@ -977,7 +1001,7 @@ html.dark .tl-shell {
 }
 
 .tl-pane-track[data-motion="true"] {
-  transition: transform var(--motion-fast) var(--ease-smooth-out);
+  transition: transform 420ms var(--ease-smooth-out);
 }
 
 .tl-pane {
@@ -1900,7 +1924,7 @@ html.dark .tl-shell {
 @keyframes tl-card-open {
   from {
     opacity: 0;
-    transform: translateY(36px) scale(0.96);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -2046,7 +2070,7 @@ html.dark .tl-shell {
 @keyframes tl-dialog-in {
   from {
     opacity: 0;
-    transform: translateY(36px) scale(0.96);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
