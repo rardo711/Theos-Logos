@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { fetchChapter } from "@/lib/bible/fetch-chapter";
 import { getSeed } from "@/lib/bible/seed";
 import { attachNtHeadings } from "@/lib/bible/nt-headings";
@@ -128,7 +128,7 @@ export function StudyWorkspace() {
     setOnboarding(isOnboardingComplete() ? "done" : "show");
   }, [hydrate]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     lockAppHeight();
     const vv = window.visualViewport;
     vv?.addEventListener("resize", lockAppHeight);

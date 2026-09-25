@@ -82,6 +82,7 @@
   --motion-y-small: 10px;
   --motion-y-medium: 16px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
   --safe-top-min: 0px;
   --sheet-peek: 5.75rem;
   --sheet-mid: min(48dvh, 28rem);
@@ -175,6 +176,27 @@
       width: auto;
       height: auto;
     }
+  }
+
+  /* iOS 27 samples this color for the system status bar. It does not paint:
+     background-clip: text keeps the header hairline. Shown only after the
+     page has handed the bar back (no black-translucent meta). */
+  .tl-ios27-status {
+    display: none;
+  }
+
+  html.tl-ios27.tl-standalone .tl-ios27-status {
+    display: block;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 11px;
+    z-index: 2147483646;
+    pointer-events: none;
+    background-color: #821111;
+    background-clip: text;
+    -webkit-background-clip: text;
   }
 
   button:not(:disabled),

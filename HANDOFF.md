@@ -1,6 +1,13 @@
-# Theos Logos — living handoff (updated 2026-09-22 ~14:50 ET)
+# Theos Logos — living handoff (updated 2026-09-25)
 
 **Grok: start here.** Repo `HANDOFF.md` on `scholar-desk` (BUGS-PLAN.md retired 2026-09-16 — all items verified fixed on prod).
+
+## iOS 27 status bar — option A (2026-09-25) — BRANCH ONLY
+- Branch `feat/ios27-status-bar` off `scholar-desk`. **NO promote.**
+- iOS 27 standalone blurs whatever is drawn under the status bar when `apple-mobile-web-app-status-bar-style=black-translucent` is set. On iOS 27 (`Version/27`, not the frozen `iPhone OS 18` token) that meta is removed so the system owns the bar.
+- Bar color is oxblood `#821111`, sampled from `.tl-ios27-status` (does not paint). Header seal unchanged.
+- `--safe-top` replaces raw `env(safe-area-inset-top)` on the header, library, sources, and onboarding. Letterboxed viewport + a still-reported inset does not pad twice. A full-bleed icon that reports `0` still clears the clock (59px). Older iOS and Android keep the previous inset.
+- **QC:** delete the Home Screen icon and add it again. Icons saved before this change keep their old chrome. Check a fresh iOS 27 icon (sharp oxblood bar, wordmark not under the clock, no empty double gap) and, if you still have one, an older icon.
 
 ## Muse Spanish lexicon fix — index enrichment + curated edges (2026-09-22 ~14:50 ET) — PREVIEW ONLY
 - **Problem (Muse audit):** `byGloss["ministro"] == ["G4166"]` so Col 1:7 tap never sees G1249; verse-rerank alone fixes **0%** of 704 events — correct Strong's missing from candidates.

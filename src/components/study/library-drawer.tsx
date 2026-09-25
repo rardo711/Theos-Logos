@@ -294,7 +294,7 @@ export function LibraryDrawer({ verseCount = 0 }: { verseCount?: number }) {
         data-open={open ? "true" : "false"}
         className="tl-drawer relative z-10 flex h-full w-[min(28rem,calc(100%-2.75rem))] max-w-md flex-col border-r border-rule bg-paper shadow-soft"
       >
-        <header className="border-b border-rule bg-surface px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
+        <header className="border-b border-rule bg-surface px-4 pt-[max(0.75rem,var(--safe-top),var(--safe-top-min,0px))] pb-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-2xs font-semibold tracking-[0.18em] text-faint uppercase">
