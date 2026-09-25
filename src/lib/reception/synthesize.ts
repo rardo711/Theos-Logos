@@ -58,7 +58,10 @@ function corpusFromCards(cards: SourceCard[]): string {
     .join("\n\n");
 }
 
-export function synthesistSystem(locale: Locale, opts?: { brief?: boolean }): string {
+export function synthesistSystem(
+  locale: Locale,
+  opts?: { brief?: boolean; noCards?: boolean },
+): string {
   const language =
     locale === "es"
       ? "Write 'answer' in Spanish. Any quoted phrase copied from a card must stay in the source language of that card."
@@ -68,6 +71,14 @@ export function synthesistSystem(locale: Locale, opts?: { brief?: boolean }): st
   const lengthRule = opts?.brief
     ? "6. Answer the inquiry directly in one or two short sentences. No paragraph, no preamble, no outline."
     : "6. Two to five short paragraphs of connected prose. No homily. No altar call. Never reproduce a source's numbered outline (a) b) c) or 1. 2. 3.) as the answer — name the voice and say in a sentence what they claim about THIS verse.";
+
+  // With no commentary cards on the desk, the verse text above is the only
+  // source. The model must not reach for training-data theology to fill the
+  // gap; if the verse alone cannot answer, it says so and points at the
+  // commentaries.
+  if (opts?.noCards) {
+    return `You are a desk librarian for Theos Logos. There are no commentary cards on the desk; the verse text given above is your only source. You are not a preacher and you do not invent theology.\n\nSTRICT RULES:\n1. ZERO EXTERNAL MEMORY. Use only the verse text given above. Do not recall Church Fathers, Reformers, doctrines, or lexicons from training data.\n2. Do not claim \"most theologians\" or \"the church teaches\" — there are no sources on the desk for such claims.\n3. Do not invent commentators or attribute views to anyone.\n4. If you include a quotation, it MUST be an exact substring of the verse text given above. Quoting anything else is not allowed.\n5. Do not scrape the web. Do not add sources that are not on the desk.\n${lengthRule}\n7. ${language}\n8. If the verse text alone cannot answer the inquiry, say so plainly in one or two sentences and suggest gathering commentaries for this verse.\n9. Return valid JSON only:\n{\n  \"answer\": string,\n  \"cited\": string[],\n  \"quotes\": [{ \"voice\": string, \"quote\": string }]\n}`;
+  }
 
   return `You are a desk librarian for Theos Logos. You synthesize ONLY from the source cards already on the desk. You are not a preacher and you do not invent theology.\n\nSTRICT RULES:\n1. ZERO EXTERNAL MEMORY. Use only the cards in DESK CARDS. Do not recall Church Fathers, Reformers, or doctrines from training data.\n2. Do not claim \"most theologians\" or \"the church teaches\" unless the provided cards actually converge on that point. If they disagree, say they disagree and name the voices.\n3. Every material claim must name at least one card voice from DESK CARDS.\n4. If you include a quotation, it MUST be an exact substring of that card's quote field, or of the verse text given above. Ellipses may only bridge clauses inside that same quote. Quoting the verse under discussion is allowed and often clearest; quoting anything neither on a card nor in the verse is not.\n5. Do not scrape the web. Do not add sources that are not on the desk.\n${lengthRule}\n7. ${language}\n8. Return valid JSON only:\n{\n  \"answer\": string,\n  \"cited\": string[],\n  \"quotes\": [{ \"voice\": string, \"quote\": string }]\n}`;
 }
@@ -91,7 +102,7 @@ export function synthesistUser(opts: {
     `Inquiry: ${q}`,
     "",
     "DESK CARDS:",
-    corpusFromCards(opts.cards),
+    opts.cards.length ? corpusFromCards(opts.cards) : "(none — answer from the verse text only)",
   ]
     .filter((line) => line !== "")
     .join("\n");
@@ -185,7 +196,7 @@ export async function synthesizeFromDesk(opts: {
       ? "¿Qué dicen estas fuentes que significa este versículo?"
       : "What do these sources say this verse means?");
 
-  if (!opts.cards.length) {
+  if (!opts.cards.length && !isExplicitQuestion) {
     return {
       question,
       answer: "",
@@ -210,7 +221,11 @@ export async function synthesizeFromDesk(opts: {
   }
 
   try {
-    const system = synthesistSystem(locale, { brief: isExplicitQuestion });
+    const noCards = opts.cards.length === 0;
+    const system = synthesistSystem(locale, {
+      brief: isExplicitQuestion,
+      noCards,
+    });
     const userMessage = synthesistUser({ ...opts, question, locale });
     const tokenBudget = isExplicitQuestion ? 350 : 1400;
     const raw = await generateGeminiJson({
@@ -246,9 +261,10 @@ export async function synthesizeFromDesk(opts: {
     } catch {
       failedSpan = null;
     }
+    const sourcePhrase = noCards ? "the verse text" : "the desk cards or the verse text";
     const nudge = failedSpan
-      ? `\n\nCORRECTION: your previous answer was rejected because the quotation ${JSON.stringify(failedSpan.slice(0, 200))} is not an exact substring of the desk cards or the verse text. Regenerate the answer now, quoting ONLY exact substrings from the cards or verse, or paraphrase without quotation marks where you are unsure.`
-      : `\n\nCORRECTION: your previous answer was rejected because it contained a quotation that is not an exact substring of the desk cards or the verse text, or it was not valid JSON. Regenerate the answer now, quoting ONLY exact substrings from the cards or verse, or paraphrase without quotation marks where you are unsure.`;
+      ? `\n\nCORRECTION: your previous answer was rejected because the quotation ${JSON.stringify(failedSpan.slice(0, 200))} is not an exact substring of ${sourcePhrase}. Regenerate the answer now, quoting ONLY exact substrings from ${sourcePhrase}, or paraphrase without quotation marks where you are unsure.`
+      : `\n\nCORRECTION: your previous answer was rejected because it contained a quotation that is not an exact substring of ${sourcePhrase}, or it was not valid JSON. Regenerate the answer now, quoting ONLY exact substrings from ${sourcePhrase}, or paraphrase without quotation marks where you are unsure.`;
     const retryRaw = await generateGeminiJson({
       system,
       user: userMessage + nudge,

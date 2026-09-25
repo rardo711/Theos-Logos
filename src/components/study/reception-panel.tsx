@@ -538,15 +538,11 @@ export function ReceptionPanel({
     if (!chapter) return;
     const isQuestion = questionText.trim().length > 0;
     const cards = resultRef.current?.cards ?? [];
-    if (!cards.length) {
-      const msg = t(locale, "needCommentariesFirst");
-      if (isQuestion) {
-        setQaError(msg);
-        setQa(null);
-      } else {
-        setError(msg);
-        setSummary(null);
-      }
+    // An explicit question can be answered from the verse text alone when no
+    // commentaries are gathered; the empty-question summary still needs cards.
+    if (!cards.length && !isQuestion) {
+      setError(t(locale, "needCommentariesFirst"));
+      setSummary(null);
       return;
     }
     setLoading(true);

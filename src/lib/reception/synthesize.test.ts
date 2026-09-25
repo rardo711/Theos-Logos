@@ -1,6 +1,11 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { parseSynthesis, synthesistSystem, firstUnverifiableSpan } from "./synthesize.ts";
+import {
+  parseSynthesis,
+  synthesistSystem,
+  synthesistUser,
+  firstUnverifiableSpan,
+} from "./synthesize.ts";
 import type { SourceCard } from "../bible/types.ts";
 
 const card: SourceCard = {
@@ -139,5 +144,47 @@ describe("synthesistSystem", () => {
       synthesistSystem("es", { brief: true }),
       /one or two short sentences/,
     );
+  });
+});
+
+describe("verse-only answers (no desk cards)", () => {
+  const verse = "For God so loved the world that he gave his only Son.";
+  it("prompts from the verse text alone and names the honesty rule", () => {
+    const sys = synthesistSystem("en", { brief: true, noCards: true });
+    assert.match(sys, /no commentary cards on the desk/);
+    assert.match(sys, /exact substring of the verse text/);
+    assert.match(sys, /cannot answer the inquiry/);
+    assert.match(sys, /one or two short sentences/);
+  });
+  it("marks the empty desk in the user message", () => {
+    const user = synthesistUser({
+      reference: "John 3:16",
+      verseText: verse,
+      question: "What does 'world' mean?",
+      cards: [],
+      locale: "en",
+    });
+    assert.match(user, /\(none/);
+  });
+  it("grounds quoted spans in the verse text when no cards exist", () => {
+    assert.equal(
+      firstUnverifiableSpan('It says "For God so loved the world" plainly.', [], verse),
+      null,
+    );
+    const bad = firstUnverifiableSpan(
+      'Augustine says "the Word was a created being of the highest order".',
+      [],
+      verse,
+    );
+    assert.match(bad ?? "", /created being/);
+  });
+  it("parseSynthesis accepts a verse-grounded answer with no cards", () => {
+    const raw = JSON.stringify({
+      answer: 'The verse says "For God so loved the world", so the love is directed outward.',
+      cited: [],
+      quotes: [],
+    });
+    const parsed = parseSynthesis(raw, [], "q", verse);
+    assert.ok(parsed);
   });
 });
