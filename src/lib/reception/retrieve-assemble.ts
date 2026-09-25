@@ -27,13 +27,13 @@ export function validateReceptionOutput(
   // HTML entities verbatim (&#x3ba;...), while the model quotes the characters
   // they encode. NFC second: entities may spell a decomposed sequence
   // (o + combining acute) where prose uses the precomposed character.
+  // Then strip ALL punctuation and symbols: a quotation that differs only in
+  // punctuation, spacing, or case is a near-miss, not a fabrication. Changed,
+  // added, or dropped words still fail.
   const normalize = (str: string) =>
     decodeHtmlEntities(str)
       .normalize("NFC")
-      .replace(/[\u2018\u2019]/g, "'")
-      .replace(/[\u201C\u201D]/g, '"')
-      .replace(/[\u2014\u2013-]/g, " ")
-      .replace(/[.,;:!?]/g, " ")
+      .replace(/[\p{P}\p{S}]/gu, " ")
       .replace(/\s+/g, " ")
       .trim()
       .toLowerCase();

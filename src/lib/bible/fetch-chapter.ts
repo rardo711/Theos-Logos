@@ -1,26 +1,38 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getBook, type Locale } from "./books";
-import { fetchBollsChapter } from "./bolls";
+import { fetchSpanishChapter } from "./bolls";
 import { fetchEsvChapter } from "./esv";
-import { fetchRv1909Chapter } from "./rv1909";
 import { getSeed } from "./seed";
 import { attachNtHeadings } from "./nt-headings";
-import {
-  translationInfo,
-  type EnTranslationId,
-  type EsTranslationId,
-} from "./translations";
 import type { Chapter, Verse } from "./types";
 
 function stripHtml(s: string): string {
   return s.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Verse counts (WEB) for single-chapter books. bible-api.com reads
+ * "2 John 1" as verse 1 rather than chapter 1, so these books must be
+ * fetched as an explicit verse range or the desk only ever sees verse 1.
+ */
+const SINGLE_CHAPTER_VERSES: Record<string, number> = {
+  OBA: 21,
+  PHM: 25,
+  JUD: 25,
+  "2JN": 13,
+  "3JN": 14,
+};
+
 async function fetchWebChapter(
   book: ReturnType<typeof getBook>,
   chapter: number,
 ): Promise<Chapter | null> {
-  const query = `${book.name} ${chapter}`.replace(/ /g, "+");
+  const singleChapterVerses =
+    book.chapters === 1 ? SINGLE_CHAPTER_VERSES[book.id] : undefined;
+  const query =
+    singleChapterVerses != null
+      ? `${book.name} 1:1-${singleChapterVerses}`.replace(/ /g, "+")
+      : `${book.name} ${chapter}`.replace(/ /g, "+");
   const res = await fetch(`https://bible-api.com/${query}?translation=web`, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(8000),
@@ -54,63 +66,29 @@ async function fetchWebChapter(
 
 export const fetchChapter = createServerFn({ method: "POST" })
   .validator(
-    (input: {
-      bookId: string;
-      chapter: number;
-      locale?: Locale;
-      translation?: string;
-    }) => input,
+    (input: { bookId: string; chapter: number; locale?: Locale }) => input,
   )
   .handler(async ({ data }): Promise<Chapter> => {
     const book = getBook(data.bookId);
     const chapter = Math.min(Math.max(1, data.chapter), book.chapters);
     const locale: Locale = data.locale === "es" ? "es" : "en";
-    const info = translationInfo(locale, data.translation);
     const seeded = locale === "en" ? getSeed(book.id, chapter) : undefined;
 
     if (locale === "es") {
-      const id = info.id as EsTranslationId;
-      if (id === "rv1909") {
-        try {
-          const ch = await fetchRv1909Chapter(
-            book,
-            chapter,
-            info.name,
-            info.note,
-            locale,
-          );
-          if (ch) return attachNtHeadings(ch, locale);
-        } catch {
-          // fall through
-        }
+      try {
+        const es = await fetchSpanishChapter(book, chapter);
+        if (es) return attachNtHeadings(es, locale);
+      } catch {
+        // fall through
       }
       throw new Error(`No se pudo cargar ${book.name} ${chapter} en español.`);
     }
 
-    const id = info.id as EnTranslationId;
-    if (id === "esv") {
-      try {
-        const esv = await fetchEsvChapter(book, chapter);
-        if (esv) return attachNtHeadings(esv, locale);
-      } catch {
-        // ESV is optional; fall through to the selected fallback.
-      }
-    }
-
-    if (info.bollsSlug) {
-      try {
-        const ch = await fetchBollsChapter(
-          info.bollsSlug,
-          book,
-          chapter,
-          locale,
-          info.name,
-          info.note,
-        );
-        if (ch) return attachNtHeadings(ch, locale);
-      } catch {
-        // fall through to WEB / seed.
-      }
+    try {
+      const esv = await fetchEsvChapter(book, chapter);
+      if (esv) return attachNtHeadings(esv, locale);
+    } catch {
+      // ESV is optional; fall through to WEB / seed.
     }
 
     try {

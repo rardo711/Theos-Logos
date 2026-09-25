@@ -70,7 +70,7 @@ export function synthesistSystem(
   // summary keeps the fuller multi-paragraph form.
   const lengthRule = opts?.brief
     ? "6. Answer the inquiry directly in one or two short sentences. No paragraph, no preamble, no outline."
-    : "6. Two to five short paragraphs of connected prose. No homily. No altar call. Never reproduce a source's numbered outline (a) b) c) or 1. 2. 3.) as the answer — name the voice and say in a sentence what they claim about THIS verse.";
+    : "6. Two to five short paragraphs of connected prose. No homily. No altar call. Never reproduce a source's numbered outline (a) b) c) or 1. 2. 3.) as the answer — name the voice and say in a sentence what they claim about THIS verse. Each paragraph must develop a distinct point; do not restate the same claim in more than one paragraph.";
 
   // With no commentary cards on the desk, the verse text above is the only
   // source. The model must not reach for training-data theology to fill the
@@ -181,6 +181,40 @@ export function parseSynthesis(
   }
 }
 
+/**
+ * Remove the quotation marks wrapping the first quoted occurrence of `span`,
+ * leaving the inner text in place. Used as a last resort when the gate
+ * rejects a synthesis: the words read as the model's paraphrase instead of
+ * a verbatim quotation, so no fabricated quotation is ever shown.
+ */
+function unquoteFirst(answer: string, span: string): string {
+  const esc = span.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const quoted = new RegExp(`["\u201C\u201D]\\s*${esc}\\s*["\u201C\u201D]`);
+  return answer.replace(quoted, (m) =>
+    m.replace(/^["\u201C\u201D]\s*/, "").replace(/\s*["\u201C\u201D]$/, ""),
+  );
+}
+
+/**
+ * Strip the quotation marks around every span the gate cannot verify, then
+ * report whether any attributable span remains. Exported for tests.
+ */
+export function dropUnverifiableQuotes(
+  answer: string,
+  cards: SourceCard[],
+  verseText = "",
+): string {
+  let out = answer;
+  for (let i = 0; i < 8; i++) {
+    const span = firstUnverifiableSpan(out, cards, verseText);
+    if (span == null) break;
+    const next = unquoteFirst(out, span);
+    if (next === out) break;
+    out = next;
+  }
+  return out;
+}
+
 export async function synthesizeFromDesk(opts: {
   reference: string;
   verseText: string;
@@ -280,6 +314,46 @@ export async function synthesizeFromDesk(opts: {
             ? "Síntesis a partir de las fichas ya reunidas en este escritorio. No es una búsqueda en la red ni un recuerdo paramétrico."
             : "Synthesized from the cards already gathered on this desk. Not a web search and not parametric recall.",
       };
+    }
+    // Last resort: the model paraphrased inside quotation marks and even the
+    // retry could not produce a verifiable span. Rather than blanking the
+    // panel, drop the quotation marks around the offending spans so they read
+    // as the model's paraphrase, then run the gate again. A fabricated
+    // verbatim quotation is never shown; the words stay attributed to the
+    // cited voices as synthesis.
+    try {
+      const retryParsed = JSON.parse(
+        retryRaw.slice(retryRaw.indexOf("{"), retryRaw.lastIndexOf("}") + 1),
+      ) as { answer?: unknown; cited?: unknown };
+      const retryAnswer = String(retryParsed.answer ?? "").trim();
+      if (retryAnswer) {
+        const salvaged = dropUnverifiableQuotes(
+          retryAnswer,
+          opts.cards,
+          opts.verseText,
+        );
+        const final = parseSynthesis(
+          JSON.stringify({
+            answer: salvaged,
+            cited: retryParsed.cited,
+            quotes: [],
+          }),
+          opts.cards,
+          question,
+          opts.verseText,
+        );
+        if (final) {
+          return {
+            ...final,
+            caution:
+              locale === "es"
+                ? "Síntesis a partir de las fichas ya reunidas en este escritorio. No es una búsqueda en la red ni un recuerdo paramétrico."
+                : "Synthesized from the cards already gathered on this desk. Not a web search and not parametric recall.",
+          };
+        }
+      }
+    } catch {
+      // fall through to the verification-failure message
     }
     return {
       question,

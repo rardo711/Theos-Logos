@@ -552,11 +552,8 @@ export function ReceptionPanel({
     } else {
       setError(null);
     }
-    setLexicon(null);
-    setSpanishLexicon(null);
-    setEnglishLexicon(null);
-    setHebrewBdb(null);
-    setSpanishHebrew(null);
+    // The selected lexicon word card stays put: the question box answers
+    // about the verse with the word card still visible above it.
     try {
       const data = await synthesizeFromCards({
         data: {

@@ -5,6 +5,7 @@ import {
   synthesistSystem,
   synthesistUser,
   firstUnverifiableSpan,
+  dropUnverifiableQuotes,
 } from "./synthesize.ts";
 import type { SourceCard } from "../bible/types.ts";
 
@@ -133,6 +134,51 @@ describe("firstUnverifiableSpan", () => {
     );
   });
 });
+describe("flexible gate", () => {
+  const parenCard: SourceCard = {
+    ...card,
+    quote:
+      "God loved the world (not that he found it worthy) that he might make it worthy.",
+  };
+
+  it("verifies quotes that differ only in punctuation or case", () => {
+    assert.equal(
+      firstUnverifiableSpan(
+        'Augustine says "God loved the world, not that He found it worthy, that He might make it worthy."',
+        [parenCard],
+      ),
+      null,
+    );
+  });
+
+  it("still rejects quotes with changed, added, or dropped words", () => {
+    const bad = firstUnverifiableSpan(
+      'Augustine says "God loved the world because he found it worthy and beautiful".',
+      [parenCard],
+    );
+    assert.match(bad ?? "", /worthy/);
+  });
+
+  it("dropUnverifiableQuotes unquotes the offending span so it reads as paraphrase", () => {
+    const answer =
+      'Augustine says "God loved the world because he found it worthy", and this shapes the reading.';
+    const out = dropUnverifiableQuotes(answer, [parenCard]);
+    assert.ok(!out.includes('"God loved the world'));
+    assert.ok(out.includes("God loved the world because he found it worthy"));
+    assert.equal(firstUnverifiableSpan(out, [parenCard]), null);
+  });
+
+  it("dropUnverifiableQuotes leaves verifiable quotations quoted", () => {
+    const answer =
+      'Augustine says "God loved the world, not that he found it worthy" plainly.';
+    assert.equal(dropUnverifiableQuotes(answer, [parenCard]), answer);
+  });
+
+  it("summary prompt forbids restating the same claim across paragraphs", () => {
+    assert.match(synthesistSystem("en"), /distinct point/);
+  });
+});
+
 describe("synthesistSystem", () => {
   it("asks for a short direct answer for explicit questions, paragraphs for summaries", () => {
     assert.match(
