@@ -3,7 +3,7 @@ import { ThinkingOrb, type OrbState } from "thinking-orbs";
 import { cn } from "@/lib/utils";
 
 /**
- * AI waits only. The orb stays off for the first two seconds so a fast
+ * AI waits only. The orb stays off for the first moment so a cached
  * answer never flashes a canvas. thinking-orbs, size 20, beside the label.
  */
 export function ThinkingMark({
@@ -24,7 +24,7 @@ export function ThinkingMark({
       setShow(false);
       return;
     }
-    const timer = window.setTimeout(() => setShow(true), 2000);
+    const timer = window.setTimeout(() => setShow(true), 800);
     return () => window.clearTimeout(timer);
   }, [active]);
 

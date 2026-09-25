@@ -62,17 +62,17 @@
   --motion-fast: 300ms;
   --motion-medium: 450ms;
   --motion-slow: 550ms;
-  --motion-drawer: 340ms;
+  --motion-drawer: 460ms;
   /* Shared Reception + gloss sheet tokens (Design motion brief) */
-  --motion-sheet-enter: 250ms;
-  --motion-sheet-exit: 220ms;
+  --motion-sheet-enter: 340ms;
+  --motion-sheet-exit: 240ms;
   --motion-sheet-crossfade: 160ms;
   /* Sources page — calm, slow-ish: never snaps */
   --motion-sources-enter: 380ms;
   --motion-sources-exit: 320ms;
   --ease-sheet-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-sheet-exit: cubic-bezier(0.4, 0, 1, 1);
-  --sheet-enter-y: 16%;
+  --sheet-enter-y: 32%;
   --dim-sheet: 0.36;
   --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
@@ -521,20 +521,21 @@ html.dark .tl-shell {
   transform: translateX(0);
 }
 
-/* Content settles after the panel has started. One motion, not a stagger. */
-.tl-drawer .tl-drawer-settle {
-  opacity: 0;
-  transform: translateX(-16px);
+/* Panel slides first. Words arrive after it has landed, then ride out with it. */
+.tl-drawer:not([data-open="true"]) .tl-drawer-settle {
+  opacity: 1;
+  transform: none;
+  animation: none;
 }
 
 .tl-drawer[data-open="true"] .tl-drawer-settle {
-  animation: tl-drawer-settle 280ms var(--ease-out) 150ms forwards;
+  animation: tl-drawer-settle 400ms var(--ease-out) 280ms both;
 }
 
 @keyframes tl-drawer-settle {
   from {
     opacity: 0;
-    transform: translateX(-16px);
+    transform: translateY(32px);
   }
   to {
     opacity: 1;
@@ -740,11 +741,11 @@ html.dark .tl-shell {
 .tl-menu {
   transform-origin: top center;
   opacity: 0;
-  transform: translateY(8px) scale(0.98);
+  transform: translateY(16px) scale(0.94);
   pointer-events: none;
   transition:
-    opacity 180ms var(--ease-sheet-exit),
-    transform 180ms var(--ease-sheet-exit);
+    opacity 200ms var(--ease-sheet-exit),
+    transform 200ms var(--ease-sheet-exit);
 }
 
 .tl-menu[data-open="true"] {
@@ -752,50 +753,63 @@ html.dark .tl-shell {
   transform: none;
   pointer-events: auto;
   transition:
-    opacity 260ms var(--ease-out),
-    transform 260ms var(--ease-out);
+    opacity 300ms var(--ease-snap),
+    transform 340ms var(--ease-snap);
 }
 
-/* Mobile bottom sheet: rise from the bottom, same timing. */
+/* Phone: the menu rises from off the bottom edge, not a small nudge. */
 @media (max-width: 639px) {
   .tl-menu {
     transform-origin: bottom center;
-    transform: translateY(18%);
+    transform: translateY(110%);
   }
   .tl-menu[data-open="true"] {
     transform: none;
   }
 }
 
-/* Translation menu — was a class with no rule, so it snapped open. */
+/* Translation menu. */
 .tl-tx-pop {
   transform-origin: top center;
   opacity: 0;
-  transform: translateY(-6px) scale(0.96);
+  transform: translateY(-16px) scale(0.88);
   transition:
-    opacity 160ms var(--ease-sheet-exit),
-    transform 160ms var(--ease-sheet-exit);
+    opacity 180ms var(--ease-sheet-exit),
+    transform 180ms var(--ease-sheet-exit);
 }
 
 .tl-tx-pop[data-open="true"] {
   opacity: 1;
   transform: none;
   transition:
-    opacity 220ms var(--ease-out),
-    transform 220ms var(--ease-out);
+    opacity 260ms var(--ease-snap),
+    transform 320ms var(--ease-snap);
 }
 
-/* Press lands fast, releases on the slower transition. */
-.tl-press {
+.tl-tx-pop li {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.tl-tx-pop[data-open="true"] li {
+  opacity: 1;
+  transform: none;
   transition:
-    transform 220ms var(--ease-out),
-    background-color 160ms var(--ease-out),
-    border-color 160ms var(--ease-out),
-    color 160ms var(--ease-out);
+    opacity 220ms var(--ease-out),
+    transform 280ms var(--ease-out);
 }
 
-.tl-press:active {
-  transform: scale(0.97);
+.tl-tx-pop[data-open="true"] li:nth-child(1) { transition-delay: 90ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(2) { transition-delay: 140ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(3) { transition-delay: 190ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(4) { transition-delay: 240ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(n + 5) { transition-delay: 280ms; }
+
+.tl-shell button:not(:disabled):not(.tl-dim):active,
+.tl-drawer button:not(:disabled):active,
+.tl-sheet-up button:not(:disabled):active,
+.tl-menu button:not(:disabled):active {
+  transform: scale(0.96);
   transition-duration: 70ms;
 }
 
@@ -1713,7 +1727,7 @@ html.dark .tl-shell {
 }
 
 .tl-lamp-rule {
-  height: 3px;
+  height: 4px;
   border-radius: 2px;
   margin-top: 0.625rem;
   background: linear-gradient(
@@ -1722,7 +1736,7 @@ html.dark .tl-shell {
     color-mix(in oklab, var(--color-oxblood) 55%, var(--color-gold))
   );
   transform-origin: left center;
-  animation: tl-lamp-strike 520ms var(--ease-out) both;
+  animation: tl-lamp-strike 700ms var(--ease-out) both;
 }
 
 .tl-lamp-rule::after {
@@ -1752,14 +1766,14 @@ html.dark .tl-shell {
 
 .tl-lamp-warm {
   border-radius: 4px;
-  animation: tl-lamp-warm 900ms var(--ease-out) both;
+  animation: tl-lamp-warm 1200ms var(--ease-out) both;
 }
 
 /* Every lexicon card, matched or not. The lamp strike stays the special signal. */
 @keyframes tl-card-open {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(36px) scale(0.96);
   }
   to {
     opacity: 1;
@@ -1768,7 +1782,7 @@ html.dark .tl-shell {
 }
 
 .tl-card-open {
-  animation: tl-card-open 420ms var(--ease-out) both;
+  animation: tl-card-open 520ms var(--ease-snap) both;
   transform-origin: top center;
 }
 
@@ -1841,8 +1855,8 @@ html.dark .tl-shell {
 
 /* 4. Tap attack — the press lands fast and visibly, releases slow. */
 .tl-verse:active {
-  transition-duration: var(--motion-quick);
-  background-color: color-mix(in oklab, var(--color-lamp) 12%, transparent);
+  transition-duration: 70ms;
+  background-color: color-mix(in oklab, var(--color-lamp) 28%, transparent);
 }
 
 /* 5. Skeleton sheen — a slow light pass over the existing lamp-tinted
@@ -1905,7 +1919,7 @@ html.dark .tl-shell {
 @keyframes tl-dialog-in {
   from {
     opacity: 0;
-    transform: translateY(14px) scale(0.98);
+    transform: translateY(36px) scale(0.96);
   }
   to {
     opacity: 1;
@@ -1925,7 +1939,7 @@ html.dark .tl-shell {
 }
 
 .tl-dialog {
-  animation: tl-dialog-in 260ms var(--ease-out);
+  animation: tl-dialog-in 340ms var(--ease-snap);
 }
 
 .tl-dialog[data-closing="true"] {

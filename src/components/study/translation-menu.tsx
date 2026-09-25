@@ -46,7 +46,7 @@ export function TranslationMenu() {
     openGen.current += 1;
     setOpen(false);
     if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setRendered(false), 160);
+    closeTimer.current = setTimeout(() => setRendered(false), 200);
   };
 
   useEffect(() => {
