@@ -139,13 +139,18 @@ export function ReceptionPanel({
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [gatherState, setGatherState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [loading, setLoading] = useState(false);
-  const [loadingKind, setLoadingKind] = useState<"commentaries" | "inquire" | null>(null);
+  const [loadingKind, setLoadingKind] = useState<"commentaries" | "question" | "summary" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ReceptionResult | null>(null);
-  const [synthesis, setSynthesis] = useState<DeskSynthesis | null>(null);
+  /** Verse-question answers live right under the question box; the summary
+      has its own slot below the More/Summary row. Independent of each other. */
+  const [qa, setQa] = useState<DeskSynthesis | null>(null);
+  const [qaOpen, setQaOpen] = useState(false);
+  const [qaError, setQaError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<DeskSynthesis | null>(null);
   const resultRef = useRef<ReceptionResult | null>(null);
   resultRef.current = result;
-  /** Bump when commentary cards merge; synthesis is fresh only on its own version. */
+  /** Bump when commentary cards merge; the summary is fresh only on its own version. */
   const cardsVersion = useRef(0);
   const synthesisCardsVersion = useRef(-1);
   const [lexicon, setLexicon] = useState<LexiconResult | null>(null);
@@ -266,7 +271,10 @@ export function ReceptionPanel({
     setShowAll(false);
     setSummaryOpen(false);
     setGatherState("idle");
-    setSynthesis(null);
+    setQa(null);
+    setQaOpen(false);
+    setQaError(null);
+    setSummary(null);
     setLoadingKind(null);
     let cancelled = false;
 
@@ -443,7 +451,11 @@ export function ReceptionPanel({
     setEnglishLexicon(null);
     setHebrewBdb(null);
     setSpanishHebrew(null);
-    setSynthesis(null);
+    setQa(null);
+    setQaOpen(false);
+    setQaError(null);
+    setSummary(null);
+    setSummaryOpen(false);
     try {
       const data = await gatherCommentaries({
         data: {
@@ -524,14 +536,26 @@ export function ReceptionPanel({
 
   async function runSynthesis(questionText: string) {
     if (!chapter) return;
+    const isQuestion = questionText.trim().length > 0;
     const cards = resultRef.current?.cards ?? [];
     if (!cards.length) {
-      setError(t(locale, "needCommentariesFirst"));
+      const msg = t(locale, "needCommentariesFirst");
+      if (isQuestion) {
+        setQaError(msg);
+        setQa(null);
+      } else {
+        setError(msg);
+        setSummary(null);
+      }
       return;
     }
     setLoading(true);
-    setLoadingKind("inquire");
-    setError(null);
+    setLoadingKind(isQuestion ? "question" : "summary");
+    if (isQuestion) {
+      setQaError(null);
+    } else {
+      setError(null);
+    }
     setLexicon(null);
     setSpanishLexicon(null);
     setEnglishLexicon(null);
@@ -551,40 +575,59 @@ export function ReceptionPanel({
         },
       });
       if (!data.answer) {
-        setError(data.caution || t(locale, "synthesisFailed"));
-        setSynthesis(null);
+        const msg = data.caution || t(locale, "synthesisFailed");
+        if (isQuestion) {
+          setQaError(msg);
+          setQa(null);
+        } else {
+          setError(msg);
+          setSummary(null);
+        }
         return;
       }
-      setSynthesis({
-        question: data.question,
-        answer: data.answer,
-        cited: data.cited,
-      });
-      synthesisCardsVersion.current = cardsVersion.current;
+      if (isQuestion) {
+        setQa({
+          question: data.question,
+          answer: data.answer,
+          cited: data.cited,
+        });
+      } else {
+        setSummary({
+          question: data.question,
+          answer: data.answer,
+          cited: data.cited,
+        });
+        synthesisCardsVersion.current = cardsVersion.current;
+      }
       if (data.caution && resultRef.current) {
         setResult({ ...resultRef.current, caution: data.caution });
       }
     } catch {
-      setError(t(locale, "synthesisFailed"));
+      const msg = t(locale, "synthesisFailed");
+      if (isQuestion) {
+        setQaError(msg);
+        setQa(null);
+      } else {
+        setError(msg);
+        setSummary(null);
+      }
     } finally {
       setLoading(false);
       setLoadingKind(null);
     }
   }
 
-  /** Summary replaces INQUIRE: empty question synthesizes all verse commentaries. */
+  /** Summary has its own slot now, independent of More and of the Q&A box:
+      opening More no longer collapses a generated summary. */
   function handleSummary() {
     if (summaryOpen) {
       setSummaryOpen(false);
       return;
     }
-    setShowAll(false);
-    setQuestion("");
     setSummaryOpen(true);
     // Re-run only when there is no fresh summary on the current cards.
     const fresh =
-      synthesis != null &&
-      !synthesis.question &&
+      summary != null &&
       synthesisCardsVersion.current === cardsVersion.current;
     if (!fresh) void runSynthesis("");
   }
@@ -596,7 +639,6 @@ export function ReceptionPanel({
       setShowAll(false);
       return;
     }
-    setSummaryOpen(false);
     if (gatherState === "loading") {
       setShowAll(true);
       return;
@@ -611,8 +653,7 @@ export function ReceptionPanel({
 
   function handleQuestionSubmit() {
     if (!question.trim() || loading) return;
-    setShowAll(false);
-    setSummaryOpen(true);
+    setQaOpen(true);
     void runSynthesis(question);
   }
 
@@ -1060,36 +1101,7 @@ export function ReceptionPanel({
               </p>
             ) : null}
 
-            {/* Verse question box sits with the verse, above everything else. */}
-            <form
-              className="mb-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleQuestionSubmit();
-              }}
-            >
-              <label className="sr-only" htmlFor="ask-verse">
-                {t(locale, "askVersePlaceholder")}
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  id="ask-verse"
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  placeholder={t(locale, "askVersePlaceholder")}
-                  className="min-h-11 w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-lamp"
-                />
-                <button
-                  type="submit"
-                  disabled={loading || !question.trim()}
-                  aria-label={t(locale, "inquire")}
-                  className="flex size-11 shrink-0 items-center justify-center rounded-md bg-oxblood text-oxblood-fg disabled:opacity-50"
-                >
-                  <Send size={16} />
-                </button>
-              </div>
-            </form>
-
+            {/* Lexicon chips sit with the verse; the question box follows them. */}
             {chips.length > 0 ? (
               <div className="mb-4">
                 <p className="mb-2 text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
@@ -1121,6 +1133,75 @@ export function ReceptionPanel({
                 </div>
               </div>
             ) : null}
+
+            {/* Question box under the lexicon chips; its short answer unfolds
+                right beneath it, in its own slot. */}
+            <form
+              className="mb-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleQuestionSubmit();
+              }}
+            >
+              <label className="sr-only" htmlFor="ask-verse">
+                {t(locale, "askVersePlaceholder")}
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="ask-verse"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder={t(locale, "askVersePlaceholder")}
+                  className="min-h-11 w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-lamp"
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !question.trim()}
+                  aria-label={t(locale, "inquire")}
+                  className="flex size-11 shrink-0 items-center justify-center rounded-md bg-oxblood text-oxblood-fg disabled:opacity-50"
+                >
+                  <Send size={16} />
+                </button>
+              </div>
+            </form>
+
+            <div
+              className="tl-unfold"
+              data-open={
+                qaOpen &&
+                (qa != null ||
+                  qaError != null ||
+                  (loading && loadingKind === "question"))
+              }
+            >
+              <div className="tl-unfold-body">
+                <div className="tl-unfold-item">
+                  {loading && loadingKind === "question" ? (
+                    <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
+                      <Loader2 size={14} className="animate-spin text-lamp" />
+                      {t(locale, "synthesizing")}
+                    </p>
+                  ) : null}
+                  {qaError && !(loading && loadingKind === "question") ? (
+                    <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
+                      {qaError}
+                    </p>
+                  ) : null}
+                  {qa && !(loading && loadingKind === "question") ? (
+                    <article className="mb-4 rounded-lg border border-rule bg-surface p-4 shadow-soft">
+                      <p className="font-serif text-base leading-relaxed text-ink">
+                        {qa.answer}
+                      </p>
+                      {qa.cited.length ? (
+                        <p className="mt-2 text-2xs tracking-wide text-faint">
+                          {qa.cited.join(" · ")}
+                        </p>
+                      ) : null}
+                    </article>
+                  ) : null}
+                </div>
+              </div>
+            </div>
 
             {locale === "es" && spanishHebrew ? (
               <div
@@ -1355,17 +1436,17 @@ export function ReceptionPanel({
                   disabled={loading}
                   className="min-h-11 flex-1 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
                 >
-                  {loadingKind === "inquire"
+                  {loadingKind === "summary"
                     ? t(locale, "consultingShort")
                     : t(locale, "summary")}
                 </button>
               </div>
 
-              {/* Summary / answer unfolds inline under the buttons. */}
+              {/* Summary unfolds inline under the buttons, in its own slot. */}
               <div className="tl-unfold" data-open={summaryOpen}>
                 <div className="tl-unfold-body">
                   <div className="tl-unfold-item">
-                    {loading && loadingKind === "inquire" ? (
+                    {loading && loadingKind === "summary" ? (
                       <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
                         <Loader2 size={14} className="animate-spin text-lamp" />
                         {t(locale, "synthesizing")}
@@ -1376,22 +1457,17 @@ export function ReceptionPanel({
                         {error}
                       </p>
                     ) : null}
-                    {synthesis && !(loading && loadingKind === "inquire") ? (
+                    {summary && !(loading && loadingKind === "summary") ? (
                       <article className="mb-2 rounded-lg border border-rule bg-surface p-4 shadow-soft">
                         <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
                           {t(locale, "synthesisFromDesk")}
                         </p>
-                        {synthesis.question ? (
-                          <p className="mt-1 text-xs text-muted italic">
-                            {synthesis.question}
-                          </p>
-                        ) : null}
                         <p className="mt-2 font-serif text-base leading-relaxed text-ink whitespace-pre-wrap">
-                          {synthesis.answer}
+                          {summary.answer}
                         </p>
-                        {synthesis.cited.length ? (
+                        {summary.cited.length ? (
                           <p className="mt-3 text-2xs tracking-wide text-faint">
-                            {synthesis.cited.join(" · ")}
+                            {summary.cited.join(" · ")}
                           </p>
                         ) : null}
                       </article>

@@ -34,13 +34,18 @@ function corpusFromCards(cards: SourceCard[]): string {
     .join("\n\n");
 }
 
-export function synthesistSystem(locale: Locale): string {
+export function synthesistSystem(locale: Locale, opts?: { brief?: boolean }): string {
   const language =
     locale === "es"
       ? "Write 'answer' in Spanish. Any quoted phrase copied from a card must stay in the source language of that card."
       : "Write 'answer' in English. Any quoted phrase copied from a card must stay in the source language of that card.";
+  // Explicit verse questions get a short direct answer; the empty-question
+  // summary keeps the fuller multi-paragraph form.
+  const lengthRule = opts?.brief
+    ? "6. Answer the inquiry directly in one or two short sentences. No paragraph, no preamble, no outline."
+    : "6. Two to five short paragraphs of connected prose. No homily. No altar call. Never reproduce a source's numbered outline (a) b) c) or 1. 2. 3.) as the answer — name the voice and say in a sentence what they claim about THIS verse.";
 
-  return `You are a desk librarian for Theos Logos. You synthesize ONLY from the source cards already on the desk. You are not a preacher and you do not invent theology.\n\nSTRICT RULES:\n1. ZERO EXTERNAL MEMORY. Use only the cards in DESK CARDS. Do not recall Church Fathers, Reformers, or doctrines from training data.\n2. Do not claim \"most theologians\" or \"the church teaches\" unless the provided cards actually converge on that point. If they disagree, say they disagree and name the voices.\n3. Every material claim must name at least one card voice from DESK CARDS.\n4. If you include a quotation, it MUST be an exact substring of that card's quote field, or of the verse text given above. Ellipses may only bridge clauses inside that same quote. Quoting the verse under discussion is allowed and often clearest; quoting anything neither on a card nor in the verse is not.\n5. Do not scrape the web. Do not add sources that are not on the desk.\n6. Two to five short paragraphs of connected prose. No homily. No altar call. Never reproduce a source's numbered outline (a) b) c) or 1. 2. 3.) as the answer — name the voice and say in a sentence what they claim about THIS verse.\n7. ${language}\n8. Return valid JSON only:\n{\n  \"answer\": string,\n  \"cited\": string[],\n  \"quotes\": [{ \"voice\": string, \"quote\": string }]\n}`;
+  return `You are a desk librarian for Theos Logos. You synthesize ONLY from the source cards already on the desk. You are not a preacher and you do not invent theology.\n\nSTRICT RULES:\n1. ZERO EXTERNAL MEMORY. Use only the cards in DESK CARDS. Do not recall Church Fathers, Reformers, or doctrines from training data.\n2. Do not claim \"most theologians\" or \"the church teaches\" unless the provided cards actually converge on that point. If they disagree, say they disagree and name the voices.\n3. Every material claim must name at least one card voice from DESK CARDS.\n4. If you include a quotation, it MUST be an exact substring of that card's quote field, or of the verse text given above. Ellipses may only bridge clauses inside that same quote. Quoting the verse under discussion is allowed and often clearest; quoting anything neither on a card nor in the verse is not.\n5. Do not scrape the web. Do not add sources that are not on the desk.\n${lengthRule}\n7. ${language}\n8. Return valid JSON only:\n{\n  \"answer\": string,\n  \"cited\": string[],\n  \"quotes\": [{ \"voice\": string, \"quote\": string }]\n}`;
 }
 
 export function synthesistUser(opts: {
@@ -150,6 +155,7 @@ export async function synthesizeFromDesk(opts: {
   locale: Locale;
 }): Promise<SynthesisResult> {
   const locale: Locale = opts.locale === "es" ? "es" : "en";
+  const isExplicitQuestion = opts.question.trim().length > 0;
   const question =
     opts.question.trim() ||
     (locale === "es"
@@ -182,10 +188,10 @@ export async function synthesizeFromDesk(opts: {
 
   try {
     const raw = await generateGeminiJson({
-      system: synthesistSystem(locale),
+      system: synthesistSystem(locale, { brief: isExplicitQuestion }),
       user: synthesistUser({ ...opts, question, locale }),
       temperature: 0.1,
-      maxOutputTokens: 1400,
+      maxOutputTokens: isExplicitQuestion ? 350 : 1400,
     });
     const parsed = parseSynthesis(raw, opts.cards, question, opts.verseText);
     if (!parsed) {

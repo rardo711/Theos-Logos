@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { parseSynthesis } from "./synthesize.ts";
+import { parseSynthesis, synthesistSystem } from "./synthesize.ts";
 import type { SourceCard } from "../bible/types.ts";
 
 const card: SourceCard = {
@@ -109,5 +109,19 @@ describe("parseSynthesis", () => {
     const parsed = parseSynthesis(raw, [entityCard], "q");
     assert.ok(parsed);
     assert.match(parsed.answer, /Vincent limits the scope/);
+  });
+});
+
+describe("synthesistSystem", () => {
+  it("asks for a short direct answer for explicit questions, paragraphs for summaries", () => {
+    assert.match(
+      synthesistSystem("en", { brief: true }),
+      /one or two short sentences/,
+    );
+    assert.match(synthesistSystem("en"), /short paragraphs/);
+    assert.match(
+      synthesistSystem("es", { brief: true }),
+      /one or two short sentences/,
+    );
   });
 });
