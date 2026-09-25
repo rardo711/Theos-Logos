@@ -16,11 +16,29 @@ function stripHtml(s: string): string {
   return s.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Verse counts (WEB) for single-chapter books. bible-api.com reads
+ * "2 John 1" as verse 1 rather than chapter 1, so these books must be
+ * fetched as an explicit verse range or the desk only ever sees verse 1.
+ */
+const SINGLE_CHAPTER_VERSES: Record<string, number> = {
+  OBA: 21,
+  PHM: 25,
+  JUD: 25,
+  "2JN": 13,
+  "3JN": 14,
+};
+
 async function fetchWebChapter(
   book: ReturnType<typeof getBook>,
   chapter: number,
 ): Promise<Chapter | null> {
-  const query = `${book.name} ${chapter}`.replace(/ /g, "+");
+  const singleChapterVerses =
+    book.chapters === 1 ? SINGLE_CHAPTER_VERSES[book.id] : undefined;
+  const query =
+    singleChapterVerses != null
+      ? `${book.name} 1:1-${singleChapterVerses}`.replace(/ /g, "+")
+      : `${book.name} ${chapter}`.replace(/ /g, "+");
   const res = await fetch(`https://bible-api.com/${query}?translation=web`, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(8000),

@@ -1,6 +1,12 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { parseSynthesis } from "./synthesize.ts";
+import {
+  parseSynthesis,
+  synthesistSystem,
+  synthesistUser,
+  firstUnverifiableSpan,
+  dropUnverifiableQuotes,
+} from "./synthesize.ts";
 import type { SourceCard } from "../bible/types.ts";
 
 const card: SourceCard = {
@@ -84,5 +90,160 @@ describe("parseSynthesis", () => {
       parseSynthesis(JSON.stringify({ answer: "", cited: [], quotes: [] }), [card], "q"),
       null,
     );
+  });
+
+  it("accepts an answer that quotes a card's HTML entities as decoded characters", () => {
+    // Extracted cards can carry the source page's entities verbatim
+    // (&#x3ba;...); the model quotes the Greek they encode, possibly in the
+    // precomposed unicode form where the entities spell a decomposed one.
+    // Rejecting that mismatch blanked the Summary panel on John 3:16.
+    const entityCard: SourceCard = {
+      voice: "Marvin Vincent",
+      work: "Word Studies",
+      tradition: "reformed",
+      quote:
+        "The term world (&#x3ba;&#x3bf;&#769;&#x3c3;&#x3bc;&#x3bf;&#x3bd;) refers not to all human individuals.",
+      citation: "Vincent, Word Studies",
+      source: "generated",
+    };
+    const raw = JSON.stringify({
+      answer:
+        "Vincent limits the scope: \u201cthe term world (\u03ba\u03cc\u03c3\u03bc\u03bf\u03bd) refers not to all human individuals.\u201d",
+      cited: ["Marvin Vincent"],
+      quotes: [],
+    });
+    const parsed = parseSynthesis(raw, [entityCard], "q");
+    assert.ok(parsed);
+    assert.match(parsed.answer, /Vincent limits the scope/);
+  });
+});
+
+describe("firstUnverifiableSpan", () => {
+  it("names the span that fails the desk check, null when all verify", () => {
+    const bad = firstUnverifiableSpan(
+      'Augustine says "the Word was a created being of the highest order".',
+      [card],
+    );
+    assert.match(bad ?? "", /created being/);
+    assert.equal(
+      firstUnverifiableSpan(
+        'Augustine reads "In the beginning was the Word" as naming God.',
+        [card],
+      ),
+      null,
+    );
+  });
+});
+describe("flexible gate", () => {
+  const parenCard: SourceCard = {
+    ...card,
+    quote:
+      "God loved the world (not that he found it worthy) that he might make it worthy.",
+  };
+
+  it("verifies quotes that differ only in punctuation or case", () => {
+    assert.equal(
+      firstUnverifiableSpan(
+        'Augustine says "God loved the world, not that He found it worthy, that He might make it worthy."',
+        [parenCard],
+      ),
+      null,
+    );
+  });
+
+  it("still rejects quotes with changed, added, or dropped words", () => {
+    const bad = firstUnverifiableSpan(
+      'Augustine says "God loved the world because he found it worthy and beautiful".',
+      [parenCard],
+    );
+    assert.match(bad ?? "", /worthy/);
+  });
+
+  it("dropUnverifiableQuotes unquotes the offending span so it reads as paraphrase", () => {
+    const answer =
+      'Augustine says "God loved the world because he found it worthy", and this shapes the reading.';
+    const out = dropUnverifiableQuotes(answer, [parenCard]);
+    assert.ok(!out.includes('"God loved the world'));
+    assert.ok(out.includes("God loved the world because he found it worthy"));
+    assert.equal(firstUnverifiableSpan(out, [parenCard]), null);
+  });
+
+  it("dropUnverifiableQuotes leaves verifiable quotations quoted", () => {
+    const answer =
+      'Augustine says "God loved the world, not that he found it worthy" plainly.';
+    assert.equal(dropUnverifiableQuotes(answer, [parenCard]), answer);
+  });
+
+  it("summary prompt forbids restating the same claim across paragraphs", () => {
+    assert.match(synthesistSystem("en"), /distinct point/);
+  });
+});
+
+describe("synthesistSystem", () => {
+  it("asks for a short direct answer for explicit questions, paragraphs for summaries", () => {
+    assert.match(
+      synthesistSystem("en", { brief: true }),
+      /one or two short sentences/,
+    );
+    assert.match(synthesistSystem("en"), /short paragraphs/);
+    assert.match(
+      synthesistSystem("es", { brief: true }),
+      /one or two short sentences/,
+    );
+  });
+});
+
+describe("off-verse redirect", () => {
+  it("tells the model to decline or redirect questions outside the passage", () => {
+    for (const sys of [
+      synthesistSystem("en", { brief: true }),
+      synthesistSystem("en", { brief: true, noCards: true }),
+      synthesistSystem("es", { brief: true, noCards: true }),
+    ]) {
+      assert.match(sys, /not about this verse/);
+      assert.match(sys, /using Search/);
+    }
+  });
+});
+
+describe("verse-only answers (no desk cards)", () => {
+  const verse = "For God so loved the world that he gave his only Son.";
+  it("prompts from the verse text alone and names the honesty rule", () => {
+    const sys = synthesistSystem("en", { brief: true, noCards: true });
+    assert.match(sys, /no commentary cards on the desk/);
+    assert.match(sys, /exact substring of the verse text/);
+    assert.match(sys, /cannot answer the inquiry/);
+    assert.match(sys, /one or two short sentences/);
+  });
+  it("marks the empty desk in the user message", () => {
+    const user = synthesistUser({
+      reference: "John 3:16",
+      verseText: verse,
+      question: "What does 'world' mean?",
+      cards: [],
+      locale: "en",
+    });
+    assert.match(user, /\(none/);
+  });
+  it("grounds quoted spans in the verse text when no cards exist", () => {
+    assert.equal(
+      firstUnverifiableSpan('It says "For God so loved the world" plainly.', [], verse),
+      null,
+    );
+    const bad = firstUnverifiableSpan(
+      'Augustine says "the Word was a created being of the highest order".',
+      [],
+      verse,
+    );
+    assert.match(bad ?? "", /created being/);
+  });
+  it("parseSynthesis accepts a verse-grounded answer with no cards", () => {
+    const raw = JSON.stringify({
+      answer: 'The verse says "For God so loved the world", so the love is directed outward.',
+      cited: [],
+      quotes: [],
+    });
+    const parsed = parseSynthesis(raw, [], "q", verse);
+    assert.ok(parsed);
   });
 });

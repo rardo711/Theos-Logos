@@ -1817,6 +1817,37 @@ describe("systemic boilerplate and landing page rejection", () => {
     );
   });
 
+  it("validateReceptionOutput matches across HTML-entity encoding and unicode normalization", () => {
+    // Extracted card quotes sometimes carry the source page's HTML entities
+    // verbatim; the synthesis model quotes the characters they encode.
+    // Rejecting that mismatch blanked the Summary panel on John 3:16.
+    const entityCard =
+      "The term world (&#x3ba;&#x3bf;&#769;&#x3c3;&#x3bc;&#x3bf;&#x3bd;) is limited here";
+    assert.equal(
+      validateReceptionOutput(
+        { status: "valid", quote: "the term world (κόσμον) is limited here" },
+        entityCard,
+      ),
+      true,
+    );
+    // Named and decimal entities decode too.
+    assert.equal(
+      validateReceptionOutput(
+        { status: "valid", quote: "faith & works are not the same thing" },
+        "faith &#38; works are not the same thing",
+      ),
+      true,
+    );
+    // Genuinely different text still fails.
+    assert.equal(
+      validateReceptionOutput(
+        { status: "valid", quote: "the term world (κόσμος) means everything everywhere" },
+        entityCard,
+      ),
+      false,
+    );
+  });
+
   it("parses retrieved response and filters hallucinated extracts with parseRetrieved", () => {
     const mockExtracts = [
       {

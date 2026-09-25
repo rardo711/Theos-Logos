@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BookMarked, ChevronDown, ChevronUp, Highlighter, Loader2, Maximize2, Minimize2, PanelRight, PanelRightClose, RotateCcw, Trash2, X } from "lucide-react";
+import { BookMarked, ChevronDown, ChevronUp, Highlighter, Loader2, Maximize2, Minimize2, PanelRight, PanelRightClose, RotateCcw, Send, Trash2, X } from "lucide-react";
 import {
   askReception,
   gatherCommentaries,
@@ -49,13 +49,13 @@ import {
 } from "@/lib/lexicon/english";
 import { formatReference } from "@/lib/bible/reference";
 import { bookName, getBook } from "@/lib/bible/books";
-import { t } from "@/lib/i18n";
+import { t, traditionLabel } from "@/lib/i18n";
 import { localizeCaution } from "@/lib/i18n-sources";
 import {
   rangeIsHighlighted,
   toggleHighlights,
 } from "@/lib/study/highlights";
-import type { Chapter, DeskSynthesis, LexiconResult, ReceptionResult, SourceCard as Card } from "@/lib/bible/types";
+import type { Chapter, DeskSynthesis, LexiconResult, ReceptionResult, SourceCard as Card, Tradition } from "@/lib/bible/types";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 import { SourceCard } from "./source-card";
@@ -134,14 +134,25 @@ export function ReceptionPanel({
   const clearSelection = useStudy((s) => s.clearSelection);
   const locale = useStudy((s) => s.locale);
   const [question, setQuestion] = useState("");
-  const [aimOpen, setAimOpen] = useState(false);
+  const [selectedTradition, setSelectedTradition] = useState<Tradition | "all">("all");
+  const [showAll, setShowAll] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [gatherState, setGatherState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [loading, setLoading] = useState(false);
-  const [loadingKind, setLoadingKind] = useState<"commentaries" | "inquire" | null>(null);
+  const [loadingKind, setLoadingKind] = useState<"commentaries" | "question" | "summary" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ReceptionResult | null>(null);
-  const [synthesis, setSynthesis] = useState<DeskSynthesis | null>(null);
+  /** Verse-question answers live right under the question box; the summary
+      has its own slot below the More/Summary row. Independent of each other. */
+  const [qa, setQa] = useState<DeskSynthesis | null>(null);
+  const [qaOpen, setQaOpen] = useState(false);
+  const [qaError, setQaError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<DeskSynthesis | null>(null);
   const resultRef = useRef<ReceptionResult | null>(null);
   resultRef.current = result;
+  /** Bump when commentary cards merge; the summary is fresh only on its own version. */
+  const cardsVersion = useRef(0);
+  const synthesisCardsVersion = useRef(-1);
   const [lexicon, setLexicon] = useState<LexiconResult | null>(null);
   const [spanishLexicon, setSpanishLexicon] =
     useState<SpanishLexiconResult | null>(null);
@@ -203,6 +214,50 @@ export function ReceptionPanel({
     () => (chapter ? markedVerses(chapter.bookId, chapter.chapter) : []),
     [chapter, notesRev],
   );
+  /** Traditions actually present on this verse's cards, with counts. */
+  const traditionCounts = useMemo(() => {
+    const order: Tradition[] = [
+      "patristic",
+      "eastern-patristic",
+      "western-patristic",
+      "scholastic",
+      "puritan",
+      "arminian",
+      "reformed",
+      "lutheran",
+      "catholic",
+      "orthodox",
+      "confession",
+    ];
+    const counts = new Map<Tradition, number>();
+    for (const c of result?.cards ?? []) {
+      if (!c.tradition) continue;
+      counts.set(c.tradition, (counts.get(c.tradition) ?? 0) + 1);
+    }
+    return order
+      .filter((tr) => counts.has(tr))
+      .map((tr) => ({ tradition: tr, count: counts.get(tr) ?? 0 }));
+  }, [result]);
+  /** Selected tradition, falling back to all when it has no cards left. */
+  const effectiveTradition =
+    selectedTradition === "all" ||
+    traditionCounts.some(({ tradition }) => tradition === selectedTradition)
+      ? selectedTradition
+      : "all";
+  const filteredCards = useMemo(() => {
+    const cards = result?.cards ?? [];
+    return effectiveTradition === "all"
+      ? cards
+      : cards.filter((c) => c.tradition === effectiveTradition);
+  }, [result, effectiveTradition]);
+  const visibleCards = filteredCards.slice(0, 3);
+  const hiddenCards = filteredCards.slice(3);
+  /** More button shows when hidden cards exist, the gather may still add more,
+      or the desk is empty (then it gathers visibly). */
+  const canExpandMore =
+    hiddenCards.length > 0 ||
+    gatherState !== "done" ||
+    (result?.cards.length ?? 0) === 0;
 
   useEffect(() => {
     setLexicon(null);
@@ -212,8 +267,14 @@ export function ReceptionPanel({
     setSpanishHebrew(null);
     setError(null);
     setQuestion("");
-    setAimOpen(false);
-    setSynthesis(null);
+    setSelectedTradition("all");
+    setShowAll(false);
+    setSummaryOpen(false);
+    setGatherState("idle");
+    setQa(null);
+    setQaOpen(false);
+    setQaError(null);
+    setSummary(null);
     setLoadingKind(null);
     let cancelled = false;
 
@@ -289,6 +350,84 @@ export function ReceptionPanel({
           }
         })();
       }
+
+      // Silent preload: gather the full commentary set in the background so
+      // "More commentaries" unfolds instantly. Stays silent: no spinner, no
+      // lexicon clearing, no error text. Failures set gatherState=error and
+      // the More button retries visibly. Skipped while the ES NMT round-trip
+      // above is in flight so the two do not race.
+      if (desk && !needsCuratedNmt) {
+        setGatherState("loading");
+        void (async () => {
+          try {
+            const data = await gatherCommentaries({
+              data: {
+                bookId: chapter.bookId,
+                bookName: chapter.bookName,
+                chapter: chapter.chapter,
+                verse: selectedVerse,
+                verseEnd: selectedEndVerse,
+                verseText: selectionText || (verse?.text ?? ""),
+                passage: chapter.verses
+                  .slice(0, 12)
+                  .map((v) => `${v.verse} ${v.text}`)
+                  .join("\n"),
+                mode: "reception",
+                locale,
+                haveCards: desk.cards.length
+                  ? desk.cards.map((c) => ({
+                      voice: c.voice,
+                      citation: c.citation,
+                      quote: c.quote,
+                      url: c.url,
+                    }))
+                  : undefined,
+              },
+            });
+            if (cancelled) return;
+            const merged = desk.cards.length
+              ? mergeReceptionCards(desk.cards, data.cards)
+              : { cards: data.cards, addedCount: data.cards.length };
+            const quotesRefreshed =
+              Boolean(desk.cards.length) &&
+              merged.cards.some(
+                (c, i) => desk.cards[i] && c.quote !== desk.cards[i].quote,
+              );
+            if (
+              !desk.cards.length ||
+              merged.addedCount > 0 ||
+              quotesRefreshed
+            ) {
+              const next: ReceptionResult = desk.cards.length
+                ? {
+                    source:
+                      merged.addedCount || data.source === "generated"
+                        ? data.source
+                        : desk.source,
+                    cards: merged.cards,
+                    caution: data.caution ?? desk.caution,
+                  }
+                : data;
+              setResult(next);
+              if (selectedVerse != null && next.cards.length) {
+                rememberReception(
+                  chapter.bookId,
+                  chapter.chapter,
+                  selectedVerse,
+                  next,
+                  selectedEndVerse,
+                  locale,
+                );
+                touchNotes();
+              }
+            }
+            cardsVersion.current += 1;
+            setGatherState("done");
+          } catch {
+            if (!cancelled) setGatherState("error");
+          }
+        })();
+      }
     } else if (chapter) {
       setResult(getDeskNotes(chapter.bookId, chapter.chapter, null, null, locale));
     } else {
@@ -305,13 +444,18 @@ export function ReceptionPanel({
     const prior = resultRef.current;
     setLoading(true);
     setLoadingKind("commentaries");
+    setGatherState("loading");
     setError(null);
     setLexicon(null);
     setSpanishLexicon(null);
     setEnglishLexicon(null);
     setHebrewBdb(null);
     setSpanishHebrew(null);
-    setSynthesis(null);
+    setQa(null);
+    setQaOpen(false);
+    setQaError(null);
+    setSummary(null);
+    setSummaryOpen(false);
     try {
       const data = await gatherCommentaries({
         data: {
@@ -376,11 +520,13 @@ export function ReceptionPanel({
         );
         touchNotes();
       }
+      cardsVersion.current += 1;
+      setGatherState("done");
     } catch (err) {
+      const noMore = err instanceof Error && err.message === "NO_MORE";
+      setGatherState(noMore ? "done" : "error");
       setError(
-        err instanceof Error && err.message === "NO_MORE"
-          ? t(locale, "noMore")
-          : t(locale, "receptionFailed"),
+        noMore ? t(locale, "noMore") : t(locale, "receptionFailed"),
       );
     } finally {
       setLoading(false);
@@ -388,23 +534,26 @@ export function ReceptionPanel({
     }
   }
 
-  async function runInquire() {
+  async function runSynthesis(questionText: string) {
     if (!chapter) return;
+    const isQuestion = questionText.trim().length > 0;
     const cards = resultRef.current?.cards ?? [];
-    if (!cards.length) {
-      setAimOpen(true);
+    // An explicit question can be answered from the verse text alone when no
+    // commentaries are gathered; the empty-question summary still needs cards.
+    if (!cards.length && !isQuestion) {
       setError(t(locale, "needCommentariesFirst"));
+      setSummary(null);
       return;
     }
-    setAimOpen(true);
     setLoading(true);
-    setLoadingKind("inquire");
-    setError(null);
-    setLexicon(null);
-    setSpanishLexicon(null);
-    setEnglishLexicon(null);
-    setHebrewBdb(null);
-    setSpanishHebrew(null);
+    setLoadingKind(isQuestion ? "question" : "summary");
+    if (isQuestion) {
+      setQaError(null);
+    } else {
+      setError(null);
+    }
+    // The selected lexicon word card stays put: the question box answers
+    // about the verse with the word card still visible above it.
     try {
       const data = await synthesizeFromCards({
         data: {
@@ -413,30 +562,92 @@ export function ReceptionPanel({
           verse: selectedVerse,
           verseEnd: selectedEndVerse,
           verseText: selectionText || (verse?.text ?? ""),
-          question: question.trim() || undefined,
+          question: questionText.trim() || undefined,
           locale,
           cards,
         },
       });
       if (!data.answer) {
-        setError(data.caution || t(locale, "synthesisFailed"));
-        setSynthesis(null);
+        const msg = data.caution || t(locale, "synthesisFailed");
+        if (isQuestion) {
+          setQaError(msg);
+          setQa(null);
+        } else {
+          setError(msg);
+          setSummary(null);
+        }
         return;
       }
-      setSynthesis({
-        question: data.question,
-        answer: data.answer,
-        cited: data.cited,
-      });
+      if (isQuestion) {
+        setQa({
+          question: data.question,
+          answer: data.answer,
+          cited: data.cited,
+        });
+      } else {
+        setSummary({
+          question: data.question,
+          answer: data.answer,
+          cited: data.cited,
+        });
+        synthesisCardsVersion.current = cardsVersion.current;
+      }
       if (data.caution && resultRef.current) {
         setResult({ ...resultRef.current, caution: data.caution });
       }
     } catch {
-      setError(t(locale, "synthesisFailed"));
+      const msg = t(locale, "synthesisFailed");
+      if (isQuestion) {
+        setQaError(msg);
+        setQa(null);
+      } else {
+        setError(msg);
+        setSummary(null);
+      }
     } finally {
       setLoading(false);
       setLoadingKind(null);
     }
+  }
+
+  /** Summary has its own slot now, independent of More and of the Q&A box:
+      opening More no longer collapses a generated summary. */
+  function handleSummary() {
+    if (summaryOpen) {
+      setSummaryOpen(false);
+      return;
+    }
+    setSummaryOpen(true);
+    // Re-run only when there is no fresh summary on the current cards.
+    const fresh =
+      summary != null &&
+      synthesisCardsVersion.current === cardsVersion.current;
+    if (!fresh) void runSynthesis("");
+  }
+
+  /** Reveal the remaining preloaded commentaries. With an empty desk or a
+      failed gather, the button gathers visibly instead. */
+  function handleMore() {
+    if (showAll) {
+      setShowAll(false);
+      return;
+    }
+    if (gatherState === "loading") {
+      setShowAll(true);
+      return;
+    }
+    if (gatherState === "error" || (resultRef.current?.cards.length ?? 0) === 0) {
+      setShowAll(true);
+      void runCommentaries();
+      return;
+    }
+    setShowAll(true);
+  }
+
+  function handleQuestionSubmit() {
+    if (!question.trim() || loading) return;
+    setQaOpen(true);
+    void runSynthesis(question);
   }
 
   function runLexicon(word: string) {
@@ -883,6 +1094,7 @@ export function ReceptionPanel({
               </p>
             ) : null}
 
+            {/* Lexicon chips sit with the verse; the question box follows them. */}
             {chips.length > 0 ? (
               <div className="mb-4">
                 <p className="mb-2 text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
@@ -991,38 +1203,80 @@ export function ReceptionPanel({
               </article>
             ) : null}
 
-            <div className="mb-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => void runCommentaries()}
-                className="min-h-11 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
-              >
-                {loadingKind === "commentaries"
-                  ? t(locale, "consultingShort")
-                  : t(locale, "commentaries")}
-              </button>
+            {/* Question box sits directly above the commentaries, after any open
+                lexicon card; its short answer unfolds right beneath it. */}
+            <form
+              className="mb-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleQuestionSubmit();
+              }}
+            >
+              <label className="sr-only" htmlFor="ask-verse">
+                {t(locale, "askVersePlaceholder")}
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="ask-verse"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder={t(locale, "askVersePlaceholder")}
+                  className="min-h-11 w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-lamp"
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !question.trim()}
+                  aria-label={t(locale, "inquire")}
+                  className="flex size-11 shrink-0 items-center justify-center rounded-md bg-oxblood text-oxblood-fg disabled:opacity-50"
+                >
+                  <Send size={16} />
+                </button>
+              </div>
+            </form>
+
+            <div
+              className="tl-unfold"
+              data-open={
+                qaOpen &&
+                (qa != null ||
+                  qaError != null ||
+                  (loading && loadingKind === "question"))
+              }
+            >
+              <div className="tl-unfold-body">
+                <div className="tl-unfold-item">
+                  {loading && loadingKind === "question" ? (
+                    <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
+                      <Loader2 size={14} className="animate-spin text-lamp" />
+                      {t(locale, "synthesizing")}
+                    </p>
+                  ) : null}
+                  {qaError && !(loading && loadingKind === "question") ? (
+                    <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
+                      {qaError}
+                    </p>
+                  ) : null}
+                  {qa && !(loading && loadingKind === "question") ? (
+                    <div
+                      key={qa.answer}
+                      className="tl-rise-in mb-4 border-l-2 border-lamp pl-3"
+                    >
+                      <p className="font-serif text-[15px] leading-relaxed text-ink">
+                        {qa.answer}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
             </div>
-            {loading && loadingKind === "commentaries" ? (
-              <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
-                <Loader2 size={14} className="animate-spin text-lamp" />
-                {t(locale, "consulting")}
-              </p>
-            ) : null}
 
-            {error && loadingKind === "commentaries" ? (
-              <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
-                {error}
-              </p>
-            ) : null}
-
-            {result?.cards.length ? (
-              <div className="mb-6 space-y-3">
-                <div className="flex items-center justify-between gap-2">
+            {/* Commentaries for this verse: heading, per-verse tradition filters,
+                initial set, then the More / Summary row. Always mounted in the
+                verse branch so an empty desk still offers gather + summary. */}
+              <div className="mb-2">
+                <div className="mb-3 flex items-center justify-between gap-2">
                   <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                    {result.source === "curated" && !hasGeneratedCards
-                      ? t(locale, "deskNotes")
-                      : t(locale, "gathered")}
+                    {t(locale, "commentariesHeading")}
                   </p>
                   {hasGeneratedCards ? (
                     <button
@@ -1048,7 +1302,44 @@ export function ReceptionPanel({
                     </button>
                   ) : null}
                 </div>
-                {result.cards.map((card, i) => {
+                {/* Per-verse tradition filters, right under the heading. */}
+                {traditionCounts.length > 0 ? (
+                  <div
+                    className="mb-3 flex flex-wrap gap-1.5"
+                    role="group"
+                    aria-label={t(locale, "commentariesHeading")}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTradition("all")}
+                      className={cn(
+                        "rounded-full border px-3 py-1.5 text-sm",
+                        effectiveTradition === "all"
+                          ? "border-lamp bg-lamp-soft text-lamp"
+                          : "border-rule bg-surface text-ink hover:border-lamp hover:text-lamp",
+                      )}
+                    >
+                      {t(locale, "filterAll")} · {result?.cards.length ?? 0}
+                    </button>
+                    {traditionCounts.map(({ tradition, count }) => (
+                      <button
+                        key={tradition}
+                        type="button"
+                        onClick={() => setSelectedTradition(tradition)}
+                        className={cn(
+                          "rounded-full border px-3 py-1.5 text-sm",
+                          effectiveTradition === tradition
+                            ? "border-lamp bg-lamp-soft text-lamp"
+                            : "border-rule bg-surface text-ink hover:border-lamp hover:text-lamp",
+                        )}
+                      >
+                        {traditionLabel(locale, tradition)} · {count}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                <div className="space-y-3">
+                {visibleCards.map((card, i) => {
                   const gen = chapter
                     ? isCardGenerated(
                         card,
@@ -1067,12 +1358,129 @@ export function ReceptionPanel({
                     />
                   );
                 })}
-                {result.caution ? (
-                  <p className="pt-1 text-2xs leading-relaxed text-faint italic">
-                    {localizeCaution(result.caution, locale)}
+                </div>
+                {/* Remaining preloaded cards unfold inline. */}
+                <div className="tl-unfold" data-open={showAll}>
+                  <div className="tl-unfold-body">
+                    <div className="space-y-3 pt-3">
+                      {hiddenCards.map((card, i) => {
+                        const gen = chapter
+                          ? isCardGenerated(
+                              card,
+                              chapter.bookId,
+                              chapter.chapter,
+                              selectedVerse,
+                            )
+                          : isCardGenerated(card);
+                        return (
+                          <div
+                            className="tl-unfold-item"
+                            key={`${card.voice}-${card.citation}-more-${i}`}
+                          >
+                            <SourceCard
+                              card={card}
+                              isGenerated={gen}
+                              onRemove={
+                                gen ? () => handleRemoveCard(card) : undefined
+                              }
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+                {/* Subtle line while the silent preload may still add cards. */}
+                {gatherState === "loading" && visibleCards.length <= 3 ? (
+                  <p className="mt-3 flex items-center gap-2 font-serif text-sm text-muted italic">
+                    <Loader2 size={14} className="animate-spin text-lamp" />
+                    {t(locale, "consulting")}
                   </p>
                 ) : null}
+
+              {/* More commentaries (left) + Summary (right). */}
+              <div className="mt-3 mb-4 flex gap-2">
+                {canExpandMore ? (
+                  <button
+                    type="button"
+                    onClick={handleMore}
+                    disabled={loading}
+                    className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-md border border-rule bg-surface px-4 text-xs font-semibold tracking-wide text-ink uppercase disabled:opacity-60"
+                  >
+                    {loadingKind === "commentaries"
+                      ? t(locale, "consultingShort")
+                      : showAll
+                        ? t(locale, "showFewer")
+                        : t(locale, "moreCommentaries")}
+                    <ChevronDown
+                      size={14}
+                      className={cn(
+                        "transition-transform duration-200",
+                        showAll && "rotate-180",
+                      )}
+                    />
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleSummary}
+                  disabled={loading}
+                  className="min-h-11 flex-1 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
+                >
+                  {loadingKind === "summary"
+                    ? t(locale, "consultingShort")
+                    : t(locale, "summary")}
+                </button>
               </div>
+
+              {/* Summary unfolds inline under the buttons, in its own slot. */}
+              <div className="tl-unfold" data-open={summaryOpen}>
+                <div className="tl-unfold-body">
+                  <div className="tl-unfold-item">
+                    {loading && loadingKind === "summary" ? (
+                      <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
+                        <Loader2 size={14} className="animate-spin text-lamp" />
+                        {t(locale, "synthesizing")}
+                      </p>
+                    ) : null}
+                    {error && loadingKind !== "commentaries" ? (
+                      <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
+                        {error}
+                      </p>
+                    ) : null}
+                    {summary && !(loading && loadingKind === "summary") ? (
+                      <article
+                        key={summary.answer}
+                        className="tl-rise-in mb-2 rounded-lg border border-rule bg-surface p-4 shadow-soft"
+                      >
+                        <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
+                          {t(locale, "synthesisFromDesk")}
+                        </p>
+                        <p className="mt-2 font-serif text-base leading-relaxed text-ink whitespace-pre-wrap">
+                          {summary.answer}
+                        </p>
+                        {summary.cited.length ? (
+                          <p className="mt-3 text-2xs tracking-wide text-faint">
+                            {summary.cited.join(" · ")}
+                          </p>
+                        ) : null}
+                      </article>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              {result?.caution ? (
+                <p className="mb-4 pt-1 text-2xs leading-relaxed text-faint italic">
+                  {localizeCaution(result.caution, locale)}
+                </p>
+              ) : null}
+              </div>
+
+            {error && loadingKind === "commentaries" ? (
+              <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
+                {error}
+              </p>
             ) : null}
 
             {result && result.cards.length === 0 && result.caution ? (
@@ -1111,103 +1519,6 @@ export function ReceptionPanel({
               </div>
             ) : null}
 
-            {!result?.cards.length && !loading ? (
-              <p className="mb-4 text-sm leading-relaxed text-muted">
-                {t(locale, "noNotesInquire")}
-              </p>
-            ) : null}
-
-            <div className="border-t border-rule pt-3">
-              <button
-                type="button"
-                onClick={() => setAimOpen((v) => !v)}
-                className="flex min-h-11 w-full items-center justify-between text-left text-2xs font-semibold tracking-[0.14em] text-faint uppercase"
-              >
-                <span className="inline-flex items-center gap-2">
-                  <span>{t(locale, "aim")}</span>
-                  {loading ? (
-                    <Loader2
-                      size={13}
-                      className="animate-spin text-lamp"
-                      aria-label={t(locale, "consultingShort")}
-                    />
-                  ) : null}
-                </span>
-                <ChevronDown
-                  size={14}
-                  className={cn(
-                    "transition-transform duration-200",
-                    aimOpen && "rotate-180",
-                  )}
-                />
-              </button>
-              {aimOpen ? (
-                <form
-                  className="pt-2 pb-4"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void runInquire();
-                  }}
-                >
-                  <label className="sr-only" htmlFor="ask-verse">
-                    {t(locale, "aim")}
-                  </label>
-                  <input
-                    id="ask-verse"
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    placeholder={t(locale, "aimPlaceholder")}
-                    className="w-full rounded-md border border-rule bg-surface px-3 py-2.5 text-base text-ink outline-none placeholder:italic placeholder:text-faint focus:border-lamp"
-                  />
-                  <p className="mt-2 text-2xs leading-relaxed text-faint">
-                    {t(locale, "inquireHint")}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="min-h-11 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
-                    >
-                      {loadingKind === "inquire"
-                        ? t(locale, "consultingShort")
-                        : t(locale, "inquire")}
-                    </button>
-                  </div>
-                </form>
-              ) : null}
-            </div>
-
-            {loading && loadingKind === "inquire" ? (
-              <p className="mt-4 mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
-                <Loader2 size={14} className="animate-spin text-lamp" />
-                {t(locale, "synthesizing")}
-              </p>
-            ) : null}
-
-            {error && loadingKind !== "commentaries" ? (
-              <p className="mt-4 mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
-                {error}
-              </p>
-            ) : null}
-
-            {synthesis ? (
-              <article className="mt-4 mb-2 rounded-lg border border-rule bg-surface p-4 shadow-soft">
-                <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
-                  {t(locale, "synthesisFromDesk")}
-                </p>
-                {synthesis.question ? (
-                  <p className="mt-1 text-xs text-muted italic">{synthesis.question}</p>
-                ) : null}
-                <p className="mt-2 font-serif text-base leading-relaxed text-ink whitespace-pre-wrap">
-                  {synthesis.answer}
-                </p>
-                {synthesis.cited.length ? (
-                  <p className="mt-3 text-2xs tracking-wide text-faint">
-                    {synthesis.cited.join(" · ")}
-                  </p>
-                ) : null}
-              </article>
-            ) : null}
           </>
         )}
       </div>

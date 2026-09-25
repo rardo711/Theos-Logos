@@ -2,6 +2,7 @@ import { Trash2 } from "lucide-react";
 import type { SourceCard as Card } from "@/lib/bible/types";
 import { t, traditionLabel } from "@/lib/i18n";
 import { localizeCard } from "@/lib/i18n-sources";
+import { decodeHtmlEntities } from "@/lib/reception/retrieve-html";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
 
@@ -69,11 +70,11 @@ export function SourceCard({
       </header>
       {shown.contextBridge ? (
         <p className="mb-2 text-xs leading-relaxed text-muted">
-          {shown.contextBridge}
+          {decodeHtmlEntities(shown.contextBridge)}
         </p>
       ) : null}
       <blockquote className="min-w-0 break-words border-l border-oxblood py-0.5 pr-1 pl-3 font-serif text-base leading-relaxed text-ink italic [overflow-wrap:anywhere] [word-break:break-word]">
-        “{shown.quote}”
+        “{decodeHtmlEntities(shown.quote)}”
       </blockquote>
       {shown.note && shown.note !== shown.contextBridge ? (
         <p className="mt-2.5 text-sm leading-relaxed text-muted">{shown.note}</p>
