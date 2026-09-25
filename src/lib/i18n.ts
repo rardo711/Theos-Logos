@@ -82,6 +82,11 @@ const EN = {
   aimPlaceholder: "Optional focus: eternity, incarnation…",
   inquire: "Inquire",
   commentaries: "Commentaries on this verse",
+  commentariesHeading: "Commentaries",
+  moreCommentaries: "More commentaries",
+  showFewer: "Show fewer",
+  summary: "Summary",
+  askVersePlaceholder: "Ask a question about this verse…",
   inquireHint:
     "Inquire answers from the cards already on this desk. It does not search the web.",
   needCommentariesFirst:
@@ -253,6 +258,11 @@ const ES: { [K in keyof typeof EN]: string } = {
   aimPlaceholder: "Enfoque opcional: eternidad, encarnación…",
   inquire: "Consultar",
   commentaries: "Comentarios sobre este versículo",
+  commentariesHeading: "Comentarios",
+  moreCommentaries: "Más comentarios",
+  showFewer: "Mostrar menos",
+  summary: "Resumen",
+  askVersePlaceholder: "Haz una pregunta sobre este versículo…",
   inquireHint:
     "Consultar responde desde las fichas ya reunidas en este escritorio. No busca en la red.",
   needCommentariesFirst:
