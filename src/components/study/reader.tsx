@@ -9,6 +9,8 @@ import { markedVerses } from "@/lib/reception/notes";
 import { highlightedVerses } from "@/lib/study/highlights";
 import { useStudy } from "@/lib/study-store";
 import { cn } from "@/lib/utils";
+import { TranslationMenu } from "./translation-menu";
+import { translationsFor } from "@/lib/bible/translations";
 
 function neighbor(
   bookId: string,
@@ -230,9 +232,13 @@ export function Reader({
               className="tl-chapter"
             >
               <header className="tl-folio-head mb-8 text-center sm:mb-10">
-                <p className="tl-folio-kicker text-2xs font-medium tracking-[0.22em] text-muted uppercase">
-                  {chapter.translationName}
-                </p>
+                {translationsFor(locale).length > 1 ? (
+                  <TranslationMenu />
+                ) : (
+                  <p className="tl-folio-kicker text-2xs font-medium tracking-[0.22em] text-muted uppercase">
+                    {chapter.translationName}
+                  </p>
+                )}
                 <h1 className="font-display mt-2 text-[2rem] leading-none font-semibold tracking-tight text-ink sm:text-5xl">
                   {chapter.bookName}
                 </h1>

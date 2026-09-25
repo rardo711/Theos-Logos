@@ -16,15 +16,15 @@ describe("translations registry", () => {
     assert.equal(DEFAULT_EN_TRANSLATION, "esv");
   });
 
-  it("lists Reina Valera Gómez as the Spanish default", () => {
+  it("lists Reina Valera 1909 as the Spanish default", () => {
     const ids = translationsFor("es").map((t) => t.id);
-    assert.deepEqual(ids, ["rv2004"]);
-    assert.equal(DEFAULT_ES_TRANSLATION, "rv2004");
+    assert.deepEqual(ids, ["rv1909"]);
+    assert.equal(DEFAULT_ES_TRANSLATION, "rv1909");
   });
 
   it("falls back to the locale default on unknown ids", () => {
     assert.equal(translationInfo("en", "nope").id, "esv");
-    assert.equal(translationInfo("es", "nope").id, "rv2004");
+    assert.equal(translationInfo("es", "nope").id, "rv1909");
     assert.equal(translationInfo("en", undefined).id, "esv");
   });
 
@@ -36,8 +36,8 @@ describe("translations registry", () => {
 
   it("validates translation ids", () => {
     assert.ok(isEnTranslationId("kjv"));
-    assert.ok(!isEnTranslationId("rv2004"));
-    assert.ok(isEsTranslationId("rv2004"));
+    assert.ok(!isEnTranslationId("rv1909"));
+    assert.ok(isEsTranslationId("rv1909"));
     assert.ok(!isEsTranslationId("kjv"));
   });
 });

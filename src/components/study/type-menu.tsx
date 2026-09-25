@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { canInstallPwa, installPwa, subscribePwa } from "@/lib/pwa";
 import { useStudy } from "@/lib/study-store";
-import { translationsFor } from "@/lib/bible/translations";
 import { cn } from "@/lib/utils";
 import { useSlidingPill } from "./sliding-pill";
 
@@ -17,16 +16,6 @@ export function TypeMenu() {
   const setTheme = useStudy((s) => s.setTheme);
   const locale = useStudy((s) => s.locale);
   const setLocale = useStudy((s) => s.setLocale);
-  const enTranslation = useStudy((s) => s.enTranslation);
-  const setEnTranslation = useStudy((s) => s.setEnTranslation);
-  const esTranslation = useStudy((s) => s.esTranslation);
-  const setEsTranslation = useStudy((s) => s.setEsTranslation);
-  const activeTranslation = locale === "es" ? esTranslation : enTranslation;
-  const setTranslation = (id: string) => {
-    if (locale === "es") setEsTranslation(id as typeof esTranslation);
-    else setEnTranslation(id as typeof enTranslation);
-  };
-  const available = translationsFor(locale);
   const [installable, setInstallable] = useState(false);
   const [mounted, setMounted] = useState(open);
   const [visible, setVisible] = useState(open);
@@ -200,33 +189,6 @@ export function TypeMenu() {
             </button>
           ))}
         </div>
-
-        <p className="mb-2 text-xs font-medium text-muted">
-          {t(locale, "translation")}
-        </p>
-        {available.length > 1 ? (
-          <div className="mb-4 flex flex-wrap gap-1.5">
-            {available.map((tr) => (
-              <button
-                key={tr.id}
-                type="button"
-                onClick={() => setTranslation(tr.id)}
-                aria-pressed={activeTranslation === tr.id}
-                title={tr.name}
-                className={cn(
-                  "min-h-9 rounded-md border px-3 text-xs font-semibold transition-colors duration-150 ease-out",
-                  activeTranslation === tr.id
-                    ? "border-lamp text-lamp"
-                    : "border-rule text-muted hover:text-ink",
-                )}
-              >
-                {tr.short}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <p className="mb-4 text-xs text-muted">{available[0]?.name}</p>
-        )}
 
         <p className="mb-2 text-xs font-medium text-muted">{t(locale, "lamp")}</p>
         <div

@@ -721,6 +721,51 @@ html.dark .tl-shell {
   }
 }
 
+/* Translation picker: small bubble that blooms open with a soft bounce,
+   anchored to the header chip. Not a fade, not a snap. */
+.tl-tx-pop {
+  transform-origin: top center;
+}
+.tl-tx-pop[data-open="true"] {
+  animation: tl-tx-pop-in 360ms cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+.tl-tx-pop[data-open="false"] {
+  animation: tl-tx-pop-out 150ms ease-in forwards;
+}
+@keyframes tl-tx-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.55) translateY(-12px);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.07) translateY(3px);
+  }
+  78% {
+    transform: scale(0.97) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+@keyframes tl-tx-pop-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.82) translateY(-8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tl-tx-pop[data-open="true"],
+  .tl-tx-pop[data-open="false"] {
+    animation: none;
+  }
+}
+
 .tl-pill-ink {
   position: absolute;
   bottom: 0;

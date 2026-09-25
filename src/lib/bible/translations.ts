@@ -2,7 +2,7 @@ import type { Locale } from "./books.ts";
 import { ESV_NAME, ESV_NOTE } from "./esv.ts";
 
 export type EnTranslationId = "esv" | "kjv" | "asv" | "web";
-export type EsTranslationId = "rv2004";
+export type EsTranslationId = "rv1909";
 export type TranslationId = EnTranslationId | EsTranslationId;
 
 export interface TranslationInfo {
@@ -47,18 +47,16 @@ export const EN_TRANSLATIONS: TranslationInfo[] = [
 
 export const ES_TRANSLATIONS: TranslationInfo[] = [
   {
-    id: "rv2004",
-    short: "RVG",
-    name: "Reina Valera Gómez",
-    note:
-      "Reina Valera Gómez 2004. Free distribution granted by the publisher; text unaltered.",
+    id: "rv1909",
+    short: "RV1909",
+    name: "Reina Valera 1909",
+    note: "Reina Valera 1909. Public domain.",
     locale: "es",
-    bollsSlug: "RV2004",
   },
 ];
 
 export const DEFAULT_EN_TRANSLATION: EnTranslationId = "esv";
-export const DEFAULT_ES_TRANSLATION: EsTranslationId = "rv2004";
+export const DEFAULT_ES_TRANSLATION: EsTranslationId = "rv1909";
 
 export function translationsFor(locale: Locale): TranslationInfo[] {
   return locale === "es" ? ES_TRANSLATIONS : EN_TRANSLATIONS;

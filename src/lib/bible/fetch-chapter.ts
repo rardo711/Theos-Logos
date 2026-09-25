@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getBook, type Locale } from "./books";
 import { fetchBollsChapter } from "./bolls";
 import { fetchEsvChapter } from "./esv";
+import { fetchRv1909Chapter } from "./rv1909";
 import { getSeed } from "./seed";
 import { attachNtHeadings } from "./nt-headings";
 import {
@@ -69,15 +70,14 @@ export const fetchChapter = createServerFn({ method: "POST" })
 
     if (locale === "es") {
       const id = info.id as EsTranslationId;
-      if (id === "rv2004" && info.bollsSlug) {
+      if (id === "rv1909") {
         try {
-          const ch = await fetchBollsChapter(
-            info.bollsSlug,
+          const ch = await fetchRv1909Chapter(
             book,
             chapter,
-            locale,
             info.name,
             info.note,
+            locale,
           );
           if (ch) return attachNtHeadings(ch, locale);
         } catch {
