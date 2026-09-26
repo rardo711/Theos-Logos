@@ -7,6 +7,7 @@ import { translationInfo } from "@/lib/bible/translations";
 import type { Locale } from "@/lib/bible/books";
 import { initPwa, isStandalone, lockPhoneClass, lockSafeBottom, lockSafeTop } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
+import { coastTarget, glideTo } from "@/lib/spring";
 import { useStudy } from "@/lib/study-store";
 import { isOnboardingComplete } from "@/lib/onboarding";
 import { LibraryDrawer } from "./library-drawer";
@@ -108,7 +109,8 @@ export function StudyWorkspace() {
     "hidden" | "peek" | "mid" | "full"
   >("hidden");
   const [sheetDrag, setSheetDrag] = useState(0);
-  const [sheetDragging, setSheetDragging] = useState(false);
+  const [sheetEpoch, setSheetEpoch] = useState(0);
+  const sheetSpring = useRef<(() => void) | null>(null);
   // xl side desk: keep mounted through exit slide (BUG-10)
   const [deskShown, setDeskShown] = useState(false);
   const [deskOpen, setDeskOpen] = useState(false);
@@ -175,7 +177,7 @@ export function StudyWorkspace() {
     if (want === "hidden") {
       setSheetState("hidden");
       setSheetDrag(0);
-      const t = window.setTimeout(() => setSheetShown(false), 280);
+      const t = window.setTimeout(() => setSheetShown(false), 440);
       return () => window.clearTimeout(t);
     }
     setSheetShown(true);
@@ -189,7 +191,7 @@ export function StudyWorkspace() {
   useEffect(() => {
     if (!sheetShown) {
       setSheetDrag(0);
-      setSheetDragging(false);
+      gestureRef.current = false;
     }
   }, [sheetShown]);
 
@@ -234,7 +236,7 @@ export function StudyWorkspace() {
       };
     }
     setSourcesAnimOpen(false);
-    const t = window.setTimeout(() => setSourcesShown(false), 340);
+    const t = window.setTimeout(() => setSourcesShown(false), 460);
     return () => window.clearTimeout(t);
   }, [sourcesPageOpen]);
 
@@ -253,7 +255,7 @@ export function StudyWorkspace() {
       };
     }
     setDeskOpen(false);
-    const t = window.setTimeout(() => setDeskShown(false), 280);
+    const t = window.setTimeout(() => setDeskShown(false), 440);
     return () => window.clearTimeout(t);
   }, [receptionOpen, docked]);
 
@@ -284,86 +286,217 @@ export function StudyWorkspace() {
     }
   }, [sheetState]);
 
+  const dragYRef = useRef<number | null>(null);
+  const settleMode = useRef<"peek" | "mid" | "full" | "hidden" | null>(null);
+  const springDone = useRef(false);
+  const gestureRef = useRef(false);
+  const stopsRef = useRef({ full: 0, mid: 0, peek: 0, hidden: 0 });
+
+  useEffect(() => {
+    const el = sheetRef.current;
+    if (!el || !sheetShown) return;
+    const readStops = () => {
+      if (gestureRef.current) return;
+      const h = el.getBoundingClientRect().height;
+      const peekVar = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue("--sheet-peek"),
+      );
+      const peek = Number.isFinite(peekVar) ? peekVar : 92;
+      const rootFont = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const mid = Math.min(window.innerHeight * 0.48, 28 * rootFont);
+      stopsRef.current = {
+        full: 0,
+        mid: Math.max(0, h - mid),
+        peek: Math.max(0, h - peek),
+        hidden: h,
+      };
+    };
+    readStops();
+    const ro = new ResizeObserver(readStops);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [sheetShown]);
+
+  useLayoutEffect(() => {
+    void sheetEpoch;
+    const el = sheetRef.current;
+    if (!el) return;
+    if (gestureRef.current) {
+      el.dataset.dragging = "true";
+      if (dragYRef.current != null) {
+        el.style.setProperty("--sheet-y", `${dragYRef.current}px`);
+      }
+      return;
+    }
+    if (
+      springDone.current &&
+      settleMode.current &&
+      sheetState === settleMode.current
+    ) {
+      springDone.current = false;
+      settleMode.current = null;
+      dragYRef.current = null;
+      el.dataset.dragging = "false";
+      el.style.removeProperty("--sheet-y");
+      return;
+    }
+    if (dragYRef.current != null && settleMode.current) {
+      el.dataset.dragging = "true";
+      el.style.setProperty("--sheet-y", `${dragYRef.current}px`);
+    }
+  });
+
   useEffect(() => {
     const el = sheetRef.current;
     const chrome = el?.querySelector("[data-sheet-chrome]") as HTMLElement | null;
-    if (!el || !chrome || sheetState === "hidden") return;
-    let startY = 0;
-    let startT = 0;
-    let pulling = false;
-    let dy = 0;
-    const COMMIT = 56;
-    const FLING = 0.55;
-    const onStart = (e: TouchEvent) => {
-      startY = e.touches[0].clientY;
-      startT = performance.now();
-      pulling = false;
-      dy = 0;
+    if (!el || !chrome || !sheetShown) return;
+
+    let active = false;
+    let pointer = -1;
+    let startTouch = 0;
+    let origin = 0;
+    let lastY = 0;
+    let lastT = 0;
+    let velocity = 0;
+    let moved = 0;
+    const trail: { y: number; t: number }[] = [];
+
+    const readY = () => {
+      const t = getComputedStyle(el).transform;
+      if (!t || t === "none") return 0;
+      return new DOMMatrixReadOnly(t).m42;
     };
-    const onMove = (e: TouchEvent) => {
-      const delta = e.touches[0].clientY - startY;
-      const mode = sheetStateRef.current;
-      const room = el.parentElement?.clientHeight ?? window.innerHeight;
-      pulling = true;
-      if (mode === "peek") {
-        dy = Math.min(Math.max(delta, -(room - el.offsetHeight)), room * 0.35);
-      } else if (mode === "mid") {
-        dy = Math.min(Math.max(delta, -(room - el.offsetHeight)), el.offsetHeight * 0.9);
-      } else {
-        dy = Math.min(Math.max(delta, 0), el.offsetHeight * 0.92);
-      }
-      setSheetDragging(true);
-      setSheetDrag(dy);
-      if (Math.abs(delta) > 4) e.preventDefault();
+
+    const resist = (y: number) => {
+      const stops = stopsRef.current;
+      if (y < stops.full) return stops.full + (y - stops.full) * 0.28;
+      if (y > stops.hidden) return stops.hidden + (y - stops.hidden) * 0.28;
+      return y;
     };
-    const finish = () => {
-      const v = dy / Math.max(performance.now() - startT, 1);
-      const mode = sheetStateRef.current;
-      const H = el.offsetHeight;
-      const room = el.parentElement?.clientHeight ?? window.innerHeight;
-      setSheetDragging(false);
-      if (!pulling) {
-        dy = 0;
-        return;
-      }
-      if (mode === "peek") {
-        if (dy < -room * 0.28 || v < -1.05) setReceptionFull(true);
-        else if (dy < -COMMIT || v < -FLING) setReceptionOpen(true);
-        else if (dy > COMMIT || v > FLING) clearSelection();
-        else setSheetDrag(0);
-      } else if (mode === "mid") {
-        if (dy < -COMMIT || v < -FLING) setReceptionFull(true);
-        else if (dy > COMMIT || v > FLING) {
+
+    const writeY = (y: number) => {
+      dragYRef.current = y;
+      el.style.setProperty("--sheet-y", `${y}px`);
+    };
+
+    const finishAt = (y: number, v: number) => {
+      const stops = stopsRef.current;
+      const mode = coastTarget(y, v, stops);
+      const to = stops[mode];
+      const go = () => {
+        if (mode === "full") setReceptionFull(true);
+        else if (mode === "mid") {
+          setReceptionFull(false);
+          setReceptionOpen(true);
+        } else if (mode === "peek") {
           setReceptionFull(false);
           setReceptionOpen(false);
-        } else setSheetDrag(0);
-      } else if (dy > H * 0.28 || v > 1.1) {
-        setReceptionFull(false);
-        setReceptionOpen(false);
-      } else if (dy > COMMIT || v > FLING) {
-        setReceptionFull(false);
-      } else {
-        setSheetDrag(0);
-      }
-      pulling = false;
-      dy = 0;
+        }
+      };
+      settleMode.current = mode;
+      springDone.current = false;
+      go();
+      sheetSpring.current = glideTo({
+        from: y,
+        velocity: v,
+        to,
+        onUpdate: writeY,
+        onRest: () => {
+          springDone.current = true;
+          gestureRef.current = false;
+          if (mode === "hidden") {
+            dragYRef.current = to;
+            clearSelection();
+          }
+          setSheetEpoch((n) => n + 1);
+        },
+      });
     };
-    chrome.addEventListener("touchstart", onStart, { passive: true });
-    chrome.addEventListener("touchmove", onMove, { passive: false });
-    chrome.addEventListener("touchend", finish);
-    chrome.addEventListener("touchcancel", finish);
+
+    const onDown = (e: PointerEvent) => {
+      if (sheetStateRef.current === "hidden") return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      sheetSpring.current?.();
+      springDone.current = false;
+      settleMode.current = null;
+      gestureRef.current = true;
+      el.dataset.dragging = "true";
+      const visual = readY();
+      active = true;
+      pointer = e.pointerId;
+      moved = 0;
+      startTouch = e.clientY;
+      origin = visual;
+      writeY(visual);
+      trail.length = 0;
+      trail.push({ y: e.clientY, t: performance.now() });
+      lastY = e.clientY;
+      lastT = performance.now();
+      velocity = 0;
+      chrome.setPointerCapture(e.pointerId);
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (!active || e.pointerId !== pointer) return;
+      const now = performance.now();
+      const dt = Math.max(now - lastT, 1);
+      velocity = ((e.clientY - lastY) / dt) * 1000;
+      lastY = e.clientY;
+      lastT = now;
+      const cutoff = now - 100;
+      trail.push({ y: e.clientY, t: now });
+      while (trail.length > 1 && trail[0].t < cutoff) trail.shift();
+      const delta = e.clientY - startTouch;
+      moved = Math.max(moved, Math.abs(delta));
+      if (el.dataset.dragging !== "true") el.dataset.dragging = "true";
+      writeY(resist(origin + delta));
+    };
+
+    const onUp = (e: PointerEvent) => {
+      if (!active || e.pointerId !== pointer) return;
+      active = false;
+      pointer = -1;
+      if (moved < 3) {
+        gestureRef.current = false;
+        dragYRef.current = null;
+        el.style.removeProperty("--sheet-y");
+        el.dataset.dragging = "false";
+        return;
+      }
+      let releaseV = velocity;
+      if (trail.length >= 2) {
+        const a = trail[0];
+        const b = trail[trail.length - 1];
+        const dt = Math.max(16, b.t - a.t);
+        releaseV = ((b.y - a.y) / dt) * 1000;
+      }
+      finishAt(dragYRef.current ?? origin, releaseV);
+    };
+
+    const onClick = (e: MouseEvent) => {
+      if (moved < 8) return;
+      e.preventDefault();
+      e.stopPropagation();
+      moved = 0;
+    };
+
+    chrome.addEventListener("pointerdown", onDown);
+    chrome.addEventListener("pointermove", onMove);
+    chrome.addEventListener("pointerup", onUp);
+    chrome.addEventListener("pointercancel", onUp);
+    chrome.addEventListener("click", onClick, true);
     return () => {
-      chrome.removeEventListener("touchstart", onStart);
-      chrome.removeEventListener("touchmove", onMove);
-      chrome.removeEventListener("touchend", finish);
-      chrome.removeEventListener("touchcancel", finish);
+      sheetSpring.current?.();
+      chrome.removeEventListener("pointerdown", onDown);
+      chrome.removeEventListener("pointermove", onMove);
+      chrome.removeEventListener("pointerup", onUp);
+      chrome.removeEventListener("pointercancel", onUp);
+      chrome.removeEventListener("click", onClick, true);
     };
   }, [
-    sheetState,
     sheetShown,
     setReceptionOpen,
     setReceptionFull,
-    setReceptionPinned,
     clearSelection,
   ]);
 
@@ -613,10 +746,6 @@ export function StudyWorkspace() {
               ref={sheetRef}
               className="tl-sheet-up absolute inset-x-0 bottom-0 flex w-full flex-col overflow-hidden border-t border-rule bg-surface shadow-soft md:mx-auto md:w-[min(40rem,100%)]"
               data-state={sheetState}
-              data-dragging={sheetDragging ? "true" : "false"}
-              style={{
-                ["--sheet-drag" as string]: `${sheetDrag}px`,
-              }}
             >
               <div className="flex min-h-0 flex-1 flex-col">
                 <ReceptionPanel

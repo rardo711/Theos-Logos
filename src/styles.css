@@ -62,17 +62,24 @@
   --motion-fast: 300ms;
   --motion-medium: 450ms;
   --motion-slow: 550ms;
-  --motion-drawer: 340ms;
+  --motion-drawer: 580ms;
+  /* A sampled spring: fast at first, one small settle, then rest. */
+  --motion-spring: 500ms;
+  --ease-spring: linear(
+    0, 0.1042, 0.2764, 0.454, 0.6026, 0.7174, 0.7992, 0.8609,
+    0.9044, 0.9336, 0.9548, 0.9693, 0.9789, 0.9857, 0.9904, 0.9935,
+    0.9956, 0.997, 0.998, 0.9986, 1
+  );
   /* Shared Reception + gloss sheet tokens (Design motion brief) */
-  --motion-sheet-enter: 250ms;
-  --motion-sheet-exit: 220ms;
+  --motion-sheet-enter: 500ms;
+  --motion-sheet-exit: 400ms;
   --motion-sheet-crossfade: 160ms;
   /* Sources page — calm, slow-ish: never snaps */
-  --motion-sources-enter: 380ms;
-  --motion-sources-exit: 320ms;
+  --motion-sources-enter: 560ms;
+  --motion-sources-exit: 420ms;
   --ease-sheet-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-sheet-exit: cubic-bezier(0.4, 0, 1, 1);
-  --sheet-enter-y: 16%;
+  --ease-sheet-exit: cubic-bezier(0.22, 1, 0.36, 1);
+  --sheet-enter-y: 22%;
   --dim-sheet: 0.36;
   --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
@@ -218,20 +225,42 @@
 
   .bible-prose {
     text-wrap: pretty;
+    font-variant-numeric: oldstyle-nums proportional-nums;
+    font-feature-settings: "onum" 1, "kern" 1, "liga" 1;
+    hanging-punctuation: first allow-end;
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--color-lamp) 22%, transparent);
+    background: color-mix(in oklab, var(--color-lamp) 28%, transparent);
+    color: inherit;
+  }
+
+  .tl-shell button:focus-visible,
+  .tl-shell a:focus-visible {
+    outline: 1.5px solid color-mix(in oklab, var(--color-lamp) 72%, var(--color-ink));
+    outline-offset: 3px;
+  }
+
+  .tl-shell input,
+  .tl-shell textarea {
+    caret-color: var(--color-lamp);
+  }
+
+  .tl-shell input:-webkit-autofill {
+    -webkit-text-fill-color: var(--color-ink);
+    caret-color: var(--color-lamp);
+    transition: background-color 99999s ease-out;
   }
 }
 
 .verse-num {
-  font-size: 0.68em;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  font-size: 0.65em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  font-variant-numeric: lining-nums tabular-nums;
   color: var(--color-verse);
   position: relative;
-  top: -0.12em;
+  top: -0.14em;
 }
 
 .verse-mark {
@@ -320,8 +349,9 @@
   }
 }
 
-.tl-verse:active {
-  background-color: color-mix(in oklab, var(--color-lamp) 7%, transparent);
+.tl-verse:focus-visible {
+  outline: none;
+  background-color: color-mix(in oklab, var(--color-lamp) 16%, transparent);
 }
 
 .tl-first-verse:hover,
@@ -538,13 +568,35 @@ html.dark .tl-shell {
      No opacity fade (avoids X/close pop). Dim handles the veil. */
   transform: translateX(-100%);
   opacity: 1;
-  transition: transform var(--motion-drawer) var(--ease-drawer);
+  transition: transform var(--motion-spring) var(--ease-spring);
   overflow-x: hidden;
   will-change: transform;
 }
 
 .tl-drawer[data-open="true"] {
   transform: translateX(0);
+}
+
+/* Panel slides first. Words arrive after it has landed, then ride out with it. */
+.tl-drawer:not([data-open="true"]) .tl-drawer-settle {
+  opacity: 1;
+  transform: none;
+  animation: none;
+}
+
+.tl-drawer[data-open="true"] .tl-drawer-settle {
+  animation: tl-drawer-settle 420ms var(--ease-smooth-out) 220ms both;
+}
+
+@keyframes tl-drawer-settle {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .tl-sheet {
@@ -563,14 +615,14 @@ html.dark .tl-shell {
   opacity: 1;
   pointer-events: auto;
   transition:
-    transform var(--motion-sheet-enter) var(--ease-sheet-enter),
-    opacity var(--motion-sheet-enter) var(--ease-sheet-enter);
+    transform var(--motion-spring) var(--ease-spring),
+    opacity 420ms var(--ease-smooth-out);
 }
 
-/* Sources page — calm fade + rise. Slow-ish on purpose: this app never snaps. */
+/* Sources desk — slides in from the right, then the header and list settle. */
 .tl-sources {
   opacity: 0;
-  transform: translateY(14px);
+  transform: translateX(100%);
   will-change: opacity, transform;
   transition:
     opacity var(--motion-sources-exit) var(--ease-smooth-out),
@@ -601,62 +653,67 @@ html[data-phone="large"] {
   padding-bottom: max(0.75rem, var(--keyboard, 0px));
 }
 
+.tl-sources:not([data-open="true"]) .tl-sources-settle {
+  opacity: 1;
+  transform: none;
+}
+
+.tl-sources[data-open="true"] .tl-sources-settle {
+  animation: tl-sources-settle 520ms var(--ease-smooth-out) 120ms both;
+}
+
+@keyframes tl-sources-settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .tl-sheet-up {
+  /* Full height, moved with translate only. Drag never resizes layout. */
   bottom: var(--keyboard, 0px);
   padding-bottom: var(--safe-bottom, 0px);
   box-sizing: border-box;
-  height: calc(
-    var(--sheet-h, var(--sheet-peek)) - min(0px, var(--sheet-drag, 0px))
-  );
+  height: calc(100% - var(--sheet-full-gap));
   max-height: calc(100% - var(--sheet-full-gap));
-  transform: translateY(
-    calc(var(--sheet-slide, 0px) + max(0px, var(--sheet-drag, 0px)))
-  );
+  transform: translate3d(0, var(--sheet-y, 100%), 0);
   opacity: 1;
   pointer-events: none;
   background: var(--color-surface);
-  border-top-left-radius: 1.125rem; /* 18px — within 16–20 */
+  border-top-left-radius: 1.125rem;
   border-top-right-radius: 1.125rem;
-  will-change: transform, opacity;
+  will-change: transform;
   transition:
-    transform var(--motion-sheet-enter) var(--ease-sheet-enter),
-    height var(--motion-sheet-enter) var(--ease-sheet-enter),
-    opacity var(--motion-sheet-enter) var(--ease-sheet-enter);
+    transform 280ms var(--ease-smooth-out),
+    opacity 240ms var(--ease-smooth-out);
 }
 
 .tl-sheet-up[data-state="hidden"] {
-  --sheet-h: var(--sheet-peek);
-  /* Short travel (~16%) + fade — not a full-screen fling (BUG-6 spirit) */
-  --sheet-slide: var(--sheet-enter-y);
+  --sheet-y: 100%;
   opacity: 0;
-  transition:
-    transform var(--motion-sheet-exit) var(--ease-sheet-exit),
-    height var(--motion-sheet-exit) var(--ease-sheet-exit),
-    opacity var(--motion-sheet-exit) var(--ease-sheet-exit);
 }
 
 .tl-sheet-up[data-state="peek"] {
-  --sheet-h: var(--sheet-peek);
-  --sheet-slide: 0px;
+  --sheet-y: calc(100% - var(--sheet-peek));
   opacity: 1;
   pointer-events: auto;
   touch-action: none;
 }
 
 .tl-sheet-up[data-state="mid"] {
-  --sheet-h: var(--sheet-mid);
-  --sheet-slide: 0px;
+  --sheet-y: calc(100% - var(--sheet-mid));
   opacity: 1;
   pointer-events: auto;
-  touch-action: pan-y;
 }
 
 .tl-sheet-up[data-state="full"] {
-  --sheet-h: calc(100% - var(--sheet-full-gap));
-  --sheet-slide: 0px;
+  --sheet-y: 0px;
   opacity: 1;
   pointer-events: auto;
-  touch-action: pan-y;
   box-shadow: 0 -18px 40px color-mix(in oklab, #1c1917 14%, transparent);
 }
 
@@ -664,13 +721,45 @@ html[data-phone="large"] {
   box-shadow: 0 -20px 48px rgba(0, 0, 0, 0.45);
 }
 
-.tl-sheet-up[data-state="mid"] [data-sheet-chrome],
-.tl-sheet-up[data-state="full"] [data-sheet-chrome] {
+.tl-sheet-up [data-sheet-chrome] {
   touch-action: none;
 }
 
 .tl-sheet-up[data-dragging="true"] {
   transition: none;
+}
+
+.tl-sheet-up::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset-inline: 1.125rem;
+  top: 0;
+  height: 1px;
+  background: color-mix(in oklab, white 62%, transparent);
+  pointer-events: none;
+}
+
+.dark .tl-sheet-up::before {
+  background: color-mix(in oklab, white 14%, transparent);
+}
+
+.tl-sheet-up [data-sheet-handle] span {
+  width: 2.25rem;
+  height: 3px;
+  background: color-mix(in oklab, var(--color-faint) 50%, transparent);
+  transition:
+    width 280ms var(--ease-smooth-out),
+    background-color 180ms var(--ease-smooth-out);
+}
+
+.tl-sheet-up[data-dragging="true"] [data-sheet-handle] span {
+  width: 2.75rem;
+  background: color-mix(in oklab, var(--color-lamp) 65%, var(--color-faint));
+}
+
+.tl-quote {
+  hanging-punctuation: first last;
 }
 
 /* In-place gloss ↔ reception content swap (150–180ms) */
@@ -762,31 +851,236 @@ html[data-phone="large"] {
 }
 
 .tl-menu {
-  transform-origin: top left;
+  transform-origin: top center;
   opacity: 0;
-  transform: scale(var(--motion-scale-menu)) translateY(-4px);
+  transform: translateY(10px);
   pointer-events: none;
   transition:
-    opacity var(--motion-medium) var(--ease-smooth-out),
-    transform var(--motion-medium) var(--ease-smooth-out);
+    opacity 280ms var(--ease-smooth-out),
+    transform var(--motion-spring) var(--ease-spring);
 }
 
 .tl-menu[data-open="true"] {
   opacity: 1;
   transform: none;
   pointer-events: auto;
+  transition:
+    opacity 360ms var(--ease-smooth-out),
+    transform var(--motion-spring) var(--ease-spring);
 }
 
-/* Mobile bottom sheet: slide up/down rather than scale from top-left. */
+/* Phone: rise from the bottom. A drag follows the finger; letting go springs. */
 @media (max-width: 639px) {
   .tl-menu {
     bottom: var(--keyboard, 0px);
     transform-origin: bottom center;
-    transform: translateY(12px);
+    transform: translateY(100%);
   }
   .tl-menu[data-open="true"] {
     transform: none;
   }
+  .tl-menu[data-dragging="true"],
+  .tl-menu[data-spring="true"] {
+    transition: none;
+    transform: translateY(var(--menu-drag, 0px));
+  }
+}
+
+.tl-menu-handle {
+  cursor: grab;
+  touch-action: none;
+}
+
+/* A small open Bible. Twelve leaves turn one at a time on a 5.4s loop:
+   two quick flips left (0.25s), one slightly slower flip right (0.5s),
+   repeating. The book itself never moves.
+   Opening a chapter keeps the hairline and does not use this. */
+.tl-bible {
+  position: relative;
+  display: inline-block;
+  width: 22px;
+  height: 16px;
+  flex: none;
+  color: inherit;
+  --tl-ink: var(--color-oxblood);
+  --tl-ink-soft: rgba(130, 17, 17, 0.32);
+}
+
+.dark .tl-bible {
+  --tl-ink: #d08a76;
+  --tl-ink-soft: rgba(208, 138, 118, 0.4);
+}
+
+.tl-bible-lg {
+  width: 36px;
+  height: 26px;
+}
+
+.tl-bible-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tl-bible-ink {
+  stroke: var(--tl-ink);
+}
+
+.tl-bible-lines {
+  stroke: var(--tl-ink-soft);
+  backface-visibility: hidden;
+}
+
+.tl-bible-turn,
+.tl-bible-turn-r {
+  transform-box: fill-box;
+}
+
+.tl-bible-turn {
+  transform-origin: left center;
+  animation: tl-bible-flip-fast 5.4s infinite;
+}
+
+.tl-bible-turn-r {
+  transform-origin: right center;
+  animation: tl-bible-flip-slow 5.4s infinite;
+}
+
+@keyframes tl-bible-flip-fast {
+  0% {
+    transform: perspective(240px) rotateY(0deg);
+    opacity: 0;
+  }
+  0.9% {
+    transform: perspective(240px) rotateY(0deg);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  3.22% {
+    transform: perspective(240px) rotateY(-90deg) scale(1.08);
+    filter: brightness(1.06) drop-shadow(-3px 2px 2px rgba(60, 20, 10, 0.2));
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+  5.53% {
+    transform: perspective(240px) rotateY(-180deg) scale(1);
+    filter: brightness(0.98);
+    opacity: 1;
+  }
+  7.4% {
+    transform: perspective(240px) rotateY(-180deg);
+    opacity: 0;
+  }
+  8% {
+    transform: perspective(240px) rotateY(0deg);
+    opacity: 0;
+  }
+  100% {
+    transform: perspective(240px) rotateY(0deg);
+    opacity: 0;
+  }
+}
+
+@keyframes tl-bible-flip-slow {
+  0% {
+    transform: perspective(240px) rotateY(0deg);
+    opacity: 0;
+  }
+  0.9% {
+    transform: perspective(240px) rotateY(0deg);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  5.53% {
+    transform: perspective(240px) rotateY(90deg) scale(1.08);
+    filter: brightness(1.06) drop-shadow(3px 2px 2px rgba(60, 20, 10, 0.2));
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+  10.16% {
+    transform: perspective(240px) rotateY(180deg) scale(1);
+    filter: brightness(0.98);
+    opacity: 1;
+  }
+  12.4% {
+    transform: perspective(240px) rotateY(180deg);
+    opacity: 0;
+  }
+  13% {
+    transform: perspective(240px) rotateY(0deg);
+    opacity: 0;
+  }
+  100% {
+    transform: perspective(240px) rotateY(0deg);
+    opacity: 0;
+  }
+}
+
+/* Translation menu — soft open, rows follow. */
+.tl-tx-pop {
+  transform-origin: top center;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 240ms var(--ease-smooth-out),
+    transform 240ms var(--ease-smooth-out);
+}
+
+.tl-tx-pop[data-open="true"] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 360ms var(--ease-smooth-out),
+    transform 420ms var(--ease-smooth-out);
+}
+
+.tl-tx-pop li {
+  opacity: 1;
+  transform: none;
+}
+
+.tl-tx-pop[data-open="true"] li {
+  animation: tl-tx-row 360ms var(--ease-smooth-out) both;
+}
+
+.tl-tx-pop[data-open="true"] li:nth-child(1) { animation-delay: 30ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(2) { animation-delay: 60ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(3) { animation-delay: 90ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(4) { animation-delay: 120ms; }
+.tl-tx-pop[data-open="true"] li:nth-child(n + 5) { animation-delay: 150ms; }
+
+@keyframes tl-tx-row {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tl-shell button:not(:disabled):not(.tl-dim),
+.tl-drawer button:not(:disabled),
+.tl-sheet-up button:not(:disabled),
+.tl-menu button:not(:disabled),
+.tl-sheet button:not(:disabled) {
+  transition:
+    transform 360ms var(--ease-smooth-out),
+    background-color 280ms var(--ease-smooth-out),
+    color 280ms var(--ease-smooth-out),
+    border-color 280ms var(--ease-smooth-out),
+    box-shadow 360ms var(--ease-smooth-out);
+}
+
+.tl-shell button:not(:disabled):not(.tl-dim):active,
+.tl-drawer button:not(:disabled):active,
+.tl-sheet-up button:not(:disabled):active,
+.tl-menu button:not(:disabled):active,
+.tl-sheet button:not(:disabled):active {
+  transform: scale(0.985);
+  transition-duration: 80ms;
 }
 
 .tl-pill-ink {
@@ -801,8 +1095,8 @@ html[data-phone="large"] {
 
 .tl-pill-ink[data-ready="true"] {
   transition:
-    transform var(--motion-fast) var(--ease-smooth-out),
-    width var(--motion-fast) var(--ease-smooth-out);
+    transform 420ms var(--ease-smooth-out),
+    width 420ms var(--ease-smooth-out);
 }
 
 .tl-seg-ink {
@@ -817,8 +1111,12 @@ html[data-phone="large"] {
 
 .tl-seg-ink[data-ready="true"] {
   transition:
-    transform var(--motion-fast) var(--ease-smooth-out),
-    width var(--motion-fast) var(--ease-smooth-out);
+    transform 420ms var(--ease-smooth-out),
+    width 420ms var(--ease-smooth-out);
+}
+
+.tl-seg-ink[data-liquid="true"] {
+  background: transparent;
 }
 
 .tl-pane-track {
@@ -828,7 +1126,7 @@ html[data-phone="large"] {
 }
 
 .tl-pane-track[data-motion="true"] {
-  transition: transform var(--motion-fast) var(--ease-smooth-out);
+  transition: transform 420ms var(--ease-smooth-out);
 }
 
 .tl-pane {
@@ -1114,22 +1412,55 @@ html[data-phone="large"] {
 }
 
 .tl-scroll::-webkit-scrollbar {
-  width: 6px;
+  width: 10px;
 }
 
 .tl-scroll::-webkit-scrollbar-thumb {
-  background: var(--color-faint);
-  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-faint) 75%, transparent);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
+}
+
+@media (hover: hover) {
+  .tl-scroll {
+    scrollbar-color: transparent transparent;
+  }
+  .tl-scroll:hover {
+    scrollbar-color: color-mix(in oklab, var(--color-faint) 75%, transparent)
+      transparent;
+  }
+}
+
+.tl-note-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-oxblood);
+  box-shadow: 0 0 0 1.5px var(--color-paper);
+  pointer-events: none;
 }
 
 .tl-progress {
-  width: 40%;
-  animation: tl-progress 1.1s var(--ease-smooth-out) infinite;
+  width: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--color-oxblood), var(--color-lamp));
+  animation: tl-kindle-bar 2.4s var(--ease-smooth-out) infinite;
 }
 
-@keyframes tl-progress {
-  0% { transform: translateX(-120%); }
-  100% { transform: translateX(280%); }
+@keyframes tl-kindle-bar {
+  0% {
+    transform: scaleX(0.08);
+    opacity: 0.35;
+  }
+  62% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
 }
 
 .tl-chapter {
@@ -1606,6 +1937,8 @@ html[data-phone="large"] {
   .tl-drawer,
   .tl-menu,
   .tl-dialog,
+  .tl-tx-pop,
+  .tl-card-open,
   .tl-title-swap,
   .tl-lamp-rule,
   .tl-lamp-warm,
@@ -1615,6 +1948,18 @@ html[data-phone="large"] {
   .tl-skeleton,
   .tl-pane[data-enter="true"] .tl-canon-section {
     animation: none;
+  }
+
+  .tl-drawer-settle,
+  .tl-sources-settle,
+  .tl-tx-pop,
+  .tl-card-open,
+  .tl-press:active,
+  .tl-bible-turn,
+  .tl-bible-turn-r {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   /* Sheet system: fade only ≤150ms, no slide (Design motion brief) */
@@ -1677,27 +2022,41 @@ html[data-phone="large"] {
 /* 1. Lamp strike — the verse-illuminated sense: a gold rule draws
    left→right and the sense line warms from gold, then settles to ink. */
 @keyframes tl-lamp-strike {
-  from {
+  0% {
     transform: scaleX(0);
     opacity: 0;
   }
-  to {
+  35% {
+    opacity: 1;
+  }
+  100% {
     transform: scaleX(1);
     opacity: 1;
   }
 }
 
 .tl-lamp-rule {
-  height: 2px;
+  height: 4px;
   border-radius: 2px;
   margin-top: 0.625rem;
   background: linear-gradient(
     to right,
     var(--color-gold),
-    color-mix(in oklab, var(--color-gold) 45%, transparent)
+    color-mix(in oklab, var(--color-oxblood) 55%, var(--color-gold))
   );
   transform-origin: left center;
-  animation: tl-lamp-strike 450ms var(--ease-out);
+  animation: tl-lamp-strike 700ms var(--ease-out) both;
+}
+
+.tl-lamp-rule::after {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: 4px;
+  background: var(--color-oxblood);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: tl-lamp-strike 420ms var(--ease-out) 160ms both;
 }
 
 @keyframes tl-lamp-warm {
@@ -1716,7 +2075,24 @@ html[data-phone="large"] {
 
 .tl-lamp-warm {
   border-radius: 4px;
-  animation: tl-lamp-warm 800ms var(--ease-out);
+  animation: tl-lamp-warm 1200ms var(--ease-out) both;
+}
+
+/* Every lexicon card, matched or not. The lamp strike stays the special signal. */
+@keyframes tl-card-open {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tl-card-open {
+  animation: tl-card-open 560ms var(--ease-smooth-out) both;
+  transform-origin: top center;
 }
 
 /* 2. Card unfold — disclosures breathe open (same motion language as
@@ -1788,8 +2164,8 @@ html[data-phone="large"] {
 
 /* 4. Tap attack — the press lands fast and visibly, releases slow. */
 .tl-verse:active {
-  transition-duration: var(--motion-quick);
-  background-color: color-mix(in oklab, var(--color-lamp) 12%, transparent);
+  transition-duration: 70ms;
+  background-color: color-mix(in oklab, var(--color-lamp) 28%, transparent);
 }
 
 /* 5. Skeleton sheen — a slow light pass over the existing lamp-tinted
@@ -1806,13 +2182,13 @@ html[data-phone="large"] {
 .tl-skeleton {
   background-image: linear-gradient(
     100deg,
-    transparent 35%,
-    color-mix(in oklab, var(--color-paper) 78%, transparent) 50%,
-    transparent 65%
+    transparent 38%,
+    color-mix(in oklab, var(--color-lamp) 42%, transparent) 50%,
+    transparent 62%
   );
-  background-size: 200% 100%;
+  background-size: 220% 100%;
   background-repeat: no-repeat;
-  animation: tl-shimmer 1100ms linear infinite;
+  animation: tl-shimmer 2.6s var(--ease-smooth-out) infinite;
 }
 
 /* 6. Route crossfade — replays when the route component remounts
@@ -1829,7 +2205,7 @@ html[data-phone="large"] {
 }
 
 .tl-view {
-  animation: tl-view-in 280ms var(--ease-out);
+  animation: tl-view-in 460ms var(--ease-smooth-out);
 }
 
 /* 7. Search settle — quick-jump hits cascade in (delay set inline). */
@@ -1845,14 +2221,14 @@ html[data-phone="large"] {
 }
 
 .tl-hit {
-  animation: tl-hit-in var(--motion-fast) var(--ease-smooth-out) both;
+  animation: tl-hit-in 420ms var(--ease-smooth-out) both;
 }
 
 /* Quick-jump dialog — one clear entrance, one graceful exit. */
 @keyframes tl-dialog-in {
   from {
     opacity: 0;
-    transform: translateY(14px) scale(0.98);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -1872,7 +2248,7 @@ html[data-phone="large"] {
 }
 
 .tl-dialog {
-  animation: tl-dialog-in 260ms var(--ease-out);
+  animation: tl-dialog-in 420ms var(--ease-smooth-out);
 }
 
 .tl-dialog[data-closing="true"] {

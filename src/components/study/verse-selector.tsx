@@ -70,8 +70,8 @@ export function VerseSelector({
         )}
       >
         {n}
-        {noted.has(n) && !on ? (
-          <span className="absolute top-1.5 right-1.5 size-1 rounded-full bg-oxblood" />
+        {noted.has(n) ? (
+          <span className="tl-note-dot absolute top-1.5 right-1.5" />
         ) : null}
       </button>
     );

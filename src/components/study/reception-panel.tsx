@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BookMarked, ChevronDown, ChevronUp, Highlighter, Loader2, Maximize2, Minimize2, PanelRight, PanelRightClose, RotateCcw, Send, Trash2, X } from "lucide-react";
+import { BookMarked, ChevronDown, ChevronUp, Highlighter, Maximize2, Minimize2, PanelRight, PanelRightClose, RotateCcw, Send, Trash2, X } from "lucide-react";
 import {
   askReception,
   gatherCommentaries,
@@ -63,6 +63,7 @@ import { SpanishGlossCard } from "./spanish-gloss-card";
 import { EnglishGlossCard } from "./english-gloss-card";
 import { HebrewBdbCard } from "./hebrew-bdb-card";
 import { SpanishHebrewCard } from "./spanish-hebrew-card";
+import { ThinkingMark, LampMark } from "./thinking-mark";
 
 const STOP = new Set([
   "the", "and", "of", "to", "a", "in", "that", "is", "was", "he", "for", "it",
@@ -134,6 +135,7 @@ export function ReceptionPanel({
   const clearSelection = useStudy((s) => s.clearSelection);
   const locale = useStudy((s) => s.locale);
   const [question, setQuestion] = useState("");
+  const [lexGen, setLexGen] = useState(0);
   const [selectedTradition, setSelectedTradition] = useState<Tradition | "all">("all");
   const [showAll, setShowAll] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -650,8 +652,13 @@ export function ReceptionPanel({
     void runSynthesis(question);
   }
 
+  function openLex() {
+    setLexGen((n) => n + 1);
+  }
+
   function runLexicon(word: string) {
     setError(null);
+    openLex();
     if (locale === "es") {
       setLexicon(null);
       setEnglishLexicon(null);
@@ -699,6 +706,7 @@ export function ReceptionPanel({
 
   function runSpanishStrong(strongs: string) {
     setError(null);
+    openLex();
     setLexicon(null);
     setEnglishLexicon(null);
     setHebrewBdb(null);
@@ -708,6 +716,7 @@ export function ReceptionPanel({
 
   function runEnglishStrong(strongs: string) {
     setError(null);
+    openLex();
     setLexicon(null);
     setSpanishLexicon(null);
     setHebrewBdb(null);
@@ -717,6 +726,7 @@ export function ReceptionPanel({
 
   function runHebrewBdbStrong(strongs: string) {
     setError(null);
+    openLex();
     setLexicon(null);
     setSpanishLexicon(null);
     setEnglishLexicon(null);
@@ -726,6 +736,7 @@ export function ReceptionPanel({
 
   function runSpanishHebrewStrong(strongs: string) {
     setError(null);
+    openLex();
     setLexicon(null);
     setSpanishLexicon(null);
     setEnglishLexicon(null);
@@ -1107,7 +1118,7 @@ export function ReceptionPanel({
                       type="button"
                       onClick={() => runLexicon(w)}
                       className={cn(
-                        "rounded-full border px-3 py-1.5 text-sm",
+                        "tl-press rounded-full border px-3 py-1.5 text-sm",
                         lexicon?.word.toLowerCase() === w.toLowerCase() ||
                           spanishLexicon?.word.toLowerCase() ===
                             w.toLowerCase() ||
@@ -1129,8 +1140,8 @@ export function ReceptionPanel({
 
             {locale === "es" && spanishHebrew ? (
               <div
-                key={`${spanishHebrew.strongs}:${spanishHebrew.hero}`}
-                className="tl-gloss-crossfade"
+                key={`${lexGen}:${spanishHebrew.strongs}:${spanishHebrew.hero}`}
+                className="tl-card-open"
               >
                 <SpanishHebrewCard
                   entry={spanishHebrew}
@@ -1142,8 +1153,8 @@ export function ReceptionPanel({
 
             {locale === "es" && spanishLexicon ? (
               <div
-                key={`${spanishLexicon.strongs}:${spanishLexicon.entryCode}:${spanishLexicon.gloss}`}
-                className="tl-gloss-crossfade"
+                key={`${lexGen}:${spanishLexicon.strongs}:${spanishLexicon.entryCode}:${spanishLexicon.gloss}`}
+                className="tl-card-open"
               >
                 <SpanishGlossCard
                   entry={spanishLexicon}
@@ -1154,8 +1165,8 @@ export function ReceptionPanel({
 
             {locale === "en" && englishLexicon ? (
               <div
-                key={`${englishLexicon.strongs}:${englishLexicon.entryCode}:${englishLexicon.gloss}`}
-                className="tl-gloss-crossfade"
+                key={`${lexGen}:${englishLexicon.strongs}:${englishLexicon.entryCode}:${englishLexicon.gloss}`}
+                className="tl-card-open"
               >
                 <EnglishGlossCard
                   entry={englishLexicon}
@@ -1166,8 +1177,8 @@ export function ReceptionPanel({
 
             {locale !== "es" && hebrewBdb ? (
               <div
-                key={`${hebrewBdb.strongs}:${hebrewBdb.gloss}`}
-                className="tl-gloss-crossfade"
+                key={`${lexGen}:${hebrewBdb.strongs}:${hebrewBdb.gloss}`}
+                className="tl-card-open"
               >
                 <HebrewBdbCard
                   entry={hebrewBdb}
@@ -1177,7 +1188,10 @@ export function ReceptionPanel({
             ) : null}
 
             {locale === "en" && !englishLexicon && !hebrewBdb && lexicon ? (
-              <article className="mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft">
+              <article
+                key={lexGen}
+                className="tl-card-open mb-5 rounded-lg border border-rule bg-surface p-4 shadow-soft"
+              >
                 <p className="text-2xs font-semibold tracking-[0.14em] text-faint uppercase">
                   {[lexicon.language, lexicon.strongs]
                     .filter(Boolean)
@@ -1229,7 +1243,11 @@ export function ReceptionPanel({
                   aria-label={t(locale, "inquire")}
                   className="flex size-11 shrink-0 items-center justify-center rounded-md bg-oxblood text-oxblood-fg disabled:opacity-50"
                 >
-                  <Send size={16} />
+                  {loading && loadingKind === "question" ? (
+                    <LampMark state="composing" className="tl-bible-on-oxblood" />
+                  ) : (
+                    <Send size={16} />
+                  )}
                 </button>
               </div>
             </form>
@@ -1246,10 +1264,12 @@ export function ReceptionPanel({
               <div className="tl-unfold-body">
                 <div className="tl-unfold-item">
                   {loading && loadingKind === "question" ? (
-                    <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
-                      <Loader2 size={14} className="animate-spin text-lamp" />
-                      {t(locale, "synthesizing")}
-                    </p>
+                    <ThinkingMark
+                      active
+                      state="composing"
+                      label={t(locale, "synthesizing")}
+                      className="mb-4"
+                    />
                   ) : null}
                   {qaError && !(loading && loadingKind === "question") ? (
                     <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">
@@ -1392,10 +1412,12 @@ export function ReceptionPanel({
                 </div>
                 {/* Subtle line while the silent preload may still add cards. */}
                 {gatherState === "loading" && visibleCards.length <= 3 ? (
-                  <p className="mt-3 flex items-center gap-2 font-serif text-sm text-muted italic">
-                    <Loader2 size={14} className="animate-spin text-lamp" />
-                    {t(locale, "consulting")}
-                  </p>
+                  <ThinkingMark
+                    active
+                    state="searching"
+                    label={t(locale, "consulting")}
+                    className="mt-3"
+                  />
                 ) : null}
 
               {/* More commentaries (left) + Summary (right). */}
@@ -1405,7 +1427,7 @@ export function ReceptionPanel({
                     type="button"
                     onClick={handleMore}
                     disabled={loading}
-                    className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-md border border-rule bg-surface px-4 text-xs font-semibold tracking-wide text-ink uppercase disabled:opacity-60"
+                  className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-md border border-rule bg-surface px-4 text-xs font-semibold tracking-wide text-ink uppercase disabled:opacity-60"
                   >
                     {loadingKind === "commentaries"
                       ? t(locale, "consultingShort")
@@ -1425,7 +1447,7 @@ export function ReceptionPanel({
                   type="button"
                   onClick={handleSummary}
                   disabled={loading}
-                  className="min-h-11 flex-1 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
+                  className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
                 >
                   {loadingKind === "summary"
                     ? t(locale, "consultingShort")
@@ -1438,10 +1460,12 @@ export function ReceptionPanel({
                 <div className="tl-unfold-body">
                   <div className="tl-unfold-item">
                     {loading && loadingKind === "summary" ? (
-                      <p className="mb-4 flex items-center gap-2 font-serif text-sm text-muted italic">
-                        <Loader2 size={14} className="animate-spin text-lamp" />
-                        {t(locale, "synthesizing")}
-                      </p>
+                      <ThinkingMark
+                        active
+                        state="composing"
+                        label={t(locale, "synthesizing")}
+                        className="mb-4"
+                      />
                     ) : null}
                     {error && loadingKind !== "commentaries" ? (
                       <p className="mb-4 rounded-md border border-oxblood/30 bg-oxblood-soft px-3 py-2 text-sm text-oxblood">

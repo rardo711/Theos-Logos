@@ -268,13 +268,13 @@ export function Reader({
                 <h1 className="font-display mt-2 text-[2rem] leading-none font-semibold tracking-tight text-ink sm:text-5xl">
                   {chapter.bookName}
                 </h1>
-                <p className="tl-folio-ch mt-1.5 text-xs tracking-[0.18em] text-faint uppercase">
+                <p className="tl-folio-ch mt-2 text-xs tracking-[0.22em] text-faint uppercase">
                   {t(locale, "chapter", { n: chapter.chapter })}
                 </p>
-                <div className="mt-5 flex items-center justify-center gap-2">
-                  <span className="h-px w-10 bg-rule" />
-                  <span className="size-1.5 rounded-full bg-lamp/70" />
-                  <span className="h-px w-10 bg-rule" />
+                <div className="mt-6 flex items-center justify-center gap-3" aria-hidden>
+                  <span className="h-px w-8 bg-rule" />
+                  <span className="size-1 rounded-full bg-lamp/80" />
+                  <span className="h-px w-8 bg-rule" />
                 </div>
               </header>
 

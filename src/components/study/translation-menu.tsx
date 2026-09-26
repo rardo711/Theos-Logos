@@ -29,15 +29,24 @@ export function TranslationMenu() {
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rootRef = useRef<HTMLSpanElement>(null);
 
+  const openGen = useRef(0);
+
   const show = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
+    const gen = ++openGen.current;
     setRendered(true);
-    setOpen(true);
+    setOpen(false);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (openGen.current === gen) setOpen(true);
+      });
+    });
   };
   const hide = () => {
+    openGen.current += 1;
     setOpen(false);
     if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setRendered(false), 160);
+    closeTimer.current = setTimeout(() => setRendered(false), 280);
   };
 
   useEffect(() => {
@@ -74,7 +83,7 @@ export function TranslationMenu() {
         aria-expanded={open}
         aria-label={t(locale, "translation")}
         title={active.name}
-        className="tl-folio-kicker inline-flex cursor-pointer items-center gap-1 rounded-full border border-lamp/70 px-3 py-1 text-2xs font-semibold tracking-[0.22em] text-muted uppercase transition-colors duration-150 hover:border-lamp hover:text-ink"
+        className="tl-press tl-folio-kicker inline-flex cursor-pointer items-center gap-1 rounded-full border border-lamp/70 px-3 py-1 text-2xs font-semibold tracking-[0.22em] text-muted uppercase hover:border-lamp hover:text-ink"
       >
         {active.short}
         <ChevronDown
