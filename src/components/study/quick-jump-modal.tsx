@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowRight, BookOpen, Loader2, ScrollText, Search, X } from "lucide-react";
+import { ArrowRight, BookOpen, ScrollText, Search, X } from "lucide-react";
 import { parseReference, bookName, getBook } from "@/lib/bible/books";
 import { searchScripture } from "@/lib/bible/find";
 import type { ScriptureHit } from "@/lib/bible/search";
@@ -7,6 +7,7 @@ import { useStudy } from "@/lib/study-store";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { formatReference } from "@/lib/bible/reference";
+import { LampMark } from "./thinking-mark";
 
 function highlightMatch(text: string, query: string) {
   const q = query.trim();
@@ -186,9 +187,10 @@ export function QuickJumpModal() {
     }
   }
 
-  const parsedLabel = parsed
-    ? formatReference(bookName(parsed.book, locale), parsed.chapter, parsed.verse)
-    : null;
+  const parsedLabel =
+    parsed && parsed.chapter != null
+      ? formatReference(bookName(parsed.book, locale), parsed.chapter, parsed.verse)
+      : null;
 
   return (
     <div
@@ -229,7 +231,7 @@ export function QuickJumpModal() {
             className="flex-1 bg-transparent text-base text-ink outline-none placeholder:text-faint font-sans"
           />
           {loadingHits ? (
-            <Loader2 size={16} className="animate-spin text-lamp shrink-0 ml-2" />
+            <LampMark className="ml-2 shrink-0" />
           ) : query ? (
             <button
               type="button"

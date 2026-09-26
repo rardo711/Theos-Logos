@@ -108,7 +108,7 @@ export function SourcesPage({
       />
 
       {/* Main Page Header */}
-      <header className="shrink-0 border-b border-rule bg-surface px-4 pt-[max(0.75rem,var(--safe-top),var(--safe-top-min,0px))] pb-3 shadow-xs">
+      <header className="tl-sources-settle shrink-0 border-b border-rule bg-surface px-4 pt-[max(0.75rem,var(--safe-top),var(--safe-top-min,0px))] pb-3 shadow-xs">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <button
@@ -252,7 +252,7 @@ export function SourcesPage({
       </header>
 
       {/* Main Scrollable Content */}
-      <main className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 lg:p-8">
+      <main className="tl-sources-settle flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-5xl">
           {displayedGroups.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">

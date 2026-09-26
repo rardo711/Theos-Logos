@@ -73,7 +73,7 @@ export function SourceCard({
           {decodeHtmlEntities(shown.contextBridge)}
         </p>
       ) : null}
-      <blockquote className="min-w-0 break-words border-l border-oxblood py-0.5 pr-1 pl-3 font-serif text-base leading-relaxed text-ink italic [overflow-wrap:anywhere] [word-break:break-word]">
+      <blockquote className="tl-quote min-w-0 break-words border-l border-oxblood py-0.5 pr-1 pl-3 font-serif text-base leading-relaxed text-ink italic [overflow-wrap:anywhere] [word-break:break-word]">
         “{decodeHtmlEntities(shown.quote)}”
       </blockquote>
       {shown.note && shown.note !== shown.contextBridge ? (
