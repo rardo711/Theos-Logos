@@ -3,10 +3,24 @@ import { cn } from "@/lib/utils";
 
 type LampWait = "composing" | "searching" | "breathing";
 
-/**
- * The small lamp, for a search or a chapter that is still arriving.
- * The long-answer mark waits before it shows; this one does not.
- */
+function Bible({
+  state,
+  className,
+}: {
+  state: LampWait;
+  className?: string;
+}) {
+  return (
+    <span className={cn("tl-bible", `tl-bible-${state}`, className)} aria-hidden="true">
+      <span className="tl-bible-board" />
+      <span className="tl-bible-sheet" />
+      <span className="tl-bible-leaf" />
+      <span className="tl-bible-leaf tl-bible-leaf-2" />
+    </span>
+  );
+}
+
+/** Small Bible for a search or a written answer. Chapter opening does not use this. */
 export function LampMark({
   state = "searching",
   className,
@@ -14,20 +28,12 @@ export function LampMark({
   state?: LampWait;
   className?: string;
 }) {
-  return (
-    <span className={cn("tl-lamp-wait", `tl-lamp-wait-${state}`, className)} aria-hidden="true">
-      <i />
-      <i />
-      <i />
-    </span>
-  );
+  return <Bible state={state} className={className} />;
 }
 
 /**
- * Desk lamp while a long answer is written. Not a generic orb:
- * composing breathes three wicks, searching draws a gold rule,
- * breathing is one slow flame. Stays hidden for the first moment
- * so a cached answer never flashes.
+ * The Bible while a long answer is written. Stays hidden for the first
+ * moment so a cached answer never flashes.
  */
 export function ThinkingMark({
   active,
@@ -59,13 +65,7 @@ export function ThinkingMark({
       )}
       role="status"
     >
-      {show ? (
-        <span className={cn("tl-lamp-wait", `tl-lamp-wait-${state}`)} aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </span>
-      ) : null}
+      {show ? <Bible state={state} className="tl-bible-lg" /> : null}
       {label}
     </p>
   );
