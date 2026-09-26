@@ -1,8 +1,19 @@
 import type { Locale } from "./books.ts";
 import { ESV_NAME, ESV_NOTE } from "./esv.ts";
+import {
+  NASB_BIBLE_ID,
+  NASB_NAME,
+  NASB_NOTE,
+  NBLA_BIBLE_ID,
+  NBLA_NAME,
+  NBLA_NOTE,
+  NKJV_BIBLE_ID,
+  NKJV_NAME,
+  NKJV_NOTE,
+} from "./api-bible.ts";
 
-export type EnTranslationId = "esv" | "kjv" | "asv" | "web";
-export type EsTranslationId = "rv1909";
+export type EnTranslationId = "esv" | "kjv" | "asv" | "web" | "nkjv" | "nasb";
+export type EsTranslationId = "rv1909" | "nbla";
 export type TranslationId = EnTranslationId | EsTranslationId;
 
 export interface TranslationInfo {
@@ -16,6 +27,8 @@ export interface TranslationInfo {
   locale: Locale;
   /** bolls.life slug when the text comes from the bolls pipe. */
   bollsSlug?: string;
+  /** API.Bible bibleId when the text is fetched on demand (copyrighted). */
+  apiBibleId?: string;
 }
 
 export const EN_TRANSLATIONS: TranslationInfo[] = [
@@ -43,6 +56,22 @@ export const EN_TRANSLATIONS: TranslationInfo[] = [
     note: "World English Bible. Public domain.",
     locale: "en",
   },
+  {
+    id: "nkjv",
+    short: "NKJV",
+    name: NKJV_NAME,
+    note: NKJV_NOTE,
+    locale: "en",
+    apiBibleId: NKJV_BIBLE_ID,
+  },
+  {
+    id: "nasb",
+    short: "NASB",
+    name: NASB_NAME,
+    note: NASB_NOTE,
+    locale: "en",
+    apiBibleId: NASB_BIBLE_ID,
+  },
 ];
 
 export const ES_TRANSLATIONS: TranslationInfo[] = [
@@ -52,6 +81,14 @@ export const ES_TRANSLATIONS: TranslationInfo[] = [
     name: "Reina Valera 1909",
     note: "Reina Valera 1909. Public domain.",
     locale: "es",
+  },
+  {
+    id: "nbla",
+    short: "NBLA",
+    name: NBLA_NAME,
+    note: NBLA_NOTE,
+    locale: "es",
+    apiBibleId: NBLA_BIBLE_ID,
   },
 ];
 

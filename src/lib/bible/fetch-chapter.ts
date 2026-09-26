@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getBook, type Locale } from "./books";
+import { fetchApiBibleChapter } from "./api-bible";
 import { fetchBollsChapter } from "./bolls";
 import { fetchEsvChapter } from "./esv";
 import { fetchRv1909Chapter } from "./rv1909";
@@ -88,6 +89,20 @@ export const fetchChapter = createServerFn({ method: "POST" })
 
     if (locale === "es") {
       const id = info.id as EsTranslationId;
+      if (info.apiBibleId) {
+        try {
+          const ch = await fetchApiBibleChapter(
+            info.apiBibleId,
+            book,
+            chapter,
+            info.name,
+            info.note,
+          );
+          if (ch) return attachNtHeadings(ch, locale);
+        } catch {
+          // fall through to the error below
+        }
+      }
       if (id === "rv1909") {
         try {
           const ch = await fetchRv1909Chapter(
@@ -112,6 +127,21 @@ export const fetchChapter = createServerFn({ method: "POST" })
         if (esv) return attachNtHeadings(esv, locale);
       } catch {
         // ESV is optional; fall through to the selected fallback.
+      }
+    }
+
+    if (info.apiBibleId) {
+      try {
+        const ch = await fetchApiBibleChapter(
+          info.apiBibleId,
+          book,
+          chapter,
+          info.name,
+          info.note,
+        );
+        if (ch) return attachNtHeadings(ch, locale);
+      } catch {
+        // API translations are optional; fall through to bollsSlug / WEB.
       }
     }
 
