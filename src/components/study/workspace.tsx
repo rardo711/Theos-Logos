@@ -7,7 +7,7 @@ import { translationInfo } from "@/lib/bible/translations";
 import type { Locale } from "@/lib/bible/books";
 import { initPwa, isStandalone, lockSafeTop } from "@/lib/pwa";
 import { t } from "@/lib/i18n";
-import { SHEET_SPRING, springTo } from "@/lib/spring";
+import { coastTarget, glideTo } from "@/lib/spring";
 import { useStudy } from "@/lib/study-store";
 import { isOnboardingComplete } from "@/lib/onboarding";
 import { LibraryDrawer } from "./library-drawer";
@@ -357,6 +357,7 @@ export function StudyWorkspace() {
     let lastT = 0;
     let velocity = 0;
     let moved = 0;
+    const trail: { y: number; t: number }[] = [];
 
     const readY = () => {
       const t = getComputedStyle(el).transform;
@@ -378,63 +379,33 @@ export function StudyWorkspace() {
 
     const finishAt = (y: number, v: number) => {
       const stops = stopsRef.current;
-      const projected = y + v * 0.07;
-      const pastPeek = projected > stops.peek + (stops.hidden - stops.peek) * 0.45;
-      const flickDown = v > 900 && projected > stops.peek - 24;
-      if (pastPeek || flickDown) {
-        settleMode.current = "hidden";
-        springDone.current = false;
-        sheetSpring.current = springTo({
-          from: y,
-          velocity: v,
-          to: stops.hidden,
-          spring: SHEET_SPRING,
-          onUpdate: writeY,
-          onRest: () => {
-            springDone.current = true;
-            dragYRef.current = stops.hidden;
-            gestureRef.current = false;
-            setSheetEpoch((n) => n + 1);
-            clearSelection();
-          },
-        });
-        return;
-      }
-      const choices = [
-        { mode: "full" as const, y: stops.full, go: () => setReceptionFull(true) },
-        {
-          mode: "mid" as const,
-          y: stops.mid,
-          go: () => {
-            setReceptionFull(false);
-            setReceptionOpen(true);
-          },
-        },
-        {
-          mode: "peek" as const,
-          y: stops.peek,
-          go: () => {
-            setReceptionFull(false);
-            setReceptionOpen(false);
-          },
-        },
-      ];
-      let best = choices[0];
-      for (const choice of choices) {
-        if (Math.abs(choice.y - projected) < Math.abs(best.y - projected)) best = choice;
-      }
-      best.go();
-      settleMode.current = best.mode;
+      const mode = coastTarget(y, v, stops);
+      const to = stops[mode];
+      const go = () => {
+        if (mode === "full") setReceptionFull(true);
+        else if (mode === "mid") {
+          setReceptionFull(false);
+          setReceptionOpen(true);
+        } else if (mode === "peek") {
+          setReceptionFull(false);
+          setReceptionOpen(false);
+        }
+      };
+      settleMode.current = mode;
       springDone.current = false;
-      sheetSpring.current = springTo({
+      go();
+      sheetSpring.current = glideTo({
         from: y,
         velocity: v,
-        to: best.y,
-        spring: SHEET_SPRING,
+        to,
         onUpdate: writeY,
         onRest: () => {
           springDone.current = true;
           gestureRef.current = false;
+          if (mode === "hidden") {
+            dragYRef.current = to;
+            clearSelection();
+          }
           setSheetEpoch((n) => n + 1);
         },
       });
@@ -455,6 +426,8 @@ export function StudyWorkspace() {
       startTouch = e.clientY;
       origin = visual;
       writeY(visual);
+      trail.length = 0;
+      trail.push({ y: e.clientY, t: performance.now() });
       lastY = e.clientY;
       lastT = performance.now();
       velocity = 0;
@@ -468,6 +441,9 @@ export function StudyWorkspace() {
       velocity = ((e.clientY - lastY) / dt) * 1000;
       lastY = e.clientY;
       lastT = now;
+      const cutoff = now - 100;
+      trail.push({ y: e.clientY, t: now });
+      while (trail.length > 1 && trail[0].t < cutoff) trail.shift();
       const delta = e.clientY - startTouch;
       moved = Math.max(moved, Math.abs(delta));
       if (el.dataset.dragging !== "true") el.dataset.dragging = "true";
@@ -485,7 +461,14 @@ export function StudyWorkspace() {
         el.dataset.dragging = "false";
         return;
       }
-      finishAt(dragYRef.current ?? origin, velocity);
+      let releaseV = velocity;
+      if (trail.length >= 2) {
+        const a = trail[0];
+        const b = trail[trail.length - 1];
+        const dt = Math.max(16, b.t - a.t);
+        releaseV = ((b.y - a.y) / dt) * 1000;
+      }
+      finishAt(dragYRef.current ?? origin, releaseV);
     };
 
     const onClick = (e: MouseEvent) => {
