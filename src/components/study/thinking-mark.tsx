@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type LampWait = "composing" | "searching" | "breathing";
@@ -12,10 +11,19 @@ function Bible({
 }) {
   return (
     <span className={cn("tl-bible", `tl-bible-${state}`, className)} aria-hidden="true">
-      <span className="tl-bible-board" />
-      <span className="tl-bible-sheet" />
-      <span className="tl-bible-leaf" />
-      <span className="tl-bible-leaf tl-bible-leaf-2" />
+      <span className="tl-bible-stage">
+        <span className="tl-bible-board" />
+        <span className="tl-bible-sheet" />
+        <span className="tl-bible-gilt" />
+        <span className="tl-bible-leaf">
+          <span className="tl-bible-face" />
+          <span className="tl-bible-face tl-bible-face-back" />
+        </span>
+        <span className="tl-bible-leaf tl-bible-leaf-2">
+          <span className="tl-bible-face" />
+          <span className="tl-bible-face tl-bible-face-back" />
+        </span>
+      </span>
     </span>
   );
 }
@@ -46,16 +54,7 @@ export function ThinkingMark({
   label: string;
   className?: string;
 }) {
-  const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    if (!active) {
-      setShow(false);
-      return;
-    }
-    const timer = window.setTimeout(() => setShow(true), 800);
-    return () => window.clearTimeout(timer);
-  }, [active]);
+  if (!active) return null;
 
   return (
     <p
@@ -65,7 +64,7 @@ export function ThinkingMark({
       )}
       role="status"
     >
-      {show ? <Bible state={state} className="tl-bible-lg" /> : null}
+      <Bible state={state} className="tl-bible-lg" />
       {label}
     </p>
   );

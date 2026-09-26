@@ -107,7 +107,7 @@ export function StudyWorkspace() {
     "hidden" | "peek" | "mid" | "full"
   >("hidden");
   const [sheetDrag, setSheetDrag] = useState(0);
-  const [sheetDragging, setSheetDragging] = useState(false);
+  const [sheetEpoch, setSheetEpoch] = useState(0);
   const sheetSpring = useRef<(() => void) | null>(null);
   // xl side desk: keep mounted through exit slide (BUG-10)
   const [deskShown, setDeskShown] = useState(false);
@@ -189,7 +189,7 @@ export function StudyWorkspace() {
   useEffect(() => {
     if (!sheetShown) {
       setSheetDrag(0);
-      setSheetDragging(false);
+      gestureRef.current = false;
     }
   }, [sheetShown]);
 
@@ -287,10 +287,45 @@ export function StudyWorkspace() {
   const dragYRef = useRef<number | null>(null);
   const settleMode = useRef<"peek" | "mid" | "full" | "hidden" | null>(null);
   const springDone = useRef(false);
+  const gestureRef = useRef(false);
+  const stopsRef = useRef({ full: 0, mid: 0, peek: 0, hidden: 0 });
+
+  useEffect(() => {
+    const el = sheetRef.current;
+    if (!el || !sheetShown) return;
+    const readStops = () => {
+      if (gestureRef.current) return;
+      const h = el.getBoundingClientRect().height;
+      const peekVar = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue("--sheet-peek"),
+      );
+      const peek = Number.isFinite(peekVar) ? peekVar : 92;
+      const rootFont = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const mid = Math.min(window.innerHeight * 0.48, 28 * rootFont);
+      stopsRef.current = {
+        full: 0,
+        mid: Math.max(0, h - mid),
+        peek: Math.max(0, h - peek),
+        hidden: h,
+      };
+    };
+    readStops();
+    const ro = new ResizeObserver(readStops);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [sheetShown]);
 
   useLayoutEffect(() => {
+    void sheetEpoch;
     const el = sheetRef.current;
     if (!el) return;
+    if (gestureRef.current) {
+      el.dataset.dragging = "true";
+      if (dragYRef.current != null) {
+        el.style.setProperty("--sheet-y", `${dragYRef.current}px`);
+      }
+      return;
+    }
     if (
       springDone.current &&
       settleMode.current &&
@@ -299,10 +334,12 @@ export function StudyWorkspace() {
       springDone.current = false;
       settleMode.current = null;
       dragYRef.current = null;
+      el.dataset.dragging = "false";
       el.style.removeProperty("--sheet-y");
       return;
     }
-    if (dragYRef.current != null) {
+    if (dragYRef.current != null && settleMode.current) {
+      el.dataset.dragging = "true";
       el.style.setProperty("--sheet-y", `${dragYRef.current}px`);
     }
   });
@@ -320,7 +357,6 @@ export function StudyWorkspace() {
     let lastT = 0;
     let velocity = 0;
     let moved = 0;
-    const stops = { full: 0, mid: 0, peek: 0, hidden: 0 };
 
     const readY = () => {
       const t = getComputedStyle(el).transform;
@@ -328,21 +364,11 @@ export function StudyWorkspace() {
       return new DOMMatrixReadOnly(t).m42;
     };
 
-    const measureStops = () => {
-      const held = el.style.getPropertyValue("--sheet-y");
-      const wasDragging = el.dataset.dragging;
-      el.dataset.dragging = "false";
-      el.style.setProperty("transition", "none");
-      el.style.removeProperty("--sheet-y");
-      const prev = el.getAttribute("data-state");
-      for (const mode of ["full", "mid", "peek", "hidden"] as const) {
-        el.setAttribute("data-state", mode);
-        stops[mode] = readY();
-      }
-      if (prev) el.setAttribute("data-state", prev);
-      el.style.removeProperty("transition");
-      if (held) el.style.setProperty("--sheet-y", held);
-      if (wasDragging) el.dataset.dragging = wasDragging;
+    const resist = (y: number) => {
+      const stops = stopsRef.current;
+      if (y < stops.full) return stops.full + (y - stops.full) * 0.28;
+      if (y > stops.hidden) return stops.hidden + (y - stops.hidden) * 0.28;
+      return y;
     };
 
     const writeY = (y: number) => {
@@ -350,13 +376,8 @@ export function StudyWorkspace() {
       el.style.setProperty("--sheet-y", `${y}px`);
     };
 
-    const resist = (y: number) => {
-      if (y < stops.full) return stops.full + (y - stops.full) * 0.28;
-      if (y > stops.hidden) return stops.hidden + (y - stops.hidden) * 0.28;
-      return y;
-    };
-
     const finishAt = (y: number, v: number) => {
+      const stops = stopsRef.current;
       const projected = y + v * 0.07;
       const pastPeek = projected > stops.peek + (stops.hidden - stops.peek) * 0.45;
       const flickDown = v > 900 && projected > stops.peek - 24;
@@ -372,7 +393,8 @@ export function StudyWorkspace() {
           onRest: () => {
             springDone.current = true;
             dragYRef.current = stops.hidden;
-            setSheetDragging(false);
+            gestureRef.current = false;
+            setSheetEpoch((n) => n + 1);
             clearSelection();
           },
         });
@@ -412,7 +434,8 @@ export function StudyWorkspace() {
         onUpdate: writeY,
         onRest: () => {
           springDone.current = true;
-          setSheetDragging(false);
+          gestureRef.current = false;
+          setSheetEpoch((n) => n + 1);
         },
       });
     };
@@ -423,8 +446,9 @@ export function StudyWorkspace() {
       sheetSpring.current?.();
       springDone.current = false;
       settleMode.current = null;
+      gestureRef.current = true;
+      el.dataset.dragging = "true";
       const visual = readY();
-      measureStops();
       active = true;
       pointer = e.pointerId;
       moved = 0;
@@ -446,10 +470,7 @@ export function StudyWorkspace() {
       lastT = now;
       const delta = e.clientY - startTouch;
       moved = Math.max(moved, Math.abs(delta));
-      if (el.dataset.dragging !== "true") {
-        el.dataset.dragging = "true";
-        setSheetDragging(true);
-      }
+      if (el.dataset.dragging !== "true") el.dataset.dragging = "true";
       writeY(resist(origin + delta));
     };
 
@@ -458,10 +479,10 @@ export function StudyWorkspace() {
       active = false;
       pointer = -1;
       if (moved < 3) {
+        gestureRef.current = false;
         dragYRef.current = null;
         el.style.removeProperty("--sheet-y");
         el.dataset.dragging = "false";
-        setSheetDragging(false);
         return;
       }
       finishAt(dragYRef.current ?? origin, velocity);
@@ -740,7 +761,6 @@ export function StudyWorkspace() {
               ref={sheetRef}
               className="tl-sheet-up absolute inset-x-0 bottom-0 flex w-full flex-col overflow-hidden border-t border-rule bg-surface shadow-soft md:mx-auto md:w-[min(40rem,100%)]"
               data-state={sheetState}
-              data-dragging={sheetDragging ? "true" : "false"}
             >
               <div className="flex min-h-0 flex-1 flex-col">
                 <ReceptionPanel

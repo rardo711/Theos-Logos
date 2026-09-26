@@ -851,45 +851,70 @@ html.dark .tl-shell {
 .tl-bible {
   position: relative;
   display: inline-block;
-  width: 20px;
-  height: 14px;
+  width: 22px;
+  height: 16px;
   flex: none;
-  perspective: 90px;
+  perspective: 140px;
 }
 
 .tl-bible-lg {
-  width: 28px;
-  height: 20px;
+  width: 36px;
+  height: 26px;
+}
+
+.tl-bible-stage {
+  position: absolute;
+  inset: 0;
+  transform: rotateX(18deg) rotateY(-22deg);
+  transform-style: preserve-3d;
 }
 
 .tl-bible-board,
 .tl-bible-sheet,
+.tl-bible-gilt,
 .tl-bible-leaf {
   position: absolute;
 }
 
-.tl-bible-board {
-  inset: 0;
-  border-radius: 1px 2px 2px 1px;
-  background: var(--color-oxblood);
+.tl-bible-on-oxblood .tl-bible-board {
+  background: linear-gradient(90deg, #2c0808 0 3px, #f3eadc 3px);
 }
 
 .tl-bible-sheet {
-  inset: 2px 2px 2px 3px;
+  inset: 2px 3px 2px 4px;
   background: #f4efe4;
   box-shadow: inset 1px 0 0 #e3d5c0;
+}
+
+.tl-bible-gilt {
+  top: 2px;
+  bottom: 2px;
+  right: 2px;
+  width: 2px;
+  background: linear-gradient(#e7d7b0, var(--color-gold));
 }
 
 .tl-bible-leaf {
   top: 2px;
   bottom: 2px;
-  left: 50%;
-  width: calc(50% - 2px);
-  background: #f7f3ea;
+  left: 46%;
+  width: calc(54% - 4px);
   transform-origin: left center;
-  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  animation: tl-leaf-scan 1.15s var(--ease-smooth-out) infinite;
+}
+
+.tl-bible-face {
+  position: absolute;
+  inset: 0;
+  background: #f7f3ea;
   box-shadow: inset 1px 0 0 var(--color-gold);
-  animation: tl-leaf-scan 1.35s var(--ease-smooth-out) infinite;
+  backface-visibility: hidden;
+}
+
+.tl-bible-face-back {
+  background: #efe4d2;
+  transform: rotateY(180deg);
 }
 
 .tl-bible-leaf-2 {

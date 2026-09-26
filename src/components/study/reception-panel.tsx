@@ -63,7 +63,7 @@ import { SpanishGlossCard } from "./spanish-gloss-card";
 import { EnglishGlossCard } from "./english-gloss-card";
 import { HebrewBdbCard } from "./hebrew-bdb-card";
 import { SpanishHebrewCard } from "./spanish-hebrew-card";
-import { ThinkingMark } from "./thinking-mark";
+import { ThinkingMark, LampMark } from "./thinking-mark";
 
 const STOP = new Set([
   "the", "and", "of", "to", "a", "in", "that", "is", "was", "he", "for", "it",
@@ -1243,7 +1243,11 @@ export function ReceptionPanel({
                   aria-label={t(locale, "inquire")}
                   className="flex size-11 shrink-0 items-center justify-center rounded-md bg-oxblood text-oxblood-fg disabled:opacity-50"
                 >
-                  <Send size={16} />
+                  {loading && loadingKind === "question" ? (
+                    <LampMark state="composing" className="tl-bible-on-oxblood" />
+                  ) : (
+                    <Send size={16} />
+                  )}
                 </button>
               </div>
             </form>
@@ -1423,8 +1427,11 @@ export function ReceptionPanel({
                     type="button"
                     onClick={handleMore}
                     disabled={loading}
-                    className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-md border border-rule bg-surface px-4 text-xs font-semibold tracking-wide text-ink uppercase disabled:opacity-60"
+                  className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-md border border-rule bg-surface px-4 text-xs font-semibold tracking-wide text-ink uppercase disabled:opacity-60"
                   >
+                    {loading && loadingKind === "commentaries" ? (
+                      <LampMark state="searching" />
+                    ) : null}
                     {loadingKind === "commentaries"
                       ? t(locale, "consultingShort")
                       : showAll
@@ -1443,8 +1450,11 @@ export function ReceptionPanel({
                   type="button"
                   onClick={handleSummary}
                   disabled={loading}
-                  className="min-h-11 flex-1 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
+                  className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
                 >
+                  {loading && loadingKind === "summary" ? (
+                    <LampMark state="composing" className="tl-bible-on-oxblood" />
+                  ) : null}
                   {loadingKind === "summary"
                     ? t(locale, "consultingShort")
                     : t(locale, "summary")}
