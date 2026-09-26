@@ -593,10 +593,10 @@ html.dark .tl-shell {
     opacity 420ms var(--ease-smooth-out);
 }
 
-/* Sources desk — the page rises, then the header and list settle. */
+/* Sources desk — slides in from the right, then the header and list settle. */
 .tl-sources {
   opacity: 0;
-  transform: translateY(22px);
+  transform: translateX(100%);
   will-change: opacity, transform;
   transition:
     opacity var(--motion-sources-exit) var(--ease-smooth-out),

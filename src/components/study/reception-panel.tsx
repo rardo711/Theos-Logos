@@ -1429,9 +1429,6 @@ export function ReceptionPanel({
                     disabled={loading}
                   className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-md border border-rule bg-surface px-4 text-xs font-semibold tracking-wide text-ink uppercase disabled:opacity-60"
                   >
-                    {loading && loadingKind === "commentaries" ? (
-                      <LampMark state="searching" />
-                    ) : null}
                     {loadingKind === "commentaries"
                       ? t(locale, "consultingShort")
                       : showAll
@@ -1452,9 +1449,6 @@ export function ReceptionPanel({
                   disabled={loading}
                   className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-md bg-oxblood px-4 text-xs font-semibold tracking-wide text-oxblood-fg uppercase disabled:opacity-60"
                 >
-                  {loading && loadingKind === "summary" ? (
-                    <LampMark state="composing" className="tl-bible-on-oxblood" />
-                  ) : null}
                   {loadingKind === "summary"
                     ? t(locale, "consultingShort")
                     : t(locale, "summary")}
